@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Platforms>x64</Platforms>    
+  </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.1" />
+      <PackageReference Include="NETCore.Encrypt" Version="2.0.9" />
+		  <PackageReference Include="Serilog" Version="2.10.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Leadsly.Models\Leadsly.Models.csproj" />
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "417b53a4-95f8-4771-a1b1-f013359590c2": {
+      "ProjectGuid": "417b53a4-95f8-4771-a1b1-f013359590c2",
+      "DisplayName": "Shared.Infrastructure.Leadsly",
+      "ColorIndex": 0
+    }
+  },
+  "NextColorIndex": 1
+}

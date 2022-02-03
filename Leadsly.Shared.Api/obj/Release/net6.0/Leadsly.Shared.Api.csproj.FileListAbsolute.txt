@@ -1,0 +1,17 @@
+D:\Dev\Projects\leadsly\Leadsly.Shared.Api\Leadsly.Shared.Api\bin\Release\net6.0\Leadsly.Shared.Api.deps.json
+D:\Dev\Projects\leadsly\Leadsly.Shared.Api\Leadsly.Shared.Api\bin\Release\net6.0\Leadsly.Shared.Api.dll
+D:\Dev\Projects\leadsly\Leadsly.Shared.Api\Leadsly.Shared.Api\bin\Release\net6.0\ref\Leadsly.Shared.Api.dll
+D:\Dev\Projects\leadsly\Leadsly.Shared.Api\Leadsly.Shared.Api\bin\Release\net6.0\Leadsly.Shared.Api.pdb
+D:\Dev\Projects\leadsly\Leadsly.Shared.Api\Leadsly.Shared.Api\bin\Release\net6.0\Leadsly.Models.dll
+D:\Dev\Projects\leadsly\Leadsly.Shared.Api\Leadsly.Shared.Api\bin\Release\net6.0\Leadsly.Shared.Domain.dll
+D:\Dev\Projects\leadsly\Leadsly.Shared.Api\Leadsly.Shared.Api\bin\Release\net6.0\Leadsly.Shared.Domain.pdb
+D:\Dev\Projects\leadsly\Leadsly.Shared.Api\Leadsly.Shared.Api\bin\Release\net6.0\Leadsly.Models.pdb
+D:\Dev\Projects\leadsly\Leadsly.Shared.Api\Leadsly.Shared.Api\obj\Release\net6.0\Leadsly.Shared.Api.csproj.AssemblyReference.cache
+D:\Dev\Projects\leadsly\Leadsly.Shared.Api\Leadsly.Shared.Api\obj\Release\net6.0\Leadsly.Shared.Api.GeneratedMSBuildEditorConfig.editorconfig
+D:\Dev\Projects\leadsly\Leadsly.Shared.Api\Leadsly.Shared.Api\obj\Release\net6.0\Leadsly.Shared.Api.AssemblyInfoInputs.cache
+D:\Dev\Projects\leadsly\Leadsly.Shared.Api\Leadsly.Shared.Api\obj\Release\net6.0\Leadsly.Shared.Api.AssemblyInfo.cs
+D:\Dev\Projects\leadsly\Leadsly.Shared.Api\Leadsly.Shared.Api\obj\Release\net6.0\Leadsly.Shared.Api.csproj.CoreCompileInputs.cache
+D:\Dev\Projects\leadsly\Leadsly.Shared.Api\Leadsly.Shared.Api\obj\Release\net6.0\Leadsly.Shared.Api.csproj.CopyComplete
+D:\Dev\Projects\leadsly\Leadsly.Shared.Api\Leadsly.Shared.Api\obj\Release\net6.0\Leadsly.Shared.Api.dll
+D:\Dev\Projects\leadsly\Leadsly.Shared.Api\Leadsly.Shared.Api\obj\Release\net6.0\ref\Leadsly.Shared.Api.dll
+D:\Dev\Projects\leadsly\Leadsly.Shared.Api\Leadsly.Shared.Api\obj\Release\net6.0\Leadsly.Shared.Api.pdb
