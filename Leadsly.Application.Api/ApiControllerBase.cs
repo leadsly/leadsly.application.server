@@ -1,4 +1,4 @@
-﻿using Leadsly.Models.Database;
+﻿using Leadsly.Models.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

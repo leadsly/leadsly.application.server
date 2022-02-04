@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Models.Database
+namespace Leadsly.Models.Entities
 {
     public class Campaign
     {

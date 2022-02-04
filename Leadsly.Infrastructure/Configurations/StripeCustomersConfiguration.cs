@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Leadsly.Models.Database;
+using Leadsly.Models.Entities;
 
 namespace Leadsly.Infrastructure.Configurations
 {

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Models.Database
+namespace Leadsly.Models.Entities
 {
     /// <summary>
     /// Represents look up table between application user id and stripe customer id

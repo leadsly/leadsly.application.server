@@ -1,7 +1,7 @@
 ﻿using Leadsly.Domain.Models;
 using Leadsly.Domain.ViewModels.LeadslyBot;
 using Leadsly.Models;
-using Leadsly.Models.Database;
+using Leadsly.Models.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;

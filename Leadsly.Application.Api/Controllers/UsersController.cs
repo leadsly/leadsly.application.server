@@ -14,7 +14,7 @@ using System.Linq;
 using System.Text.Encodings.Web;
 using System.Threading;
 using System.Threading.Tasks;
-using Leadsly.Models.Database;
+using Leadsly.Models.Entities;
 using Leadsly.Domain;
 using Leadsly.Application.Api.Services;
 using Leadsly.Application.Api.OptionsJsonModels;

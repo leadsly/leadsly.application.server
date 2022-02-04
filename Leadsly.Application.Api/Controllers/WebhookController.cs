@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Stripe;
 using System.IO;
 using Leadsly.Domain.Supervisor;
-using Leadsly.Models.Database;
+using Leadsly.Models.Entities;
 using Leadsly.Domain;
 using Leadsly.Application.Api.Services;
 using Leadsly.Application.Api.OptionsJsonModels;

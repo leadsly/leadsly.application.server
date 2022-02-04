@@ -8,11 +8,12 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
-using Leadsly.Models.Database;
+using Leadsly.Models.Entities;
 using Leadsly.Domain;
 using Leadsly.Models;
 using Leadsly.Application.Api.Authentication;
 using Leadsly.Api;
+using Leadsly.Models.Entities;
 
 namespace Leadsly.Application.Api.Controllers
 {

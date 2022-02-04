@@ -13,7 +13,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Leadsly.Domain;
-using Leadsly.Models.Database;
+using Leadsly.Models.Entities;
 using Leadsly.Application.Api.Authentication.Jwt;
 using Leadsly.Api.Authentication;
 using Leadsly.Api.Exceptions;

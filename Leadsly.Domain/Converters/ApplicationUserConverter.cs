@@ -1,6 +1,6 @@
 ﻿using Leadsly.Domain.Models;
 using Leadsly.Domain.ViewModels;
-using Leadsly.Models.Database;
+using Leadsly.Models.Entities;
 using System.Linq;
 
 namespace Leadsly.Domain.Converters

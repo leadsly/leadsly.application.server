@@ -4,7 +4,7 @@ using Leadsly.Domain.ViewModels.LeadslyBot;
 using Microsoft.AspNetCore.Identity;
 using System.Threading;
 using System.Threading.Tasks;
-using Leadsly.Models.Database;
+using Leadsly.Models.Entities;
 using Leadsly.Models;
 
 namespace Leadsly.Domain.Supervisor

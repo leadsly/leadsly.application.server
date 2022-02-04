@@ -9,7 +9,7 @@ using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Text.Encodings.Web;
-using Leadsly.Models.Database;
+using Leadsly.Models.Entities;
 using Leadsly.Domain;
 using Leadsly.Application.Api.Services;
 using Leadsly.Application.Api.Authentication;

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using System.Security.Claims;
-using Leadsly.Models.Database;
+using Leadsly.Models.Entities;
 using Leadsly.Domain;
 
 namespace Leadsly.Infrastructure.DatabaseInitializer

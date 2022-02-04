@@ -3,7 +3,7 @@ using Leadsly.Domain.Supervisor;
 using Leadsly.Domain.ViewModels.Campaigns;
 using Leadsly.Domain.ViewModels.Reports;
 using Leadsly.Domain.ViewModels.Reports.ApexCharts;
-using Leadsly.Models.Database;
+using Leadsly.Models.Entities;
 using Leadsly.Api;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;

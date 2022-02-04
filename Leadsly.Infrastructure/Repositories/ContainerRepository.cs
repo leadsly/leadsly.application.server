@@ -1,5 +1,5 @@
 ﻿using Leadsly.Domain.Repositories;
-using Leadsly.Models.Database;
+using Leadsly.Models.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;

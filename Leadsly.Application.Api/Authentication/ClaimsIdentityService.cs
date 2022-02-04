@@ -2,13 +2,11 @@
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Leadsly.Domain;
-using Leadsly.Domain.Models;
+using Leadsly.Models.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
-using Leadsly.Models.Database;
-using Leadsly.Domain;
-using Leadsly.Domain;
+
 
 namespace Leadsly.Application.Api.Authentication
 {
