@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Models
 {
-    public class DestroyWebDriver
+    public class DestroyWebDriverDTO
     {
         public string WebDriverId { get; set; }
         public string UserId { get; set; }

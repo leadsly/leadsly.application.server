@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Leadsly.Models
 {
     [DataContract]
-    public class AuthenticateUserWithHalResult
+    public class AuthenticateUserWithHalResultDTO
     {
         [DataMember(IsRequired = true)]
         public bool Succeeded { get; set; }

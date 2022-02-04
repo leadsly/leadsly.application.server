@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Models
 {
-    public class TwoFactorAuthenticationResult
+    public class TwoFactorAuthenticationResultDTO
     {
         public bool Succeeded { get; set; } = false;
         public bool InvalidOrExpiredCode { get; set; } = false;

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Models
 {
-    public class WebDriverInformation
+    public class WebDriverInformationDTO
     {
         public string Id { get; set; }
         public string UserId { get; set; }

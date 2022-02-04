@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Leadsly.Models
 {
     [DataContract]
-    public class NewDriverInstanceResult
+    public class NewDriverInstanceResultDTO
     {
         public bool Succeeded { get; set; }
         [DataMember(EmitDefaultValue = false)]

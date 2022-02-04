@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Models
 {
-    public enum NewDriverInstancePurpose
+    public enum NewDriverInstancePurposeDTO
     {
         Authentication,
         Campaign
