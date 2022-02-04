@@ -49,7 +49,6 @@
     <ProjectReference Include="..\Leadsly.Domain\Leadsly.Domain.csproj" />
     <ProjectReference Include="..\Leadsly.Infrastructure\Leadsly.Infrastructure.csproj" />
     <ProjectReference Include="..\Leadsly.Models\Leadsly.Models.csproj" />
-    <ProjectReference Include="..\Leadsly.Shared.Api\Leadsly.Shared.Api.csproj" />
   </ItemGroup>
 
 </Project>

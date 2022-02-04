@@ -11,7 +11,7 @@ namespace Shared.Models.Leadsly.Requests
     public class NewDriverInstanceRequestDTO
     {
         [DataMember(IsRequired = true)]
-        public NewDriverInstancePurpose Purpose { get; set; }
+        public NewDriverInstancePurposeDTO Purpose { get; set; }
 
     }
 }

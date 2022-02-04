@@ -8,9 +8,8 @@ using System.Threading.Tasks;
 namespace Leadsly.Models
 {
     [DataContract]
-    public class NetworkConfigurationDTO
+    public class LeadslySetupResultDTO
     {
-        [DataMember(Name = "awsvpcConfiguration", IsRequired = true)]
-        public AwsvpcConfigurationDTO AwsvpcConfiguration { get; set; }
+        public bool Succeeded { get; set; }
     }
 }

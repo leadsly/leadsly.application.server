@@ -9,9 +9,8 @@ using Microsoft.Extensions.FileProviders;
 using System.IO;
 using Microsoft.AspNetCore.Http;
 using Leadsly.Domain;
-using Leadsly.Shared.Api.Middlewares;
+using Leadsly.Api.Middlewares;
 using Leadsly.Application.Api.Configurations;
-using Leadsly.Shared.Api.ConfigureServices;
 
 namespace Leadsly.Application.Api
 {

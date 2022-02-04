@@ -14,11 +14,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Leadsly.Domain;
 using Leadsly.Models.Database;
-using Leadsly.Domain;
-using Leadsly.Domain;
-using Leadsly.Shared.Api.Exceptions;
-using Leadsly.Shared.Api.Authentication;
 using Leadsly.Application.Api.Authentication.Jwt;
+using Leadsly.Api.Authentication;
+using Leadsly.Api.Exceptions;
 
 namespace Leadsly.Application.Api.Authentication
 {

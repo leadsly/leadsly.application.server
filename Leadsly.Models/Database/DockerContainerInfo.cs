@@ -4,11 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Models.Aws
+namespace Leadsly.Models.Database
 {
-    public class Tag
+    public class DockerContainerInfo
     {
-        public string Key { get; set; }
-        public string Value { get; set; }
     }
 }

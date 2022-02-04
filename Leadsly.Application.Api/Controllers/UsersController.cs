@@ -18,7 +18,7 @@ using Leadsly.Models.Database;
 using Leadsly.Domain;
 using Leadsly.Application.Api.Services;
 using Leadsly.Application.Api.OptionsJsonModels;
-using Leadsly.Shared.Api;
+using Leadsly.Api;
 using Leadsly.Domain.ViewModels.Reports;
 using System;
 using Leadsly.Domain.ViewModels.Reports.ApexCharts;

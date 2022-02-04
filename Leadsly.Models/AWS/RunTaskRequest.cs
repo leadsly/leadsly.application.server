@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Models.AWS
+namespace Leadsly.Models.Aws
 {
     [DataContract]
     public class RunTaskRequest

@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Leadsly.Models.Aws
 {
-    public class Tag
+    [DataContract]
+    public class CreateServiceResponse
     {
-        public string Key { get; set; }
-        public string Value { get; set; }
     }
 }

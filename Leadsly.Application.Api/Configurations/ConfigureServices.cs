@@ -28,7 +28,11 @@ using Leadsly.Application.Api.DataProtectorTokenProviders;
 using Leadsly.Application.Api.Services;
 using Leadsly.Application.Api.Authentication;
 using Leadsly.Application.Api.OptionsJsonModels;
-using Leadsly.Domain.Repositories;
+using Leadsly.Domain.Providers;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Leadsly.Api.Authentication;
+using System.Threading.Tasks;
 
 namespace Leadsly.Application.Api.Configurations
 {
@@ -48,6 +52,7 @@ namespace Leadsly.Application.Api.Configurations
             Log.Information("Registering repository services.");
 
             services.AddScoped<IStripeRepository, StripeRepository>();
+            services.AddScoped<IContainerRepository, ContainerRepository>();
 
             return services;
         }
@@ -56,14 +61,78 @@ namespace Leadsly.Application.Api.Configurations
         {
             Log.Information("Registering leadsly services.");
 
-            LeadslyBotApiOptions options = new LeadslyBotApiOptions();
-            configuration.GetSection(nameof(LeadslyBotApiOptions)).Bind(options);
+            //LeadslyBotApiOptions options = new LeadslyBotApiOptions();
+            //configuration.GetSection(nameof(LeadslyBotApiOptions)).Bind(options);
 
-            services.AddHttpClient<ILeadslyBotApiService, LeadslyBotApiService>(opt =>
+            //services.AddHttpClient<ILeadslyBotApiService, LeadslyBotApiService>(opt =>
+            //{
+            //    opt.BaseAddress = new Uri(options.ApiUrl);
+            //});
+
+            services.AddHttpClient<IAwsElasticContainerService, AwsElasticContainerService>(opt =>
             {
-                opt.BaseAddress = new Uri(options.ApiUrl);
+                opt.BaseAddress = new Uri("http://localhost:5004");
             });
+
+            services.AddScoped<IAwsElasticContainerProvider, AwsElasticContainerProvider>();
             
+            return services;
+        }
+
+        public static IServiceCollection AddJsonWebTokenConfiguration(this IServiceCollection services, IConfiguration configuration)
+        {
+            Log.Information("Configuring Jwt services.");
+
+            IConfigurationSection jwtAppSettingOptions = configuration.GetSection(nameof(JwtIssuerOptions));
+
+            // retrieve private key from user secrets or azure vault
+            string privateKey = configuration[ApiConstants.VaultKeys.JwtSecret];
+            SymmetricSecurityKey signingKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(privateKey));
+
+            services.Configure<JwtIssuerOptions>(options =>
+            {
+                options.Issuer = jwtAppSettingOptions[nameof(JwtIssuerOptions.Issuer)];
+                options.Audience = jwtAppSettingOptions[nameof(JwtIssuerOptions.Audience)];
+                options.SigningCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256Signature);
+            });
+
+            TokenValidationParameters tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidIssuer = jwtAppSettingOptions[nameof(JwtIssuerOptions.Issuer)],
+
+                ValidateAudience = true,
+                ValidAudience = jwtAppSettingOptions[nameof(JwtIssuerOptions.Audience)],
+
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = signingKey,
+
+                RequireSignedTokens = true,
+                RequireExpirationTime = true,
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
+            };
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(configureOptions =>
+            {
+                configureOptions.ClaimsIssuer = jwtAppSettingOptions[nameof(JwtIssuerOptions.Issuer)];
+                configureOptions.TokenValidationParameters = tokenValidationParameters;
+                configureOptions.SaveToken = true;
+                // In case of having an expired token
+                configureOptions.Events = new JwtBearerEvents
+                {
+                    OnAuthenticationFailed = context =>
+                    {
+                        if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
+                        {
+                            context.Response.Headers.Add(ApiConstants.TokenOptions.ExpiredToken, "true");
+                        }
+                        return Task.CompletedTask;
+                    }
+                };
+            });
+
             return services;
         }
 

@@ -12,7 +12,7 @@ using Leadsly.Models.Database;
 using Leadsly.Domain;
 using Leadsly.Models;
 using Leadsly.Application.Api.Authentication;
-using Leadsly.Shared.Api;
+using Leadsly.Api;
 
 namespace Leadsly.Application.Api.Controllers
 {

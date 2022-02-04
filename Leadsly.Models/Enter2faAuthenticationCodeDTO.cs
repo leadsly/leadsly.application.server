@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 namespace Leadsly.Models
 {
     [DataContract]
-    public class NetworkConfigurationDTO
+    public class Enter2faAuthenticationCodeDTO
     {
-        [DataMember(Name = "awsvpcConfiguration", IsRequired = true)]
-        public AwsvpcConfigurationDTO AwsvpcConfiguration { get; set; }
+        [DataMember(IsRequired = true)]
+        public string Code { get; set; }
     }
 }

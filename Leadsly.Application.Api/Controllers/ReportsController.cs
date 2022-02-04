@@ -1,5 +1,5 @@
 ﻿using Leadsly.Domain.Supervisor;
-using Leadsly.Shared.Api;
+using Leadsly.Api;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
