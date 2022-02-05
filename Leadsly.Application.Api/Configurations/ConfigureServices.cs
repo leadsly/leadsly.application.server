@@ -53,6 +53,7 @@ namespace Leadsly.Application.Api.Configurations
 
             services.AddScoped<IStripeRepository, StripeRepository>();
             services.AddScoped<IContainerRepository, ContainerRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
 
             return services;
         }
@@ -75,6 +76,8 @@ namespace Leadsly.Application.Api.Configurations
             });
 
             services.AddScoped<IAwsElasticContainerProvider, AwsElasticContainerProvider>();
+            services.AddScoped<ILeadslyProvider, LeadslyProvider>();
+            services.AddScoped<ILeadslyBotApiService, LeadslyBotApiService>();
             
             return services;
         }

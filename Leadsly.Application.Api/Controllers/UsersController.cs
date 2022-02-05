@@ -478,7 +478,7 @@ namespace Leadsly.Application.Api.Controllers
             {
                 _logger.LogDebug("User not found.");
 
-                // return bad request user not found
+                // return bad request user not founds
                 return BadRequest_UserNotFound();
             }
 

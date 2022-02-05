@@ -26,9 +26,9 @@ namespace Leadsly.Application.Api.Controllers
         private readonly ISupervisor _supervisor;
         private readonly ILogger<LeadslyController> _logger;
 
-        [HttpPost]
+        [HttpPost("connect")]
         [AllowAnonymous]
-        public async Task<IActionResult> SetupUserWithLeadsly(LeadslySetupDTO setupLeasdsly, CancellationToken ct = default)
+        public async Task<IActionResult> SetupAccountWithLeadsly(LeadslySetupDTO setupLeasdsly, CancellationToken ct = default)
         {
             _logger.LogTrace("SetupUserWithLeadsly action executed.");
 
