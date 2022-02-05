@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Leadsly.Models
 {
     [DataContract]
-    public class CreateContainerResultDTO
+    public class SetupUserInLeadslyResultDTO
     {
         public bool ServiceSuccessfullyCreated { get; set; }
         public bool TaskSuccessfullyCreated { get; set; }

@@ -10,6 +10,6 @@ namespace Leadsly.Models
     {
         public string Email { get; set; }
         public string Password { get; set; }
-        public ConnectedAccountType AccountType { get; set; }        
+        public SocialAccountType AccountType { get; set; }        
     }
 }

@@ -11,6 +11,7 @@ namespace Leadsly.Models.Entities
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; }
+        public string ApplicationUserId { get; set; }
         public string Name { get; set; }
         public long ConnectionsSentDaily { get; set; }
         public long TotalConnectionsSent { get; set; }
@@ -20,6 +21,7 @@ namespace Leadsly.Models.Entities
         public bool Active { get; set; } = true;
         public bool Expired { get; set; } = false;
         public string Notes { get; set; }
+        public ApplicationUser ApplicationUser { get; set; }
 
     }
 }

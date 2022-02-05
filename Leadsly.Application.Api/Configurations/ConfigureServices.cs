@@ -33,6 +33,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Leadsly.Api.Authentication;
 using System.Threading.Tasks;
+using Amazon.ECS;
 
 namespace Leadsly.Application.Api.Configurations
 {
@@ -76,6 +77,7 @@ namespace Leadsly.Application.Api.Configurations
             });
 
             services.AddScoped<IAwsElasticContainerProvider, AwsElasticContainerProvider>();
+            services.AddScoped(typeof(AmazonECSClient));
             services.AddScoped<ILeadslyProvider, LeadslyProvider>();
             services.AddScoped<ILeadslyBotApiService, LeadslyBotApiService>();
             

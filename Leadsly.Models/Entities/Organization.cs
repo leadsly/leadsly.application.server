@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
@@ -7,13 +8,13 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Models.Entities
 {
-    public class ECSTask
+    public class Organization
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; }
-        public string ECSServiceId { get; set; }
-        public string UserId { get; set; }
-        public ECSService ECSService { get; set; }
-        public ICollection<DockerContainerInfo> DockerContainers { get; set; }
+        [Required]
+        public string Name { get; set; }
+        public ICollection<ApplicationUser> OrganizationUsers { get; set; }
+
     }
 }

@@ -11,5 +11,6 @@ namespace Leadsly.Domain.Repositories
     public interface IContainerRepository
     {
         Task<List<DockerContainerInfo>> GetContainersByUserId(string userId, CancellationToken ct = default);
+        Task<DockerContainerInfo> GetContainerById(string id, CancellationToken ct = default);
     }
 }

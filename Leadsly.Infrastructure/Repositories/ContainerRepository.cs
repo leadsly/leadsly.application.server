@@ -18,7 +18,12 @@ namespace Leadsly.Infrastructure.Repositories
 
         private readonly DatabaseContext _databaseContext;
 
-        public Task<List<DockerContainerInfo>> GetContainersByUserId(string userId, CancellationToken ct = default)
+        public async Task<List<DockerContainerInfo>> GetContainersByUserId(string userId, CancellationToken ct = default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<DockerContainerInfo> GetContainerById(string id, CancellationToken ct = default)
         {
             throw new NotImplementedException();
         }

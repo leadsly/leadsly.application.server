@@ -17,6 +17,11 @@ namespace Leadsly.Infrastructure
 
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
         public DbSet<Customer_Stripe> StripeCustomers { get; set; }
+        public DbSet<DockerContainerInfo> DockerContainers { get; set; }
+        public DbSet<ECSService> ECSServices { get; set; }
+        public DbSet<ECSTask> ECSTasks { get; set; }
+        public DbSet<Organization> Organizations { get; set; }
+        public DbSet<SocialAccount> SocialAccounts { get; set; }        
         public DbSet<Campaign> Campaigns { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)

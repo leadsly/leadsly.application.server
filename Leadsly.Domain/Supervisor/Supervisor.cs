@@ -16,6 +16,7 @@ namespace Leadsly.Domain.Supervisor
             IContainerRepository containerRepository, 
             ILeadslyBotApiService leadslyBotApiService,
             IAwsElasticContainerProvider awsContainerProvider,
+            ILeadslyProvider leadslyProvider,
             ILogger<Supervisor> logger)
         {
             _userManager = userManager;
@@ -23,11 +24,13 @@ namespace Leadsly.Domain.Supervisor
             _leadslyBotApiService = leadslyBotApiService;
             _containerRepository = containerRepository;
             _awsElasticContainerProvider = awsContainerProvider;
+            _leadslyProvider = leadslyProvider;
             _logger = logger;
         }
 
         private readonly LeadslyUserManager _userManager;
         private readonly IContainerRepository _containerRepository;
+        private readonly ILeadslyProvider _leadslyProvider;
         private readonly IAwsElasticContainerProvider _awsElasticContainerProvider;
         private readonly IStripeRepository _stripeRepository;
         private readonly ILogger<Supervisor> _logger;

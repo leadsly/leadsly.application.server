@@ -4,11 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Models
+namespace Leadsly.Models.Aws
 {
-    public enum ConnectedAccountType
+    public enum PublicIp
     {
         None,
-        LinkedIn
+        Enabled,
+        Disabled
     }
 }

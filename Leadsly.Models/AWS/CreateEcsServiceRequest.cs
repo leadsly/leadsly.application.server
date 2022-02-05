@@ -7,19 +7,20 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Models.Aws
 {
-    [DataContract]
-    public class CreateServiceRequest
+    public class CreateEcsServiceRequest
     {
-        [DataMember(IsRequired = true)]
         public string LaunchType { get; set; }
 
-        [DataMember(IsRequired = true)]
         public string SchedulingStrategy { get; set; }
 
-        [DataMember(IsRequired = true)]
         public string ServiceName { get; set; }
 
-        [DataMember(IsRequired = false)]
-        public List<Tag> Tags { get; set; }
+        public int DesiredCount { get; set; }
+        
+        public string TaskDefinition { get; set; }
+        
+        public string Cluster { get; set; }
+        
+        public string AssignPublicIp { get; set; }
     }    
 }
