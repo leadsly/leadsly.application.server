@@ -16,5 +16,9 @@ namespace Leadsly.Domain.Services
         Task<CreateServiceResponse> CreateServiceAsync(CreateEcsServiceRequest createServiceRequest, CancellationToken ct = default);
 
         Task<RunTaskResponse> RunTaskAsync(RunEcsTaskRequest request, CancellationToken ct = default);
+
+        Task<UpdateServiceResponse> UpdateServiceAsync(UpdateEcsServiceRequest updateServiceRequest, CancellationToken ct = default);
+
+        Task<DescribeServicesResponse> DescribeServiceAsync(DescribeEcsServiceRequest describeService, CancellationToken ct = default);
     }
 }

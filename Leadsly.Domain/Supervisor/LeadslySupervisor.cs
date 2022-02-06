@@ -32,14 +32,14 @@ namespace Leadsly.Domain.Supervisor
                 UserId = setup.UserId
             };
 
-            // check if this username/email with this social account type already exists
+            // Try and get social account for this leadsly user, for the given username/email and socialAccountType
             SocialAccount socialAccount = await _leadslyProvider.GetSocialAccountAsync(socialAccountDTO, ct);
-
-            // should always either be null or zero or 
-
-            if(socialAccount.Connected == false)
+            
+            // checks whether this email and social account type are setup with current users leadsly account
+            if(socialAccount.ConfiguredWithUsersLeadslyAccount == false)
             {
-                DockerContainerInfo existingContainerInfo = await _leadslyProvider.GetContainerInfoBySocialAccountAsync(socialAccountDTO, ct);
+                //TODO I don't know how this would ever be NOT null but more testing is required
+                DockerContainerInfo existingContainerInfo = socialAccount.DockerContainerInfo;
 
                 // this social username and social account type do not have a container available
                 if (existingContainerInfo == null)
@@ -49,15 +49,28 @@ namespace Leadsly.Domain.Supervisor
                         UserId = setup.UserId,
                         EcsService = new()
                         {
-                            
+                            AssignPublicIp = PublicIp.Disabled,
+                            ClusterArn = "arn:aws:ecs:us-east-1:709251838882:cluster/default",
+                            DesiredCount = 1,
+                            Subnets = new() { "subnet-049bf059384e86947", "subnet-0f41f5f070cc120b9" },
+                            LaunchType = EcsLaunchType.Fargate,
+                            SchedulingStrategy = "REPLICA",
+                            ServiceName = "test-test",
+                            TaskDefinition = "first-run-task-definition:1"
+
                         },
                         EcsTask = new()
                         {
-
+                            AssignPublicIp = PublicIp.Enabled,
+                            Cluster = "arn:aws:ecs:us-east-1:709251838882:cluster/default",
+                            Count = 1,
+                            LaunchType = EcsLaunchType.Fargate,
+                            TaskDefinition = "first-run-task-definition:1",
+                            Subnets = new() { "subnet-049bf059384e86947", "subnet-0f41f5f070cc120b9" }
                         }
                     };
 
-                    AwsOperationResult awsOperation = await _awsElasticContainerProvider.SetupNewUsersContainerAsync(setupUserInLeadsy);
+                    CloudPlatformOperationResult awsOperation = await _cloudPlatformProvider.SetupNewUsersContainerAsync(setupUserInLeadsy);
 
                     if (awsOperation.Succeeded == false)
                     {
@@ -68,7 +81,7 @@ namespace Leadsly.Domain.Supervisor
                         DockerContainerInfo newContainerInfo = (DockerContainerInfo)awsOperation.Value;
 
                     }
-                    
+
                 }
             }
             else
@@ -82,7 +95,8 @@ namespace Leadsly.Domain.Supervisor
             return new LeadslySetupResultDTO { };
         }
 
-        private async Task<AwsOperationResult> SetupExistingUserInLeadslyAsync(SocialAccount socialAccount, CancellationToken ct = default)
+
+        private async Task<CloudPlatformOperationResult> SetupExistingUserInLeadslyAsync(SocialAccount socialAccount, CancellationToken ct = default)
         {
             DockerContainerInfo dockerContainerInfo = await _containerRepository.GetContainerById(socialAccount.ContainerId, ct);
 
@@ -93,7 +107,7 @@ namespace Leadsly.Domain.Supervisor
 
             // once we have docker container info run healthcheck
 
-            var res = await _awsElasticContainerProvider.SetupExistingContainerAsync(existingUser);
+            var res = await _cloudPlatformProvider.SetupExistingContainerAsync(existingUser);
 
             return res;
         }

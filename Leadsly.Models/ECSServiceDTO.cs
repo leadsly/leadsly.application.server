@@ -17,9 +17,9 @@ namespace Leadsly.Models
         public long CreatedAt { get; set; }
         public long CreatedBy { get; set; }
         public string TaskDefinition { get; set; }
-        public int DesiredCount { get; set; }
-        public string RoleArn { get; set; }
+        public int DesiredCount { get; set; }        
         public PublicIp AssignPublicIp { get; set; }
+        public List<string> Subnets { get; set; }
         public string SchedulingStrategy { get; set; }
     }
 }

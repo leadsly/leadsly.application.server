@@ -43,13 +43,13 @@ namespace Leadsly.Infrastructure.Repositories
         public async Task<IEnumerable<SocialAccount>> GetSocialAccountsAsync(SocialAccountDTO getSocialAccount, CancellationToken ct = default)
         {
             ApplicationUser applicationUser = await GetByIdAsync(getSocialAccount.UserId);
-
-            if(applicationUser == null)
+            IEnumerable<SocialAccount> socialAccounts = default;
+            if (applicationUser == null)
             {
-                throw new Exception("User does not exist");
+                return socialAccounts;
             }
 
-            IEnumerable<SocialAccount> socialAccounts = applicationUser.SocialAccounts.Where(s => s.Username == getSocialAccount.Username && Equals(s.AccountType, getSocialAccount.AccountType));
+            socialAccounts = applicationUser?.SocialAccounts.Where(s => s.Username == getSocialAccount.Username && Equals(s.AccountType, getSocialAccount.AccountType));
             return socialAccounts;
         }
     }

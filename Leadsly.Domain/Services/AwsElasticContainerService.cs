@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Amazon.ECS.Model;
+using Amazon;
 
 namespace Leadsly.Domain.Services
 {
@@ -18,7 +19,7 @@ namespace Leadsly.Domain.Services
     {
         public AwsElasticContainerService(AmazonECSClient amazonClient, ILogger<AwsElasticContainerService> logger)
         {
-            _amazonClient = amazonClient;
+            _amazonClient = amazonClient;            
             _logger = logger;
         }
 
@@ -36,15 +37,16 @@ namespace Leadsly.Domain.Services
                     ServiceName = createEcsServiceRequest.ServiceName,
                     TaskDefinition = createEcsServiceRequest.TaskDefinition,
                     Cluster = createEcsServiceRequest.Cluster,
-                    LaunchType = createEcsServiceRequest.LaunchType,
+                    LaunchType = createEcsServiceRequest.LaunchType,                    
                     NetworkConfiguration = new()
                     {
                         AwsvpcConfiguration = new()
                         {
-                            AssignPublicIp = createEcsServiceRequest.AssignPublicIp                            
+                            AssignPublicIp = createEcsServiceRequest.AssignPublicIp,
+                            Subnets = createEcsServiceRequest.Subnets
                         }
                     },
-                    SchedulingStrategy = createEcsServiceRequest.SchedulingStrategy
+                    SchedulingStrategy = createEcsServiceRequest.SchedulingStrategy                                   
                 }, ct);
                 
             }
@@ -70,8 +72,7 @@ namespace Leadsly.Domain.Services
                         AwsvpcConfiguration = new()
                         {
                             AssignPublicIp = runTaskRequest.AssignPublicIp,
-                            Subnets = runTaskRequest.Subnets,
-                            SecurityGroups = runTaskRequest.SecurityGroups
+                            Subnets = runTaskRequest.Subnets
                         }
                     },
                     LaunchType = runTaskRequest.LaunchType,
@@ -81,6 +82,45 @@ namespace Leadsly.Domain.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to create AWS task.");
+            }
+
+            return resp;
+        }
+
+        public async Task<UpdateServiceResponse> UpdateServiceAsync(UpdateEcsServiceRequest updateServiceRequest, CancellationToken ct = default)
+        {
+            UpdateServiceResponse resp = default;
+            try
+            {
+                resp = await _amazonClient.UpdateServiceAsync(new UpdateServiceRequest
+                {
+                    Cluster = updateServiceRequest.Cluster,
+                    DesiredCount = updateServiceRequest.DesiredCount,
+                    Service = updateServiceRequest.Service
+                });
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "Failed to update AWS service.");
+            }
+
+            return resp;
+        }
+
+        public async Task<DescribeServicesResponse> DescribeServiceAsync(DescribeEcsServiceRequest describeServiceRequest, CancellationToken ct = default)
+        {
+            DescribeServicesResponse resp = default;
+            try
+            {
+                resp = await _amazonClient.DescribeServicesAsync(new DescribeServicesRequest
+                {
+                    Cluster = describeServiceRequest.Cluster,
+                    Services = describeServiceRequest.Services                    
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to update AWS service.");
             }
 
             return resp;

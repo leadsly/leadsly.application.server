@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Models.Aws
+namespace Leadsly.Models
 {
-    public class AwsOperationResult
+    public class CloudPlatformOperationResult
     {
         public bool Succeeded { get; set; }
         public List<FailureDTO> Failures { get; set; } = new();

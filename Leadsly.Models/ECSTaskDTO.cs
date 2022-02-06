@@ -16,5 +16,6 @@ namespace Leadsly.Models
         public string TaskDefinition { get; set; }
         public string Cluster { get; set; }
         public int Count { get; set; }
+        public List<string> Subnets { get; set; }
     }
 }

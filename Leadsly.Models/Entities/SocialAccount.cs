@@ -13,7 +13,7 @@ namespace Leadsly.Models.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         [NotMapped]
-        public bool DockerContainerCreated { get; set; } = false;
+        public bool DockerContainerExists { get; set; } = false;
         [NotMapped]
         public bool DuplicateSocialAccountsFound { get; set; }
         [Required]
@@ -24,7 +24,7 @@ namespace Leadsly.Models.Entities
         [Required]
         public string Username { get; set; }
         [Required]
-        public bool Connected { get; set; }
+        public bool ConfiguredWithUsersLeadslyAccount { get; set; }
         public DockerContainerInfo DockerContainerInfo { get; set; }
     }
 }

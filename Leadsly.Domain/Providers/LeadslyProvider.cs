@@ -31,17 +31,17 @@ namespace Leadsly.Domain.Providers
 
             if(socialAccounts == null)
             {
-                socialAccount.DockerContainerCreated = false;
+                socialAccount.DockerContainerExists = false;
             }
 
-            if(socialAccounts.Count() > 1)
+            if(socialAccounts?.Count() > 1)
             {
                 socialAccount.DuplicateSocialAccountsFound = true;
             }
 
-            if(socialAccounts.Count() == 1)
+            if(socialAccounts?.Count() == 1)
             {
-                
+                socialAccount.ConfiguredWithUsersLeadslyAccount = true;
             }
             
 
@@ -53,8 +53,13 @@ namespace Leadsly.Domain.Providers
             ContainerInfoDTO containerInfoDTO = new ContainerInfoDTO();
 
             ApplicationUser appUser = await _userRepository.GetByIdAsync(socialAccountDTO.UserId);
+            SocialAccount socialAccount = default;
+            if (appUser == null)
+            {
+                return null;
+            }
 
-            SocialAccount socialAccount = appUser.SocialAccounts.FirstOrDefault(s => s.Username == socialAccountDTO.Username && Equals(s.AccountType, socialAccountDTO.AccountType));
+            socialAccount = appUser.SocialAccounts.FirstOrDefault(s => s.Username == socialAccountDTO.Username && Equals(s.AccountType, socialAccountDTO.AccountType));
 
             return socialAccount?.DockerContainerInfo;
         }

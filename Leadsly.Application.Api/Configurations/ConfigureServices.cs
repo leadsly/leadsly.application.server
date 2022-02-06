@@ -34,6 +34,7 @@ using System.Text;
 using Leadsly.Api.Authentication;
 using System.Threading.Tasks;
 using Amazon.ECS;
+using Amazon;
 
 namespace Leadsly.Application.Api.Configurations
 {
@@ -76,9 +77,11 @@ namespace Leadsly.Application.Api.Configurations
                 opt.BaseAddress = new Uri("http://localhost:5004");
             });
 
-            services.AddScoped<IAwsElasticContainerProvider, AwsElasticContainerProvider>();
+            AWSConfigs.AWSRegion = "us-east-1";
             services.AddScoped(typeof(AmazonECSClient));
+            services.AddScoped<ICloudPlatformProvider, CloudPlatformProvider>();            
             services.AddScoped<ILeadslyProvider, LeadslyProvider>();
+            services.AddScoped<IAwsElasticContainerService, AwsElasticContainerService>();
             services.AddScoped<ILeadslyBotApiService, LeadslyBotApiService>();
             
             return services;
