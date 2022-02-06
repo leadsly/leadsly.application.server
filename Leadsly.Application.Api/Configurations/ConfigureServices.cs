@@ -27,11 +27,9 @@ using Leadsly.Infrastructure;
 using Leadsly.Application.Api.DataProtectorTokenProviders;
 using Leadsly.Application.Api.Services;
 using Leadsly.Application.Api.Authentication;
-using Leadsly.Application.Api.OptionsJsonModels;
 using Leadsly.Domain.Providers;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Leadsly.Api.Authentication;
 using System.Threading.Tasks;
 using Amazon.ECS;
 using Amazon;
@@ -56,6 +54,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<IStripeRepository, StripeRepository>();
             services.AddScoped<IContainerRepository, ContainerRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<ICloudPlatformRepository, CloudPlatformRepository>();
 
             return services;
         }
@@ -81,7 +80,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped(typeof(AmazonECSClient));
             services.AddScoped<ICloudPlatformProvider, CloudPlatformProvider>();            
             services.AddScoped<ILeadslyProvider, LeadslyProvider>();
-            services.AddScoped<IAwsElasticContainerService, AwsElasticContainerService>();
+            services.AddScoped<IAwsElasticContainerService, AwsElasticContainerService>();            
             services.AddScoped<ILeadslyBotApiService, LeadslyBotApiService>();
             
             return services;

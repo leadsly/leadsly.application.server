@@ -1,8 +1,7 @@
-﻿using Microsoft.IdentityModel.Tokens;
-using System;
+﻿using System;
 using System.Threading.Tasks;
 
-namespace Leadsly.Api.Authentication
+namespace Leadsly.Application.Api.Authentication
 {
     public class JwtIssuerOptions
     {
