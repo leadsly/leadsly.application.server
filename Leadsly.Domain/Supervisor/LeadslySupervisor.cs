@@ -23,12 +23,24 @@ namespace Leadsly.Domain.Supervisor
             return result;
         }
 
+        /// <summary>
+        /// This methods, handles the set up of user's env in aws.
+        /// </summary>
+        /// <param name="setup"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
         public async Task<LeadslySetupResultDTO> SetupLeadslyForUserAsync(LeadslySetupDTO setup, CancellationToken ct = default)
         {
+            LeadslySetupResultDTO result = new()
+            {
+                Succeeded = false
+            };
+
             SocialAccountDTO socialAccountDTO = new()
             {
                 AccountType = setup.SocialAccountType,
                 Username = setup.Username,
+                Password = setup.Password,
                 UserId = setup.UserId
             };
 
@@ -44,44 +56,17 @@ namespace Leadsly.Domain.Supervisor
                 // this social username and social account type do not have a container available
                 if (existingContainerInfo == null)
                 {
-                    SetupNewUserInLeadslyDTO setupUserInLeadsy = new SetupNewUserInLeadslyDTO
+                    NewSocialAccountSetupResult cloudResourceSetupResult = await _cloudPlatformProvider.SetupNewContainerForUserSocialAccountAsync(ct);
+
+                    if (cloudResourceSetupResult.Succeeded == false)
                     {
-                        UserId = setup.UserId,
-                        EcsService = new()
-                        {
-                            AssignPublicIp = PublicIp.Disabled,
-                            ClusterArn = "arn:aws:ecs:us-east-1:709251838882:cluster/default",
-                            DesiredCount = 1,
-                            Subnets = new() { "subnet-049bf059384e86947", "subnet-0f41f5f070cc120b9" },
-                            LaunchType = EcsLaunchType.Fargate,
-                            SchedulingStrategy = "REPLICA",
-                            ServiceName = "test-test",
-                            TaskDefinition = "first-run-task-definition:1"
-
-                        },
-                        EcsTask = new()
-                        {
-                            AssignPublicIp = PublicIp.Enabled,
-                            Cluster = "arn:aws:ecs:us-east-1:709251838882:cluster/default",
-                            Count = 1,
-                            LaunchType = EcsLaunchType.Fargate,
-                            TaskDefinition = "first-run-task-definition:1",
-                            Subnets = new() { "subnet-049bf059384e86947", "subnet-0f41f5f070cc120b9" }
-                        }
-                    };
-
-                    CloudPlatformOperationResult awsOperation = await _cloudPlatformProvider.SetupNewUsersContainerAsync(setupUserInLeadsy);
-
-                    if (awsOperation.Succeeded == false)
-                    {
-
-                    }
-                    else
-                    {
-                        DockerContainerInfo newContainerInfo = (DockerContainerInfo)awsOperation.Value;
-
+                        // clean up aws resources
+                        await _cloudPlatformProvider.RollbackCloudResourcesAsync(cloudResourceSetupResult, ct);                        
+                        result.Failures = cloudResourceSetupResult.Failures;
+                        return result;
                     }
 
+                    // 
                 }
             }
             else

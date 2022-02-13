@@ -13,5 +13,6 @@ namespace Leadsly.Domain.Providers
     {
         Task<SocialAccount> GetSocialAccountAsync(SocialAccountDTO getSocialAccount, CancellationToken ct = default);
         // Task<DockerContainerInfo> GetContainerInfoBySocialAccountAsync(SocialAccountDTO socialAccount, CancellationToken ct = default);
+        
     }
 }

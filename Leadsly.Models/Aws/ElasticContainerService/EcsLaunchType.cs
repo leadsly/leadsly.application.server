@@ -4,12 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Models.Aws
+namespace Leadsly.Models.Aws.ElasticContainerService
 {
-    public enum PublicIp
+    public enum EcsLaunchType
     {
         None,
-        Enabled,
-        Disabled
+        Fargate
     }
 }

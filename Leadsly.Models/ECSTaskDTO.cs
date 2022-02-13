@@ -1,4 +1,5 @@
 ﻿using Leadsly.Models.Aws;
+using Leadsly.Models.Aws.ElasticContainerService;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Models
 {
-    public class ECSTaskDTO
+    public class EcsTaskDTO
     {
         public EcsLaunchType LaunchType { get; set; }
 

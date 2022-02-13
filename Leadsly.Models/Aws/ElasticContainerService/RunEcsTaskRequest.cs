@@ -5,13 +5,13 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Models.Aws
+namespace Leadsly.Models.Aws.ElasticContainerService
 {        
     public class RunEcsTaskRequest
     {        
         public string LaunchType { get; set; }
         public string TaskDefinition { get; set; }        
-        public string Cluster { get; set; }        
+        public string ClusterArn { get; set; }        
         public int Count { get; set; }        
         public string AssignPublicIp { get; set; }                
         public List<string> Subnets { get; set; }

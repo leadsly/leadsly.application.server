@@ -12,6 +12,10 @@ namespace Leadsly.Models.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; }
         public string ECSServiceId { get; set; }
+        public string TaskDefinition { get; set; }
+        public string AssignPublicIp { get; set; }
+        public int Count { get; set; }
+        public string LaunchType { get; set; }        
         public string UserId { get; set; }
         public ECSService ECSService { get; set; }
         public ICollection<DockerContainerInfo> DockerContainers { get; set; }

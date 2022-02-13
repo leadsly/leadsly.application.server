@@ -1,5 +1,6 @@
 ﻿using Leadsly.Models;
 using Leadsly.Models.Aws;
+using Leadsly.Models.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,10 +12,8 @@ namespace Leadsly.Domain.Providers
 {
     public interface ICloudPlatformProvider
     {
-        public Task<CloudPlatformOperationResult> SetupNewUsersContainerAsync(SetupNewUserInLeadslyDTO createContainer, CancellationToken ct = default);
-
+        public Task<NewSocialAccountSetupResult> SetupNewContainerForUserSocialAccountAsync(CancellationToken ct = default);        
+        public Task RollbackCloudResourcesAsync(NewSocialAccountSetupResult setupToRollback, CancellationToken ct = default);
         public Task<CloudPlatformOperationResult> SetupExistingContainerAsync(SetupExistingUserInLeadslyDTO existingContainer, CancellationToken ct = default);
-
-        public Task<CloudPlatformOperationResult> UpdateEcsServiceAsync(UpdateEcsServiceRequest updateServiceRequest, CancellationToken ct = default);
     }
 }

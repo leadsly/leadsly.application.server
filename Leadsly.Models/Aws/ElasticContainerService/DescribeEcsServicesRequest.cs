@@ -4,12 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Models.Aws
+namespace Leadsly.Models.Aws.ElasticContainerService
 {
-    public class UpdateEcsServiceRequest
+    public class DescribeEcsServicesRequest
     {
         public string Cluster { get; set; }
-        public string Service { get; set; }
-        public int DesiredCount { get; set; }
+        public List<string> Services { get; set; }
     }
 }

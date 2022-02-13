@@ -1,11 +1,5 @@
 ﻿using Amazon.ECS.Model;
-using Leadsly.Models;
-using Leadsly.Models.Aws;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
+using Leadsly.Models.Aws.ElasticContainerService;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,11 +8,17 @@ namespace Leadsly.Domain.Services
     public interface IAwsElasticContainerService
     {
         Task<CreateServiceResponse> CreateServiceAsync(CreateEcsServiceRequest createServiceRequest, CancellationToken ct = default);
+        Task<DeleteServiceResponse> DeleteServiceAsync(DeleteEcsServiceRequest deleteServiceRequest, CancellationToken ct = default);
 
         Task<RunTaskResponse> RunTaskAsync(RunEcsTaskRequest request, CancellationToken ct = default);
+        Task<StopTaskResponse> StopTaskAsync(StopEcsTaskRequest request, CancellationToken ct = default);
+
+        Task<RegisterTaskDefinitionResponse> RegisterTaskDefinitionAsync(RegisterEcsTaskDefinitionRequest registerTaskDefinitionRequest, CancellationToken ct = default);
+
+        Task<DeregisterTaskDefinitionResponse> DeregisterTaskDefinitionAsync(DeregisterEcsTaskDefinitionRequest deregisterTaskDefinitionRequest, CancellationToken ct = default);
 
         Task<UpdateServiceResponse> UpdateServiceAsync(UpdateEcsServiceRequest updateServiceRequest, CancellationToken ct = default);
 
-        Task<DescribeServicesResponse> DescribeServiceAsync(DescribeEcsServiceRequest describeService, CancellationToken ct = default);
+        Task<DescribeServicesResponse> DescribeServicesAsync(DescribeEcsServicesRequest describeService, CancellationToken ct = default);
     }
 }

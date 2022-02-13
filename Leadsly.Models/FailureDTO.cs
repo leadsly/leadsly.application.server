@@ -7,17 +7,11 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Models
 {
-    [DataContract]
     public class FailureDTO
-    {
-        [DataMember(EmitDefaultValue = false)]
-        public string ResourceId { get; set; }
-
-        [DataMember(EmitDefaultValue = false)]
-        public string Arn { get; set; }
-        [DataMember(IsRequired = true)]
-        public string Detail { get; set; }
-        [DataMember(IsRequired = true)]
+    { 
+        public string ResourceId { get; set; }             
+        public string Arn { get; set; }        
+        public string Detail { get; set; }        
         public string Reason { get; set; }
     }
 }

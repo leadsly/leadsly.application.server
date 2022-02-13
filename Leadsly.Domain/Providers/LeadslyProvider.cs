@@ -44,7 +44,6 @@ namespace Leadsly.Domain.Providers
                 socialAccount.ConfiguredWithUsersLeadslyAccount = true;
             }
             
-
             return socialAccount;
         }
 
@@ -63,5 +62,7 @@ namespace Leadsly.Domain.Providers
 
             return socialAccount?.DockerContainerInfo;
         }
+
+
     }
 }

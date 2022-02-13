@@ -72,6 +72,10 @@ namespace Leadsly.Infrastructure.Migrations
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ECSServiceId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    TaskDefinition = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AssignPublicIp = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Count = table.Column<int>(type: "int", nullable: false),
+                    LaunchType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UserId = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
@@ -322,7 +326,7 @@ namespace Leadsly.Infrastructure.Migrations
                     AccountType = table.Column<int>(type: "int", nullable: false),
                     ContainerId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Connected = table.Column<bool>(type: "bit", nullable: false),
+                    ConfiguredWithUsersLeadslyAccount = table.Column<bool>(type: "bit", nullable: false),
                     DockerContainerInfoId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },

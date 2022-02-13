@@ -11,5 +11,6 @@ namespace Leadsly.Models
     public class LeadslySetupResultDTO
     {
         public bool Succeeded { get; set; }
+        public List<FailureDTO> Failures { get; set; } = new();
     }
 }

@@ -11,7 +11,7 @@ namespace Leadsly.Models
     {
 
         public string UserId { get; set; }
-        public ECSServiceDTO EcsService { get; set; }
-        public ECSTaskDTO EcsTask { get; set; }
+        public EcsServiceDTO EcsService { get; set; }
+        public EcsTaskDTO EcsTask { get; set; }
     }
 }
