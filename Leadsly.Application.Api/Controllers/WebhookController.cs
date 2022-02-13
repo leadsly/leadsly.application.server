@@ -12,8 +12,8 @@ using Leadsly.Domain.Supervisor;
 using Leadsly.Models.Entities;
 using Leadsly.Domain;
 using Leadsly.Application.Api.Services;
-using Leadsly.Application.Api.OptionsJsonModels;
 using Leadsly.Api;
+using Leadsly.Application.Domain.OptionsJsonModels;
 
 namespace Leadsly.Application.Api.Controllers
 {

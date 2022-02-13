@@ -1,6 +1,5 @@
 ﻿using Amazon.SimpleEmailV2;
 using Amazon.SimpleEmailV2.Model;
-using Leadsly.Application.Api.OptionsJsonModels;
 using Leadsly.Domain;
 using Google.Apis.Auth;
 using Google.Apis.Auth.OAuth2;
@@ -10,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using MimeKit;
 using System;
 using System.Threading.Tasks;
+using Leadsly.Application.Domain.OptionsJsonModels;
 
 namespace Leadsly.Application.Api.Services
 {

@@ -1,7 +1,6 @@
 ﻿using JWT;
 using JWT.Algorithms;
 using JWT.Serializers;
-using Leadsly.Api.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;

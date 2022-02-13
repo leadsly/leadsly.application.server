@@ -15,6 +15,7 @@ using Leadsly.Application.Api.Services;
 using Leadsly.Application.Api.Authentication;
 using Leadsly.Application.Api.Extensions;
 using Leadsly.Api;
+using Leadsly.Application.Domain.OptionsJsonModels;
 
 namespace Leadsly.Application.Api.Controllers
 {

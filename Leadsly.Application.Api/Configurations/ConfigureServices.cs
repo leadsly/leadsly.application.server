@@ -33,6 +33,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Amazon.ECS;
 using Amazon;
+using Leadsly.Domain.OptionsJsonModels;
+using Leadsly.Application.Domain.OptionsJsonModels;
+using Amazon.ServiceDiscovery;
 
 namespace Leadsly.Application.Api.Configurations
 {
@@ -66,21 +69,22 @@ namespace Leadsly.Application.Api.Configurations
             //LeadslyBotApiOptions options = new LeadslyBotApiOptions();
             //configuration.GetSection(nameof(LeadslyBotApiOptions)).Bind(options);
 
-            //services.AddHttpClient<ILeadslyBotApiService, LeadslyBotApiService>(opt =>
-            //{
-            //    opt.BaseAddress = new Uri(options.ApiUrl);
-            //});
-
-            services.AddHttpClient<IAwsElasticContainerService, AwsElasticContainerService>(opt =>
+            services.AddHttpClient<ILeadslyBotApiService, LeadslyBotApiService>(opt =>
             {
-                opt.BaseAddress = new Uri("http://localhost:5004");
+                // opt.BaseAddress = new Uri(options.ApiUrl);
             });
 
-            AWSConfigs.AWSRegion = "us-east-1";
+            services.Configure<CloudPlatformConfigurationOptions>(options => configuration.GetSection(nameof(CloudPlatformConfigurationOptions)).Bind(options));
+            CloudPlatformConfigurationOptions cloudPlatformConfigurationOptions = new CloudPlatformConfigurationOptions();
+            configuration.GetSection(nameof(CloudPlatformConfigurationOptions)).Bind(cloudPlatformConfigurationOptions);
+            AWSConfigs.AWSRegion = cloudPlatformConfigurationOptions.AwsOptions.Region;
+
             services.AddScoped(typeof(AmazonECSClient));
+            services.AddScoped(typeof(AmazonServiceDiscoveryClient));
             services.AddScoped<ICloudPlatformProvider, CloudPlatformProvider>();            
             services.AddScoped<ILeadslyProvider, LeadslyProvider>();
-            services.AddScoped<IAwsElasticContainerService, AwsElasticContainerService>();            
+            services.AddScoped<IAwsElasticContainerService, AwsElasticContainerService>();
+            services.AddScoped<IAwsServiceDiscoveryService, AwsServiceDiscoveryService>();
             services.AddScoped<ILeadslyBotApiService, LeadslyBotApiService>();
             
             return services;

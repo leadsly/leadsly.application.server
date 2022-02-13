@@ -17,11 +17,11 @@ using System.Threading.Tasks;
 using Leadsly.Models.Entities;
 using Leadsly.Domain;
 using Leadsly.Application.Api.Services;
-using Leadsly.Application.Api.OptionsJsonModels;
 using Leadsly.Api;
 using Leadsly.Domain.ViewModels.Reports;
 using System;
 using Leadsly.Domain.ViewModels.Reports.ApexCharts;
+using Leadsly.Application.Domain.OptionsJsonModels;
 
 namespace Leadsly.Application.Api.Controllers
 {
