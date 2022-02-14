@@ -13,6 +13,6 @@ namespace Leadsly.Domain.Supervisor
     {
         Task<Customer_Stripe> AddCustomerAsync_Stripe(Customer_Stripe stripeCustomerViewModel);
         Task<LeadslyConnectionResult> ConnectAccountToLeadslyAsync(ConnectLeadslyViewModel connectAccount, CancellationToken ct = default);
-        Task<LeadslySetupResultDTO> SetupLeadslyForUserAsync(LeadslySetupDTO setup, CancellationToken ct = default);
+        Task<LeadslyConnectResultDTO> SetupLeadslyForUserAsync(ConnectUserDTO setup, CancellationToken ct = default);
     }
 }

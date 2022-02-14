@@ -28,11 +28,11 @@ namespace Leadsly.Application.Api.Controllers
 
         [HttpPost("connect")]
         [AllowAnonymous]
-        public async Task<IActionResult> SetupAccountWithLeadsly(LeadslySetupDTO setupLeasdsly, CancellationToken ct = default)
+        public async Task<IActionResult> SetupAccountWithLeadsly(ConnectUserDTO setupLeasdsly, CancellationToken ct = default)
         {
             _logger.LogTrace("SetupUserWithLeadsly action executed.");
 
-            LeadslySetupResultDTO result = await _supervisor.SetupLeadslyForUserAsync(setupLeasdsly, ct);
+            LeadslyConnectResultDTO result = await _supervisor.SetupLeadslyForUserAsync(setupLeasdsly, ct);
 
             return Ok();
         }

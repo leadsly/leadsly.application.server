@@ -16,7 +16,6 @@ namespace Leadsly.Models
         /// Any potential failures for any tasks that were executed.
         /// </summary>
         public List<FailureDTO> Failures { get; set; }
-        public EcsServiceDTO ECSService { get; set; }
-        public List<EcsTaskDTO> ECSTasks  { get; set; }
+        public EcsServiceDTO EcsService { get; set; }
     }
 }

@@ -8,20 +8,19 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Models.Entities
 {
-    public class DockerContainerInfo
+    public class OrphanedCloudResource
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; }
+                
+        public string Arn { get; set; }
+
         [Required]
-        public string ApplicationUserId { get; set; }
+        public string FriendlyName { get; set; }
         [Required]
-        public string EcsServiceId { get; set; }
+        public string ResourceId { get; set; }
         [Required]
-        public string ContainerName { get; set; }
-        public ICollection<SocialAccount> SocialAccounts { get; set; }
-        [Required]
-        public ApplicationUser ApplicationUser { get; set; }
-        [Required]
-        public ECSService EcsService { get; set; }
+        public string UserId { get; set; }
+
     }
 }

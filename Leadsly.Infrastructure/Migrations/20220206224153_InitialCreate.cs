@@ -10,7 +10,7 @@ namespace Leadsly.Infrastructure.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "ECSServices",
+                name: "EcsServices",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
@@ -25,7 +25,7 @@ namespace Leadsly.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ECSServices", x => x.Id);
+                    table.PrimaryKey("PK_EcsServices", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -67,11 +67,11 @@ namespace Leadsly.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ECSTasks",
+                name: "EcsTasks",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ECSServiceId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    EcsServiceId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     TaskDefinition = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     AssignPublicIp = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Count = table.Column<int>(type: "int", nullable: false),
@@ -80,11 +80,11 @@ namespace Leadsly.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ECSTasks", x => x.Id);
+                    table.PrimaryKey("PK_EcsTasks", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ECSTasks_ECSServices_ECSServiceId",
-                        column: x => x.ECSServiceId,
-                        principalTable: "ECSServices",
+                        name: "FK_EcsTasks_EcsServices_EcsServiceId",
+                        column: x => x.EcsServiceId,
+                        principalTable: "EcsServices",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -207,21 +207,21 @@ namespace Leadsly.Infrastructure.Migrations
                     ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     EcsServiceId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ContainerName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ECSTaskId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    EcsTaskId = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_DockerContainers", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_DockerContainers_ECSServices_EcsServiceId",
+                        name: "FK_DockerContainers_EcsServices_EcsServiceId",
                         column: x => x.EcsServiceId,
-                        principalTable: "ECSServices",
+                        principalTable: "EcsServices",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_DockerContainers_ECSTasks_ECSTaskId",
-                        column: x => x.ECSTaskId,
-                        principalTable: "ECSTasks",
+                        name: "FK_DockerContainers_EcsTasks_EcsTaskId",
+                        column: x => x.EcsTaskId,
+                        principalTable: "EcsTasks",
                         principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_DockerContainers_Users_ApplicationUserId",
@@ -367,14 +367,14 @@ namespace Leadsly.Infrastructure.Migrations
                 column: "EcsServiceId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DockerContainers_ECSTaskId",
+                name: "IX_DockerContainers_EcsTaskId",
                 table: "DockerContainers",
-                column: "ECSTaskId");
+                column: "EcsTaskId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ECSTasks_ECSServiceId",
-                table: "ECSTasks",
-                column: "ECSServiceId");
+                name: "IX_EcsTasks_EcsServiceId",
+                table: "EcsTasks",
+                column: "EcsServiceId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RoleClaims_RoleId",
@@ -467,13 +467,13 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "Roles");
 
             migrationBuilder.DropTable(
-                name: "ECSTasks");
+                name: "EcsTasks");
 
             migrationBuilder.DropTable(
                 name: "Users");
 
             migrationBuilder.DropTable(
-                name: "ECSServices");
+                name: "EcsServices");
 
             migrationBuilder.DropTable(
                 name: "StripeCustomers");

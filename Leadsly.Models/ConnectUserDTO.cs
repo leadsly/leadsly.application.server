@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Leadsly.Models
 {
     [DataContract]
-    public class LeadslySetupDTO
+    public class ConnectUserDTO
     {
         [DataMember(Name = "userId")]
         public string UserId { get; set; }

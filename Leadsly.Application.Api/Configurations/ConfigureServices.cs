@@ -55,9 +55,10 @@ namespace Leadsly.Application.Api.Configurations
             Log.Information("Registering repository services.");
 
             services.AddScoped<IStripeRepository, StripeRepository>();
-            services.AddScoped<IContainerRepository, ContainerRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<ICloudPlatformRepository, CloudPlatformRepository>();
+            services.AddScoped<ISocialAccountRepository, SocialAccountRepository>();
+            services.AddScoped<IOrphanedCloudResourcesRepository, OrphanedCloudResourcesRepository>();
 
             return services;
         }
@@ -82,9 +83,9 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped(typeof(AmazonECSClient));
             services.AddScoped(typeof(AmazonServiceDiscoveryClient));
             services.AddScoped<ICloudPlatformProvider, CloudPlatformProvider>();            
-            services.AddScoped<ILeadslyProvider, LeadslyProvider>();
+            services.AddScoped<IUserProvider, UserProvider>();
             services.AddScoped<IAwsElasticContainerService, AwsElasticContainerService>();
-            services.AddScoped<IAwsServiceDiscoveryService, AwsServiceDiscoveryService>();
+            services.AddScoped<IAwsServiceDiscoveryService, AwsServiceDiscoveryService>();            
             services.AddScoped<ILeadslyBotApiService, LeadslyBotApiService>();
             
             return services;

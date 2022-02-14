@@ -9,9 +9,7 @@ namespace Leadsly.Models
 {
     public class SetupNewUserInLeadslyDTO
     {
-
         public string UserId { get; set; }
-        public EcsServiceDTO EcsService { get; set; }
-        public EcsTaskDTO EcsTask { get; set; }
+        public EcsServiceDTO EcsService { get; set; }        
     }
 }

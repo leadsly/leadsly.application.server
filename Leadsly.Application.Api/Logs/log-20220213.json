@@ -515,3 +515,39 @@ Amazon.ServiceDiscovery.Model.InvalidInputException: 1 validation error detected
    at Amazon.Runtime.Internal.MetricsHandler.InvokeAsync[T](IExecutionContext executionContext)
    at Leadsly.Domain.Services.AwsServiceDiscoveryService.DeleteServiceAsync(DeleteServiceDiscoveryServiceRequest deleteServiceDiscoveryRequest, CancellationToken ct) in D:\Dev\Projects\leadsly\Leadsly.Application.Server\Leadsly.Domain\Services\AwsServiceDiscoveryService.cs:line 58
 2022-02-13 13:24:50.874 -05:00 [Warning] Delete operation for service discovery service failed.
+2022-02-13 14:49:47.664 -05:00 [Fatal] Application start-up failed.
+System.AggregateException: Some services are not able to be constructed (Error while validating the service descriptor 'ServiceType: Leadsly.Domain.Supervisor.ISupervisor Lifetime: Scoped ImplementationType: Leadsly.Domain.Supervisor.Supervisor': Unable to resolve service for type 'Leadsly.Domain.Repositories.IOrphanedCloudResourcesRepository' while attempting to activate 'Leadsly.Domain.Providers.CloudPlatformProvider'.) (Error while validating the service descriptor 'ServiceType: Leadsly.Domain.Providers.ICloudPlatformProvider Lifetime: Scoped ImplementationType: Leadsly.Domain.Providers.CloudPlatformProvider': Unable to resolve service for type 'Leadsly.Domain.Repositories.IOrphanedCloudResourcesRepository' while attempting to activate 'Leadsly.Domain.Providers.CloudPlatformProvider'.)
+ ---> System.InvalidOperationException: Error while validating the service descriptor 'ServiceType: Leadsly.Domain.Supervisor.ISupervisor Lifetime: Scoped ImplementationType: Leadsly.Domain.Supervisor.Supervisor': Unable to resolve service for type 'Leadsly.Domain.Repositories.IOrphanedCloudResourcesRepository' while attempting to activate 'Leadsly.Domain.Providers.CloudPlatformProvider'.
+ ---> System.InvalidOperationException: Unable to resolve service for type 'Leadsly.Domain.Repositories.IOrphanedCloudResourcesRepository' while attempting to activate 'Leadsly.Domain.Providers.CloudPlatformProvider'.
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteFactory.CreateArgumentCallSites(Type implementationType, CallSiteChain callSiteChain, ParameterInfo[] parameters, Boolean throwIfCallSiteNotFound)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteFactory.CreateConstructorCallSite(ResultCache lifetime, Type serviceType, Type implementationType, CallSiteChain callSiteChain)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteFactory.TryCreateExact(ServiceDescriptor descriptor, Type serviceType, CallSiteChain callSiteChain, Int32 slot)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteFactory.CreateCallSite(Type serviceType, CallSiteChain callSiteChain)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteFactory.GetCallSite(Type serviceType, CallSiteChain callSiteChain)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteFactory.CreateArgumentCallSites(Type implementationType, CallSiteChain callSiteChain, ParameterInfo[] parameters, Boolean throwIfCallSiteNotFound)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteFactory.CreateConstructorCallSite(ResultCache lifetime, Type serviceType, Type implementationType, CallSiteChain callSiteChain)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteFactory.TryCreateExact(ServiceDescriptor descriptor, Type serviceType, CallSiteChain callSiteChain, Int32 slot)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteFactory.GetCallSite(ServiceDescriptor serviceDescriptor, CallSiteChain callSiteChain)
+   at Microsoft.Extensions.DependencyInjection.ServiceProvider.ValidateService(ServiceDescriptor descriptor)
+   --- End of inner exception stack trace ---
+   at Microsoft.Extensions.DependencyInjection.ServiceProvider.ValidateService(ServiceDescriptor descriptor)
+   at Microsoft.Extensions.DependencyInjection.ServiceProvider..ctor(ICollection`1 serviceDescriptors, ServiceProviderOptions options)
+   --- End of inner exception stack trace ---
+   at Microsoft.Extensions.DependencyInjection.ServiceProvider..ctor(ICollection`1 serviceDescriptors, ServiceProviderOptions options)
+   at Microsoft.Extensions.DependencyInjection.ServiceCollectionContainerBuilderExtensions.BuildServiceProvider(IServiceCollection services, ServiceProviderOptions options)
+   at Microsoft.Extensions.DependencyInjection.DefaultServiceProviderFactory.CreateServiceProvider(IServiceCollection containerBuilder)
+   at Microsoft.Extensions.Hosting.Internal.ServiceFactoryAdapter`1.CreateServiceProvider(Object containerBuilder)
+   at Microsoft.Extensions.Hosting.HostBuilder.CreateServiceProvider()
+   at Microsoft.Extensions.Hosting.HostBuilder.Build()
+   at Leadsly.Application.Api.Program.Main(String[] args) in D:\Dev\Projects\leadsly\Leadsly.Application.Server\Leadsly.Application.Api\Program.cs:line 32
+ ---> (Inner Exception #1) System.InvalidOperationException: Error while validating the service descriptor 'ServiceType: Leadsly.Domain.Providers.ICloudPlatformProvider Lifetime: Scoped ImplementationType: Leadsly.Domain.Providers.CloudPlatformProvider': Unable to resolve service for type 'Leadsly.Domain.Repositories.IOrphanedCloudResourcesRepository' while attempting to activate 'Leadsly.Domain.Providers.CloudPlatformProvider'.
+ ---> System.InvalidOperationException: Unable to resolve service for type 'Leadsly.Domain.Repositories.IOrphanedCloudResourcesRepository' while attempting to activate 'Leadsly.Domain.Providers.CloudPlatformProvider'.
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteFactory.CreateArgumentCallSites(Type implementationType, CallSiteChain callSiteChain, ParameterInfo[] parameters, Boolean throwIfCallSiteNotFound)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteFactory.CreateConstructorCallSite(ResultCache lifetime, Type serviceType, Type implementationType, CallSiteChain callSiteChain)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteFactory.TryCreateExact(ServiceDescriptor descriptor, Type serviceType, CallSiteChain callSiteChain, Int32 slot)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteFactory.GetCallSite(ServiceDescriptor serviceDescriptor, CallSiteChain callSiteChain)
+   at Microsoft.Extensions.DependencyInjection.ServiceProvider.ValidateService(ServiceDescriptor descriptor)
+   --- End of inner exception stack trace ---
+   at Microsoft.Extensions.DependencyInjection.ServiceProvider.ValidateService(ServiceDescriptor descriptor)
+   at Microsoft.Extensions.DependencyInjection.ServiceProvider..ctor(ICollection`1 serviceDescriptors, ServiceProviderOptions options)<---
+

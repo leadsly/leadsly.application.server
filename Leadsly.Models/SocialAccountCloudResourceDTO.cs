@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Models
 {
-    public class NewContainerSetupDTO
+    public class SocialAccountCloudResourceDTO
     {
         public EcsTaskDefinitionDTO EcsTaskDefinition { get; set; }
-        public CloudMapServiceDiscoveryDTO CloudMapServiceDiscovery { get; set; }
+        public CloudMapServiceDiscoveryServiceDTO CloudMapServiceDiscovery { get; set; }
         public EcsServiceDTO EcsService { get; set; }
     }
 }

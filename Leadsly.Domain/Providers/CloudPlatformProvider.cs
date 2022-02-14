@@ -1,19 +1,15 @@
 ﻿using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services;
 using Leadsly.Models;
-using Leadsly.Models.Aws;
 using Leadsly.Models.Aws.ElasticContainerService;
 using Leadsly.Models.Aws.ServiceDiscovery;
 using Leadsly.Models.Entities;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,20 +17,27 @@ namespace Leadsly.Domain.Providers
 {
     public class CloudPlatformProvider : ICloudPlatformProvider
     {
-        public CloudPlatformProvider(IAwsElasticContainerService awsElasticContainerService, ICloudPlatformRepository cloudPlatformRepository, IAwsServiceDiscoveryService awsServiceDiscoveryService, ILogger<CloudPlatformProvider> logger)
+        public CloudPlatformProvider(
+            IAwsElasticContainerService awsElasticContainerService, 
+            ICloudPlatformRepository cloudPlatformRepository, 
+            IAwsServiceDiscoveryService awsServiceDiscoveryService, 
+            IOrphanedCloudResourcesRepository orphanedCloudResourcesRepository,
+            ILogger<CloudPlatformProvider> logger)
         {
             _awsElasticContainerService = awsElasticContainerService;                        
             _awsServiceDiscoveryService = awsServiceDiscoveryService;
             _cloudPlatformRepository = cloudPlatformRepository;
+            _orphanedCloudResourcesRepository = orphanedCloudResourcesRepository;
             _logger = logger;
         }
 
         private readonly IAwsElasticContainerService _awsElasticContainerService;          
         private readonly IAwsServiceDiscoveryService _awsServiceDiscoveryService;
+        private readonly IOrphanedCloudResourcesRepository _orphanedCloudResourcesRepository;
         private readonly ICloudPlatformRepository _cloudPlatformRepository;
         private readonly ILogger<CloudPlatformProvider> _logger;
 
-        public async Task<NewSocialAccountSetupResult> SetupNewContainerForUserSocialAccountAsync(CancellationToken ct = default)
+        public async Task<NewSocialAccountSetupResult> SetupNewContainerForUserSocialAccountAsync(string userId,CancellationToken ct = default)
         {
             CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
 
@@ -57,7 +60,7 @@ namespace Leadsly.Domain.Providers
             }
 
             string taskDefinition = $"{Guid.NewGuid()}";
-            NewContainerSetupDTO userSetup = new()
+            SocialAccountCloudResourceDTO userSetup = new()
             {
                 EcsTaskDefinition = new()
                 {
@@ -68,13 +71,14 @@ namespace Leadsly.Domain.Providers
                 CloudMapServiceDiscovery = new()
                 {
                     // name used to discover this service by in the future
-                    Name = $"hal-{Guid.NewGuid()}"
+                    Name = $"hal-{Guid.NewGuid()}"                    
                 },
                 EcsService = new()
                 {
                     ClusterArn = configuration.EcsServiceConfig.ClusterArn,
                     ServiceName = $"hal-{Guid.NewGuid()}-service",
-                    TaskDefinition = taskDefinition
+                    TaskDefinition = taskDefinition,
+                    UserId = userId
                 }
             };
 
@@ -88,10 +92,10 @@ namespace Leadsly.Domain.Providers
             return containerInfoDTO;
         }
 
-        public async Task RollbackCloudResourcesAsync(NewSocialAccountSetupResult setupToRollback, CancellationToken ct = default)
+        public async Task RollbackCloudResourcesAsync(NewSocialAccountSetupResult setupToRollback, string userId, CancellationToken ct = default)
         {
             _logger.LogInformation("Aws resource cleanup started.");
-            NewContainerSetupDTO rollbackDetails = setupToRollback.Value;
+            SocialAccountCloudResourceDTO rollbackDetails = setupToRollback.Value;
             // first start removing service discovery service
             if (setupToRollback.CreateServiceDiscoveryServiceSucceeded)
             {
@@ -99,8 +103,8 @@ namespace Leadsly.Domain.Providers
                 if(rollbackDetails.EcsService.Registries.Count() > 1)
                 {
                     _logger.LogWarning("Retrieving service discovery service arn from ecs service registries list. Expected to see a single entry in the list but more were detected! Using first value from the list");
-                }                
-                await DeleteServiceDiscoveryServiceAsync(rollbackDetails.CloudMapServiceDiscovery, ct);
+                }                            
+                await DeleteServiceDiscoveryServiceAsync(rollbackDetails.CloudMapServiceDiscovery, userId, ct);
                 _logger.LogInformation("Finished deleting service discovery service.");
             }
 
@@ -108,7 +112,7 @@ namespace Leadsly.Domain.Providers
             if (setupToRollback.CreateEcsServiceSucceeded)
             {
                 _logger.LogInformation("Starting to delete ecs service.");
-                await DeleteEcsServiceAsync(rollbackDetails.EcsService, ct);
+                await DeleteEcsServiceAsync(rollbackDetails.EcsService, userId, ct);
                 _logger.LogInformation("Finished deleting ecs service.");
             }
 
@@ -118,14 +122,14 @@ namespace Leadsly.Domain.Providers
                 _logger.LogInformation("Starting to deregister task definition.");
                 // since this is an immediate rollback revision will always be 1. For regular deletes this information will have to be fetched from the api.
                 rollbackDetails.EcsTaskDefinition.Family = $"{rollbackDetails.EcsTaskDefinition.Family}:1";
-                await DeregisterTaskDefinitionAsync(rollbackDetails.EcsTaskDefinition, ct);
+                await DeregisterTaskDefinitionAsync(rollbackDetails.EcsTaskDefinition, userId, ct);
                 _logger.LogInformation("Finished deregistering task definition.");
             }
 
             _logger.LogInformation("Aws resource cleanup completed.");
         }
 
-        private async Task<NewSocialAccountSetupResult> SetupNewContainerAsync(NewContainerSetupDTO userSetup, CloudPlatformConfiguration configuration, CancellationToken ct = default)
+        private async Task<NewSocialAccountSetupResult> SetupNewContainerAsync(SocialAccountCloudResourceDTO userSetup, CloudPlatformConfiguration configuration, CancellationToken ct = default)
         {
             NewSocialAccountSetupResult result = new()
             {
@@ -147,7 +151,7 @@ namespace Leadsly.Domain.Providers
                     Reason = "Failed to register new task definition"
                 });
                 return result;
-            }
+            }            
             result.CreateEcsTaskDefinitionSucceeded = true;
 
             // Create new AWS Cloud Map Service Discovery Service for this container
@@ -165,6 +169,11 @@ namespace Leadsly.Domain.Providers
             result.CreateServiceDiscoveryServiceSucceeded = true;
             // update userSetup with the service discovery id. In case something fails, this will id will be used to clean up aws resources
             userSetup.CloudMapServiceDiscovery.Id = createDiscoveryServiceResponse.Service.Id;
+            userSetup.CloudMapServiceDiscovery.Arn = createDiscoveryServiceResponse.Service?.Arn;
+            userSetup.CloudMapServiceDiscovery.CreateDate = createDiscoveryServiceResponse.Service?.CreateDate;
+            userSetup.CloudMapServiceDiscovery.NamepaceId = createDiscoveryServiceResponse.Service?.NamespaceId;
+            userSetup.CloudMapServiceDiscovery.Description = createDiscoveryServiceResponse.Service?.Description;
+            userSetup.CloudMapServiceDiscovery.CreateRequestId = createDiscoveryServiceResponse.Service?.Description;
 
             // link users ecs service with the created service discovery service
             userSetup.EcsService.Registries = new()
@@ -189,6 +198,10 @@ namespace Leadsly.Domain.Providers
             }
 
             result.CreateEcsServiceSucceeded = true;
+            userSetup.EcsService.ServiceArn = createEcsServiceResponse.Service?.ServiceArn;
+            userSetup.EcsService.CreatedAt = createEcsServiceResponse.Service?.CreatedAt;
+            userSetup.EcsService.CreatedBy = createEcsServiceResponse.Service?.CreatedBy;
+            
             // add the upated userSetup here
             result.Value = userSetup;
 
@@ -203,7 +216,7 @@ namespace Leadsly.Domain.Providers
             return result;
         }
 
-        private async Task<CloudPlatformOperationResult> EnsureEcsServiceTasksAreRunningAsync(NewContainerSetupDTO userSetup, CloudPlatformConfiguration configuration, CancellationToken ct = default)
+        private async Task<CloudPlatformOperationResult> EnsureEcsServiceTasksAreRunningAsync(SocialAccountCloudResourceDTO userSetup, CloudPlatformConfiguration configuration, CancellationToken ct = default)
         {
             CloudPlatformOperationResult result = new()
             {
@@ -238,7 +251,7 @@ namespace Leadsly.Domain.Providers
             return result;
         }
 
-        private async Task<CloudPlatformOperationResult> AreEcsServiceTasksRunningAsync(NewContainerSetupDTO userSetup, CloudPlatformConfiguration configuration, CancellationToken ct = default)
+        private async Task<CloudPlatformOperationResult> AreEcsServiceTasksRunningAsync(SocialAccountCloudResourceDTO userSetup, CloudPlatformConfiguration configuration, CancellationToken ct = default)
         {
             CloudPlatformOperationResult result = new()
             {
@@ -269,7 +282,7 @@ namespace Leadsly.Domain.Providers
             return result;
         }
 
-        private async Task DeleteServiceDiscoveryServiceAsync(CloudMapServiceDiscoveryDTO serviceDiscovery, CancellationToken ct = default)
+        private async Task DeleteServiceDiscoveryServiceAsync(CloudMapServiceDiscoveryServiceDTO serviceDiscovery, string userId, CancellationToken ct = default)
         {
             DeleteServiceDiscoveryServiceRequest request = new()
             {
@@ -280,28 +293,44 @@ namespace Leadsly.Domain.Providers
             if (response == null)
             {
                 _logger.LogWarning("Delete operation for service discovery service failed.");
-                // ideally here, we log the resources information into a database for manual clean up
+
+                OrphanedCloudResource orphanedResource = new()
+                {
+                    FriendlyName = "Service Discovery Service",
+                    ResourceId = serviceDiscovery.Id,
+                    UserId = userId
+                };
+                _logger.LogInformation("Adding service discovery service to orphaned cloud resources table for manual clean up.");
+                await _orphanedCloudResourcesRepository.AddOrphanedCloudResourceAsync(orphanedResource, ct);
             }
         }
 
-        private async Task DeleteEcsServiceAsync(EcsServiceDTO ecsServiceDto, CancellationToken ct = default)
+        private async Task DeleteEcsServiceAsync(EcsServiceDTO EcsServiceDto, string userId, CancellationToken ct = default)
         {
             DeleteEcsServiceRequest request = new()
             {
-                Cluster = ecsServiceDto.ClusterArn,
+                Cluster = EcsServiceDto.ClusterArn,
                 Force = true,
-                Service = ecsServiceDto.ServiceName
+                Service = EcsServiceDto.ServiceName
             };
 
             Amazon.ECS.Model.DeleteServiceResponse response = await _awsElasticContainerService.DeleteServiceAsync(request, ct);
             if (response == null)
             {
                 _logger.LogWarning("Delete operation for ecs service failed.");
-                // ideally here, we log the resources information into a database for manual clean up
+
+                OrphanedCloudResource orphanedCloudResource = new()
+                {
+                    UserId = userId,
+                    FriendlyName = "Ecs Service",
+                    ResourceId = EcsServiceDto.ServiceName
+                };
+                _logger.LogInformation("Adding ecs service to orphaned cloud resources table for manual clean up.");
+                await _orphanedCloudResourcesRepository.AddOrphanedCloudResourceAsync(orphanedCloudResource, ct);
             }
         }
 
-        private async Task DeregisterTaskDefinitionAsync(EcsTaskDefinitionDTO taskDefinition, CancellationToken ct = default)
+        private async Task DeregisterTaskDefinitionAsync(EcsTaskDefinitionDTO taskDefinition, string userId, CancellationToken ct = default)
         {
             DeregisterEcsTaskDefinitionRequest request = new()
             {
@@ -312,11 +341,19 @@ namespace Leadsly.Domain.Providers
             if (response == null)
             {
                 _logger.LogWarning("Deregister operation for ecs task definition failed.");
-                // ideally here, we log the resources information into a database for manual clean up
+                OrphanedCloudResource orphanedCloudResource = new()
+                {
+                    UserId = userId,
+                    FriendlyName = "Task definition",
+                    ResourceId = taskDefinition.Family
+                };
+
+                _logger.LogInformation("Adding task definition to orphaned cloud resources table for manual clean up.");
+                await _orphanedCloudResourcesRepository.AddOrphanedCloudResourceAsync(orphanedCloudResource, ct);
             }
         }
 
-        private async Task<Amazon.ECS.Model.CreateServiceResponse> CreateEcsServiceAsync(EcsServiceDTO ecsService, EcsServiceConfig config, CancellationToken ct = default)
+        private async Task<Amazon.ECS.Model.CreateServiceResponse> CreateEcsServiceAsync(EcsServiceDTO EcsService, EcsServiceConfig config, CancellationToken ct = default)
         {
             CreateEcsServiceRequest createEcsServiceRequest = new()
             {
@@ -327,9 +364,9 @@ namespace Leadsly.Domain.Providers
                 SchedulingStrategy = config.SchedulingStrategy,
                 SecurityGroups = config.SecurityGroups,
                 Subnets = config.Subnets,
-                TaskDefinition = ecsService.TaskDefinition,
-                ServiceName = ecsService.ServiceName,
-                EcsServiceRegistries = ecsService.Registries.Select(r => new EcsServiceRegistry
+                TaskDefinition = EcsService.TaskDefinition,
+                ServiceName = EcsService.ServiceName,
+                EcsServiceRegistries = EcsService.Registries.Select(r => new Leadsly.Models.Aws.ElasticContainerService.EcsServiceRegistry
                 {
                     RegistryArn = r.RegistryArn
                 }).ToList()
@@ -338,7 +375,7 @@ namespace Leadsly.Domain.Providers
             return await _awsElasticContainerService.CreateServiceAsync(createEcsServiceRequest, ct);
         }
 
-        private async Task<Amazon.ServiceDiscovery.Model.CreateServiceResponse> CreateServiceDiscoveryServiceAsync(CloudMapServiceDiscoveryDTO cloudMapServiceDiscovery, CloudMapServiceDiscoveryConfig config, CancellationToken ct = default)
+        private async Task<Amazon.ServiceDiscovery.Model.CreateServiceResponse> CreateServiceDiscoveryServiceAsync(CloudMapServiceDiscoveryServiceDTO cloudMapServiceDiscovery, CloudMapServiceDiscoveryConfig config, CancellationToken ct = default)
         {
             CreateServiceDiscoveryServiceRequest createServiceDiscoveryServiceRequest = new()
             {
@@ -383,22 +420,6 @@ namespace Leadsly.Domain.Providers
             };
 
             return await _awsElasticContainerService.RegisterTaskDefinitionAsync(registerEcsTaskDefinitionRequest, ct);
-        }
-
-        private async Task<Amazon.ECS.Model.RunTaskResponse> RunTaskAsync(EcsTaskDTO ecsTaskOptions, EcsTaskConfig config, CancellationToken ct = default)
-        {
-            RunEcsTaskRequest request = new()
-            {
-                AssignPublicIp = config.AssignPublicIp,
-                ClusterArn = config.ClusterArn,
-                Count = config.Count,
-                LaunchType = config.LaunchType,
-                Subnets = config.Subnets,
-                TaskDefinition = config.TaskDefinition                
-            };
-
-            return await _awsElasticContainerService.RunTaskAsync(request, ct);
-
         }
 
         private async Task<Amazon.ECS.Model.DescribeServicesResponse> DescribeServicesAsync(EcsServiceDTO userService, EcsServiceConfig config, CancellationToken ct = default)

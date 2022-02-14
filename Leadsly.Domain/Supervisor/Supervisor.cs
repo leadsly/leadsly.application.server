@@ -1,7 +1,7 @@
 ﻿using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services;
-using Microsoft.Extensions.Logging;
 using Leadsly.Domain.Providers;
+using Microsoft.Extensions.Logging;
 
 namespace Leadsly.Domain.Supervisor
 {
@@ -9,25 +9,25 @@ namespace Leadsly.Domain.Supervisor
     {
         public Supervisor(LeadslyUserManager userManager, 
             IStripeRepository stripeRepository, 
-            IContainerRepository containerRepository,
             ICloudPlatformRepository cloudPlatformRepository,
             ILeadslyBotApiService leadslyBotApiService,
             ICloudPlatformProvider cloudPlatformProvider,
-            ILeadslyProvider leadslyProvider,
+            ISocialAccountRepository socialAccountRepository,
+            IUserProvider userProvider,
             ILogger<Supervisor> logger)
         {
             _userManager = userManager;
             _stripeRepository = stripeRepository;
             _leadslyBotApiService = leadslyBotApiService;
-            _containerRepository = containerRepository;
             _cloudPlatformProvider = cloudPlatformProvider;
-            _leadslyProvider = leadslyProvider;            
-            _logger = logger;
+            _socialAccountRepository = socialAccountRepository;
+            _userProvider = userProvider;            
+            _logger = logger;            
         }
 
         private readonly LeadslyUserManager _userManager;
-        private readonly IContainerRepository _containerRepository;
-        private readonly ILeadslyProvider _leadslyProvider;
+        private readonly IUserProvider _userProvider;
+        private readonly ISocialAccountRepository _socialAccountRepository;
         private readonly ICloudPlatformProvider _cloudPlatformProvider;
         private readonly IStripeRepository _stripeRepository;        
         private readonly ILogger<Supervisor> _logger;

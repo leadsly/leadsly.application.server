@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Leadsly.Domain.Supervisor
 {
@@ -29,9 +30,9 @@ namespace Leadsly.Domain.Supervisor
         /// <param name="setup"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public async Task<LeadslySetupResultDTO> SetupLeadslyForUserAsync(LeadslySetupDTO setup, CancellationToken ct = default)
+        public async Task<LeadslyConnectResultDTO> SetupLeadslyForUserAsync(ConnectUserDTO setup, CancellationToken ct = default)
         {
-            LeadslySetupResultDTO result = new()
+            LeadslyConnectResultDTO result = new()
             {
                 Succeeded = false
             };
@@ -44,57 +45,126 @@ namespace Leadsly.Domain.Supervisor
                 UserId = setup.UserId
             };
 
-            // Try and get social account for this leadsly user, for the given username/email and socialAccountType
-            SocialAccount socialAccount = await _leadslyProvider.GetSocialAccountAsync(socialAccountDTO, ct);
-            
-            // checks whether this email and social account type are setup with current users leadsly account
-            if(socialAccount.ConfiguredWithUsersLeadslyAccount == false)
+            // Check if this social account has been registered for this user before
+            SocialAccount socialAccount = await _userProvider.GetRegisteredSocialAccountAsync(socialAccountDTO, ct);
+
+            // if null social account hasn't been registered before for this user
+            if(socialAccount == null)
             {
-                //TODO I don't know how this would ever be NOT null but more testing is required
-                DockerContainerInfo existingContainerInfo = socialAccount.DockerContainerInfo;
-
-                // this social username and social account type do not have a container available
-                if (existingContainerInfo == null)
-                {
-                    NewSocialAccountSetupResult cloudResourceSetupResult = await _cloudPlatformProvider.SetupNewContainerForUserSocialAccountAsync(ct);
-
-                    if (cloudResourceSetupResult.Succeeded == false)
-                    {
-                        // clean up aws resources
-                        await _cloudPlatformProvider.RollbackCloudResourcesAsync(cloudResourceSetupResult, ct);                        
-                        result.Failures = cloudResourceSetupResult.Failures;
-                        return result;
-                    }
-
-                    // 
-                }
+                result = await SetupCloudResourcesForNewSocialAccountAsync(socialAccountDTO, ct);
             }
+            // social account has been registered before check the ecs service task status and get connection info
             else
-            {               
-                var res = await SetupExistingUserInLeadslyAsync(socialAccount, ct);
+            {
+                result = await ConnectUserToExistingCloudResourcesAsync(socialAccountDTO, ct);
             }
 
-
-            // if user has multiple containers figure out how to determine which container to use
-
-            return new LeadslySetupResultDTO { };
+            return result;
         }
 
-
-        private async Task<CloudPlatformOperationResult> SetupExistingUserInLeadslyAsync(SocialAccount socialAccount, CancellationToken ct = default)
+        private async Task<LeadslyConnectResultDTO> ConnectUserToExistingCloudResourcesAsync(SocialAccountDTO socialAccountDTO, CancellationToken ct = default)
         {
-            DockerContainerInfo dockerContainerInfo = await _containerRepository.GetContainerById(socialAccount.ContainerId, ct);
+            return null;
+        }
 
-            SetupExistingUserInLeadslyDTO existingUser = new()
+        private async Task<LeadslyConnectResultDTO> SetupCloudResourcesForNewSocialAccountAsync(SocialAccountDTO socialAccountDTO, CancellationToken ct = default)
+        {
+            LeadslyConnectResultDTO result = new()
             {
-
+                Succeeded = false
             };
 
-            // once we have docker container info run healthcheck
+            NewSocialAccountSetupResult cloudResourceSetupResult = await _cloudPlatformProvider.SetupNewContainerForUserSocialAccountAsync(socialAccountDTO.UserId, ct);
+            cloudResourceSetupResult.Username = socialAccountDTO.Username;
+            cloudResourceSetupResult.Password = socialAccountDTO.Password;
+            cloudResourceSetupResult.UserId = socialAccountDTO.UserId;
+            cloudResourceSetupResult.AccountType = socialAccountDTO.AccountType;
 
-            var res = await _cloudPlatformProvider.SetupExistingContainerAsync(existingUser);
+            if (cloudResourceSetupResult.Succeeded == false)
+            {
+                // clean up aws resources
+                await _cloudPlatformProvider.RollbackCloudResourcesAsync(cloudResourceSetupResult, socialAccountDTO.UserId, ct);
+                result.Failures = cloudResourceSetupResult.Failures;
+                return result;
+            }
 
-            return res;
+            // persist to the database the container name, discovery service name, user social account
+            return await SaveNewSocialAccountAsync(cloudResourceSetupResult, ct); ;            
         }
+
+        private async Task<LeadslyConnectResultDTO> SaveNewSocialAccountAsync(NewSocialAccountSetupResult newSocialAccountSetup, CancellationToken ct = default)
+        {
+            LeadslyConnectResultDTO result = new()
+            {
+                Succeeded = false
+            };
+
+            SocialAccount newSocialAccount = default;
+            try
+            {
+                newSocialAccount = new()
+                {
+                    AccountType = newSocialAccountSetup.AccountType,
+                    Username = newSocialAccountSetup.Username,
+                    UserId = newSocialAccountSetup.UserId,
+                    SocialAccountCloudResource = new()
+                    {
+                        CloudMapServiceDiscoveryService = new()
+                        {
+                            Arn = newSocialAccountSetup.Value.CloudMapServiceDiscovery.Arn,
+                            Name = newSocialAccountSetup.Value.CloudMapServiceDiscovery.Name
+                        },
+                        EcsService = new()
+                        {
+                            AssignPublicIp = newSocialAccountSetup.Value.EcsService.AssignPublicIp,
+                            ClusterArn = newSocialAccountSetup.Value.EcsService.ClusterArn,
+                            CreatedAt = ((DateTimeOffset)newSocialAccountSetup.Value.EcsService.CreatedAt).ToUnixTimeSeconds(),
+                            CreatedBy = newSocialAccountSetup.Value.EcsService.CreatedBy,
+                            DesiredCount = newSocialAccountSetup.Value.EcsService.DesiredCount,
+                            EcsServiceRegistries = newSocialAccountSetup.Value.EcsService.Registries.Select(r => new EcsServiceRegistry
+                            {
+                                RegistryArn = r.RegistryArn
+                            }).ToList(),
+                            SchedulingStrategy = newSocialAccountSetup.Value.EcsService.SchedulingStrategy,
+                            ServiceArn = newSocialAccountSetup.Value.EcsService.ServiceArn,
+                            ServiceName = newSocialAccountSetup.Value.EcsService.ServiceName,
+                            TaskDefinition = newSocialAccountSetup.Value.EcsService.TaskDefinition,
+                            UserId = newSocialAccountSetup.Value.EcsService.UserId
+                        },
+                        EcsTaskDefinition = new()
+                        {
+                            Family = newSocialAccountSetup.Value.EcsTaskDefinition.Family
+                        }
+                    }
+
+                };                
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occured while creating new social account object.");
+                result.Succeeded = false;
+                result.Failures.Add(new()
+                {
+                    Reason = "Failed to perform object mapping.",
+                    Detail = "Something went during object mapping. Check server Logs."
+                });
+                return result;
+            }
+
+            newSocialAccount = await _socialAccountRepository.AddSocialAccountAsync(newSocialAccount, ct);
+            if (newSocialAccount == null)
+            {
+                result.Succeeded = false;
+                result.Failures.Add(new()
+                {
+                    Detail = "Something went wrong when adding social account to the database. Check server logs",
+                    Reason = "Failed to add new social account to the database"
+                });
+                return result;
+            }
+
+            result.Succeeded = true;
+            return result;
+        }        
     }
 }

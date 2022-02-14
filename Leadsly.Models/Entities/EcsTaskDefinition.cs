@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Models
+namespace Leadsly.Models.Entities
 {
-    public class CloudMapServiceDiscoveryDTO
+    public class EcsTaskDefinition
     {
         public string Id { get; set; }
-        public string Name { get; set; }
+        public string Family { get; set; }        
     }
 }

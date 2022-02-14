@@ -211,7 +211,7 @@ namespace Leadsly.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ECSTaskId")
+                    b.Property<string>("EcsTaskId")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("EcsServiceId")
@@ -222,14 +222,14 @@ namespace Leadsly.Infrastructure.Migrations
 
                     b.HasIndex("ApplicationUserId");
 
-                    b.HasIndex("ECSTaskId");
+                    b.HasIndex("EcsTaskId");
 
                     b.HasIndex("EcsServiceId");
 
                     b.ToTable("DockerContainers");
                 });
 
-            modelBuilder.Entity("Leadsly.Models.Entities.ECSService", b =>
+            modelBuilder.Entity("Leadsly.Models.Entities.EcsService", b =>
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
@@ -267,10 +267,10 @@ namespace Leadsly.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ECSServices");
+                    b.ToTable("EcsServices");
                 });
 
-            modelBuilder.Entity("Leadsly.Models.Entities.ECSTask", b =>
+            modelBuilder.Entity("Leadsly.Models.Entities.EcsTask", b =>
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
@@ -283,7 +283,7 @@ namespace Leadsly.Infrastructure.Migrations
                     b.Property<int>("Count")
                         .HasColumnType("int");
 
-                    b.Property<string>("ECSServiceId")
+                    b.Property<string>("EcsServiceId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
@@ -301,9 +301,9 @@ namespace Leadsly.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ECSServiceId");
+                    b.HasIndex("EcsServiceId");
 
-                    b.ToTable("ECSTasks");
+                    b.ToTable("EcsTasks");
                 });
 
             modelBuilder.Entity("Leadsly.Models.Entities.Organization", b =>
@@ -538,11 +538,11 @@ namespace Leadsly.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Leadsly.Models.Entities.ECSTask", null)
+                    b.HasOne("Leadsly.Models.Entities.EcsTask", null)
                         .WithMany("DockerContainers")
-                        .HasForeignKey("ECSTaskId");
+                        .HasForeignKey("EcsTaskId");
 
-                    b.HasOne("Leadsly.Models.Entities.ECSService", "EcsService")
+                    b.HasOne("Leadsly.Models.Entities.EcsService", "EcsService")
                         .WithMany()
                         .HasForeignKey("EcsServiceId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -553,15 +553,15 @@ namespace Leadsly.Infrastructure.Migrations
                     b.Navigation("EcsService");
                 });
 
-            modelBuilder.Entity("Leadsly.Models.Entities.ECSTask", b =>
+            modelBuilder.Entity("Leadsly.Models.Entities.EcsTask", b =>
                 {
-                    b.HasOne("Leadsly.Models.Entities.ECSService", "ECSService")
-                        .WithMany("ECSTasks")
-                        .HasForeignKey("ECSServiceId")
+                    b.HasOne("Leadsly.Models.Entities.EcsService", "EcsService")
+                        .WithMany("EcsTasks")
+                        .HasForeignKey("EcsServiceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("ECSService");
+                    b.Navigation("EcsService");
                 });
 
             modelBuilder.Entity("Leadsly.Models.Entities.SocialAccount", b =>
@@ -644,12 +644,12 @@ namespace Leadsly.Infrastructure.Migrations
                     b.Navigation("SocialAccounts");
                 });
 
-            modelBuilder.Entity("Leadsly.Models.Entities.ECSService", b =>
+            modelBuilder.Entity("Leadsly.Models.Entities.EcsService", b =>
                 {
-                    b.Navigation("ECSTasks");
+                    b.Navigation("EcsTasks");
                 });
 
-            modelBuilder.Entity("Leadsly.Models.Entities.ECSTask", b =>
+            modelBuilder.Entity("Leadsly.Models.Entities.EcsTask", b =>
                 {
                     b.Navigation("DockerContainers");
                 });

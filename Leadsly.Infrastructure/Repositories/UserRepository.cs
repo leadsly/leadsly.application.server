@@ -23,16 +23,24 @@ namespace Leadsly.Infrastructure.Repositories
         private readonly ILogger<UserRepository> _logger;
         private readonly DatabaseContext _dbContext;
 
-        public async Task<ApplicationUser> GetByIdAsync(string walletId, CancellationToken ct = default)
+        public async Task<ApplicationUser> GetByIdAsync(string userId, CancellationToken ct = default)
         {
-            ApplicationUser wallet = await _dbContext.Users.FindAsync(walletId);
-
-            if (wallet == null)
+            ApplicationUser appUser = default;
+            try
             {
-                // log here
+                appUser = await _dbContext.Users.FindAsync(userId);
+                if(appUser == null)
+                {
+                    _logger.LogError("Failed to get application user by id");
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Failed to get application user by id");
             }
 
-            return wallet;
+            return appUser;
         }
 
         private async Task<bool> UserExistsAsync(string id, CancellationToken ct = default)
@@ -40,16 +48,16 @@ namespace Leadsly.Infrastructure.Repositories
             return await GetByIdAsync(id, ct) != null;
         }
 
-        public async Task<IEnumerable<SocialAccount>> GetSocialAccountsAsync(SocialAccountDTO getSocialAccount, CancellationToken ct = default)
+        public async Task<IEnumerable<SocialAccount>> GetSocialAccountsByUserIdAsync(string userId, CancellationToken ct = default)
         {
-            ApplicationUser applicationUser = await GetByIdAsync(getSocialAccount.UserId);
-            IEnumerable<SocialAccount> socialAccounts = default;
+            ApplicationUser applicationUser = await GetByIdAsync(userId);            
             if (applicationUser == null)
             {
-                return socialAccounts;
+                _logger.LogError("Could not find application user. Something went wrong.");
+                return null;
             }
 
-            socialAccounts = applicationUser?.SocialAccounts.Where(s => s.Username == getSocialAccount.Username && Equals(s.AccountType, getSocialAccount.AccountType));
+            IEnumerable<SocialAccount> socialAccounts = applicationUser.SocialAccounts;
             return socialAccounts;
         }
     }

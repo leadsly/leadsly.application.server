@@ -11,7 +11,7 @@ namespace Leadsly.Domain.Repositories
 {
     public interface IUserRepository
     {
-        Task<IEnumerable<SocialAccount>> GetSocialAccountsAsync(SocialAccountDTO getSocialAccount, CancellationToken ct = default);
+        Task<IEnumerable<SocialAccount>> GetSocialAccountsByUserIdAsync(string userId, CancellationToken ct = default);
         Task<ApplicationUser> GetByIdAsync(string walletId, CancellationToken ct = default);
     }
 }

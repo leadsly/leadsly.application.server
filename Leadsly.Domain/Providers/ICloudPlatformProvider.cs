@@ -12,8 +12,8 @@ namespace Leadsly.Domain.Providers
 {
     public interface ICloudPlatformProvider
     {
-        public Task<NewSocialAccountSetupResult> SetupNewContainerForUserSocialAccountAsync(CancellationToken ct = default);        
-        public Task RollbackCloudResourcesAsync(NewSocialAccountSetupResult setupToRollback, CancellationToken ct = default);
+        public Task<NewSocialAccountSetupResult> SetupNewContainerForUserSocialAccountAsync(string userId, CancellationToken ct = default);        
+        public Task RollbackCloudResourcesAsync(NewSocialAccountSetupResult setupToRollback, string userId, CancellationToken ct = default);
         public Task<CloudPlatformOperationResult> SetupExistingContainerAsync(SetupExistingUserInLeadslyDTO existingContainer, CancellationToken ct = default);
     }
 }

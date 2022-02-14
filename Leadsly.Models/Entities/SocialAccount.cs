@@ -12,19 +12,19 @@ namespace Leadsly.Models.Entities
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
+        [Required]
+        public string UserId { get; set; }
+        public string SocialAccountCloudResourceId { get; set; }
         [NotMapped]
         public bool DockerContainerExists { get; set; } = false;
         [NotMapped]
-        public bool DuplicateSocialAccountsFound { get; set; }
-        [Required]
-        public long CreatedAtTimestamp { get; set; }
-        public SocialAccountType AccountType { get; set; }
-        [Required]
-        public string ContainerId { get; set; }
+        public bool DuplicateSocialAccountsFound { get; set; }        
+        public SocialAccountType AccountType { get; set; }        
         [Required]
         public string Username { get; set; }
         [Required]
         public bool ConfiguredWithUsersLeadslyAccount { get; set; }
-        public DockerContainerInfo DockerContainerInfo { get; set; }
+        public SocialAccountCloudResource SocialAccountCloudResource { get; set; }
+        public ApplicationUser ApplicationUser { get; set; }
     }
 }

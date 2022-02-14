@@ -16,13 +16,17 @@ namespace Leadsly.Infrastructure
         private ILogger<DatabaseContext> _logger;
 
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
-        public DbSet<Customer_Stripe> StripeCustomers { get; set; }
-        public DbSet<DockerContainerInfo> DockerContainers { get; set; }
-        public DbSet<ECSService> ECSServices { get; set; }
-        public DbSet<ECSTask> ECSTasks { get; set; }
+        public DbSet<Customer_Stripe> StripeCustomers { get; set; }        
+        public DbSet<EcsService> EcsServices { get; set; }
+        public DbSet<EcsTaskDefinition> EcsTaskDefinitions { get; set; }
+        public DbSet<CloudMapServiceDiscoveryService> CloudMapServiceDiscoveryServices { get; set; }
+        public DbSet<EcsServiceRegistry> EcsServiceRegistries { get; set; }
+        public DbSet<SocialAccount> SocialAccounts { get; set; } 
+        public DbSet<SocialAccountCloudResource> SocialAccountResources { get; set; }
+        public DbSet<OrphanedCloudResource> OrphanedCloudResources { get; set; }
         public DbSet<Organization> Organizations { get; set; }
-        public DbSet<SocialAccount> SocialAccounts { get; set; }        
         public DbSet<Campaign> Campaigns { get; set; }
+        
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

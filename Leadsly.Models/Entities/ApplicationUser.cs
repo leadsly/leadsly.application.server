@@ -16,8 +16,7 @@ namespace Leadsly.Models.Entities
         public string ExternalProviderUserId { get; set; }
         public string PhotoUrl { get; set; }
         public string ExternalProvider { get; set; }
-        public Customer_Stripe Customer_Stripe { get; set; }
-        public ICollection<DockerContainerInfo> DockerContainers { get; set; }
+        public Customer_Stripe Customer_Stripe { get; set; }        
         public ICollection<SocialAccount> SocialAccounts { get; set; }
         public ICollection<Organization> Organizations { get; set; }
         public ICollection<Campaign> Campaigns { get; set; }

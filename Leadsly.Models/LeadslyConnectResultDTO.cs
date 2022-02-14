@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Leadsly.Models
 {
     [DataContract]
-    public class LeadslySetupResultDTO
+    public class LeadslyConnectResultDTO
     {
         public bool Succeeded { get; set; }
         public List<FailureDTO> Failures { get; set; } = new();

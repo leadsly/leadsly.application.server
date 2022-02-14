@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Leadsly.Models.Aws.ElasticContainerService;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -9,12 +10,14 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Models.Entities
 {
-    public class ECSService
+    public class EcsService
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; }
         [Required]
-        public string UserId { get; set; }
+        public string SocialAccountCloudResourceId { get; set; }
+        [Required]
+        public string UserId { get; set; }        
         [Required]
         public string ServiceName { get; set; }
         [Required]
@@ -24,12 +27,17 @@ namespace Leadsly.Models.Entities
         [Required]
         public long CreatedAt { get; set; }
         [Required]
-        public long CreatedBy{ get; set; }
+        public string CreatedBy { get; set; }
         [Required]
         public string TaskDefinition { get; set; }
         [Required]
-        public string RoleArn { get; set; }
-        public ICollection<ECSTask> ECSTasks { get; set; }
+        public int DesiredCount { get; set; }
+        [Required]
+        public string SchedulingStrategy { get; set; }
+        [Required]
+        public PublicIp AssignPublicIp { get; set; }
+        public SocialAccountCloudResource SocialAccountCloudResource { get; set; }
+        public ICollection<EcsServiceRegistry> EcsServiceRegistries { get; set; }
 
     }
 }
