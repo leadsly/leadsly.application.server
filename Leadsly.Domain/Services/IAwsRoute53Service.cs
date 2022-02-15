@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Models.Aws.ElasticContainerService
+namespace Leadsly.Domain.Services
 {
-    public enum EcsLaunchType
+    public interface IAwsRoute53Service
     {
-        None,
-        FARGATE
+        Task<Amazon>
     }
 }

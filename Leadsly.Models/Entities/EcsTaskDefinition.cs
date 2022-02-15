@@ -9,6 +9,7 @@ namespace Leadsly.Models.Entities
     public class EcsTaskDefinition
     {
         public string Id { get; set; }
-        public string Family { get; set; }        
+        public string Family { get; set; }
+        public string ContainerName { get; set; }
     }
 }

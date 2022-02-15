@@ -4,11 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Models.Aws.ElasticContainerService
+namespace Leadsly.Models.Aws.Route53
 {
-    public enum EcsLaunchType
+    internal class ListRoute53ResourceRecordSetsRequest
     {
-        None,
-        FARGATE
     }
 }

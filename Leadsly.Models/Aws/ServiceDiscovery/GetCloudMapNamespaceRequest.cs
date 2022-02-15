@@ -4,11 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Models.Aws.ElasticContainerService
+namespace Leadsly.Models.Aws.ServiceDiscovery
 {
-    public enum EcsLaunchType
+    internal class GetCloudMapNamespaceRequest
     {
-        None,
-        FARGATE
     }
 }

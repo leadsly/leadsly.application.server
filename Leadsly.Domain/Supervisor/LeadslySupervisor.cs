@@ -56,15 +56,20 @@ namespace Leadsly.Domain.Supervisor
             // social account has been registered before check the ecs service task status and get connection info
             else
             {
-                result = await ConnectUserToExistingCloudResourcesAsync(socialAccountDTO, ct);
+                result = await ConnectUserToExistingCloudResourcesAsync(socialAccount, ct);
             }
 
             return result;
         }
 
-        private async Task<LeadslyConnectResultDTO> ConnectUserToExistingCloudResourcesAsync(SocialAccountDTO socialAccountDTO, CancellationToken ct = default)
+        private async Task<LeadslyConnectResultDTO> ConnectUserToExistingCloudResourcesAsync(SocialAccount socialAccount, CancellationToken ct = default)
         {
-            return null;
+            ExistingSocialAccountSetupResult result = await _cloudPlatformProvider.ConnectToExistingCloudResourceAsync(socialAccount, ct);
+
+            return new LeadslyConnectResultDTO
+            {
+                Succeeded = true
+            };
         }
 
         private async Task<LeadslyConnectResultDTO> SetupCloudResourcesForNewSocialAccountAsync(SocialAccountDTO socialAccountDTO, CancellationToken ct = default)
@@ -74,12 +79,7 @@ namespace Leadsly.Domain.Supervisor
                 Succeeded = false
             };
 
-            NewSocialAccountSetupResult cloudResourceSetupResult = await _cloudPlatformProvider.SetupNewContainerForUserSocialAccountAsync(socialAccountDTO.UserId, ct);
-            cloudResourceSetupResult.Username = socialAccountDTO.Username;
-            cloudResourceSetupResult.Password = socialAccountDTO.Password;
-            cloudResourceSetupResult.UserId = socialAccountDTO.UserId;
-            cloudResourceSetupResult.AccountType = socialAccountDTO.AccountType;
-
+            NewSocialAccountSetupResult cloudResourceSetupResult = await _cloudPlatformProvider.SetupNewCloudResourceForUserSocialAccountAsync(socialAccountDTO.UserId, ct);
             if (cloudResourceSetupResult.Succeeded == false)
             {
                 // clean up aws resources
@@ -89,7 +89,12 @@ namespace Leadsly.Domain.Supervisor
             }
 
             // persist to the database the container name, discovery service name, user social account
-            return await SaveNewSocialAccountAsync(cloudResourceSetupResult, ct); ;            
+            cloudResourceSetupResult.Username = socialAccountDTO.Username;
+            cloudResourceSetupResult.Password = socialAccountDTO.Password;
+            cloudResourceSetupResult.UserId = socialAccountDTO.UserId;
+            cloudResourceSetupResult.AccountType = socialAccountDTO.AccountType;
+
+            return await SaveNewSocialAccountAsync(cloudResourceSetupResult, ct);          
         }
 
         private async Task<LeadslyConnectResultDTO> SaveNewSocialAccountAsync(NewSocialAccountSetupResult newSocialAccountSetup, CancellationToken ct = default)
@@ -133,7 +138,8 @@ namespace Leadsly.Domain.Supervisor
                         },
                         EcsTaskDefinition = new()
                         {
-                            Family = newSocialAccountSetup.Value.EcsTaskDefinition.Family
+                            Family = newSocialAccountSetup.Value.EcsTaskDefinition.Family,
+                            ContainerName = newSocialAccountSetup.Value.EcsTaskDefinition.ContainerName
                         }
                     }
 

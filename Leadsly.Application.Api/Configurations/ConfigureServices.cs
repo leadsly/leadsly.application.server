@@ -36,6 +36,7 @@ using Amazon;
 using Leadsly.Domain.OptionsJsonModels;
 using Leadsly.Application.Domain.OptionsJsonModels;
 using Amazon.ServiceDiscovery;
+using Amazon.Route53;
 
 namespace Leadsly.Application.Api.Configurations
 {
@@ -82,10 +83,12 @@ namespace Leadsly.Application.Api.Configurations
 
             services.AddScoped(typeof(AmazonECSClient));
             services.AddScoped(typeof(AmazonServiceDiscoveryClient));
+            services.AddScoped(typeof(AmazonRoute53Client));
             services.AddScoped<ICloudPlatformProvider, CloudPlatformProvider>();            
             services.AddScoped<IUserProvider, UserProvider>();
             services.AddScoped<IAwsElasticContainerService, AwsElasticContainerService>();
-            services.AddScoped<IAwsServiceDiscoveryService, AwsServiceDiscoveryService>();            
+            services.AddScoped<IAwsServiceDiscoveryService, AwsServiceDiscoveryService>();
+            services.AddScoped<IAwsRoute53Service, AwsRoute53Service>();
             services.AddScoped<ILeadslyBotApiService, LeadslyBotApiService>();
             
             return services;

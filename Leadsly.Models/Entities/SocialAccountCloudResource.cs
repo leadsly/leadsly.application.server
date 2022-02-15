@@ -12,6 +12,7 @@ namespace Leadsly.Models.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; } = string.Empty;
         public string SocialAccountId { get; set; }
+        public string ContainerName { get; set; }
         public SocialAccount SocialAccount { get; set; }
         public string EcsServiceId { get; set; }
         public EcsService EcsService { get; set; }

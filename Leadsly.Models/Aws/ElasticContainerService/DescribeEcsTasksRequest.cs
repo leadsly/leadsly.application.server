@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Models.Aws.ElasticContainerService
 {
-    public enum EcsLaunchType
+    public class DescribeEcsTasksRequest
     {
-        None,
-        FARGATE
+        public string Cluster { get; set; }
+        public List<string> Tasks { get; set; }
     }
 }

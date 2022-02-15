@@ -21,6 +21,8 @@ namespace Leadsly.Models.Entities
         public string ResourceId { get; set; }
         [Required]
         public string UserId { get; set; }
+        public string ResourceName { get; set; }
+        public string Reason { get; set; }
 
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Leadsly.Domain.Repositories;
 using Leadsly.Models.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -21,6 +22,11 @@ namespace Leadsly.Infrastructure.Repositories
         private readonly DatabaseContext _dbContext;
         private readonly ILogger<SocialAccountRepository> _logger;
 
+        private async Task<bool> SocialAccountExistsAsync(string id, CancellationToken ct = default)
+        {
+            return await _dbContext.SocialAccounts.AnyAsync(s => s.Id == id, ct);
+        }            
+
         public async Task<SocialAccount> AddSocialAccountAsync(SocialAccount newSocialAccount, CancellationToken ct = default)
         {
             try
@@ -33,6 +39,28 @@ namespace Leadsly.Infrastructure.Repositories
                 _logger.LogError("Failed to add new social account.");
             }
             return newSocialAccount;
+        }
+
+        public async Task<bool> RemoveSocialAccountAsync(string id, CancellationToken ct = default)
+        {
+            if(!await SocialAccountExistsAsync(id, ct))
+            {
+                _logger.LogWarning("Social account does not exist. SocialAccountId: {id}", id);
+                return false;
+            }
+            bool result = false;
+            try
+            {
+                SocialAccount toRemove = _dbContext.SocialAccounts.Find(id);
+                _dbContext.SocialAccounts.Remove(toRemove);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch(Exception ex)
+            {
+                _logger.LogWarning(ex, "Something went wrong removing user's social account");
+                result = false;
+            }
+            return result;
         }
     }
 }

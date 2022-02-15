@@ -11,5 +11,6 @@ namespace Leadsly.Domain.Repositories
     public interface ISocialAccountRepository
     {
         Task<SocialAccount> AddSocialAccountAsync(SocialAccount newSocialAccount, CancellationToken ct = default);
+        Task<bool> RemoveSocialAccountAsync(string id, CancellationToken ct = default);
     }
 }

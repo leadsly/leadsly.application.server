@@ -67,5 +67,23 @@ namespace Leadsly.Domain.Services
 
             return resp;
         }
+
+        public async Task<GetNamespaceResponse> GetNamespaceAsync(GetCloudMapNamespaceRequest getNamespaceRequest, CancellationToken ct = default)
+        {
+            GetNamespaceResponse resp = default;
+            try
+            {
+                resp = await _awsServiceDiscoveryClient.GetNamespaceAsync(new GetNamespaceRequest
+                {
+                    Id = getNamespaceRequest.Id
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get aws cloud map namespace details.");
+            }
+
+            return resp;
+        }
     }
 }

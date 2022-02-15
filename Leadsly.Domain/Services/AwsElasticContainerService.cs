@@ -219,5 +219,66 @@ namespace Leadsly.Domain.Services
 
             return resp;
         }
+
+        public async Task<ListTasksResponse> ListTasksAsync(ListEcsTasksRequest listEcsTasksRequest, CancellationToken ct = default)
+        {
+            ListTasksResponse resp = default;
+            try
+            {
+                resp = await _amazonEcsClient.ListTasksAsync(new ListTasksRequest
+                {
+                    Cluster = listEcsTasksRequest.Cluster,
+                    ContainerInstance = listEcsTasksRequest.ContainerInstance,
+                    DesiredStatus = listEcsTasksRequest.DesiredStatus,
+                    Family = listEcsTasksRequest.Family,
+                    LaunchType = listEcsTasksRequest.LaunchType,
+                    ServiceName = listEcsTasksRequest.ServiceName
+                }, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve list of ecs tasks.");
+            }
+
+            return resp;
+        }
+
+        public async Task<DescribeTasksResponse> DescribeTasksAsync(DescribeEcsTasksRequest describeEcsTasksRequest, CancellationToken ct = default)
+        {
+            DescribeTasksResponse resp = default;
+            try
+            {
+                resp = await _amazonEcsClient.DescribeTasksAsync(new DescribeTasksRequest
+                {
+                    Cluster = describeEcsTasksRequest.Cluster,
+                    Tasks = describeEcsTasksRequest.Tasks
+                }, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve details about ecs tasks.");
+            }
+
+            return resp;
+        }
+
+        public async Task<DescribeServicesResponse> DescribeServices(DescribeEcsServicesRequest describeEcsServicesRequest, CancellationToken ct = default)
+        {
+            DescribeServicesResponse resp = default;
+            try
+            {
+                resp = await _amazonEcsClient.DescribeServicesAsync(new DescribeServicesRequest
+                {
+                    Cluster = describeEcsServicesRequest.Cluster,
+                    Services = describeEcsServicesRequest.Services
+                }, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve details about ecs services.");
+            }
+
+            return resp;
+        }
     }
 }
