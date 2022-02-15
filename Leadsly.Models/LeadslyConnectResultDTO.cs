@@ -11,6 +11,7 @@ namespace Leadsly.Models
     public class LeadslyConnectResultDTO
     {
         public bool Succeeded { get; set; }
+        public bool RequiresNewCloudResource { get; set; }
         public List<FailureDTO> Failures { get; set; } = new();
     }
 }

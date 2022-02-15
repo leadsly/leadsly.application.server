@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Shared.Models.Leadsly.Requests
+namespace Shared.Models.Leadsly
 {
     [DataContract]
     public class UserSignoutFromAllDriversDTO

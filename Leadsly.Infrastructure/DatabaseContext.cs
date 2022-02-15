@@ -37,6 +37,8 @@ namespace Leadsly.Infrastructure
             IdentityUsersConfiguration.ConfigureIdentityUsersTableNames(builder, _logger);
 
             StripeCustomersConfiguration.Configure(builder, _logger);
+
+            SocialAccountsConfiguration.Configure(builder, _logger);
         }
     }
 }

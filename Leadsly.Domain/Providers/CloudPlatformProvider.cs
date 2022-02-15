@@ -25,7 +25,6 @@ namespace Leadsly.Domain.Providers
             ICloudPlatformRepository cloudPlatformRepository,
             IAwsServiceDiscoveryService awsServiceDiscoveryService,
             IAwsRoute53Service awsRoute53Service,
-            ISocialAccountRepository socialAccountRepository,
             ILeadslyBotApiService leadslyBotApiService,
             IOrphanedCloudResourcesRepository orphanedCloudResourcesRepository,
             ILogger<CloudPlatformProvider> logger)
@@ -34,14 +33,12 @@ namespace Leadsly.Domain.Providers
             _awsServiceDiscoveryService = awsServiceDiscoveryService;
             _cloudPlatformRepository = cloudPlatformRepository;
             _orphanedCloudResourcesRepository = orphanedCloudResourcesRepository;
-            _socialAccountRepository = socialAccountRepository;
             _awsRoute53Service = awsRoute53Service;
             _leadslyBotApiService = leadslyBotApiService;
             _logger = logger;
         }
 
         private readonly ILeadslyBotApiService _leadslyBotApiService;
-        private readonly ISocialAccountRepository _socialAccountRepository;
         private readonly IAwsElasticContainerService _awsElasticContainerService;
         private readonly IAwsRoute53Service _awsRoute53Service;
         private readonly IAwsServiceDiscoveryService _awsServiceDiscoveryService;
@@ -118,6 +115,7 @@ namespace Leadsly.Domain.Providers
                 return result;
             }
 
+            // perform initial healthcheck to hal via service discovery service name
             CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
             HalRequest halHealthCheckRequest = new()
             {
@@ -127,65 +125,28 @@ namespace Leadsly.Domain.Providers
             };
             // perform health check on hal
             HalHealthCheckResponse healthCheckResponse = await PerformHalsHealthCheckAsync(halHealthCheckRequest, ct);
+            // its possible that the failure occured because dns record has stale ip address
             if(healthCheckResponse.Succeeded == false)
             {
-                // if hals check fails query the dns record for private ip address of this resource and try again, its possible that the dns record has stale ip address
-                CloudPlatformOperationResult namespaceDetailsResult = await GetNamespaceDetailsAsync(configuration.ServiceDiscoveryConfig.NamespaceId, ct);
-                if(namespaceDetailsResult.Succeeded == false)
+                result = await PerformHalsHealthCheckWithPrivateIpAsync(configuration.ServiceDiscoveryConfig, socialAccount.SocialAccountCloudResource.CloudMapServiceDiscoveryService, ct);
+                if(result.Succeeded == false)
                 {
-                    result.Failures = namespaceDetailsResult.Failures;
                     return result;
                 }
-
-                string hostedZoneId = (string)namespaceDetailsResult.Value;
-                Amazon.Route53.Model.ListResourceRecordSetsResponse listResourceRecordSetsResponse = await ListResourceRecordSetsAsync(hostedZoneId, ct);
-
-                if(listResourceRecordSetsResponse == null || listResourceRecordSetsResponse.HttpStatusCode != HttpStatusCode.OK)
-                {
-                    result.Failures.Add(new()
-                    {
-                        Detail = "Failed to get a list of resource record sets from route 53 in aws",
-                        Reason = "Failed to get list resource record sets."
-                    });
-                    return result;
-                }
-
-                Amazon.Route53.Model.ResourceRecordSet recordSet = listResourceRecordSetsResponse.ResourceRecordSets.Find(r => r.Name == socialAccount.SocialAccountCloudResource.CloudMapServiceDiscoveryService.Name);
-                if(recordSet == null)
-                {
-                    string serviceDiscoveryName = socialAccount.SocialAccountCloudResource.CloudMapServiceDiscoveryService.Name;
-                    _logger.LogError("Route 53 DNS record did not contain an entry for {serviceDiscoveryName}", serviceDiscoveryName);
-                    result.Failures.Add(new()
-                    {
-                        Reason = "Failed to locate discovery service",
-                        Detail = $"Route 53 DNS record did not contain an entry for {socialAccount.SocialAccountCloudResource.CloudMapServiceDiscoveryService.Name}"
-                    });
-
-                    return result;
-                }
-
-                string privateIpAddressFromDns = string.Empty;
-                if(recordSet.ResourceRecords.Count > 1)
-                {
-                    int resourceRecordsCount = recordSet.ResourceRecords.Count;
-                    _logger.LogWarning("Record set had multiple resource records. Expected to be 1 but found {resourceRecordsCount}. Grabbing first one, this may not be the desired result!", resourceRecordsCount);
-                    privateIpAddressFromDns = recordSet.ResourceRecords.FirstOrDefault().Value;
-                }
-
             }
 
             // in the very slim chance that this ip address is pointing to a recycled ip address that is running a different version of hal lets check the container names
             if(healthCheckResponse.Value.HalsUniqueName != socialAccount.SocialAccountCloudResource.ContainerName)
             {
-                _logger.LogError("Rare edge case occured. Hal's health check successfully responded but the name of hal running in the container is different then what user has registered to their name. Requring DNS to get fresh private ip address.");
-                CloudPlatformOperationResult namespaceDetailsResult = await GetNamespaceDetailsAsync(configuration.ServiceDiscoveryConfig.NamespaceId, ct);
-                if (namespaceDetailsResult.Succeeded == false)
+                _logger.LogWarning("Rare edge case occured. Hal's health check successfully responded but the name of hal running in the container is different then what user has registered to their name. Requring DNS to get fresh private ip address.");
+                result = await PerformHalsHealthCheckWithPrivateIpAsync(configuration.ServiceDiscoveryConfig, socialAccount.SocialAccountCloudResource.CloudMapServiceDiscoveryService, ct);
+                if(result.Succeeded == false)
                 {
-                    result.Failures = namespaceDetailsResult.Failures;
                     return result;
                 }
             }
 
+            result.Succeeded = true;
             return result;
         }
 
@@ -226,6 +187,125 @@ namespace Leadsly.Domain.Providers
             _logger.LogInformation("Aws resource cleanup completed.");
         }
 
+        public async Task RemoveUsersSocialAccountCloudResourcesAsync(SocialAccount socialAccount, CancellationToken ct = default)
+        {
+            _logger.LogInformation("Aws resource cleanup started.");
+            SocialAccountCloudResource awsCloudDetailsToRemove = socialAccount.SocialAccountCloudResource;
+            // first start removing service discovery service
+            _logger.LogInformation("Starting to delete service discovery service.");
+            await DeleteServiceDiscoveryServiceAsync(awsCloudDetailsToRemove.CloudMapServiceDiscoveryService, socialAccount.UserId, ct);
+            _logger.LogInformation("Finished deleting service discovery service.");
+
+            // then ecs service
+            _logger.LogInformation("Starting to delete ecs service.");
+            await DeleteEcsServiceAsync(awsCloudDetailsToRemove.EcsService, socialAccount.UserId, ct);
+            _logger.LogInformation("Finished deleting ecs service.");
+
+            // then deregister task definition            
+            _logger.LogInformation("Starting to deregister task definition.");
+            // since this is an immediate rollback revision will always be 1. For regular deletes this information will have to be fetched from the api.
+            awsCloudDetailsToRemove.EcsTaskDefinition.Family = $"{awsCloudDetailsToRemove.EcsTaskDefinition.Family}:1";
+            await DeregisterTaskDefinitionAsync(awsCloudDetailsToRemove.EcsTaskDefinition, socialAccount.UserId, ct);
+            _logger.LogInformation("Finished deregistering task definition.");
+
+            _logger.LogInformation("Aws resource cleanup completed.");
+        }
+        private async Task<ExistingSocialAccountSetupResult> PerformHalsHealthCheckWithPrivateIpAsync(CloudMapServiceDiscoveryConfig serviceDiscoveryConfig, CloudMapServiceDiscoveryService usersCloudDiscoveryService, CancellationToken ct = default)
+        {
+            ExistingSocialAccountSetupResult result = new()
+            {
+                Succeeded = false
+            };
+
+            // Query DNS for fresh ip address for the given service discovery name
+            CloudPlatformOperationResult dnsPrivateIpAddressResult = await QueryDNSForTasksPrivateIpAddressAsync(serviceDiscoveryConfig.NamespaceId, usersCloudDiscoveryService.Name, ct);
+
+            if(dnsPrivateIpAddressResult.Succeeded == false)
+            {
+                result.Failures = dnsPrivateIpAddressResult.Failures;
+                result.IsHalHealthy = false;
+                return result;
+            }
+
+            // perform healthcheck with fresh private ip address
+            HalRequest halHealthCheckWithPrivateIpRequest = new()
+            {
+                DiscoveryServiceName = (string)dnsPrivateIpAddressResult.Value,
+                NamespaceName = serviceDiscoveryConfig.Name,
+                RequestUrl = "healthcheck"
+            };
+
+            // perform health check on hal
+            HalHealthCheckResponse healthCheckWithPrivateIpResponse = await PerformHalsHealthCheckAsync(halHealthCheckWithPrivateIpRequest, ct);
+            if (healthCheckWithPrivateIpResponse.Succeeded == false)
+            {
+                _logger.LogWarning("Failed to send healthcheck with private ip address to existing resource. Deleting Cloud Resource from this social account.");
+
+                result.Failures.Add(new()
+                {
+                    Detail = "Using private ip address health check failed.",
+                    Reason = "Hal's health check failed."
+                });                
+                result.IsHalHealthy = false;
+                return result;
+            }
+
+            result.IsHalHealthy = true;
+            result.Succeeded = true;
+            return result;
+        }
+        private async Task<CloudPlatformOperationResult> QueryDNSForTasksPrivateIpAddressAsync(string namespaceId, string serviceDiscoveryName, CancellationToken ct = default)
+        {
+            CloudPlatformOperationResult result = new()
+            {
+                Succeeded = false
+            };
+
+            // Query DNS directly and get private ip address for this task and use that to send health check
+            result = await GetNamespaceDetailsAsync(namespaceId, ct);
+            if (result.Succeeded == false)
+            {
+                return result;
+            }
+
+            string hostedZoneId = (string)result.Value;
+            Amazon.Route53.Model.ListResourceRecordSetsResponse listResourceRecordSetsResponse = await ListResourceRecordSetsAsync(hostedZoneId, ct);
+
+            if (listResourceRecordSetsResponse == null || listResourceRecordSetsResponse.HttpStatusCode != HttpStatusCode.OK)
+            {
+                result.Failures.Add(new()
+                {
+                    Detail = "Failed to get a list of resource record sets from route 53 in aws",
+                    Reason = "Failed to get list resource record sets."
+                });
+                return result;
+            }
+
+            Amazon.Route53.Model.ResourceRecordSet recordSet = listResourceRecordSetsResponse.ResourceRecordSets.Find(r => r.Name == serviceDiscoveryName);
+            if (recordSet == null)
+            {
+                _logger.LogError("Route 53 DNS record did not contain an entry for {serviceDiscoveryName}", serviceDiscoveryName);
+                result.Failures.Add(new()
+                {
+                    Reason = "Failed to locate discovery service",
+                    Detail = $"Route 53 DNS record did not contain an entry for {serviceDiscoveryName}"
+                });
+
+                return result;
+            }
+
+            string privateIpAddressFromDns = string.Empty;
+            if (recordSet.ResourceRecords.Count > 1)
+            {
+                int resourceRecordsCount = recordSet.ResourceRecords.Count;
+                _logger.LogWarning("Record set had multiple resource records. Expected to be 1 but found {resourceRecordsCount}. Grabbing first one, this may not be the desired result!", resourceRecordsCount);                
+            }
+            privateIpAddressFromDns = recordSet.ResourceRecords.FirstOrDefault().Value;
+
+            result.Succeeded = true;
+            result.Value = privateIpAddressFromDns;
+            return result;
+        }
         private async Task<CloudPlatformOperationResult> GetNamespaceDetailsAsync(string namespaceId, CancellationToken ct = default)
         {
             CloudPlatformOperationResult result = new()
@@ -326,7 +406,8 @@ namespace Leadsly.Domain.Providers
             // check if service is still active
             if (ecsServiceDetails.Status != EcsServiceStatus.ACTIVE)
             {
-                result = await HandleNonActiveEcsServiceAsync(ecsServiceDetails, socialAccount, ct);
+                // await HandleNonActiveEcsServiceAsync(ecsServiceDetails, socialAccount, ct);
+                result.EcsServiceActive = false;
                 return result;
             }
 
@@ -348,7 +429,9 @@ namespace Leadsly.Domain.Providers
         {
             ExistingSocialAccountSetupResult result = new()
             {
-                Succeeded = false
+                Succeeded = false,
+                EcsServiceHasPendingTasks = false,
+                EcsTaskRunning = false                
             };
 
             string ecsServiceArn = ecsServiceDetails.ServiceArn;
@@ -359,6 +442,7 @@ namespace Leadsly.Domain.Providers
             _logger.LogInformation("Number of running tasks for this ecs service is ", runningTasksCount);
             if (ecsServiceDetails.PendingCount != 0)
             {
+                result.EcsServiceHasPendingTasks = true;
                 int pendingTasksCount = ecsServiceDetails.PendingCount;
                 _logger.LogWarning("Ecs service has some pending task.");
                 _logger.LogInformation("Number of ecs service pending tasks is {pendingTasksCount}", pendingTasksCount);
@@ -367,14 +451,35 @@ namespace Leadsly.Domain.Providers
                 result = await WaitForPendingTasksToStartAsync(ecsServiceDetails, ct);
                 if(result.Succeeded == false)
                 {
+                    _logger.LogWarning("Ecs service did not successfully start its pending tasks in the allotted time.");
                     result.Failures.Add(new()
                     {
                         Detail = "Ecs service did not resolve pending tasks in the default alotted time",
                         Arn = ecsServiceArn,
                         Reason = "Ecs service still has pending tasks"
                     });
-                    return result;
                 }
+                else
+                {
+                    // else if everything was successful set pending tasks flag to false
+                    result.EcsServiceHasPendingTasks = false;
+                }
+            }
+
+            if(ecsServiceDetails.RunningCount == 0)
+            {
+                result.Failures.Add(new()
+                {
+                    Reason = "No running tasks found",
+                    Detail = "Ecs service does not have any running tasks"
+                });
+            }
+
+            // If ecs service has a running task continue with the happy path 
+            if(ecsServiceDetails.RunningCount > 0)
+            {
+                _logger.LogInformation("Ecs service has at least one running task.");
+                result.EcsTaskRunning = true;                
             }
 
             result.Succeeded = true;
@@ -447,12 +552,12 @@ namespace Leadsly.Domain.Providers
             return result;
         }
 
-        private async Task<ExistingSocialAccountSetupResult> HandleNonActiveEcsServiceAsync(Amazon.ECS.Model.Service ecsServiceDetails, SocialAccount socialAccount, CancellationToken ct = default)
+        private async Task HandleNonActiveEcsServiceAsync(Amazon.ECS.Model.Service ecsServiceDetails, SocialAccount socialAccount, CancellationToken ct = default)
         {
-            ExistingSocialAccountSetupResult result = new()
-            {
-                Succeeded = false
-            };
+            //ExistingSocialAccountSetupResult result = new()
+            //{
+            //    Succeeded = false
+            //};
 
             // if task is no longer active log the ecs service, save it in the database for further investigation and manual removal,
             // return failure from here, but also remove this social account from users list so they can get a new space allocated for themselves
@@ -470,19 +575,19 @@ namespace Leadsly.Domain.Providers
 
             await _orphanedCloudResourcesRepository.AddOrphanedCloudResourceAsync(orphanedCloudResource, ct);
 
-            bool deleteOperationResult = await _socialAccountRepository.RemoveSocialAccountAsync(socialAccount.Id, ct);
+            //bool deleteOperationResult = await _socialAccountRepository.RemoveSocialAccountAsync(socialAccount.Id, ct);
 
-            if (deleteOperationResult == false)
-            {
-                _logger.LogWarning("Failed to delete user's social account. Please contact support for further assistance. This removal has to be done manually.");
-                result.Failures.Add(new()
-                {
-                    Reason = "Failed to remove social account",
-                    Detail = "Error occured when remvoing social account from user. Please contact support for assistance."
-                });
-            }
+            //if (deleteOperationResult == false)
+            //{
+            //    _logger.LogWarning("Failed to delete user's social account. Please contact support for further assistance. This removal has to be done manually.");
+            //    result.Failures.Add(new()
+            //    {
+            //        Reason = "Failed to remove social account",
+            //        Detail = "Error occured when remvoing social account from user. Please contact support for assistance."
+            //    });
+            //}
 
-            return result;
+            //return result;
         }
 
         private async Task<DescribeEcsServiceResponse> GetEcsServiceDetailsAsync(SocialAccount socialAccount, CancellationToken ct = default)
@@ -782,6 +887,29 @@ namespace Leadsly.Domain.Providers
             }
         }
 
+        private async Task DeleteServiceDiscoveryServiceAsync(CloudMapServiceDiscoveryService serviceDiscovery, string userId, CancellationToken ct = default)
+        {
+            DeleteServiceDiscoveryServiceRequest request = new()
+            {
+                Id = serviceDiscovery.Id
+            };
+
+            Amazon.ServiceDiscovery.Model.DeleteServiceResponse response = await _awsServiceDiscoveryService.DeleteServiceAsync(request, ct);
+            if (response == null)
+            {
+                _logger.LogWarning("Delete operation for service discovery service failed.");
+
+                OrphanedCloudResource orphanedResource = new()
+                {
+                    FriendlyName = "Service Discovery Service",
+                    ResourceId = serviceDiscovery.Id,
+                    UserId = userId
+                };
+                _logger.LogInformation("Adding service discovery service to orphaned cloud resources table for manual clean up.");
+                await _orphanedCloudResourcesRepository.AddOrphanedCloudResourceAsync(orphanedResource, ct);
+            }
+        }
+
         private async Task DeleteEcsServiceAsync(EcsServiceDTO EcsServiceDto, string userId, CancellationToken ct = default)
         {
             DeleteEcsServiceRequest request = new()
@@ -806,7 +934,30 @@ namespace Leadsly.Domain.Providers
                 await _orphanedCloudResourcesRepository.AddOrphanedCloudResourceAsync(orphanedCloudResource, ct);
             }
         }
+        private async Task DeleteEcsServiceAsync(EcsService EcsService, string userId, CancellationToken ct = default)
+        {
+            DeleteEcsServiceRequest request = new()
+            {
+                Cluster = EcsService.ClusterArn,
+                Force = true,
+                Service = EcsService.ServiceName
+            };
 
+            Amazon.ECS.Model.DeleteServiceResponse response = await _awsElasticContainerService.DeleteServiceAsync(request, ct);
+            if (response == null)
+            {
+                _logger.LogWarning("Delete operation for ecs service failed.");
+
+                OrphanedCloudResource orphanedCloudResource = new()
+                {
+                    UserId = userId,
+                    FriendlyName = "Ecs Service",
+                    ResourceId = EcsService.ServiceName
+                };
+                _logger.LogInformation("Adding ecs service to orphaned cloud resources table for manual clean up.");
+                await _orphanedCloudResourcesRepository.AddOrphanedCloudResourceAsync(orphanedCloudResource, ct);
+            }
+        }
         private async Task DeregisterTaskDefinitionAsync(EcsTaskDefinitionDTO taskDefinition, string userId, CancellationToken ct = default)
         {
             DeregisterEcsTaskDefinitionRequest request = new()
@@ -829,7 +980,28 @@ namespace Leadsly.Domain.Providers
                 await _orphanedCloudResourcesRepository.AddOrphanedCloudResourceAsync(orphanedCloudResource, ct);
             }
         }
+        private async Task DeregisterTaskDefinitionAsync(EcsTaskDefinition taskDefinition, string userId, CancellationToken ct = default)
+        {
+            DeregisterEcsTaskDefinitionRequest request = new()
+            {
+                TaskDefinition = taskDefinition.Family
+            };
 
+            Amazon.ECS.Model.DeregisterTaskDefinitionResponse response = await _awsElasticContainerService.DeregisterTaskDefinitionAsync(request, ct);
+            if (response == null)
+            {
+                _logger.LogWarning("Deregister operation for ecs task definition failed.");
+                OrphanedCloudResource orphanedCloudResource = new()
+                {
+                    UserId = userId,
+                    FriendlyName = "Task definition",
+                    ResourceId = taskDefinition.Family
+                };
+
+                _logger.LogInformation("Adding task definition to orphaned cloud resources table for manual clean up.");
+                await _orphanedCloudResourcesRepository.AddOrphanedCloudResourceAsync(orphanedCloudResource, ct);
+            }
+        }
         private async Task<Amazon.ECS.Model.CreateServiceResponse> CreateEcsServiceAsync(EcsServiceDTO EcsService, EcsServiceConfig config, CancellationToken ct = default)
         {
             CreateEcsServiceRequest createEcsServiceRequest = new()
@@ -924,5 +1096,6 @@ namespace Leadsly.Domain.Providers
 
             return await _awsElasticContainerService.UpdateServiceAsync(request, ct);
         }
+               
     }
 }

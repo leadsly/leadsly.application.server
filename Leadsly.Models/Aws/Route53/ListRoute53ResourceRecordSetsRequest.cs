@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Models.Aws.Route53
 {
-    internal class ListRoute53ResourceRecordSetsRequest
+    public class ListRoute53ResourceRecordSetsRequest
     {
+        public string HostedZoneId { get; set; }
     }
 }

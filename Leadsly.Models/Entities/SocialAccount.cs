@@ -13,12 +13,7 @@ namespace Leadsly.Models.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; }
         [Required]
-        public string UserId { get; set; }
-        public string SocialAccountCloudResourceId { get; set; }
-        [NotMapped]
-        public bool DockerContainerExists { get; set; } = false;
-        [NotMapped]
-        public bool DuplicateSocialAccountsFound { get; set; }        
+        public string UserId { get; set; }      
         public SocialAccountType AccountType { get; set; }        
         [Required]
         public string Username { get; set; }

@@ -57,6 +57,11 @@ namespace Leadsly.Infrastructure.Configurations
                 // entity.HasKey(key => new { key.UserId, key.LoginProvider, key.Name });
 
             });
+
+            builder.Entity<ApplicationUser>(entity =>
+            {
+                entity.HasMany<SocialAccount>().WithOne(s => s.ApplicationUser);                
+            });
         }
     }
 }

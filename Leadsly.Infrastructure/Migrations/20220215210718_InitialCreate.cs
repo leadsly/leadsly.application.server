@@ -10,22 +10,16 @@ namespace Leadsly.Infrastructure.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "EcsServices",
+                name: "EcsTaskDefinitions",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ServiceName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ServiceArn = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ClusterArn = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CreatedAt = table.Column<long>(type: "bigint", nullable: false),
-                    CreatedBy = table.Column<long>(type: "bigint", nullable: false),
-                    TaskDefinition = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    RoleArn = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Family = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ContainerName = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_EcsServices", x => x.Id);
+                    table.PrimaryKey("PK_EcsTaskDefinitions", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -38,6 +32,23 @@ namespace Leadsly.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Organizations", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "OrphanedCloudResources",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Arn = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FriendlyName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ResourceId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ResourceName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Reason = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OrphanedCloudResources", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -64,29 +75,6 @@ namespace Leadsly.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_StripeCustomers", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "EcsTasks",
-                columns: table => new
-                {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    EcsServiceId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    TaskDefinition = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    AssignPublicIp = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Count = table.Column<int>(type: "int", nullable: false),
-                    LaunchType = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_EcsTasks", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_EcsTasks_EcsServices_EcsServiceId",
-                        column: x => x.EcsServiceId,
-                        principalTable: "EcsServices",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -200,35 +188,31 @@ namespace Leadsly.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "DockerContainers",
+                name: "SocialAccounts",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AccountType = table.Column<int>(type: "int", nullable: false),
+                    Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ConfiguredWithUsersLeadslyAccount = table.Column<bool>(type: "bit", nullable: false),
                     ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    EcsServiceId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ContainerName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    EcsTaskId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    ApplicationUserId1 = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DockerContainers", x => x.Id);
+                    table.PrimaryKey("PK_SocialAccounts", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_DockerContainers_EcsServices_EcsServiceId",
-                        column: x => x.EcsServiceId,
-                        principalTable: "EcsServices",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_DockerContainers_EcsTasks_EcsTaskId",
-                        column: x => x.EcsTaskId,
-                        principalTable: "EcsTasks",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_DockerContainers_Users_ApplicationUserId",
+                        name: "FK_SocialAccounts_Users_ApplicationUserId",
                         column: x => x.ApplicationUserId,
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SocialAccounts_Users_ApplicationUserId1",
+                        column: x => x.ApplicationUserId1,
+                        principalTable: "Users",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -317,33 +301,97 @@ namespace Leadsly.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "SocialAccounts",
+                name: "CloudMapServiceDiscoveryServices",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    CreatedAtTimestamp = table.Column<long>(type: "bigint", nullable: false),
-                    AccountType = table.Column<int>(type: "int", nullable: false),
-                    ContainerId = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ConfiguredWithUsersLeadslyAccount = table.Column<bool>(type: "bit", nullable: false),
-                    DockerContainerInfoId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Arn = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    EcsServiceId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SocialAccounts", x => x.Id);
+                    table.PrimaryKey("PK_CloudMapServiceDiscoveryServices", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SocialAccountResources",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    SocialAccountId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ContainerName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    EcsTaskDefinitionId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CloudMapServiceDiscoveryServiceId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SocialAccountResources", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_SocialAccounts_DockerContainers_DockerContainerInfoId",
-                        column: x => x.DockerContainerInfoId,
-                        principalTable: "DockerContainers",
+                        name: "FK_SocialAccountResources_CloudMapServiceDiscoveryServices_CloudMapServiceDiscoveryServiceId",
+                        column: x => x.CloudMapServiceDiscoveryServiceId,
+                        principalTable: "CloudMapServiceDiscoveryServices",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_SocialAccounts_Users_ApplicationUserId",
-                        column: x => x.ApplicationUserId,
-                        principalTable: "Users",
-                        principalColumn: "Id");
+                        name: "FK_SocialAccountResources_EcsTaskDefinitions_EcsTaskDefinitionId",
+                        column: x => x.EcsTaskDefinitionId,
+                        principalTable: "EcsTaskDefinitions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SocialAccountResources_SocialAccounts_SocialAccountId",
+                        column: x => x.SocialAccountId,
+                        principalTable: "SocialAccounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "EcsServices",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    SocialAccountCloudResourceId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ServiceName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ServiceArn = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ClusterArn = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<long>(type: "bigint", nullable: false),
+                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TaskDefinition = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DesiredCount = table.Column<int>(type: "int", nullable: false),
+                    SchedulingStrategy = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AssignPublicIp = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EcsServices", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_EcsServices_SocialAccountResources_SocialAccountCloudResourceId",
+                        column: x => x.SocialAccountCloudResourceId,
+                        principalTable: "SocialAccountResources",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "EcsServiceRegistries",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    EcsServiceId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    RegistryArn = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EcsServiceRegistries", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_EcsServiceRegistries_EcsServices_EcsServiceId",
+                        column: x => x.EcsServiceId,
+                        principalTable: "EcsServices",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -357,24 +405,20 @@ namespace Leadsly.Infrastructure.Migrations
                 column: "ApplicationUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DockerContainers_ApplicationUserId",
-                table: "DockerContainers",
-                column: "ApplicationUserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_DockerContainers_EcsServiceId",
-                table: "DockerContainers",
+                name: "IX_CloudMapServiceDiscoveryServices_EcsServiceId",
+                table: "CloudMapServiceDiscoveryServices",
                 column: "EcsServiceId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DockerContainers_EcsTaskId",
-                table: "DockerContainers",
-                column: "EcsTaskId");
+                name: "IX_EcsServiceRegistries_EcsServiceId",
+                table: "EcsServiceRegistries",
+                column: "EcsServiceId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_EcsTasks_EcsServiceId",
-                table: "EcsTasks",
-                column: "EcsServiceId");
+                name: "IX_EcsServices_SocialAccountCloudResourceId",
+                table: "EcsServices",
+                column: "SocialAccountCloudResourceId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_RoleClaims_RoleId",
@@ -389,14 +433,30 @@ namespace Leadsly.Infrastructure.Migrations
                 filter: "[NormalizedName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
+                name: "IX_SocialAccountResources_CloudMapServiceDiscoveryServiceId",
+                table: "SocialAccountResources",
+                column: "CloudMapServiceDiscoveryServiceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SocialAccountResources_EcsTaskDefinitionId",
+                table: "SocialAccountResources",
+                column: "EcsTaskDefinitionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SocialAccountResources_SocialAccountId",
+                table: "SocialAccountResources",
+                column: "SocialAccountId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_SocialAccounts_ApplicationUserId",
                 table: "SocialAccounts",
                 column: "ApplicationUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SocialAccounts_DockerContainerInfoId",
+                name: "IX_SocialAccounts_ApplicationUserId1",
                 table: "SocialAccounts",
-                column: "DockerContainerInfoId");
+                column: "ApplicationUserId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserClaims_UserId",
@@ -429,10 +489,30 @@ namespace Leadsly.Infrastructure.Migrations
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_CloudMapServiceDiscoveryServices_EcsServices_EcsServiceId",
+                table: "CloudMapServiceDiscoveryServices",
+                column: "EcsServiceId",
+                principalTable: "EcsServices",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_SocialAccounts_Users_ApplicationUserId",
+                table: "SocialAccounts");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_SocialAccounts_Users_ApplicationUserId1",
+                table: "SocialAccounts");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_CloudMapServiceDiscoveryServices_EcsServices_EcsServiceId",
+                table: "CloudMapServiceDiscoveryServices");
+
             migrationBuilder.DropTable(
                 name: "ApplicationUserOrganization");
 
@@ -440,10 +520,13 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "Campaigns");
 
             migrationBuilder.DropTable(
-                name: "RoleClaims");
+                name: "EcsServiceRegistries");
 
             migrationBuilder.DropTable(
-                name: "SocialAccounts");
+                name: "OrphanedCloudResources");
+
+            migrationBuilder.DropTable(
+                name: "RoleClaims");
 
             migrationBuilder.DropTable(
                 name: "UserClaims");
@@ -461,22 +544,28 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "Organizations");
 
             migrationBuilder.DropTable(
-                name: "DockerContainers");
-
-            migrationBuilder.DropTable(
                 name: "Roles");
-
-            migrationBuilder.DropTable(
-                name: "EcsTasks");
 
             migrationBuilder.DropTable(
                 name: "Users");
 
             migrationBuilder.DropTable(
+                name: "StripeCustomers");
+
+            migrationBuilder.DropTable(
                 name: "EcsServices");
 
             migrationBuilder.DropTable(
-                name: "StripeCustomers");
+                name: "SocialAccountResources");
+
+            migrationBuilder.DropTable(
+                name: "CloudMapServiceDiscoveryServices");
+
+            migrationBuilder.DropTable(
+                name: "EcsTaskDefinitions");
+
+            migrationBuilder.DropTable(
+                name: "SocialAccounts");
         }
     }
 }

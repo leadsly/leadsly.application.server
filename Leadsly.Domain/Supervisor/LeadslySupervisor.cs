@@ -64,12 +64,55 @@ namespace Leadsly.Domain.Supervisor
 
         private async Task<LeadslyConnectResultDTO> ConnectUserToExistingCloudResourcesAsync(SocialAccount socialAccount, CancellationToken ct = default)
         {
-            ExistingSocialAccountSetupResult result = await _cloudPlatformProvider.ConnectToExistingCloudResourceAsync(socialAccount, ct);
-
-            return new LeadslyConnectResultDTO
+            LeadslyConnectResultDTO result = new LeadslyConnectResultDTO
             {
-                Succeeded = true
+                Succeeded = false,
+                RequiresNewCloudResource = false
             };
+
+            ExistingSocialAccountSetupResult connectingToExistingCloudResourceResult = await _cloudPlatformProvider.ConnectToExistingCloudResourceAsync(socialAccount, ct);
+
+            if(connectingToExistingCloudResourceResult.Succeeded == false)
+            {
+                await HandleFailedConnectionAttemptToExistingCloudResourceAsync(connectingToExistingCloudResourceResult, socialAccount, ct);
+                result.RequiresNewCloudResource = true;
+                return result;
+            }
+
+            result.Succeeded = true;
+            return result;
+        }
+
+        private async Task HandleFailedConnectionAttemptToExistingCloudResourceAsync(ExistingSocialAccountSetupResult existingSocialAccountSetupResult, SocialAccount socialAccount, CancellationToken ct = default)
+        {
+            if (existingSocialAccountSetupResult.EcsServiceActive == false || existingSocialAccountSetupResult.IsHalHealthy == false)
+            {
+                _logger.LogInformation("Removing cloud resources associated with this social account");
+                // if user ecs service is not active, delete the cloud resource from user's social account including task definition and service discovery name
+                await RemoveUsersSocialAccountAsync(socialAccount.Id, ct);
+                await RemoveUsersSocialAccountCloudResourcesAsync(socialAccount, ct);
+            }
+
+            if (existingSocialAccountSetupResult.EcsTaskRunning == false && existingSocialAccountSetupResult.EcsServiceHasPendingTasks == true)
+            {
+                // this should happen very rarely
+                _logger.LogWarning("[EDGE CASE]: Ecs service has no running tasks but has a pending task. There is no logic created for this scenario yet.");
+               // its possible that the ecs service has no tasks running but it has a task in pending state even after the default timeout time. Just log as warning for now
+            }
+        }
+
+
+        private async Task RemoveUsersSocialAccountCloudResourcesAsync(SocialAccount socialAccount, CancellationToken ct = default)
+        {
+            await _cloudPlatformProvider.RemoveUsersSocialAccountCloudResourcesAsync(socialAccount, ct);
+        }
+        private async Task RemoveUsersSocialAccountAsync(string userSocialAccountId, CancellationToken ct = default)
+        {
+            bool removeSocialAccount = await _socialAccountRepository.RemoveSocialAccountAsync(userSocialAccountId, ct);
+            if(removeSocialAccount == false)
+            {
+                _logger.LogError("Failed to remove users social account and the associated cloud resources. Manual intervention may be required to remove the resource.");
+            }
         }
 
         private async Task<LeadslyConnectResultDTO> SetupCloudResourcesForNewSocialAccountAsync(SocialAccountDTO socialAccountDTO, CancellationToken ct = default)

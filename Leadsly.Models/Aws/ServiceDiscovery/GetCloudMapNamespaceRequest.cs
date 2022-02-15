@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Models.Aws.ServiceDiscovery
 {
-    internal class GetCloudMapNamespaceRequest
+    public class GetCloudMapNamespaceRequest
     {
+        public string Id { get; set; }
     }
 }
