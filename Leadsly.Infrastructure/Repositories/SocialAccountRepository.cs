@@ -36,7 +36,7 @@ namespace Leadsly.Infrastructure.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError("Failed to add new social account.");
+                _logger.LogError(ex,"Failed to add new social account.");
             }
             return newSocialAccount;
         }

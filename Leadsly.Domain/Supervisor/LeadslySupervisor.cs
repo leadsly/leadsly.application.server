@@ -147,6 +147,15 @@ namespace Leadsly.Domain.Supervisor
                 Succeeded = false
             };
 
+            SocialAccountAndResourcesDTO newSocialAccountAndCloudResources = new()
+            {
+                AccountType = newSocialAccountSetup.AccountType,
+                Password = newSocialAccountSetup.Password,
+                UserId = newSocialAccountSetup.UserId,
+                Username = newSocialAccountSetup.Username,
+                Value = newSocialAccountSetup.Value
+            };
+
             SocialAccount newSocialAccount = default;
             try
             {
@@ -154,7 +163,7 @@ namespace Leadsly.Domain.Supervisor
                 {
                     AccountType = newSocialAccountSetup.AccountType,
                     Username = newSocialAccountSetup.Username,
-                    UserId = newSocialAccountSetup.UserId,
+                    UserId = newSocialAccountSetup.UserId,                    
                     SocialAccountCloudResource = new()
                     {
                         CloudMapServiceDiscoveryService = new()
@@ -163,7 +172,7 @@ namespace Leadsly.Domain.Supervisor
                             Name = newSocialAccountSetup.Value.CloudMapServiceDiscovery.Name
                         },
                         EcsService = new()
-                        {
+                        {                            
                             AssignPublicIp = newSocialAccountSetup.Value.EcsService.AssignPublicIp,
                             ClusterArn = newSocialAccountSetup.Value.EcsService.ClusterArn,
                             CreatedAt = ((DateTimeOffset)newSocialAccountSetup.Value.EcsService.CreatedAt).ToUnixTimeSeconds(),
@@ -200,6 +209,8 @@ namespace Leadsly.Domain.Supervisor
                 return result;
             }
 
+            // userAccount provider
+            //var newSocialAndResourcesResult = await _userProvider.AddUsersSocialAccountAsync(newSocialAccountAndCloudResources, ct);
             newSocialAccount = await _socialAccountRepository.AddSocialAccountAsync(newSocialAccount, ct);
             if (newSocialAccount == null)
             {

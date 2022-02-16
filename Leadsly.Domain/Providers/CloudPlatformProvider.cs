@@ -69,19 +69,21 @@ namespace Leadsly.Domain.Providers
                 return result;
             }
 
-            string taskDefinition = $"{Guid.NewGuid()}";
+            string taskDefinition = $"{Guid.NewGuid()}-task-def";
+            string containerName = $"hal-{Guid.NewGuid()}-container";
             SocialAccountCloudResourceDTO userSetup = new()
             {
+                ContainerName = containerName,
                 EcsTaskDefinition = new()
                 {
                     // name of the hal container
-                    ContainerName = $"hal-{Guid.NewGuid()}-container",
+                    ContainerName = containerName,
                     Family = taskDefinition
                 },
                 CloudMapServiceDiscovery = new()
                 {
                     // name used to discover this service by in the future
-                    Name = $"hal-{Guid.NewGuid()}"
+                    Name = $"hal-{Guid.NewGuid()}-srv-disc"
                 },
                 EcsService = new()
                 {
@@ -749,12 +751,7 @@ namespace Leadsly.Domain.Providers
             }
             result.CreateServiceDiscoveryServiceSucceeded = true;
             // update userSetup with the service discovery id. In case something fails, this will id will be used to clean up aws resources
-            userSetup.CloudMapServiceDiscovery.Id = createDiscoveryServiceResponse.Service.Id;
-            userSetup.CloudMapServiceDiscovery.Arn = createDiscoveryServiceResponse.Service?.Arn;
-            userSetup.CloudMapServiceDiscovery.CreateDate = createDiscoveryServiceResponse.Service?.CreateDate;
-            userSetup.CloudMapServiceDiscovery.NamepaceId = createDiscoveryServiceResponse.Service?.NamespaceId;
-            userSetup.CloudMapServiceDiscovery.Description = createDiscoveryServiceResponse.Service?.Description;
-            userSetup.CloudMapServiceDiscovery.CreateRequestId = createDiscoveryServiceResponse.Service?.Description;
+            userSetup.CloudMapServiceDiscovery = UpdateCloudMapServiceDiscoveryValues(createDiscoveryServiceResponse, configuration.ServiceDiscoveryConfig, userSetup.CloudMapServiceDiscovery);
 
             // link users ecs service with the created service discovery service
             userSetup.EcsService.Registries = new()
@@ -779,10 +776,8 @@ namespace Leadsly.Domain.Providers
             }
 
             result.CreateEcsServiceSucceeded = true;
-            userSetup.EcsService.ServiceArn = createEcsServiceResponse.Service?.ServiceArn;
-            userSetup.EcsService.CreatedAt = createEcsServiceResponse.Service?.CreatedAt;
-            userSetup.EcsService.CreatedBy = createEcsServiceResponse.Service?.CreatedBy;
-            
+            userSetup.EcsService = UpdateEcsServiceValues(createEcsServiceResponse, configuration.EcsServiceConfig, userSetup.EcsService);
+
             // add the upated userSetup here
             result.Value = userSetup;
 
@@ -797,6 +792,41 @@ namespace Leadsly.Domain.Providers
             return result;
         }
 
+        private CloudMapServiceDiscoveryServiceDTO UpdateCloudMapServiceDiscoveryValues(Amazon.ServiceDiscovery.Model.CreateServiceResponse createServiceDiscoveryService, CloudMapServiceDiscoveryConfig config, CloudMapServiceDiscoveryServiceDTO cloudMapDiscoveryDTO)
+        {
+            CloudMapServiceDiscoveryServiceDTO updatedCloudMapServiceDiscoveryValues = new();
+
+            // response
+            cloudMapDiscoveryDTO.Id = createServiceDiscoveryService.Service?.Id;
+            cloudMapDiscoveryDTO.Arn = createServiceDiscoveryService.Service?.Arn;
+            cloudMapDiscoveryDTO.CreateDate = createServiceDiscoveryService.Service?.CreateDate;
+            cloudMapDiscoveryDTO.NamepaceId = createServiceDiscoveryService.Service?.NamespaceId;
+            cloudMapDiscoveryDTO.Description = createServiceDiscoveryService.Service?.Description;
+            cloudMapDiscoveryDTO.CreateRequestId = createServiceDiscoveryService.Service?.CreatorRequestId;
+
+            // config
+
+            return cloudMapDiscoveryDTO;
+        }
+
+        private EcsServiceDTO UpdateEcsServiceValues(Amazon.ECS.Model.CreateServiceResponse createEcsServiceResponse, EcsServiceConfig config, EcsServiceDTO ecsServiceDTO)
+        {
+            // EcsServiceDTO updatedEcsService = new();
+            // values from the response
+            ecsServiceDTO.ServiceArn = createEcsServiceResponse.Service?.ServiceArn;
+            ecsServiceDTO.CreatedAt = createEcsServiceResponse.Service?.CreatedAt;
+            ecsServiceDTO.CreatedBy = createEcsServiceResponse.Service?.CreatedBy;
+
+            // static configuration values
+            ecsServiceDTO.AssignPublicIp = config.AssignPublicIp;
+            ecsServiceDTO.DesiredCount = config.DesiredCount;
+            ecsServiceDTO.SchedulingStrategy = config.SchedulingStrategy;
+            ecsServiceDTO.LaunchType = config.LaunchType;
+            ecsServiceDTO.Subnets = config.Subnets;
+
+            // return updatedEcsService;
+            return ecsServiceDTO;
+        }
         private async Task<CloudPlatformOperationResult> EnsureEcsServiceTasksAreRunningAsync(SocialAccountCloudResourceDTO userSetup, CloudPlatformConfiguration configuration, CancellationToken ct = default)
         {
             CloudPlatformOperationResult result = new()
@@ -806,18 +836,21 @@ namespace Leadsly.Domain.Providers
             Stopwatch mainStopWatch = new Stopwatch();
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
-            while (mainStopWatch.Elapsed.TotalSeconds >= DefaultTimeToWaitForEcsServicePendingTasks_InSeconds)
+            mainStopWatch.Start();
+            while (mainStopWatch.Elapsed.TotalSeconds <= DefaultTimeToWaitForEcsServicePendingTasks_InSeconds)
             {
                 // Check elapsed time w/o stopping/resetting the stopwatch                
-                if (stopwatch.Elapsed.Seconds >= 10)
+                if (stopwatch.Elapsed.TotalSeconds >= 10)
                 {
                     // At least 5 seconds elapsed, restart stopwatch.
                     stopwatch.Stop();
-                    result = await AreEcsServiceTasksRunningAsync(userSetup, configuration, ct);
-                    if (result.Succeeded)
+                    CloudPlatformOperationResult checkTaskStatusResult = await AreEcsServiceTasksRunningAsync(userSetup, configuration, ct);
+                    if (checkTaskStatusResult.Succeeded)
                     {
-                        if (((bool)result.Value) == true)
+                        if (((bool)checkTaskStatusResult.Value) == true)
                         {
+                            result.Succeeded = true;
+                            mainStopWatch.Stop();
                             break;
                         }
                     }
@@ -826,7 +859,7 @@ namespace Leadsly.Domain.Providers
                         // if an error occured break out of the function
                         break;
                     }
-                    stopwatch.Start();
+                    stopwatch.Restart();
                 }
             }
 
@@ -860,7 +893,7 @@ namespace Leadsly.Domain.Providers
             }
 
             result.Succeeded = true;
-            result.Value = response.Services.First().PendingCount == 0;
+            result.Value = response.Services.First().PendingCount == 0 && response.Services.First().RunningCount > 0;
             return result;
         }
 
@@ -1009,7 +1042,7 @@ namespace Leadsly.Domain.Providers
                 AssignPublicIp = config.AssignPublicIp,
                 Cluster = config.ClusterArn,
                 DesiredCount = config.DesiredCount,
-                LaunchType = config.LaunchType,
+                LaunchType = config.LaunchType,                
                 SchedulingStrategy = config.SchedulingStrategy,
                 SecurityGroups = config.SecurityGroups,
                 Subnets = config.Subnets,
@@ -1063,6 +1096,7 @@ namespace Leadsly.Domain.Providers
                     }).ToList()                    
                 }).ToList(),
                 ExecutionRoleArn = config.ExecutionRoleArn,
+                TaskRoleArn = config.TaskRoleArn,
                 Memory = config.Memory,
                 NetworkMode = config.NetworkMode,
                 RequiresCompatibilities = config.RequiresCompatibilities,

@@ -27,6 +27,7 @@ namespace Leadsly.Domain.OptionsJsonModels
         public string Cpu { get; set; }
         public string Memory { get; set; }
         public string ExecutionRoleArn { get; set; }
+        public string TaskRoleArn { get; set; }
         public string NetworkMode { get; set; }
     }
 
@@ -57,6 +58,7 @@ namespace Leadsly.Domain.OptionsJsonModels
         public int DesiredCount { get; set; }
         public List<string> Subnets { get; set; }
         public List<string> SecurityGroups { get; set; }
+        public string LaunchType { get; set; }
         public string SchedulingStrategy { get; set; }
         public string TaskDefinition { get; set; }
     }

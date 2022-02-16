@@ -17,12 +17,12 @@ namespace Leadsly.Models
         public string ServiceArn { get; set; }
         public List<EcsServiceRegistryDTO> Registries { get; set; }
         public string ClusterArn { get; set; }
-        public EcsLaunchType LaunchType { get; set; }
+        public string LaunchType { get; set; }
         public DateTime? CreatedAt { get; set; }
         public string CreatedBy { get; set; }
         public string TaskDefinition { get; set; }
         public int DesiredCount { get; set; }        
-        public PublicIp AssignPublicIp { get; set; }
+        public string AssignPublicIp { get; set; }
         public List<string> Subnets { get; set; }
         public string SchedulingStrategy { get; set; }
     }

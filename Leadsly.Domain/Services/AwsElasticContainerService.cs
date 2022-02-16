@@ -29,7 +29,7 @@ namespace Leadsly.Domain.Services
                 {
                     DesiredCount = createEcsServiceRequest.DesiredCount,
                     ServiceName = createEcsServiceRequest.ServiceName,
-                    TaskDefinition = createEcsServiceRequest.TaskDefinition,
+                    TaskDefinition = createEcsServiceRequest.TaskDefinition,                    
                     Cluster = createEcsServiceRequest.Cluster,
                     LaunchType = createEcsServiceRequest.LaunchType,
                     ServiceRegistries = createEcsServiceRequest.EcsServiceRegistries.Select(r => new ServiceRegistry
@@ -42,7 +42,7 @@ namespace Leadsly.Domain.Services
                         {
                             AssignPublicIp = createEcsServiceRequest.AssignPublicIp,
                             Subnets = createEcsServiceRequest.Subnets,
-                            SecurityGroups = createEcsServiceRequest.SecurityGroups
+                            SecurityGroups = createEcsServiceRequest.SecurityGroups                            
                         }
                     },
                     SchedulingStrategy = createEcsServiceRequest.SchedulingStrategy                                   
@@ -166,6 +166,7 @@ namespace Leadsly.Domain.Services
                     }).ToList(),
                     Cpu = registerTaskDefinitionRequest.Cpu,
                     Memory = registerTaskDefinitionRequest.Memory,
+                    TaskRoleArn = registerTaskDefinitionRequest.TaskRoleArn,                    
                     ExecutionRoleArn = registerTaskDefinitionRequest.ExecutionRoleArn,
                     RuntimePlatform = new()
                     {

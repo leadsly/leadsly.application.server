@@ -8,6 +8,7 @@ namespace Leadsly.Models
 {
     public class SocialAccountCloudResourceDTO
     {
+        public string ContainerName { get; set; }
         public EcsTaskDefinitionDTO EcsTaskDefinition { get; set; }
         public CloudMapServiceDiscoveryServiceDTO CloudMapServiceDiscovery { get; set; }
         public EcsServiceDTO EcsService { get; set; }

@@ -13,6 +13,8 @@ namespace Leadsly.Models.Entities
         public string Id { get; set; }
         public string Arn { get; set; }
         public string Name { get; set; }
+        public string NamespaceId { get; set; }
+        public DateTime CreateDate { get; set; }
         public string EcsServiceId { get; set; }
         public EcsService EcsService { get; set; }
     }

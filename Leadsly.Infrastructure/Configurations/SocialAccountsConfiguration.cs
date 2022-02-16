@@ -27,15 +27,22 @@ namespace Leadsly.Infrastructure.Configurations
                 res.HasOne(res => res.CloudMapServiceDiscoveryService);
             });
 
-            builder.Entity<CloudMapServiceDiscoveryService>(cloudMap =>
-            {
-                cloudMap.HasOne(c => c.EcsService);
-            });
+            builder.Entity<CloudMapServiceDiscoveryService>()
+                    .HasOne(map => map.EcsService)
+                    .WithOne(ser => ser.CloudMapServiceDiscoveryService);                    
 
-            builder.Entity<EcsService>()
-                    .HasMany(s => s.EcsServiceRegistries)
-                    .WithOne(reg => reg.EcsService)
-                    .HasForeignKey(reg => reg.EcsServiceId);
+            builder.Entity<EcsService>(s =>
+            {
+                s.HasMany(s => s.EcsServiceRegistries)
+                 .WithOne(reg => reg.EcsService)
+                 .HasForeignKey(reg => reg.EcsServiceId);
+
+                s.HasOne(s => s.CloudMapServiceDiscoveryService)
+                    .WithOne(map => map.EcsService)
+                    .HasForeignKey<CloudMapServiceDiscoveryService>(map => map.EcsServiceId)
+                    .OnDelete(DeleteBehavior.NoAction);
+            });
+                    
         }
     }
 }

@@ -13,6 +13,7 @@ namespace Leadsly.Models.Entities
         public string Cpu { get; set; }
         public string Memory { get; set; }
         public string ExecutionRoleArn { get; set; }
+        public string TaskRoleArn { get; set; }
         public string NetworkMode { get; set; }
     }
 }

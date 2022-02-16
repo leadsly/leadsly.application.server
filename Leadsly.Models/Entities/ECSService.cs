@@ -35,7 +35,8 @@ namespace Leadsly.Models.Entities
         [Required]
         public string SchedulingStrategy { get; set; }
         [Required]
-        public PublicIp AssignPublicIp { get; set; }
+        public string AssignPublicIp { get; set; }
+        public CloudMapServiceDiscoveryService CloudMapServiceDiscoveryService { get; set; }
         public SocialAccountCloudResource SocialAccountCloudResource { get; set; }
         public ICollection<EcsServiceRegistry> EcsServiceRegistries { get; set; }
 

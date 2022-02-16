@@ -17,6 +17,7 @@ namespace Leadsly.Models.Aws.ElasticContainerService
         public string Cpu { get; set; }
         public string Memory { get; set; }
         public string ExecutionRoleArn { get; set; }
+        public string TaskRoleArn { get; set; }
         public string NetworkMode { get; set; } = "awsvpc";
     }
 }
