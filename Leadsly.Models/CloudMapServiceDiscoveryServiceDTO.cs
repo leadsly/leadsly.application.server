@@ -10,10 +10,10 @@ namespace Leadsly.Models
     {
         public string Id { get; set; }
         public string Name { get; set; }
-        
+        public DnsConfigDTO DnsConfig { get; set; }
         public string Arn { get; set; }
         public DateTime? CreateDate { get; set; }
-        public string NamepaceId { get; set; }
+        public string NamespaceId { get; set; }
         public string Description { get; set; }
         public string CreateRequestId { get; set; }
     }

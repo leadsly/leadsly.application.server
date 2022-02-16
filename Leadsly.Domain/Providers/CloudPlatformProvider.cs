@@ -69,32 +69,26 @@ namespace Leadsly.Domain.Providers
                 return result;
             }
 
-            string taskDefinition = $"{Guid.NewGuid()}-task-def";
-            string containerName = $"hal-{Guid.NewGuid()}-container";
-            SocialAccountCloudResourceDTO userSetup = new()
+            SocialAccountCloudResourceDTO userSetup = SetSocialAccountCloudResourceData(configuration, userId);
+            
+            if(userSetup == null) 
             {
-                ContainerName = containerName,
-                EcsTaskDefinition = new()
+                NewSocialAccountSetupResult result = new()
                 {
-                    // name of the hal container
-                    ContainerName = containerName,
-                    Family = taskDefinition
-                },
-                CloudMapServiceDiscovery = new()
+                    Succeeded = false,
+                    CreateEcsServiceSucceeded = false,
+                    CreateServiceDiscoveryServiceSucceeded = false,
+                    CreateEcsTaskDefinitionSucceeded = false
+                };
+                result.Failures.Add(new()
                 {
-                    // name used to discover this service by in the future
-                    Name = $"hal-{Guid.NewGuid()}-srv-disc"
-                },
-                EcsService = new()
-                {
-                    ClusterArn = configuration.EcsServiceConfig.ClusterArn,
-                    ServiceName = $"hal-{Guid.NewGuid()}-service",
-                    TaskDefinition = taskDefinition,
-                    UserId = userId
-                }
-            };
+                    Detail = "Failed to generate users social account resource data class",
+                    Reason = "Failed to perform data mapping"
+                });
+                return result;
+            }
 
-            return await SetupNewContainerAsync(userSetup, configuration, ct);
+            return await SetupNewContainerAsync(userSetup, ct);
         }
 
         public async Task<ExistingSocialAccountSetupResult> ConnectToExistingCloudResourceAsync(SocialAccount socialAccount, CancellationToken ct = default)
@@ -151,7 +145,6 @@ namespace Leadsly.Domain.Providers
             result.Succeeded = true;
             return result;
         }
-
         public async Task RollbackCloudResourcesAsync(NewSocialAccountSetupResult setupToRollback, string userId, CancellationToken ct = default)
         {
             _logger.LogInformation("Aws resource cleanup started.");
@@ -188,7 +181,6 @@ namespace Leadsly.Domain.Providers
 
             _logger.LogInformation("Aws resource cleanup completed.");
         }
-
         public async Task RemoveUsersSocialAccountCloudResourcesAsync(SocialAccount socialAccount, CancellationToken ct = default)
         {
             _logger.LogInformation("Aws resource cleanup started.");
@@ -211,6 +203,77 @@ namespace Leadsly.Domain.Providers
             _logger.LogInformation("Finished deregistering task definition.");
 
             _logger.LogInformation("Aws resource cleanup completed.");
+        }
+        private SocialAccountCloudResourceDTO SetSocialAccountCloudResourceData(CloudPlatformConfiguration configuration, string userId)
+        {
+            string taskDefinition = $"{Guid.NewGuid()}-task-def";
+            string containerName = $"hal-{Guid.NewGuid()}-container";
+            SocialAccountCloudResourceDTO userSetup = default;
+            try
+            {
+                userSetup = new()
+                {
+                    ContainerName = containerName,
+                    EcsTaskDefinition = new()
+                    {
+                        // name of the hal container
+                        ContainerName = containerName,
+                        Family = taskDefinition,
+                        Cpu = configuration.EcsTaskDefinitionConfig.Cpu,
+                        ContainerDefinitions = configuration.EcsTaskDefinitionConfig.ContainerDefinitions.Select(c => new ContainerDefinitionDTO
+                        {
+                            Image = c.Image,
+                            Name = taskDefinition,
+                            PortMappings = c.PortMappings.Select(p => new PortMappingDTO
+                            {
+                                ContainerPort = p.ContainerPort,
+                                Protocol = p.Protocol
+                            }).ToList()
+                        }).ToList(),
+                        ExecutionRoleArn = configuration.EcsTaskDefinitionConfig.ExecutionRoleArn,
+                        TaskRoleArn = configuration.EcsTaskDefinitionConfig.TaskRoleArn,
+                        Memory = configuration.EcsTaskDefinitionConfig.Memory,
+                        NetworkMode = configuration.EcsTaskDefinitionConfig.NetworkMode,
+                        RequiresCompatibilities = configuration.EcsTaskDefinitionConfig.RequiresCompatibilities
+                    },
+                    CloudMapServiceDiscovery = new()
+                    {
+                        // name used to discover this service by in the future
+                        Name = $"hal-{Guid.NewGuid()}-srv-disc",
+                        NamespaceId = configuration.ServiceDiscoveryConfig.NamespaceId,
+                        DnsConfig = new()
+                        {
+                            CloudMapDnsRecords = new()
+                            {
+                                new()
+                                {
+                                    TTL = configuration.ServiceDiscoveryConfig.DnsRecordTTL,
+                                    Type = configuration.ServiceDiscoveryConfig.DnsRecordType
+                                }
+                            }
+                        }
+                    },
+                    EcsService = new()
+                    {
+                        ClusterArn = configuration.EcsServiceConfig.ClusterArn,
+                        ServiceName = $"hal-{Guid.NewGuid()}-service",
+                        TaskDefinition = taskDefinition,
+                        UserId = userId,
+                        AssignPublicIp = configuration.EcsServiceConfig.AssignPublicIp,
+                        DesiredCount = configuration.EcsServiceConfig.DesiredCount,
+                        SchedulingStrategy = configuration.EcsServiceConfig.SchedulingStrategy,
+                        LaunchType = configuration.EcsServiceConfig.LaunchType,
+                        Subnets = configuration.EcsServiceConfig.Subnets,
+                        SecurityGroups = configuration.EcsServiceConfig.SecurityGroups                        
+                    }
+                };
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "An error occured generating users social account resource class.");
+            }            
+
+            return userSetup;
         }
         private async Task<ExistingSocialAccountSetupResult> PerformHalsHealthCheckWithPrivateIpAsync(CloudMapServiceDiscoveryConfig serviceDiscoveryConfig, CloudMapServiceDiscoveryService usersCloudDiscoveryService, CancellationToken ct = default)
         {
@@ -426,7 +489,6 @@ namespace Leadsly.Domain.Providers
             result.Succeeded = true;
             return result;
         }
-
         private async Task<ExistingSocialAccountSetupResult> EnsureEcsServiceHasRunningTasksAsync(Amazon.ECS.Model.Service ecsServiceDetails, CancellationToken ct = default)
         {
             ExistingSocialAccountSetupResult result = new()
@@ -487,7 +549,6 @@ namespace Leadsly.Domain.Providers
             result.Succeeded = true;
             return result;
         }
-
         private async Task<ExistingSocialAccountSetupResult> WaitForPendingTasksToStartAsync(Amazon.ECS.Model.Service ecsServiceDetails, CancellationToken ct = default)
         {
             ExistingSocialAccountSetupResult result = new()
@@ -518,7 +579,6 @@ namespace Leadsly.Domain.Providers
 
             return result;
         }
-
         private async Task<CloudPlatformOperationResult> CheckIfTasksAreStillPendingAsync(Amazon.ECS.Model.Service ecsServiceDetails, CancellationToken ct = default)
         {
             CloudPlatformOperationResult result = new()
@@ -553,7 +613,6 @@ namespace Leadsly.Domain.Providers
             result.Value = serviceDetails.PendingCount > 0;
             return result;
         }
-
         private async Task HandleNonActiveEcsServiceAsync(Amazon.ECS.Model.Service ecsServiceDetails, SocialAccount socialAccount, CancellationToken ct = default)
         {
             //ExistingSocialAccountSetupResult result = new()
@@ -591,7 +650,6 @@ namespace Leadsly.Domain.Providers
 
             //return result;
         }
-
         private async Task<DescribeEcsServiceResponse> GetEcsServiceDetailsAsync(SocialAccount socialAccount, CancellationToken ct = default)
         {
             DescribeEcsServiceResponse result = new()
@@ -636,7 +694,6 @@ namespace Leadsly.Domain.Providers
             result.Service = ecsServiceDetails;
             return result;            
         }
-
         private List<FailureDTO> HandleAwsFailrues(List<Amazon.ECS.Model.Failure> failrues)
         {
             List<FailureDTO> failuresDTO = new();
@@ -658,7 +715,6 @@ namespace Leadsly.Domain.Providers
 
             return failuresDTO;
         }
-
         private async Task<Amazon.ECS.Model.DescribeServicesResponse> DescribeServicesAsync(SocialAccount socialAccount, CancellationToken ct = default)
         {
             DescribeEcsServicesRequest request = new()
@@ -672,7 +728,6 @@ namespace Leadsly.Domain.Providers
 
             return await _awsElasticContainerService.DescribeServicesAsync(request, ct);
         }
-
         private async Task<Amazon.ECS.Model.DescribeServicesResponse> DescribeServicesAsync(Amazon.ECS.Model.Service ecsService, CancellationToken ct = default)
         {
             DescribeEcsServicesRequest request = new()
@@ -686,7 +741,6 @@ namespace Leadsly.Domain.Providers
 
             return await _awsElasticContainerService.DescribeServicesAsync(request, ct);
         }
-
         private async Task<Amazon.ECS.Model.ListTasksResponse> ListEcsTasksAsync(ListEcsTasksFilterOptions filterOptions, CancellationToken ct = default)
         {
             ListEcsTasksRequest request = new()
@@ -700,7 +754,6 @@ namespace Leadsly.Domain.Providers
 
             return await _awsElasticContainerService.ListTasksAsync(request, ct);
         }
-
         private async Task<Amazon.ECS.Model.DescribeTasksResponse> DescribeEcsTasksAsync(string clusterArn, List<string> tasks, CancellationToken ct = default)
         {
             DescribeEcsTasksRequest request = new()
@@ -711,8 +764,7 @@ namespace Leadsly.Domain.Providers
 
             return await _awsElasticContainerService.DescribeTasksAsync(request, ct);
         }
-
-        private async Task<NewSocialAccountSetupResult> SetupNewContainerAsync(SocialAccountCloudResourceDTO userSetup, CloudPlatformConfiguration configuration, CancellationToken ct = default)
+        private async Task<NewSocialAccountSetupResult> SetupNewContainerAsync(SocialAccountCloudResourceDTO userSetup, CancellationToken ct = default)
         {
             NewSocialAccountSetupResult result = new()
             {
@@ -724,7 +776,7 @@ namespace Leadsly.Domain.Providers
             };
 
             // Register a new task for the user                  
-            Amazon.ECS.Model.RegisterTaskDefinitionResponse registerTaskDefinitionResponse = await RegisterTaskDefinitionAsync(userSetup.EcsTaskDefinition, configuration.EcsTaskDefinitionConfig, ct);
+            Amazon.ECS.Model.RegisterTaskDefinitionResponse registerTaskDefinitionResponse = await RegisterTaskDefinitionAsync(userSetup.EcsTaskDefinition, ct);
 
             if (registerTaskDefinitionResponse == null || registerTaskDefinitionResponse.HttpStatusCode != HttpStatusCode.OK)
             {
@@ -738,7 +790,7 @@ namespace Leadsly.Domain.Providers
             result.CreateEcsTaskDefinitionSucceeded = true;
 
             // Create new AWS Cloud Map Service Discovery Service for this container
-            Amazon.ServiceDiscovery.Model.CreateServiceResponse createDiscoveryServiceResponse = await CreateServiceDiscoveryServiceAsync(userSetup.CloudMapServiceDiscovery, configuration.ServiceDiscoveryConfig, ct);
+            Amazon.ServiceDiscovery.Model.CreateServiceResponse createDiscoveryServiceResponse = await CreateServiceDiscoveryServiceAsync(userSetup.CloudMapServiceDiscovery, ct);
 
             if (createDiscoveryServiceResponse == null || createDiscoveryServiceResponse.Service == null || createDiscoveryServiceResponse.HttpStatusCode != HttpStatusCode.OK)
             {
@@ -751,7 +803,7 @@ namespace Leadsly.Domain.Providers
             }
             result.CreateServiceDiscoveryServiceSucceeded = true;
             // update userSetup with the service discovery id. In case something fails, this will id will be used to clean up aws resources
-            userSetup.CloudMapServiceDiscovery = UpdateCloudMapServiceDiscoveryValues(createDiscoveryServiceResponse, configuration.ServiceDiscoveryConfig, userSetup.CloudMapServiceDiscovery);
+            userSetup.CloudMapServiceDiscovery = UpdateCloudMapServiceDiscoveryValues(createDiscoveryServiceResponse, userSetup.CloudMapServiceDiscovery);
 
             // link users ecs service with the created service discovery service
             userSetup.EcsService.Registries = new()
@@ -763,7 +815,7 @@ namespace Leadsly.Domain.Providers
             };
 
             // Create new Ecs Service Task with the task definition and assign it to the created service discovery service
-            Amazon.ECS.Model.CreateServiceResponse createEcsServiceResponse = await CreateEcsServiceAsync(userSetup.EcsService, configuration.EcsServiceConfig, ct);
+            Amazon.ECS.Model.CreateServiceResponse createEcsServiceResponse = await CreateEcsServiceAsync(userSetup.EcsService, ct);
 
             if (createEcsServiceResponse == null || createEcsServiceResponse.HttpStatusCode != HttpStatusCode.OK)
             {
@@ -776,12 +828,12 @@ namespace Leadsly.Domain.Providers
             }
 
             result.CreateEcsServiceSucceeded = true;
-            userSetup.EcsService = UpdateEcsServiceValues(createEcsServiceResponse, configuration.EcsServiceConfig, userSetup.EcsService);
+            userSetup.EcsService = UpdateEcsServiceValues(createEcsServiceResponse, userSetup.EcsService);
 
             // add the upated userSetup here
             result.Value = userSetup;
 
-            CloudPlatformOperationResult ensureServiceTasksAreRunningResult = await EnsureEcsServiceTasksAreRunningAsync(userSetup, configuration, ct);
+            CloudPlatformOperationResult ensureServiceTasksAreRunningResult = await EnsureEcsServiceTasksAreRunningAsync(userSetup, ct);
             if (ensureServiceTasksAreRunningResult.Succeeded == false)
             {
                 result.Failures = ensureServiceTasksAreRunningResult.Failures;
@@ -791,8 +843,7 @@ namespace Leadsly.Domain.Providers
             result.Succeeded = true;
             return result;
         }
-
-        private CloudMapServiceDiscoveryServiceDTO UpdateCloudMapServiceDiscoveryValues(Amazon.ServiceDiscovery.Model.CreateServiceResponse createServiceDiscoveryService, CloudMapServiceDiscoveryConfig config, CloudMapServiceDiscoveryServiceDTO cloudMapDiscoveryDTO)
+        private CloudMapServiceDiscoveryServiceDTO UpdateCloudMapServiceDiscoveryValues(Amazon.ServiceDiscovery.Model.CreateServiceResponse createServiceDiscoveryService, CloudMapServiceDiscoveryServiceDTO cloudMapDiscoveryDTO)
         {
             CloudMapServiceDiscoveryServiceDTO updatedCloudMapServiceDiscoveryValues = new();
 
@@ -800,34 +851,21 @@ namespace Leadsly.Domain.Providers
             cloudMapDiscoveryDTO.Id = createServiceDiscoveryService.Service?.Id;
             cloudMapDiscoveryDTO.Arn = createServiceDiscoveryService.Service?.Arn;
             cloudMapDiscoveryDTO.CreateDate = createServiceDiscoveryService.Service?.CreateDate;
-            cloudMapDiscoveryDTO.NamepaceId = createServiceDiscoveryService.Service?.NamespaceId;
             cloudMapDiscoveryDTO.Description = createServiceDiscoveryService.Service?.Description;
             cloudMapDiscoveryDTO.CreateRequestId = createServiceDiscoveryService.Service?.CreatorRequestId;
-
-            // config
-
             return cloudMapDiscoveryDTO;
         }
-
-        private EcsServiceDTO UpdateEcsServiceValues(Amazon.ECS.Model.CreateServiceResponse createEcsServiceResponse, EcsServiceConfig config, EcsServiceDTO ecsServiceDTO)
+        private EcsServiceDTO UpdateEcsServiceValues(Amazon.ECS.Model.CreateServiceResponse createEcsServiceResponse, EcsServiceDTO ecsServiceDTO)
         {
-            // EcsServiceDTO updatedEcsService = new();
             // values from the response
             ecsServiceDTO.ServiceArn = createEcsServiceResponse.Service?.ServiceArn;
             ecsServiceDTO.CreatedAt = createEcsServiceResponse.Service?.CreatedAt;
             ecsServiceDTO.CreatedBy = createEcsServiceResponse.Service?.CreatedBy;
 
-            // static configuration values
-            ecsServiceDTO.AssignPublicIp = config.AssignPublicIp;
-            ecsServiceDTO.DesiredCount = config.DesiredCount;
-            ecsServiceDTO.SchedulingStrategy = config.SchedulingStrategy;
-            ecsServiceDTO.LaunchType = config.LaunchType;
-            ecsServiceDTO.Subnets = config.Subnets;
-
             // return updatedEcsService;
             return ecsServiceDTO;
         }
-        private async Task<CloudPlatformOperationResult> EnsureEcsServiceTasksAreRunningAsync(SocialAccountCloudResourceDTO userSetup, CloudPlatformConfiguration configuration, CancellationToken ct = default)
+        private async Task<CloudPlatformOperationResult> EnsureEcsServiceTasksAreRunningAsync(SocialAccountCloudResourceDTO userSetup, CancellationToken ct = default)
         {
             CloudPlatformOperationResult result = new()
             {
@@ -844,7 +882,7 @@ namespace Leadsly.Domain.Providers
                 {
                     // At least 5 seconds elapsed, restart stopwatch.
                     stopwatch.Stop();
-                    CloudPlatformOperationResult checkTaskStatusResult = await AreEcsServiceTasksRunningAsync(userSetup, configuration, ct);
+                    CloudPlatformOperationResult checkTaskStatusResult = await AreEcsServiceTasksRunningAsync(userSetup, ct);
                     if (checkTaskStatusResult.Succeeded)
                     {
                         if (((bool)checkTaskStatusResult.Value) == true)
@@ -865,15 +903,14 @@ namespace Leadsly.Domain.Providers
 
             return result;
         }
-
-        private async Task<CloudPlatformOperationResult> AreEcsServiceTasksRunningAsync(SocialAccountCloudResourceDTO userSetup, CloudPlatformConfiguration configuration, CancellationToken ct = default)
+        private async Task<CloudPlatformOperationResult> AreEcsServiceTasksRunningAsync(SocialAccountCloudResourceDTO userSetup, CancellationToken ct = default)
         {
             CloudPlatformOperationResult result = new()
             {
                 Succeeded = false
             };
 
-            Amazon.ECS.Model.DescribeServicesResponse response = await DescribeServicesAsync(userSetup.EcsService, configuration.EcsServiceConfig, ct);
+            Amazon.ECS.Model.DescribeServicesResponse response = await DescribeServicesAsync(userSetup.EcsService, ct);
 
             if (response == null || response.Services == null || response.HttpStatusCode != HttpStatusCode.OK)
             {
@@ -896,7 +933,6 @@ namespace Leadsly.Domain.Providers
             result.Value = response.Services.First().PendingCount == 0 && response.Services.First().RunningCount > 0;
             return result;
         }
-
         private async Task DeleteServiceDiscoveryServiceAsync(CloudMapServiceDiscoveryServiceDTO serviceDiscovery, string userId, CancellationToken ct = default)
         {
             DeleteServiceDiscoveryServiceRequest request = new()
@@ -919,7 +955,6 @@ namespace Leadsly.Domain.Providers
                 await _orphanedCloudResourcesRepository.AddOrphanedCloudResourceAsync(orphanedResource, ct);
             }
         }
-
         private async Task DeleteServiceDiscoveryServiceAsync(CloudMapServiceDiscoveryService serviceDiscovery, string userId, CancellationToken ct = default)
         {
             DeleteServiceDiscoveryServiceRequest request = new()
@@ -942,7 +977,6 @@ namespace Leadsly.Domain.Providers
                 await _orphanedCloudResourcesRepository.AddOrphanedCloudResourceAsync(orphanedResource, ct);
             }
         }
-
         private async Task DeleteEcsServiceAsync(EcsServiceDTO EcsServiceDto, string userId, CancellationToken ct = default)
         {
             DeleteEcsServiceRequest request = new()
@@ -1035,17 +1069,17 @@ namespace Leadsly.Domain.Providers
                 await _orphanedCloudResourcesRepository.AddOrphanedCloudResourceAsync(orphanedCloudResource, ct);
             }
         }
-        private async Task<Amazon.ECS.Model.CreateServiceResponse> CreateEcsServiceAsync(EcsServiceDTO EcsService, EcsServiceConfig config, CancellationToken ct = default)
+        private async Task<Amazon.ECS.Model.CreateServiceResponse> CreateEcsServiceAsync(EcsServiceDTO EcsService, CancellationToken ct = default)
         {
             CreateEcsServiceRequest createEcsServiceRequest = new()
             {
-                AssignPublicIp = config.AssignPublicIp,
-                Cluster = config.ClusterArn,
-                DesiredCount = config.DesiredCount,
-                LaunchType = config.LaunchType,                
-                SchedulingStrategy = config.SchedulingStrategy,
-                SecurityGroups = config.SecurityGroups,
-                Subnets = config.Subnets,
+                AssignPublicIp = EcsService.AssignPublicIp,
+                Cluster = EcsService.ClusterArn,
+                DesiredCount = EcsService.DesiredCount,
+                LaunchType = EcsService.LaunchType,                
+                SchedulingStrategy = EcsService.SchedulingStrategy,
+                SecurityGroups = EcsService.SecurityGroups,
+                Subnets = EcsService.Subnets,
                 TaskDefinition = EcsService.TaskDefinition,
                 ServiceName = EcsService.ServiceName,
                 EcsServiceRegistries = EcsService.Registries.Select(r => new Leadsly.Models.Aws.ElasticContainerService.EcsServiceRegistry
@@ -1056,59 +1090,53 @@ namespace Leadsly.Domain.Providers
 
             return await _awsElasticContainerService.CreateServiceAsync(createEcsServiceRequest, ct);
         }
-
-        private async Task<Amazon.ServiceDiscovery.Model.CreateServiceResponse> CreateServiceDiscoveryServiceAsync(CloudMapServiceDiscoveryServiceDTO cloudMapServiceDiscovery, CloudMapServiceDiscoveryConfig config, CancellationToken ct = default)
+        private async Task<Amazon.ServiceDiscovery.Model.CreateServiceResponse> CreateServiceDiscoveryServiceAsync(CloudMapServiceDiscoveryServiceDTO cloudMapServiceDiscovery, CancellationToken ct = default)
         {
             CreateServiceDiscoveryServiceRequest createServiceDiscoveryServiceRequest = new()
             {
                 Name = cloudMapServiceDiscovery.Name,
-                NamespaceId = config.NamespaceId,
+                NamespaceId = cloudMapServiceDiscovery.NamespaceId,
                 DnsConfig = new()
-                {                    
-                    CloudMapDnsRecords = new()
+                {
+                    CloudMapDnsRecords = cloudMapServiceDiscovery.DnsConfig.CloudMapDnsRecords.Select(rec => new CloudMapDnsRecord()
                     {
-                        new() 
-                        {
-                            TTL = config.DnsRecordTTL,
-                            Type = config.DnsRecordType
-                        }
-                    }
+                         TTL = rec.TTL,
+                         Type = rec.Type
+                    }).ToList()
                 }
             };
 
             return await _awsServiceDiscoveryService.CreateServiceAsync(createServiceDiscoveryServiceRequest, ct);
         }
-
-        private async Task<Amazon.ECS.Model.RegisterTaskDefinitionResponse> RegisterTaskDefinitionAsync(EcsTaskDefinitionDTO taskDefinition, EcsTaskDefinitionConfig config, CancellationToken ct = default)
+        private async Task<Amazon.ECS.Model.RegisterTaskDefinitionResponse> RegisterTaskDefinitionAsync(EcsTaskDefinitionDTO taskDefinition, CancellationToken ct = default)
         {
             RegisterEcsTaskDefinitionRequest registerEcsTaskDefinitionRequest = new()
             {
-                Cpu = config.Cpu,
+                Cpu = taskDefinition.Cpu,
                 Family = taskDefinition.Family,
-                EcsContainerDefinitions = config.ContainerDefinitions.Select(c => new EcsContainerDefinition
+                EcsContainerDefinitions = taskDefinition.ContainerDefinitions.Select(c => new EcsContainerDefinition
                 { 
                     Image = c.Image,
                     Name = taskDefinition.ContainerName,
-                    PortMappings = c.PortMappings.Select(p => new EcsPortMapping
+                    PortMappings = c.PortMappings.Select(p => new Leadsly.Models.Aws.ElasticContainerService.EcsPortMapping
                     {
                         ContainerPort = p.ContainerPort,
                         Protocol = p.Protocol,
                     }).ToList()                    
                 }).ToList(),
-                ExecutionRoleArn = config.ExecutionRoleArn,
-                TaskRoleArn = config.TaskRoleArn,
-                Memory = config.Memory,
-                NetworkMode = config.NetworkMode,
-                RequiresCompatibilities = config.RequiresCompatibilities,
+                ExecutionRoleArn = taskDefinition.ExecutionRoleArn,
+                TaskRoleArn = taskDefinition.TaskRoleArn,
+                Memory = taskDefinition.Memory,
+                NetworkMode = taskDefinition.NetworkMode,
+                RequiresCompatibilities = taskDefinition.RequiresCompatibilities,
             };
 
             return await _awsElasticContainerService.RegisterTaskDefinitionAsync(registerEcsTaskDefinitionRequest, ct);
         }
-
-        private async Task<Amazon.ECS.Model.DescribeServicesResponse> DescribeServicesAsync(EcsServiceDTO userService, EcsServiceConfig config, CancellationToken ct = default)
+        private async Task<Amazon.ECS.Model.DescribeServicesResponse> DescribeServicesAsync(EcsServiceDTO userService,CancellationToken ct = default)
         {
             List<string> services = new() { userService.ServiceName };
-            string cluster = config.ClusterArn;
+            string cluster = userService.ClusterArn;
 
             DescribeEcsServicesRequest request = new()
             {
@@ -1118,7 +1146,6 @@ namespace Leadsly.Domain.Providers
 
             return await _awsElasticContainerService.DescribeServicesAsync(request, ct);
         }
-
         private async Task<Amazon.ECS.Model.UpdateServiceResponse> UpdateServiceAsync(EcsServiceDTO service, EcsServiceConfig config, CancellationToken ct = default)
         {
             UpdateEcsServiceRequest request = new()
@@ -1129,7 +1156,6 @@ namespace Leadsly.Domain.Providers
             };
 
             return await _awsElasticContainerService.UpdateServiceAsync(request, ct);
-        }
-               
+        }               
     }
 }

@@ -8,7 +8,14 @@ namespace Leadsly.Models
 {
     public class EcsTaskDefinitionDTO
     {
+        public List<string> RequiresCompatibilities { get; set; }
         public string Family { get; set; }
+        public string Cpu { get; set; }
+        public List<ContainerDefinitionDTO> ContainerDefinitions { get; set; }
+        public string Memory { get; set; }
+        public string ExecutionRoleArn { get; set; }
+        public string TaskRoleArn { get; set; }
+        public string NetworkMode { get; set; }
         public string ContainerName { get; set; }
     }
 }

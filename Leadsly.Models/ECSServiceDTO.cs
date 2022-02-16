@@ -24,6 +24,7 @@ namespace Leadsly.Models
         public int DesiredCount { get; set; }        
         public string AssignPublicIp { get; set; }
         public List<string> Subnets { get; set; }
+        public List<string> SecurityGroups { get; set; }
         public string SchedulingStrategy { get; set; }
     }
 }

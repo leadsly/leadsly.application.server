@@ -31,6 +31,7 @@ namespace Leadsly.Application.Api
 
                 CreateHostBuilder(args)                    
                     .Build()
+                    6+
                     .Run();
             }
             catch(Exception ex)
