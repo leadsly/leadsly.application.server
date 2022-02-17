@@ -12,7 +12,9 @@ namespace Leadsly.Domain.Providers
     public interface IUserProvider
     {
         Task<SocialAccount> GetRegisteredSocialAccountAsync(SocialAccountDTO socialAccount, CancellationToken ct = default);
-        Task<SocialAccount> AddUsersSocialAccountAsync(SocialAccountAndResourcesDTO newSocialAccountSetup, CancellationToken ct = default);
-        
+        Task<NewSocialAccountResult> AddUsersSocialAccountAsync(SocialAccountAndResourcesDTO newSocialAccountSetup, CancellationToken ct = default);
+        Task<bool> RemoveSocialAccountAndResourcesAsync(SocialAccount socialAccount, CancellationToken ct = default);
+
+
     }
 }

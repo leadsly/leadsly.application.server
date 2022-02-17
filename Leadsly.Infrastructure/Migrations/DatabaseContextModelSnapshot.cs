@@ -63,19 +63,15 @@ namespace Leadsly.Infrastructure.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("ExternalProvider")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ExternalProviderUserId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FirstName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LastName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("LockoutEnabled")
@@ -102,14 +98,12 @@ namespace Leadsly.Infrastructure.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("PhotoUrl")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("StripeCustomerId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("TwoFactorEnabled")
@@ -190,7 +184,7 @@ namespace Leadsly.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("CreateDate")
+                    b.Property<DateTime?>("CreateDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("EcsServiceId")
@@ -202,6 +196,10 @@ namespace Leadsly.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("NamespaceId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ServiceDiscoveryId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -265,7 +263,6 @@ namespace Leadsly.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SocialAccountCloudResourceId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("TaskDefinition")
@@ -279,7 +276,8 @@ namespace Leadsly.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("SocialAccountCloudResourceId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[SocialAccountCloudResourceId] IS NOT NULL");
 
                     b.ToTable("EcsServices");
                 });
@@ -346,27 +344,21 @@ namespace Leadsly.Infrastructure.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Arn")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FriendlyName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Reason")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ResourceId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ResourceName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -384,10 +376,6 @@ namespace Leadsly.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("ApplicationUserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ApplicationUserId1")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<bool>("ConfiguredWithUsersLeadslyAccount")
@@ -395,7 +383,7 @@ namespace Leadsly.Infrastructure.Migrations
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Username")
                         .IsRequired()
@@ -405,7 +393,7 @@ namespace Leadsly.Infrastructure.Migrations
 
                     b.HasIndex("ApplicationUserId");
 
-                    b.HasIndex("ApplicationUserId1");
+                    b.HasIndex("UserId");
 
                     b.ToTable("SocialAccounts");
                 });
@@ -420,13 +408,12 @@ namespace Leadsly.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("ContainerName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("EcsTaskDefinitionId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("HalsUniqueName")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SocialAccountId")
                         .IsRequired()
@@ -617,7 +604,7 @@ namespace Leadsly.Infrastructure.Migrations
                     b.HasOne("Leadsly.Models.Entities.EcsService", "EcsService")
                         .WithOne("CloudMapServiceDiscoveryService")
                         .HasForeignKey("Leadsly.Models.Entities.CloudMapServiceDiscoveryService", "EcsServiceId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("EcsService");
@@ -627,9 +614,7 @@ namespace Leadsly.Infrastructure.Migrations
                 {
                     b.HasOne("Leadsly.Models.Entities.SocialAccountCloudResource", "SocialAccountCloudResource")
                         .WithOne("EcsService")
-                        .HasForeignKey("Leadsly.Models.Entities.EcsService", "SocialAccountCloudResourceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Leadsly.Models.Entities.EcsService", "SocialAccountCloudResourceId");
 
                     b.Navigation("SocialAccountCloudResource");
                 });
@@ -647,17 +632,17 @@ namespace Leadsly.Infrastructure.Migrations
 
             modelBuilder.Entity("Leadsly.Models.Entities.SocialAccount", b =>
                 {
-                    b.HasOne("Leadsly.Models.Entities.ApplicationUser", "ApplicationUser")
+                    b.HasOne("Leadsly.Models.Entities.ApplicationUser", null)
+                        .WithMany("SocialAccounts")
+                        .HasForeignKey("ApplicationUserId");
+
+                    b.HasOne("Leadsly.Models.Entities.ApplicationUser", "User")
                         .WithMany()
-                        .HasForeignKey("ApplicationUserId")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Leadsly.Models.Entities.ApplicationUser", null)
-                        .WithMany("SocialAccounts")
-                        .HasForeignKey("ApplicationUserId1");
-
-                    b.Navigation("ApplicationUser");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Leadsly.Models.Entities.SocialAccountCloudResource", b =>

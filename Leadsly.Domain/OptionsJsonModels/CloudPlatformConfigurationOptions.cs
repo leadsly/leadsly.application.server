@@ -48,6 +48,7 @@ namespace Leadsly.Domain.OptionsJsonModels
         public string NamespaceId { get; set; }
         public int DnsRecordTTL { get; set; }
         public string DnsRecordType { get; set; }
+        public string Name { get; set; }
     }
 
     public class EcsServiceConfigOptions

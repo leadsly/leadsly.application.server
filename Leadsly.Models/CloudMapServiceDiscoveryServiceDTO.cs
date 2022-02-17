@@ -8,7 +8,7 @@ namespace Leadsly.Models
 {
     public class CloudMapServiceDiscoveryServiceDTO
     {
-        public string Id { get; set; }
+        public string ServiceDiscoveryId { get; set; }
         public string Name { get; set; }
         public DnsConfigDTO DnsConfig { get; set; }
         public string Arn { get; set; }

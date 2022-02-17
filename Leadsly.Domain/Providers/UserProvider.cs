@@ -1,4 +1,5 @@
-﻿using Leadsly.Domain.Repositories;
+﻿using Leadsly.Domain.Converters;
+using Leadsly.Domain.Repositories;
 using Leadsly.Models;
 using Leadsly.Models.Entities;
 using Microsoft.Extensions.Logging;
@@ -13,14 +14,19 @@ namespace Leadsly.Domain.Providers
 {
     public class UserProvider : IUserProvider
     {
-        public UserProvider(ILogger<UserProvider> logger, IUserRepository userRepository)
+        public UserProvider(ILogger<UserProvider> logger, ICloudPlatformRepository cloudPlatformRepository, IUserRepository userRepository, ISocialAccountRepository socialAccountRepository)
         {
             _userRepository = userRepository;
             _logger = logger;
+            _cloudPlatformRepository = cloudPlatformRepository;
+            _socialAccountRepository = socialAccountRepository;
+
         }
 
         private readonly ILogger<UserProvider> _logger;
         private readonly IUserRepository _userRepository;
+        private readonly ICloudPlatformRepository _cloudPlatformRepository;
+        private readonly ISocialAccountRepository _socialAccountRepository;
 
         public async Task<SocialAccount> GetRegisteredSocialAccountAsync(SocialAccountDTO socialAccountDTO, CancellationToken ct = default)
         {
@@ -34,66 +40,135 @@ namespace Leadsly.Domain.Providers
             return socialAccount;
         }
 
-        public async Task<SocialAccount> AddUsersSocialAccountAsync(SocialAccountAndResourcesDTO newSocialAccountSetup, CancellationToken ct = default)
+        public async Task<bool> RemoveSocialAccountAndResourcesAsync(SocialAccount socialAccount, CancellationToken ct = default)
+        {            
+            bool removeSocialAccountResourcesDelete = await RemoveSocialAccountResourcesAsync(socialAccount.SocialAccountCloudResource, ct);
+
+            bool removeSocialAccountDelete = await RemoveSocialAccountAsync(socialAccount.Id, ct);
+
+            return removeSocialAccountResourcesDelete && removeSocialAccountDelete;
+        }
+
+        private async Task<bool> RemoveSocialAccountAsync(string socialAccountId, CancellationToken ct = default)
         {
-            SocialAccount newSocialAccount = default;
-            try
+            bool socialAccountDelete = await _socialAccountRepository.RemoveSocialAccountAsync(socialAccountId, ct);
+
+            return socialAccountDelete;
+        }
+
+        private async Task<bool> RemoveSocialAccountResourcesAsync(SocialAccountCloudResource resources, CancellationToken ct = default)
+        {            
+            bool ecsTaskDefinitionDelete = await _cloudPlatformRepository.RemoveEcsTaskDefinitionAsync(resources.EcsTaskDefinition.Id, ct);
+
+            bool serviceDiscoveryDelete = await _cloudPlatformRepository.RemoveCloudMapServiceDiscoveryServiceAsync(resources.CloudMapServiceDiscoveryService.Id, ct);
+
+            bool ecsServiceDelete = await _cloudPlatformRepository.RemoveEcsServiceAsync(resources.EcsService.Id, ct);
+
+            return ecsServiceDelete && ecsTaskDefinitionDelete && serviceDiscoveryDelete;
+        }
+
+        public async Task<NewSocialAccountResult> AddUsersSocialAccountAsync(SocialAccountAndResourcesDTO newSocialAccountSetup, CancellationToken ct = default)
+        {
+            NewSocialAccountResult result = new()
             {
-                newSocialAccount = new()
+                Succeeded = false
+            };
+
+            EcsTaskDefinition newEcsTaskDefinition = await AddEcsTaskDefinitionAsync(EcsTaskDefinitionConverter.Convert(newSocialAccountSetup.Value.EcsTaskDefinition), ct);
+
+            if(newEcsTaskDefinition == null)
+            {
+                result.Failures.Add(new()
                 {
-                    AccountType = newSocialAccountSetup.AccountType,
-                    Username = newSocialAccountSetup.Username,
-                    UserId = newSocialAccountSetup.UserId,
-                    SocialAccountCloudResource = new()
-                    {
-                        CloudMapServiceDiscoveryService = new()
-                        {
-                            Arn = newSocialAccountSetup.Value.CloudMapServiceDiscovery.Arn,
-                            Name = newSocialAccountSetup.Value.CloudMapServiceDiscovery.Name
-                        },
-                        EcsService = new()
-                        {
-                            AssignPublicIp = newSocialAccountSetup.Value.EcsService.AssignPublicIp,
-                            ClusterArn = newSocialAccountSetup.Value.EcsService.ClusterArn,
-                            CreatedAt = ((DateTimeOffset)newSocialAccountSetup.Value.EcsService.CreatedAt).ToUnixTimeSeconds(),
-                            CreatedBy = newSocialAccountSetup.Value.EcsService.CreatedBy,
-                            DesiredCount = newSocialAccountSetup.Value.EcsService.DesiredCount,
-                            EcsServiceRegistries = newSocialAccountSetup.Value.EcsService.Registries.Select(r => new EcsServiceRegistry
-                            {
-                                RegistryArn = r.RegistryArn
-                            }).ToList(),
-                            SchedulingStrategy = newSocialAccountSetup.Value.EcsService.SchedulingStrategy,
-                            ServiceArn = newSocialAccountSetup.Value.EcsService.ServiceArn,
-                            ServiceName = newSocialAccountSetup.Value.EcsService.ServiceName,
-                            TaskDefinition = newSocialAccountSetup.Value.EcsService.TaskDefinition,
-                            UserId = newSocialAccountSetup.Value.EcsService.UserId
-                        },
-                        EcsTaskDefinition = new()
-                        {
-                            Family = newSocialAccountSetup.Value.EcsTaskDefinition.Family,
-                            ContainerName = newSocialAccountSetup.Value.EcsTaskDefinition.ContainerName
-                        }
-                    }
-
-                };
+                    Arn = newSocialAccountSetup.Value.EcsTaskDefinition.TaskDefinitionArn,
+                    Detail = "Something went wrong adding ecs task definition to the database",
+                    Reason = "Failed to add ecs task definition to the database",                    
+                });
+                return result;
             }
-            catch (Exception ex)
+
+            EcsService ecsService = await AddEcsServiceAsync(EcsServiceConverter.Convert(newSocialAccountSetup.Value.EcsService), ct);
+
+            if(ecsService == null)
             {
-                //_logger.LogError(ex, "An error occured while creating new social account object.");
-                //result.Succeeded = false;
-                //result.Failures.Add(new()
-                //{
-                //    Reason = "Failed to perform object mapping.",
-                //    Detail = "Something went during object mapping. Check server Logs."
-                //});
-                //return result;
+                result.Failures.Add(new()
+                {
+                    Arn = newSocialAccountSetup.Value.EcsService.ServiceArn,
+                    Detail = "Something went wrong adding ecs service to the database",
+                    Reason = "Failed to add ecs service to the database",
+                });
+                return result;
             }
 
-            // first add Ecs Task Definition
+            CloudMapServiceDiscoveryService newServiceDiscovery = CloudMapServiceDiscoveryServiceConverter.Convert(newSocialAccountSetup.Value.CloudMapServiceDiscovery);
+            newServiceDiscovery.EcsService = ecsService;
+            newServiceDiscovery = await AddServiceDiscoveryServiceAsync(newServiceDiscovery, ct);
 
-            // then
+            if(newServiceDiscovery == null)
+            {
+                result.Failures.Add(new()
+                {
+                    Arn = newSocialAccountSetup.Value.CloudMapServiceDiscovery.Arn,
+                    Detail = "Something went wrong adding service discovery to the database",
+                    Reason = "Failed to add discovery service the database",
+                });
+                return result;
+            }
 
-            return null;
+            SocialAccountCloudResource resource = new()
+            {
+                EcsService = ecsService,
+                CloudMapServiceDiscoveryService = newServiceDiscovery,
+                EcsTaskDefinition = newEcsTaskDefinition,
+                HalsUniqueName = newSocialAccountSetup.Value.HalsUniqueName
+            };
+
+            SocialAccount newSocialAccount = new()
+            {
+                AccountType = newSocialAccountSetup.AccountType,
+                Username = newSocialAccountSetup.Username,
+                UserId = newSocialAccountSetup.UserId,
+                SocialAccountCloudResource = resource
+            };
+            newSocialAccount = await AddSocialAccountAsync(newSocialAccount, ct);
+
+            if(newSocialAccount == null)
+            {
+                result.Failures.Add(new()
+                {
+                    Detail = "Something went wrong adding user's social account to the database",
+                    Reason = "Failed to add user's social account to the database",
+                });
+                return result;
+            }
+
+            result.Succeeded = true;
+            result.Value = newSocialAccount;
+            return result;
+        }
+        private async Task<SocialAccount> AddSocialAccountAsync(SocialAccount newSocialAccount, CancellationToken ct = default)
+        {
+            newSocialAccount = await _socialAccountRepository.AddSocialAccountAsync(newSocialAccount, ct);
+
+            return newSocialAccount;
+        }
+        private async Task<EcsTaskDefinition> AddEcsTaskDefinitionAsync(EcsTaskDefinition newEcsTaskDefinition, CancellationToken ct = default)
+        {
+            newEcsTaskDefinition = await _cloudPlatformRepository.AddEcsTaskDefinitionAsync(newEcsTaskDefinition, ct);
+
+            return newEcsTaskDefinition;
+        }
+        private async Task<EcsService> AddEcsServiceAsync(EcsService newEcsService, CancellationToken ct = default)
+        {
+            newEcsService = await _cloudPlatformRepository.AddEcsServiceAsync(newEcsService, ct);
+
+            return newEcsService;
+        }
+        private async Task<CloudMapServiceDiscoveryService> AddServiceDiscoveryServiceAsync(CloudMapServiceDiscoveryService newCloudMapServiceDiscovery, CancellationToken ct = default)
+        {
+            newCloudMapServiceDiscovery = await _cloudPlatformRepository.AddServiceDiscoveryAsync(newCloudMapServiceDiscovery, ct);
+
+            return newCloudMapServiceDiscovery;
         }
     }
 }

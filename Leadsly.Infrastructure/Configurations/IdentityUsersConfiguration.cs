@@ -60,7 +60,10 @@ namespace Leadsly.Infrastructure.Configurations
 
             builder.Entity<ApplicationUser>(entity =>
             {
-                entity.HasMany<SocialAccount>().WithOne(s => s.ApplicationUser);                
+                entity
+                    .HasMany<SocialAccount>()
+                    .WithOne(s => s.User)
+                    .HasForeignKey(sAcc => sAcc.UserId);
             });
         }
     }

@@ -37,6 +37,13 @@ namespace Leadsly.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex,"Failed to add new social account.");
+                // detach any tracked items so that any future insertions can proceed successfully
+                _dbContext.Entry(newSocialAccount).State = EntityState.Detached;
+                _dbContext.Entry(newSocialAccount.SocialAccountCloudResource).State = EntityState.Detached;
+                _dbContext.Entry(newSocialAccount.SocialAccountCloudResource.CloudMapServiceDiscoveryService).State = EntityState.Detached;
+                _dbContext.Entry(newSocialAccount.SocialAccountCloudResource.EcsService).State = EntityState.Detached;
+                _dbContext.Entry(newSocialAccount.SocialAccountCloudResource.EcsTaskDefinition).State = EntityState.Detached;
+                return null;
             }
             return newSocialAccount;
         }
@@ -54,6 +61,7 @@ namespace Leadsly.Infrastructure.Repositories
                 SocialAccount toRemove = _dbContext.SocialAccounts.Find(id);
                 _dbContext.SocialAccounts.Remove(toRemove);
                 await _dbContext.SaveChangesAsync(ct);
+                result = true;
             }
             catch(Exception ex)
             {

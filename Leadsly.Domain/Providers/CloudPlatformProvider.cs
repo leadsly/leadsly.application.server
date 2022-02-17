@@ -132,7 +132,7 @@ namespace Leadsly.Domain.Providers
             }
 
             // in the very slim chance that this ip address is pointing to a recycled ip address that is running a different version of hal lets check the container names
-            if(healthCheckResponse.Value.HalsUniqueName != socialAccount.SocialAccountCloudResource.ContainerName)
+            if(healthCheckResponse.Value.HalsUniqueName != socialAccount.SocialAccountCloudResource.HalsUniqueName)
             {
                 _logger.LogWarning("Rare edge case occured. Hal's health check successfully responded but the name of hal running in the container is different then what user has registered to their name. Requring DNS to get fresh private ip address.");
                 result = await PerformHalsHealthCheckWithPrivateIpAsync(configuration.ServiceDiscoveryConfig, socialAccount.SocialAccountCloudResource.CloudMapServiceDiscoveryService, ct);
@@ -149,7 +149,16 @@ namespace Leadsly.Domain.Providers
         {
             _logger.LogInformation("Aws resource cleanup started.");
             SocialAccountCloudResourceDTO rollbackDetails = setupToRollback.Value;
-            // first start removing service discovery service
+
+            // first delete ecs service
+            if (setupToRollback.CreateEcsServiceSucceeded)
+            {
+                _logger.LogInformation("Starting to delete ecs service.");
+                await DeleteEcsServiceAsync(rollbackDetails.EcsService, userId, ct);
+                _logger.LogInformation("Finished deleting ecs service.");
+            }
+
+            // second start removing service discovery service
             if (setupToRollback.CreateServiceDiscoveryServiceSucceeded)
             {
                 _logger.LogInformation("Starting to delete service discovery service.");
@@ -159,14 +168,6 @@ namespace Leadsly.Domain.Providers
                 }
                 await DeleteServiceDiscoveryServiceAsync(rollbackDetails.CloudMapServiceDiscovery, userId, ct);
                 _logger.LogInformation("Finished deleting service discovery service.");
-            }
-
-            // then ecs service
-            if (setupToRollback.CreateEcsServiceSucceeded)
-            {
-                _logger.LogInformation("Starting to delete ecs service.");
-                await DeleteEcsServiceAsync(rollbackDetails.EcsService, userId, ct);
-                _logger.LogInformation("Finished deleting ecs service.");
             }
 
             // then deregister task definition            
@@ -185,19 +186,24 @@ namespace Leadsly.Domain.Providers
         {
             _logger.LogInformation("Aws resource cleanup started.");
             SocialAccountCloudResource awsCloudDetailsToRemove = socialAccount.SocialAccountCloudResource;
-            // first start removing service discovery service
-            _logger.LogInformation("Starting to delete service discovery service.");
-            await DeleteServiceDiscoveryServiceAsync(awsCloudDetailsToRemove.CloudMapServiceDiscoveryService, socialAccount.UserId, ct);
-            _logger.LogInformation("Finished deleting service discovery service.");
 
-            // then ecs service
+            //////////////////////////////// ORDER MATTERS
+            ////////////////////////////////////////////////////////////////////////
+            ////////////////////////////////////////////////////////////////////////
+            /// First delete ecs service
             _logger.LogInformation("Starting to delete ecs service.");
             await DeleteEcsServiceAsync(awsCloudDetailsToRemove.EcsService, socialAccount.UserId, ct);
             _logger.LogInformation("Finished deleting ecs service.");
 
+            // then Service Discovery Service
+            _logger.LogInformation("Starting to delete service discovery service.");
+            await DeleteServiceDiscoveryServiceAsync(awsCloudDetailsToRemove.CloudMapServiceDiscoveryService, socialAccount.UserId, ct);
+            _logger.LogInformation("Finished deleting service discovery service.");
+
             // then deregister task definition            
             _logger.LogInformation("Starting to deregister task definition.");
-            // since this is an immediate rollback revision will always be 1. For regular deletes this information will have to be fetched from the api.
+
+            // might need to be refactored IF task definition has revisions
             awsCloudDetailsToRemove.EcsTaskDefinition.Family = $"{awsCloudDetailsToRemove.EcsTaskDefinition.Family}:1";
             await DeregisterTaskDefinitionAsync(awsCloudDetailsToRemove.EcsTaskDefinition, socialAccount.UserId, ct);
             _logger.LogInformation("Finished deregistering task definition.");
@@ -208,12 +214,13 @@ namespace Leadsly.Domain.Providers
         {
             string taskDefinition = $"{Guid.NewGuid()}-task-def";
             string containerName = $"hal-{Guid.NewGuid()}-container";
+            string halsUniqueName = $"{Guid.NewGuid()}-id";
             SocialAccountCloudResourceDTO userSetup = default;
             try
             {
                 userSetup = new()
                 {
-                    ContainerName = containerName,
+                    HalsUniqueName = halsUniqueName,
                     EcsTaskDefinition = new()
                     {
                         // name of the hal container
@@ -283,7 +290,7 @@ namespace Leadsly.Domain.Providers
             };
 
             // Query DNS for fresh ip address for the given service discovery name
-            CloudPlatformOperationResult dnsPrivateIpAddressResult = await QueryDNSForTasksPrivateIpAddressAsync(serviceDiscoveryConfig.NamespaceId, usersCloudDiscoveryService.Name, ct);
+            CloudPlatformOperationResult dnsPrivateIpAddressResult = await QueryDNSForTasksPrivateIpAddressAsync(serviceDiscoveryConfig.NamespaceId, usersCloudDiscoveryService.Name, serviceDiscoveryConfig.Name, ct);
 
             if(dnsPrivateIpAddressResult.Succeeded == false)
             {
@@ -295,7 +302,7 @@ namespace Leadsly.Domain.Providers
             // perform healthcheck with fresh private ip address
             HalRequest halHealthCheckWithPrivateIpRequest = new()
             {
-                DiscoveryServiceName = (string)dnsPrivateIpAddressResult.Value,
+                PrivateIpAddress = (string)dnsPrivateIpAddressResult.Value,
                 NamespaceName = serviceDiscoveryConfig.Name,
                 RequestUrl = "healthcheck"
             };
@@ -319,7 +326,7 @@ namespace Leadsly.Domain.Providers
             result.Succeeded = true;
             return result;
         }
-        private async Task<CloudPlatformOperationResult> QueryDNSForTasksPrivateIpAddressAsync(string namespaceId, string serviceDiscoveryName, CancellationToken ct = default)
+        private async Task<CloudPlatformOperationResult> QueryDNSForTasksPrivateIpAddressAsync(string namespaceId, string serviceDiscoveryName, string privateNameSpaceName, CancellationToken ct = default)
         {
             CloudPlatformOperationResult result = new()
             {
@@ -346,10 +353,10 @@ namespace Leadsly.Domain.Providers
                 return result;
             }
 
-            Amazon.Route53.Model.ResourceRecordSet recordSet = listResourceRecordSetsResponse.ResourceRecordSets.Find(r => r.Name == serviceDiscoveryName);
+            Amazon.Route53.Model.ResourceRecordSet recordSet = listResourceRecordSetsResponse.ResourceRecordSets.Find(r => r.Name == $"{serviceDiscoveryName}.{privateNameSpaceName}.");
             if (recordSet == null)
             {
-                _logger.LogError("Route 53 DNS record did not contain an entry for {serviceDiscoveryName}", serviceDiscoveryName);
+                _logger.LogError("Route 53 DNS record did not contain an entry for | {serviceDiscoveryName}.{privateNameSpaceName}. |", serviceDiscoveryName, privateNameSpaceName);
                 result.Failures.Add(new()
                 {
                     Reason = "Failed to locate discovery service",
@@ -433,7 +440,7 @@ namespace Leadsly.Domain.Providers
             };
 
             HttpResponseMessage response = await _leadslyBotApiService.PerformHealthCheckAsync(healthCheckRequest, ct);
-            if (response.IsSuccessStatusCode == false)
+            if (response == null || response.StatusCode != HttpStatusCode.OK)
             {
                 result.Failures.Add(new()
                 {
@@ -786,8 +793,10 @@ namespace Leadsly.Domain.Providers
                     Reason = "Failed to register new task definition"
                 });
                 return result;
-            }            
+            }
+            _logger.LogInformation("Successfully registered new task definition");
             result.CreateEcsTaskDefinitionSucceeded = true;
+            userSetup.EcsTaskDefinition = UpdateEcsTaskDefinitionValues(registerTaskDefinitionResponse, userSetup.EcsTaskDefinition);
 
             // Create new AWS Cloud Map Service Discovery Service for this container
             Amazon.ServiceDiscovery.Model.CreateServiceResponse createDiscoveryServiceResponse = await CreateServiceDiscoveryServiceAsync(userSetup.CloudMapServiceDiscovery, ct);
@@ -801,6 +810,7 @@ namespace Leadsly.Domain.Providers
                 });
                 return result;
             }
+            _logger.LogInformation("Successfully create new service discovery service in aws Cloud Map");
             result.CreateServiceDiscoveryServiceSucceeded = true;
             // update userSetup with the service discovery id. In case something fails, this will id will be used to clean up aws resources
             userSetup.CloudMapServiceDiscovery = UpdateCloudMapServiceDiscoveryValues(createDiscoveryServiceResponse, userSetup.CloudMapServiceDiscovery);
@@ -826,7 +836,7 @@ namespace Leadsly.Domain.Providers
                 });
                 return result;
             }
-
+            _logger.LogInformation("Successfully create new ecs service");
             result.CreateEcsServiceSucceeded = true;
             userSetup.EcsService = UpdateEcsServiceValues(createEcsServiceResponse, userSetup.EcsService);
 
@@ -839,16 +849,20 @@ namespace Leadsly.Domain.Providers
                 result.Failures = ensureServiceTasksAreRunningResult.Failures;
                 return result;
             }
-
+            
             result.Succeeded = true;
             return result;
         }
+
+        private EcsTaskDefinitionDTO UpdateEcsTaskDefinitionValues(Amazon.ECS.Model.RegisterTaskDefinitionResponse registerTaskDefinitionResponse, EcsTaskDefinitionDTO taskDefinitionDTO)
+        {
+            taskDefinitionDTO.TaskDefinitionArn = registerTaskDefinitionResponse.TaskDefinition.TaskDefinitionArn;
+            return taskDefinitionDTO;
+        }
         private CloudMapServiceDiscoveryServiceDTO UpdateCloudMapServiceDiscoveryValues(Amazon.ServiceDiscovery.Model.CreateServiceResponse createServiceDiscoveryService, CloudMapServiceDiscoveryServiceDTO cloudMapDiscoveryDTO)
         {
-            CloudMapServiceDiscoveryServiceDTO updatedCloudMapServiceDiscoveryValues = new();
-
             // response
-            cloudMapDiscoveryDTO.Id = createServiceDiscoveryService.Service?.Id;
+            cloudMapDiscoveryDTO.ServiceDiscoveryId = createServiceDiscoveryService.Service?.Id;
             cloudMapDiscoveryDTO.Arn = createServiceDiscoveryService.Service?.Arn;
             cloudMapDiscoveryDTO.CreateDate = createServiceDiscoveryService.Service?.CreateDate;
             cloudMapDiscoveryDTO.Description = createServiceDiscoveryService.Service?.Description;
@@ -875,11 +889,14 @@ namespace Leadsly.Domain.Providers
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
             mainStopWatch.Start();
+            _logger.LogInformation("Ensuring ecs service tasks are running. Waiting 20 seconds before checking.");
             while (mainStopWatch.Elapsed.TotalSeconds <= DefaultTimeToWaitForEcsServicePendingTasks_InSeconds)
             {
                 // Check elapsed time w/o stopping/resetting the stopwatch                
-                if (stopwatch.Elapsed.TotalSeconds >= 10)
+                if (stopwatch.Elapsed.TotalSeconds >= 20)
                 {
+                    double timeout = (DefaultTimeToWaitForEcsServicePendingTasks_InSeconds - mainStopWatch.Elapsed.TotalSeconds);
+                    _logger.LogInformation("Checking if ecs service tasks are running... Times out in: {timeout}", timeout);
                     // At least 5 seconds elapsed, restart stopwatch.
                     stopwatch.Stop();
                     CloudPlatformOperationResult checkTaskStatusResult = await AreEcsServiceTasksRunningAsync(userSetup, ct);
@@ -887,9 +904,14 @@ namespace Leadsly.Domain.Providers
                     {
                         if (((bool)checkTaskStatusResult.Value) == true)
                         {
+                            _logger.LogInformation("Successfully verified ecs service tasks are running");
                             result.Succeeded = true;
                             mainStopWatch.Stop();
                             break;
+                        }
+                        else
+                        {
+                            _logger.LogInformation("Ecs service tasks are not running yet. Checking again in 20 seconds...");
                         }
                     }
                     else
@@ -937,40 +959,100 @@ namespace Leadsly.Domain.Providers
         {
             DeleteServiceDiscoveryServiceRequest request = new()
             {
-                Id = serviceDiscovery.Id
+                Id = serviceDiscovery.ServiceDiscoveryId
             };
 
-            Amazon.ServiceDiscovery.Model.DeleteServiceResponse response = await _awsServiceDiscoveryService.DeleteServiceAsync(request, ct);
+            // service discovery service cannot have any instances assigned to it prior to deletion, if we have just deleted ecs service
+            // then it might take couple seconds reflect on aws side
+            Amazon.ServiceDiscovery.Model.DeleteServiceResponse response = default;
+            try
+            {
+                response = await _awsServiceDiscoveryService.DeleteServiceAsync(request, ct);
+            }
+            catch(Amazon.ServiceDiscovery.Model.ResourceInUseException ex)
+            {
+                _logger.LogWarning(ex, "Aws resource in use exception occured. Attempting to delete again");
+                response = await DeleteServiceDiscoveryServiceRetryAsync(request, ct);                
+            }
+            
             if (response == null)
             {
-                _logger.LogWarning("Delete operation for service discovery service failed.");
+                string serviceDiscoveryArn = serviceDiscovery.Arn;
+                _logger.LogWarning("Delete operation for service discovery service failed. Service discovery arn: {serviceDiscoveryArn}", serviceDiscoveryArn);
 
                 OrphanedCloudResource orphanedResource = new()
                 {
                     FriendlyName = "Service Discovery Service",
-                    ResourceId = serviceDiscovery.Id,
+                    ResourceId = serviceDiscovery.ServiceDiscoveryId,
+                    Arn = serviceDiscovery.Arn,
                     UserId = userId
                 };
                 _logger.LogInformation("Adding service discovery service to orphaned cloud resources table for manual clean up.");
                 await _orphanedCloudResourcesRepository.AddOrphanedCloudResourceAsync(orphanedResource, ct);
             }
+
+        }
+
+        private async Task<Amazon.ServiceDiscovery.Model.DeleteServiceResponse> DeleteServiceDiscoveryServiceRetryAsync(DeleteServiceDiscoveryServiceRequest request, CancellationToken ct = default)
+        {
+            Amazon.ServiceDiscovery.Model.DeleteServiceResponse response = default;
+            Stopwatch mainStopwatch = new Stopwatch();
+            Stopwatch intervalStopWatch = new Stopwatch();
+            mainStopwatch.Start();
+            intervalStopWatch.Start();
+            while (mainStopwatch.Elapsed.TotalSeconds <= DefaultTimeToWaitForEcsServicePendingTasks_InSeconds)
+            {
+                if (intervalStopWatch.Elapsed.TotalSeconds > 15)
+                {
+                    intervalStopWatch.Stop();
+                    try
+                    {
+                        response = await _awsServiceDiscoveryService.DeleteServiceAsync(request, ct);
+
+                        mainStopwatch.Stop();
+                        intervalStopWatch.Stop();
+                        _logger.LogInformation("Successfully deleted Service Discovery Service after retries.");
+                        break;
+                    }
+                    catch(Amazon.ServiceDiscovery.Model.ResourceInUseException ex)
+                    {
+                        _logger.LogError(ex, ex.Message);
+                        intervalStopWatch.Restart();
+                    }
+                }
+            }
+            return response;
         }
         private async Task DeleteServiceDiscoveryServiceAsync(CloudMapServiceDiscoveryService serviceDiscovery, string userId, CancellationToken ct = default)
         {
             DeleteServiceDiscoveryServiceRequest request = new()
             {
-                Id = serviceDiscovery.Id
+                Id = serviceDiscovery.ServiceDiscoveryId
             };
 
-            Amazon.ServiceDiscovery.Model.DeleteServiceResponse response = await _awsServiceDiscoveryService.DeleteServiceAsync(request, ct);
+            // service discovery service cannot have any instances assigned to it prior to deletion, if we have just deleted ecs service
+            // then it might take couple seconds reflect on aws side
+            Amazon.ServiceDiscovery.Model.DeleteServiceResponse response = default;
+            try
+            {
+                response = await _awsServiceDiscoveryService.DeleteServiceAsync(request, ct);
+            }
+            catch (Amazon.ServiceDiscovery.Model.ResourceInUseException ex)
+            {
+                _logger.LogWarning(ex, "Aws resource in use exception occured. Attempting to delete again");
+                response = await DeleteServiceDiscoveryServiceRetryAsync(request, ct);
+            }
+
             if (response == null)
             {
-                _logger.LogWarning("Delete operation for service discovery service failed.");
+                string serviceDiscoveryArn = serviceDiscovery.Arn;
+                _logger.LogWarning("Delete operation for service discovery service failed. Service discovery arn: {serviceDiscoveryArn}", serviceDiscoveryArn);
 
                 OrphanedCloudResource orphanedResource = new()
                 {
                     FriendlyName = "Service Discovery Service",
                     ResourceId = serviceDiscovery.Id,
+                    Arn = serviceDiscovery.Arn,
                     UserId = userId
                 };
                 _logger.LogInformation("Adding service discovery service to orphaned cloud resources table for manual clean up.");

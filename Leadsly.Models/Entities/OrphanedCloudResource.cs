@@ -13,16 +13,12 @@ namespace Leadsly.Models.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; }
                 
-        public string Arn { get; set; }
-
-        [Required]
-        public string FriendlyName { get; set; }
-        [Required]
-        public string ResourceId { get; set; }
-        [Required]
-        public string UserId { get; set; }
-        public string ResourceName { get; set; }
-        public string Reason { get; set; }
+        public string? Arn { get; set; }
+        public string? FriendlyName { get; set; }
+        public string? ResourceId { get; set; }
+        public string? UserId { get; set; }
+        public string? ResourceName { get; set; }
+        public string? Reason { get; set; }
 
     }
 }

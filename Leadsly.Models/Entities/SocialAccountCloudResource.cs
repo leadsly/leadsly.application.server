@@ -10,9 +10,9 @@ namespace Leadsly.Models.Entities
     public class SocialAccountCloudResource
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public string Id { get; set; }        
-        public string SocialAccountId { get; set; }
-        public string ContainerName { get; set; }
+        public string Id { get; set; }
+        public string? SocialAccountId { get; set; }
+        public string? HalsUniqueName { get; set; }
         public SocialAccount SocialAccount { get; set; }        
         public EcsService EcsService { get; set; }        
         public EcsTaskDefinition EcsTaskDefinition { get; set; }        

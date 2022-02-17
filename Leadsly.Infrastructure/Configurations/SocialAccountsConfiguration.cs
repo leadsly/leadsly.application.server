@@ -15,10 +15,14 @@ namespace Leadsly.Infrastructure.Configurations
         {
             logger.LogInformation("Configuring social account database relationships.");
 
-            builder.Entity<SocialAccount>()
+            builder.Entity<SocialAccount>(entity =>
+            {
+                entity
                     .HasOne(sAcc => sAcc.SocialAccountCloudResource)
                     .WithOne(res => res.SocialAccount)
                     .HasForeignKey<SocialAccountCloudResource>(res => res.SocialAccountId);
+            });
+                    
 
             builder.Entity<SocialAccountCloudResource>(res =>
             {
@@ -29,18 +33,18 @@ namespace Leadsly.Infrastructure.Configurations
 
             builder.Entity<CloudMapServiceDiscoveryService>()
                     .HasOne(map => map.EcsService)
-                    .WithOne(ser => ser.CloudMapServiceDiscoveryService);                    
+                    .WithOne(ser => ser.CloudMapServiceDiscoveryService);                
 
             builder.Entity<EcsService>(s =>
             {
                 s.HasMany(s => s.EcsServiceRegistries)
                  .WithOne(reg => reg.EcsService)
-                 .HasForeignKey(reg => reg.EcsServiceId);
+                 .HasForeignKey(reg => reg.EcsServiceId)
+                 .OnDelete(DeleteBehavior.Cascade);
 
                 s.HasOne(s => s.CloudMapServiceDiscoveryService)
                     .WithOne(map => map.EcsService)
-                    .HasForeignKey<CloudMapServiceDiscoveryService>(map => map.EcsServiceId)
-                    .OnDelete(DeleteBehavior.NoAction);
+                    .HasForeignKey<CloudMapServiceDiscoveryService>(map => map.EcsServiceId);
             });
                     
         }

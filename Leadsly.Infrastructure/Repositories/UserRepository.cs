@@ -57,8 +57,16 @@ namespace Leadsly.Infrastructure.Repositories
                 return null;
             }
 
-            IEnumerable<SocialAccount> socialAccounts = applicationUser.SocialAccounts;
-            return socialAccounts;
+            List<SocialAccount> socialAccounts = await _dbContext.SocialAccounts
+                .Where(sa => sa.UserId == userId)
+                .Include(sa => sa.SocialAccountCloudResource)
+                .Include(sa => sa.SocialAccountCloudResource.EcsService)
+                    .ThenInclude(ecsSer => ecsSer.EcsServiceRegistries)
+                .Include(sa => sa.SocialAccountCloudResource.EcsTaskDefinition)
+                .Include(sa => sa.SocialAccountCloudResource.CloudMapServiceDiscoveryService)
+                .ToListAsync();
+
+            return socialAccounts;            
         }
     }
 }

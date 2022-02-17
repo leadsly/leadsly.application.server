@@ -88,9 +88,9 @@ namespace Leadsly.Domain.Supervisor
             if (existingSocialAccountSetupResult.EcsServiceActive == false || existingSocialAccountSetupResult.IsHalHealthy == false)
             {
                 _logger.LogInformation("Removing cloud resources associated with this social account");
-                // if user ecs service is not active, delete the cloud resource from user's social account including task definition and service discovery name
-                await RemoveUsersSocialAccountAsync(socialAccount.Id, ct);
+                // if user ecs service is not active, delete the cloud resource from user's social account including task definition and service discovery name                
                 await RemoveUsersSocialAccountCloudResourcesAsync(socialAccount, ct);
+                await RemoveUsersSocialAccountAndResourcesAsync(socialAccount, ct);
             }
 
             if (existingSocialAccountSetupResult.EcsTaskRunning == false && existingSocialAccountSetupResult.EcsServiceHasPendingTasks == true)
@@ -106,10 +106,10 @@ namespace Leadsly.Domain.Supervisor
         {
             await _cloudPlatformProvider.RemoveUsersSocialAccountCloudResourcesAsync(socialAccount, ct);
         }
-        private async Task RemoveUsersSocialAccountAsync(string userSocialAccountId, CancellationToken ct = default)
+        private async Task RemoveUsersSocialAccountAndResourcesAsync(SocialAccount socialAccount, CancellationToken ct = default)
         {
-            bool removeSocialAccount = await _socialAccountRepository.RemoveSocialAccountAsync(userSocialAccountId, ct);
-            if(removeSocialAccount == false)
+            bool removeSocialAccountAndResources = await _userProvider.RemoveSocialAccountAndResourcesAsync(socialAccount, ct);
+            if(removeSocialAccountAndResources == false)
             {
                 _logger.LogError("Failed to remove users social account and the associated cloud resources. Manual intervention may be required to remove the resource.");
             }
@@ -137,12 +137,21 @@ namespace Leadsly.Domain.Supervisor
             cloudResourceSetupResult.UserId = socialAccountDTO.UserId;
             cloudResourceSetupResult.AccountType = socialAccountDTO.AccountType;
 
-            return await SaveNewSocialAccountAsync(cloudResourceSetupResult, ct);          
+            NewSocialAccountSetupResult saveNewSocialAccountResult = await SaveNewSocialAccountAsync(cloudResourceSetupResult, ct);
+            if(saveNewSocialAccountResult.Succeeded == false)
+            {
+                await _cloudPlatformProvider.RollbackCloudResourcesAsync(cloudResourceSetupResult, socialAccountDTO.UserId, ct);
+                result.Failures = saveNewSocialAccountResult.Failures;
+                return result;
+            }
+
+            result.Succeeded = true;
+            return result;     
         }
 
-        private async Task<LeadslyConnectResultDTO> SaveNewSocialAccountAsync(NewSocialAccountSetupResult newSocialAccountSetup, CancellationToken ct = default)
+        private async Task<NewSocialAccountSetupResult> SaveNewSocialAccountAsync(NewSocialAccountSetupResult newSocialAccountSetup, CancellationToken ct = default)
         {
-            LeadslyConnectResultDTO result = new()
+            NewSocialAccountSetupResult result = new()
             {
                 Succeeded = false
             };
@@ -155,71 +164,11 @@ namespace Leadsly.Domain.Supervisor
                 Username = newSocialAccountSetup.Username,
                 Value = newSocialAccountSetup.Value
             };
-
-            SocialAccount newSocialAccount = default;
-            try
+            
+            NewSocialAccountResult newSocialAndResourcesResult = await _userProvider.AddUsersSocialAccountAsync(newSocialAccountAndCloudResources, ct);            
+            if (newSocialAndResourcesResult.Succeeded == false)
             {
-                newSocialAccount = new()
-                {
-                    AccountType = newSocialAccountSetup.AccountType,
-                    Username = newSocialAccountSetup.Username,
-                    UserId = newSocialAccountSetup.UserId,                    
-                    SocialAccountCloudResource = new()
-                    {
-                        CloudMapServiceDiscoveryService = new()
-                        {
-                            Arn = newSocialAccountSetup.Value.CloudMapServiceDiscovery.Arn,
-                            Name = newSocialAccountSetup.Value.CloudMapServiceDiscovery.Name
-                        },
-                        EcsService = new()
-                        {                            
-                            AssignPublicIp = newSocialAccountSetup.Value.EcsService.AssignPublicIp,
-                            ClusterArn = newSocialAccountSetup.Value.EcsService.ClusterArn,
-                            CreatedAt = ((DateTimeOffset)newSocialAccountSetup.Value.EcsService.CreatedAt).ToUnixTimeSeconds(),
-                            CreatedBy = newSocialAccountSetup.Value.EcsService.CreatedBy,
-                            DesiredCount = newSocialAccountSetup.Value.EcsService.DesiredCount,
-                            EcsServiceRegistries = newSocialAccountSetup.Value.EcsService.Registries.Select(r => new EcsServiceRegistry
-                            {
-                                RegistryArn = r.RegistryArn
-                            }).ToList(),
-                            SchedulingStrategy = newSocialAccountSetup.Value.EcsService.SchedulingStrategy,
-                            ServiceArn = newSocialAccountSetup.Value.EcsService.ServiceArn,
-                            ServiceName = newSocialAccountSetup.Value.EcsService.ServiceName,
-                            TaskDefinition = newSocialAccountSetup.Value.EcsService.TaskDefinition,
-                            UserId = newSocialAccountSetup.Value.EcsService.UserId
-                        },
-                        EcsTaskDefinition = new()
-                        {
-                            Family = newSocialAccountSetup.Value.EcsTaskDefinition.Family,
-                            ContainerName = newSocialAccountSetup.Value.EcsTaskDefinition.ContainerName
-                        }
-                    }
-
-                };                
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occured while creating new social account object.");
-                result.Succeeded = false;
-                result.Failures.Add(new()
-                {
-                    Reason = "Failed to perform object mapping.",
-                    Detail = "Something went during object mapping. Check server Logs."
-                });
-                return result;
-            }
-
-            // userAccount provider
-            //var newSocialAndResourcesResult = await _userProvider.AddUsersSocialAccountAsync(newSocialAccountAndCloudResources, ct);
-            newSocialAccount = await _socialAccountRepository.AddSocialAccountAsync(newSocialAccount, ct);
-            if (newSocialAccount == null)
-            {
-                result.Succeeded = false;
-                result.Failures.Add(new()
-                {
-                    Detail = "Something went wrong when adding social account to the database. Check server logs",
-                    Reason = "Failed to add new social account to the database"
-                });
+                result.Failures = newSocialAndResourcesResult.Failures;
                 return result;
             }
 

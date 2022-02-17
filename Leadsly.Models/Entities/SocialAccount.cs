@@ -20,6 +20,6 @@ namespace Leadsly.Models.Entities
         [Required]
         public bool ConfiguredWithUsersLeadslyAccount { get; set; }
         public SocialAccountCloudResource SocialAccountCloudResource { get; set; }
-        public ApplicationUser ApplicationUser { get; set; }
+        public ApplicationUser User { get; set; }
     }
 }

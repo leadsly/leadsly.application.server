@@ -14,8 +14,8 @@ namespace Leadsly.Models.Entities
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; }
-        [Required]
-        public string SocialAccountCloudResourceId { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
+        public string? SocialAccountCloudResourceId { get; set; }
         [Required]
         public string UserId { get; set; }        
         [Required]

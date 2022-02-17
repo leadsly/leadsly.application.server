@@ -60,9 +60,14 @@ namespace Leadsly.Domain.Services
                     Id = deleteServiceDiscoveryRequest.Id
                 });
             }
-            catch (Exception ex)
+            catch (Amazon.ServiceDiscovery.Model.ResourceInUseException ex)
             {
-                _logger.LogError(ex, "Failed to delete service discovery service.");
+                _logger.LogWarning(ex, "Failed to delete service discovery service. Aws resource is in use. Rethrowing this exception");
+                throw ex;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError("Failed to delete service discovery service. Returning an empty response.");
             }
 
             return resp;

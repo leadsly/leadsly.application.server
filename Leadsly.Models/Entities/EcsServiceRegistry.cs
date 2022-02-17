@@ -12,8 +12,7 @@ namespace Leadsly.Models.Entities
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; }
-        [Required]
-        public string EcsServiceId { get; set; }
+        public string? EcsServiceId { get; set; }
         [Required]
         public string RegistryArn { get; set; }
         public EcsService EcsService { get; set; }

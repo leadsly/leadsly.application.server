@@ -1,7 +1,9 @@
 ﻿using Leadsly.Domain.OptionsJsonModels;
 using Leadsly.Domain.Repositories;
 using Leadsly.Models.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -14,12 +16,31 @@ namespace Leadsly.Infrastructure.Repositories
 {
     public class CloudPlatformRepository : ICloudPlatformRepository
     {
-        public CloudPlatformRepository(IOptions<CloudPlatformConfigurationOptions> cloudPlatformConfigurationOptions)
+        public CloudPlatformRepository(DatabaseContext dbContext, ILogger<CloudPlatformRepository> logger, IOptions<CloudPlatformConfigurationOptions> cloudPlatformConfigurationOptions)
         {
             _cloudPlatformConfigurationOptions = cloudPlatformConfigurationOptions.Value;
+            _dbContext = dbContext;
+            _logger = logger;
         }
 
         private readonly CloudPlatformConfigurationOptions _cloudPlatformConfigurationOptions;
+        private readonly DatabaseContext _dbContext;
+        private readonly ILogger<CloudPlatformRepository> _logger;
+
+        private async Task<bool> EcsServiceExists(string id, CancellationToken ct = default)
+        {
+            return await _dbContext.EcsServices.AnyAsync(ser => ser.Id == id, ct);
+        }
+
+        private async Task<bool> EcsTaskDefinitionExists(string id, CancellationToken ct = default)
+        {
+            return await _dbContext.EcsTaskDefinitions.AnyAsync(def => def.Id == id, ct);
+        }
+
+        private async Task<bool> ServiceDiscoveryServiceExists(string id, CancellationToken ct = default)
+        {
+            return await _dbContext.CloudMapServiceDiscoveryServices.AnyAsync(def => def.Id == id, ct);
+        }
 
         public CloudPlatformConfiguration GetCloudPlatformConfiguration()
         {
@@ -42,7 +63,8 @@ namespace Leadsly.Infrastructure.Repositories
                 {
                     DnsRecordTTL = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.DnsRecordTTL,
                     DnsRecordType = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.DnsRecordType,
-                    NamespaceId = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.NamespaceId
+                    NamespaceId = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.NamespaceId,
+                    Name = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.Name
                 },
                 EcsTaskDefinitionConfig = new()
                 {
@@ -65,6 +87,111 @@ namespace Leadsly.Infrastructure.Repositories
             };
 
             return config;
+        }
+
+        public async Task<EcsTaskDefinition> AddEcsTaskDefinitionAsync(EcsTaskDefinition newEcsTaskDefinition, CancellationToken ct = default)
+        {
+            try
+            {
+                _dbContext.EcsTaskDefinitions.Add(newEcsTaskDefinition);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save ecs task definition to the database");
+                return null;
+            }
+            return newEcsTaskDefinition;
+        }
+
+        public async Task<EcsService> AddEcsServiceAsync(EcsService newEcsService, CancellationToken ct = default)
+        {
+            try
+            {
+                _dbContext.EcsServices.Add(newEcsService);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save ecs task definition to the database");
+                return null;
+            }
+            return newEcsService;
+        }
+
+        public async Task<CloudMapServiceDiscoveryService> AddServiceDiscoveryAsync(CloudMapServiceDiscoveryService newCloudMapServiceDiscovery, CancellationToken ct = default)
+        {
+            try
+            {
+                _dbContext.CloudMapServiceDiscoveryServices.Add(newCloudMapServiceDiscovery);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save ecs task definition to the database");
+                return null;                
+            }
+            return newCloudMapServiceDiscovery;
+        }
+
+        public async Task<bool> RemoveEcsTaskDefinitionAsync(string ecsTaskDefinitionId, CancellationToken ct = default)
+        {
+            try
+            {
+                if (!await EcsTaskDefinitionExists(ecsTaskDefinitionId, ct))
+                {
+                    return false;
+                }
+                EcsTaskDefinition toRemove = _dbContext.EcsTaskDefinitions.Find(ecsTaskDefinitionId);
+                _dbContext.EcsTaskDefinitions.Remove(toRemove);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to remove ecs task definition from the database");
+                return false;
+            }
+            return true;
+        }
+
+        public async Task<bool> RemoveEcsServiceAsync(string ecsServiceId, CancellationToken ct = default)
+        {
+            try
+            {
+                if (!await EcsServiceExists(ecsServiceId, ct))
+                {
+                    return false;
+                }
+                EcsService toRemove = _dbContext.EcsServices.Find(ecsServiceId);
+                _dbContext.EcsServices.Remove(toRemove);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to remove ecs service from the database");
+                return false;
+            }
+            return true;
+        }
+
+        public async Task<bool> RemoveCloudMapServiceDiscoveryServiceAsync(string discoveryServiceId, CancellationToken ct = default)
+        {
+            try
+            {
+                if (!await ServiceDiscoveryServiceExists(discoveryServiceId, ct))
+                {
+                    return false;
+                }
+                CloudMapServiceDiscoveryService toRemove = _dbContext.CloudMapServiceDiscoveryServices.Find(discoveryServiceId);
+                _dbContext.CloudMapServiceDiscoveryServices.Remove(toRemove);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to remove service discovery service from the database");
+                return false;
+            }
+            return true;
         }
     }
 }

@@ -39,12 +39,12 @@ namespace Leadsly.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Arn = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    FriendlyName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ResourceId = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ResourceName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Reason = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Arn = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    FriendlyName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ResourceId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ResourceName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Reason = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -103,13 +103,13 @@ namespace Leadsly.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    StripeCustomerId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FirstName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    StripeCustomerId = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Deleted = table.Column<bool>(type: "bit", nullable: false),
-                    ExternalProviderUserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    PhotoUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ExternalProvider = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ExternalProviderUserId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PhotoUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ExternalProvider = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Customer_StripeId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -192,12 +192,11 @@ namespace Leadsly.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     AccountType = table.Column<int>(type: "int", nullable: false),
                     Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ConfiguredWithUsersLeadslyAccount = table.Column<bool>(type: "bit", nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ApplicationUserId1 = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -206,13 +205,13 @@ namespace Leadsly.Infrastructure.Migrations
                         name: "FK_SocialAccounts_Users_ApplicationUserId",
                         column: x => x.ApplicationUserId,
                         principalTable: "Users",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_SocialAccounts_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_SocialAccounts_Users_ApplicationUserId1",
-                        column: x => x.ApplicationUserId1,
-                        principalTable: "Users",
-                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -305,10 +304,11 @@ namespace Leadsly.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ServiceDiscoveryId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Arn = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     NamespaceId = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CreateDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreateDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     EcsServiceId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
@@ -322,7 +322,7 @@ namespace Leadsly.Infrastructure.Migrations
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     SocialAccountId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ContainerName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    HalsUniqueName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     EcsTaskDefinitionId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     CloudMapServiceDiscoveryServiceId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
@@ -354,7 +354,7 @@ namespace Leadsly.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    SocialAccountCloudResourceId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    SocialAccountCloudResourceId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     UserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ServiceName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ServiceArn = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -373,8 +373,7 @@ namespace Leadsly.Infrastructure.Migrations
                         name: "FK_EcsServices_SocialAccountResources_SocialAccountCloudResourceId",
                         column: x => x.SocialAccountCloudResourceId,
                         principalTable: "SocialAccountResources",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -421,7 +420,8 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "IX_EcsServices_SocialAccountCloudResourceId",
                 table: "EcsServices",
                 column: "SocialAccountCloudResourceId",
-                unique: true);
+                unique: true,
+                filter: "[SocialAccountCloudResourceId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RoleClaims_RoleId",
@@ -457,9 +457,9 @@ namespace Leadsly.Infrastructure.Migrations
                 column: "ApplicationUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SocialAccounts_ApplicationUserId1",
+                name: "IX_SocialAccounts_UserId",
                 table: "SocialAccounts",
-                column: "ApplicationUserId1");
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserClaims_UserId",
@@ -498,7 +498,8 @@ namespace Leadsly.Infrastructure.Migrations
                 table: "CloudMapServiceDiscoveryServices",
                 column: "EcsServiceId",
                 principalTable: "EcsServices",
-                principalColumn: "Id");
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -508,7 +509,7 @@ namespace Leadsly.Infrastructure.Migrations
                 table: "SocialAccounts");
 
             migrationBuilder.DropForeignKey(
-                name: "FK_SocialAccounts_Users_ApplicationUserId1",
+                name: "FK_SocialAccounts_Users_UserId",
                 table: "SocialAccounts");
 
             migrationBuilder.DropForeignKey(

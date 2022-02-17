@@ -46,15 +46,17 @@ namespace Leadsly.Domain.Services
             HttpRequestMessage request = new()
             {
                 Method = HttpMethod.Get,
-                RequestUri = new Uri(halRequest.RequestUrl)
+                RequestUri = new Uri(halRequest.RequestUrl, UriKind.Relative)
             };
 
-            _httpClient.BaseAddress = halRequest.PrivateIpAddress != string.Empty ? new Uri($"http://{halRequest.PrivateIpAddress}", UriKind.Absolute) : new Uri($"http://{halRequest.DiscoveryServiceName}.{halRequest.NamespaceName}", UriKind.Absolute);
-
-            HttpResponseMessage response = default;
+            HttpResponseMessage response = default;           
             try
             {
-                response = await _httpClient.SendAsync(request, ct);
+                using (HttpClient httpClient = new HttpClient())
+                {
+                    httpClient.BaseAddress = halRequest.PrivateIpAddress != null ? new Uri($"https://{halRequest.PrivateIpAddress}", UriKind.Absolute) : new Uri($"https://{halRequest.DiscoveryServiceName}.{halRequest.NamespaceName}", UriKind.Absolute);
+                    response = await httpClient.SendAsync(request, ct);
+                }
             }
             catch (Exception ex)
             {
