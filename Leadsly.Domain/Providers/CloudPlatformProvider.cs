@@ -45,7 +45,8 @@ namespace Leadsly.Domain.Providers
         private readonly IOrphanedCloudResourcesRepository _orphanedCloudResourcesRepository;
         private readonly ICloudPlatformRepository _cloudPlatformRepository;
         private readonly ILogger<CloudPlatformProvider> _logger;
-        private readonly int DefaultTimeToWaitForEcsServicePendingTasks_InSeconds = 150;        
+        private readonly int DefaultTimeToWaitForEcsServicePendingTasks_InSeconds = 150;
+        private readonly string HealthCheckEndpoint = "api/healthcheck";
 
         public async Task<NewSocialAccountSetupResult> SetupNewCloudResourceForUserSocialAccountAsync(string userId, CancellationToken ct = default)
         {
@@ -90,7 +91,6 @@ namespace Leadsly.Domain.Providers
 
             return await SetupNewContainerAsync(userSetup, ct);
         }
-
         public async Task<ExistingSocialAccountSetupResult> ConnectToExistingCloudResourceAsync(SocialAccount socialAccount, CancellationToken ct = default)
         {
             ExistingSocialAccountSetupResult result = new()
@@ -113,17 +113,12 @@ namespace Leadsly.Domain.Providers
 
             // perform initial healthcheck to hal via service discovery service name
             CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
-            HalRequest halHealthCheckRequest = new()
-            {
-                DiscoveryServiceName = socialAccount.SocialAccountCloudResource.CloudMapServiceDiscoveryService.Name,
-                NamespaceName = configuration.ServiceDiscoveryConfig.Name,
-                RequestUrl = "healthcheck"
-            };
             // perform health check on hal
-            HalHealthCheckResponse healthCheckResponse = await PerformHalsHealthCheckAsync(halHealthCheckRequest, ct);
+            HalHealthCheckResponse healthCheckResponse = await RunHalsHealthCheckAsync(socialAccount.SocialAccountCloudResource.CloudMapServiceDiscoveryService.Name, configuration, ct);
             // its possible that the failure occured because dns record has stale ip address
             if(healthCheckResponse.Succeeded == false)
             {
+                _logger.LogInformation("Healthcheck using discovery service name failed. Trying to run health check with private ip address.");
                 result = await PerformHalsHealthCheckWithPrivateIpAsync(configuration.ServiceDiscoveryConfig, socialAccount.SocialAccountCloudResource.CloudMapServiceDiscoveryService, ct);
                 if(result.Succeeded == false)
                 {
@@ -144,6 +139,17 @@ namespace Leadsly.Domain.Providers
 
             result.Succeeded = true;
             return result;
+        }
+        private async Task<HalHealthCheckResponse> RunHalsHealthCheckAsync(string serviceDiscoveryName, CloudPlatformConfiguration configuration, CancellationToken ct = default)
+        {
+            HalRequest halHealthCheckRequest = new()
+            {
+                DiscoveryServiceName = serviceDiscoveryName,
+                NamespaceName = configuration.ServiceDiscoveryConfig.Name,
+                RequestUrl = HealthCheckEndpoint
+            };
+
+            return await PerformHalsHealthCheckAsync(halHealthCheckRequest, ct);
         }
         public async Task RollbackCloudResourcesAsync(NewSocialAccountSetupResult setupToRollback, string userId, CancellationToken ct = default)
         {
@@ -230,12 +236,7 @@ namespace Leadsly.Domain.Providers
                         ContainerDefinitions = configuration.EcsTaskDefinitionConfig.ContainerDefinitions.Select(c => new ContainerDefinitionDTO
                         {
                             Image = c.Image,
-                            Name = taskDefinition,
-                            PortMappings = c.PortMappings.Select(p => new PortMappingDTO
-                            {
-                                ContainerPort = p.ContainerPort,
-                                Protocol = p.Protocol
-                            }).ToList()
+                            Name = taskDefinition                           
                         }).ToList(),
                         ExecutionRoleArn = configuration.EcsTaskDefinitionConfig.ExecutionRoleArn,
                         TaskRoleArn = configuration.EcsTaskDefinitionConfig.TaskRoleArn,
@@ -304,7 +305,7 @@ namespace Leadsly.Domain.Providers
             {
                 PrivateIpAddress = (string)dnsPrivateIpAddressResult.Value,
                 NamespaceName = serviceDiscoveryConfig.Name,
-                RequestUrl = "healthcheck"
+                RequestUrl = HealthCheckEndpoint
             };
 
             // perform health check on hal
@@ -452,7 +453,9 @@ namespace Leadsly.Domain.Providers
 
             try
             {
-                result.Value = JsonConvert.DeserializeObject<HalHealthCheck>(await response.Content.ReadAsStringAsync());                 
+                string content = await response.Content.ReadAsStringAsync();
+                result.Value = JsonConvert.DeserializeObject<HalHealthCheck>(content);
+                _logger.LogInformation("Successfully deserialized hal's healthcheck response {content}", content);
             }
             catch(Exception ex)
             {
@@ -642,20 +645,6 @@ namespace Leadsly.Domain.Providers
             };
 
             await _orphanedCloudResourcesRepository.AddOrphanedCloudResourceAsync(orphanedCloudResource, ct);
-
-            //bool deleteOperationResult = await _socialAccountRepository.RemoveSocialAccountAsync(socialAccount.Id, ct);
-
-            //if (deleteOperationResult == false)
-            //{
-            //    _logger.LogWarning("Failed to delete user's social account. Please contact support for further assistance. This removal has to be done manually.");
-            //    result.Failures.Add(new()
-            //    {
-            //        Reason = "Failed to remove social account",
-            //        Detail = "Error occured when remvoing social account from user. Please contact support for assistance."
-            //    });
-            //}
-
-            //return result;
         }
         private async Task<DescribeEcsServiceResponse> GetEcsServiceDetailsAsync(SocialAccount socialAccount, CancellationToken ct = default)
         {
@@ -707,15 +696,12 @@ namespace Leadsly.Domain.Providers
             failuresDTO = failrues.Select(f =>
             {
                 string reason = f.Reason;
-                string detail = f.Detail;
                 string arn = f.Arn;
                 _logger.LogError("Reason: ", reason);
-                _logger.LogError("Detail: ", detail);
                 _logger.LogError("Arn: ", arn);
                 return new FailureDTO
                 {
                     Arn = f.Arn,
-                    Detail = f.Detail,
                     Reason = f.Reason
                 };
             }).ToList();
@@ -779,6 +765,7 @@ namespace Leadsly.Domain.Providers
                 CreateEcsServiceSucceeded = false,
                 CreateServiceDiscoveryServiceSucceeded = false,
                 CreateEcsTaskDefinitionSucceeded = false,
+                IsHalHealthy = false,
                 Value = userSetup
             };
 
@@ -849,11 +836,22 @@ namespace Leadsly.Domain.Providers
                 result.Failures = ensureServiceTasksAreRunningResult.Failures;
                 return result;
             }
-            
-            result.Succeeded = true;
+
+            CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
+            // perform health check on hal
+            HalHealthCheckResponse healthCheckResponse = await RunHalsHealthCheckAsync(userSetup.CloudMapServiceDiscovery.Name, configuration, ct);
+            if(healthCheckResponse.Succeeded == false)
+            {
+                _logger.LogInformation("Running initial hals health check did not succeeded");                
+                result.Failures = healthCheckResponse.Failures;
+                result.IsHalHealthy = false;
+                return result;
+            }
+
+            result.IsHalHealthy = true;
+            result.Succeeded = true;            
             return result;
         }
-
         private EcsTaskDefinitionDTO UpdateEcsTaskDefinitionValues(Amazon.ECS.Model.RegisterTaskDefinitionResponse registerTaskDefinitionResponse, EcsTaskDefinitionDTO taskDefinitionDTO)
         {
             taskDefinitionDTO.TaskDefinitionArn = registerTaskDefinitionResponse.TaskDefinition.TaskDefinitionArn;
@@ -992,7 +990,6 @@ namespace Leadsly.Domain.Providers
             }
 
         }
-
         private async Task<Amazon.ServiceDiscovery.Model.DeleteServiceResponse> DeleteServiceDiscoveryServiceRetryAsync(DeleteServiceDiscoveryServiceRequest request, CancellationToken ct = default)
         {
             Amazon.ServiceDiscovery.Model.DeleteServiceResponse response = default;
@@ -1199,12 +1196,7 @@ namespace Leadsly.Domain.Providers
                 EcsContainerDefinitions = taskDefinition.ContainerDefinitions.Select(c => new EcsContainerDefinition
                 { 
                     Image = c.Image,
-                    Name = taskDefinition.ContainerName,
-                    PortMappings = c.PortMappings.Select(p => new Leadsly.Models.Aws.ElasticContainerService.EcsPortMapping
-                    {
-                        ContainerPort = p.ContainerPort,
-                        Protocol = p.Protocol,
-                    }).ToList()                    
+                    Name = taskDefinition.ContainerName                    
                 }).ToList(),
                 ExecutionRoleArn = taskDefinition.ExecutionRoleArn,
                 TaskRoleArn = taskDefinition.TaskRoleArn,

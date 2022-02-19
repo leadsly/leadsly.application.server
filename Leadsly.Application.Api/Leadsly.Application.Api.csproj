@@ -1,54 +1,63 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>    
-    <UserSecretsId>167c6a51-1581-4c5b-92de-629054bab186</UserSecretsId>    
-    <Platforms>x64</Platforms>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<UserSecretsId>167c6a51-1581-4c5b-92de-629054bab186</UserSecretsId>
+		<Platforms>x64</Platforms>
+	</PropertyGroup>
 
-  <ItemGroup>
-	  <PackageReference Include="AWSSDK.ECS" Version="3.7.4.28" />
-    <PackageReference Include="AWSSDK.SimpleEmailV2" Version="3.7.1.41" />              
-    <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.0.0" />              
-    <PackageReference Include="Azure.Identity" Version="1.2.2" />              
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.1" />        
-    <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="6.0.1" />                
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="6.0.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.1" />    
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.1" />    
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Connections.Abstractions" Version="6.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="6.0.1" />
-    <PackageReference Include="NETCore.MailKit" Version="2.0.3" />
-    <PackageReference Include="Serilog" Version="2.10.0" />
-    <PackageReference Include="Serilog.Extensions.Logging.File" Version="2.0.0" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
-    <PackageReference Include="Serilog.AspNetCore" Version="3.4.0" />
-    <PackageReference Include="JWT" Version="7.3.1" />
-    <PackageReference Include="Stripe.net" Version="39.84.0" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.10.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />        
-    <PackageReference Include="Google.Apis.Auth" Version="1.49.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Kralizek.Extensions.Configuration.AWSSecretsManager" Version="1.6.3" />		
+		<PackageReference Include="AWSSDK.ECS" Version="3.3.103" />
+		<PackageReference Include="AWSSDK.RDS" Version="3.3.103" />
+		<PackageReference Include="AWSSDK.SimpleEmailV2" Version="3.3.103" />
+		<PackageReference Include="AWSSDK.Core" Version="3.3.107.23" />
+		<!--<PackageReference Include="AWSSDK.SecretsManager" Version="3.7.2.5" />
+		<PackageReference Include="AWSSDK.ECS" Version="3.7.4.28" />
+		<PackageReference Include="AWSSDK.RDS" Version="3.7.10.1" />
+		<PackageReference Include="AWSSDK.SimpleEmailV2" Version="3.7.1.41" />-->
+		<PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.0.0" />
+		<PackageReference Include="Azure.Identity" Version="1.2.2" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.1" />
+		<PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="6.0.1" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="6.0.1" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.1" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.1" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.1" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.1" />
+		<PackageReference Include="Microsoft.AspNetCore.Connections.Abstractions" Version="6.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="6.0.1" />
+		<PackageReference Include="NETCore.MailKit" Version="2.0.3" />
+		<PackageReference Include="Serilog" Version="2.10.0" />
+		<PackageReference Include="Serilog.Extensions.Logging.File" Version="2.0.0" />
+		<PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
+		<PackageReference Include="Serilog.AspNetCore" Version="3.4.0" />
+		<PackageReference Include="JWT" Version="7.3.1" />
+		<PackageReference Include="Stripe.net" Version="39.84.0" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.10.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+		<PackageReference Include="Google.Apis.Auth" Version="1.49.0" />
+		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.3" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Logs\" />
-  </ItemGroup>
+	<ItemGroup>
+		<Folder Include="Logs\" />
+		<Folder Include="wwwroot\" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Leadsly.Domain\Leadsly.Domain.csproj" />
-    <ProjectReference Include="..\Leadsly.Infrastructure\Leadsly.Infrastructure.csproj" />
-    <ProjectReference Include="..\Leadsly.Models\Leadsly.Models.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Leadsly.Domain\Leadsly.Domain.csproj" />
+		<ProjectReference Include="..\Leadsly.Infrastructure\Leadsly.Infrastructure.csproj" />
+		<ProjectReference Include="..\Leadsly.Models\Leadsly.Models.csproj" />
+	</ItemGroup>
 
 </Project>

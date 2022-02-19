@@ -11,6 +11,7 @@ namespace Leadsly.Models
         public bool CreateEcsTaskDefinitionSucceeded { get; set; }
         public bool CreateServiceDiscoveryServiceSucceeded { get; set; }
         public bool CreateEcsServiceSucceeded { get; set; }
+        public bool IsHalHealthy { get; set; }
         public bool Succeeded { get; set; }
         public string Username { get; set; }
         public string UserId { get; set; }

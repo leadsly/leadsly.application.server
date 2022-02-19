@@ -156,22 +156,13 @@ namespace Leadsly.Domain.Services
                     Family = registerTaskDefinitionRequest.Family,
                     ContainerDefinitions = registerTaskDefinitionRequest.EcsContainerDefinitions.Select(c => new ContainerDefinition
                     {
-                        Name = c.Name,
-                        PortMappings = c.PortMappings.Select(p => new PortMapping
-                        {
-                            ContainerPort = p.ContainerPort,
-                            Protocol = new TransportProtocol(p.Protocol)
-                        }).ToList(),
+                        Name = c.Name,                        
                         Image = c.Image
                     }).ToList(),
                     Cpu = registerTaskDefinitionRequest.Cpu,
                     Memory = registerTaskDefinitionRequest.Memory,
                     TaskRoleArn = registerTaskDefinitionRequest.TaskRoleArn,                    
                     ExecutionRoleArn = registerTaskDefinitionRequest.ExecutionRoleArn,
-                    RuntimePlatform = new()
-                    {
-                        OperatingSystemFamily = OSFamily.LINUX
-                    },
                     NetworkMode = registerTaskDefinitionRequest.NetworkMode,
                 }, ct);
             }

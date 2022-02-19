@@ -58,15 +58,11 @@ namespace Leadsly.Application.Api
                            {
                                IHostEnvironment env = hostBuilderContext.HostingEnvironment;
                                Log.Information($"Application is running in: {env.EnvironmentName} mode.");
-
                                if (env.IsProduction())
                                {
-                                   IConfigurationRoot builtConfig = builder.Build();
-                                   SecretClient secretClient = new SecretClient(
-                                       new Uri(builtConfig["VaultUri"]),
-                                       new DefaultAzureCredential());
-                                   builder.AddAzureKeyVault(secretClient, new KeyVaultSecretManager());
-                               }
+                                   Log.Information("Using AWS Secrets Manager");
+                                   builder.AddSecretsManager();
+                               }                               
                            });
             }
             catch(Exception ex)

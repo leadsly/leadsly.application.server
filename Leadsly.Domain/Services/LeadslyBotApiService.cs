@@ -22,7 +22,7 @@ namespace Leadsly.Domain.Services
 
         private readonly HttpClient _httpClient;
         private readonly ILogger<LeadslyBotApiService> _logger;
-
+        private const string HttpPrefix = "http://";
         public async Task<LeadslyConnectionResult> ConnectToLeadslyAsync(ConnectLeadslyViewModel connectLeadsly, CancellationToken ct = default)
         {
             LeadslyConnectionResult result = new();
@@ -54,7 +54,10 @@ namespace Leadsly.Domain.Services
             {
                 using (HttpClient httpClient = new HttpClient())
                 {
-                    httpClient.BaseAddress = halRequest.PrivateIpAddress != null ? new Uri($"https://{halRequest.PrivateIpAddress}", UriKind.Absolute) : new Uri($"https://{halRequest.DiscoveryServiceName}.{halRequest.NamespaceName}", UriKind.Absolute);
+                    Uri baseAddress = halRequest.PrivateIpAddress != null ? new Uri($"{HttpPrefix}{halRequest.PrivateIpAddress}", UriKind.Absolute) : new Uri($"{HttpPrefix}{halRequest.DiscoveryServiceName}.{halRequest.NamespaceName}", UriKind.Absolute);
+                    string url = baseAddress + request.RequestUri.ToString();                    
+                    _logger.LogInformation("Performing health check to {url}", url);                    
+                    httpClient.BaseAddress = baseAddress;
                     response = await httpClient.SendAsync(request, ct);
                 }
             }

@@ -32,7 +32,7 @@ namespace Leadsly.Application.Api.Controllers
             _logger.LogTrace("Healthcheck action executed.");           
             return new JsonResult(new HealthCheckViewModel 
             {
-                APIVersion = typeof(Startup).Assembly.GetName().Version.ToString()
+                APIVersion = typeof(Startup).Assembly.GetName().Version.ToString()                
             });
         }
     }

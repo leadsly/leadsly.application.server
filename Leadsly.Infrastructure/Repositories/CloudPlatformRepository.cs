@@ -70,12 +70,7 @@ namespace Leadsly.Infrastructure.Repositories
                 {
                     ContainerDefinitions = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.ContainerDefinitions.Select(c => new EcsContainerDefinitionConfig
                     {
-                        Image = c.Image,
-                        PortMappings = c.PortMappings.Select(p => new EcsPortMappingConfig
-                        {
-                            ContainerPort = p.ContainerPort,
-                            Protocol = p.Protocol
-                        }).ToList()
+                        Image = c.Image
                     }).ToList(),
                     Cpu = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.Cpu,
                     ExecutionRoleArn = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.ExecutionRoleArn,

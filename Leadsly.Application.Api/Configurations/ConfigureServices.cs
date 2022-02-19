@@ -37,6 +37,7 @@ using Leadsly.Domain.OptionsJsonModels;
 using Leadsly.Application.Domain.OptionsJsonModels;
 using Amazon.ServiceDiscovery;
 using Amazon.Route53;
+using Amazon.RDS.Util;
 
 namespace Leadsly.Application.Api.Configurations
 {
@@ -155,18 +156,21 @@ namespace Leadsly.Application.Api.Configurations
         {
             Log.Information("Configuring default connection string and database context.");
 
-            string defaultConnection = configuration.GetConnectionString("DefaultConnection");
+            PostgresOptions postgresOptions = new PostgresOptions();
+            configuration.GetSection(nameof(PostgresOptions)).Bind(postgresOptions);
+            string authToken = RDSAuthTokenGenerator.GenerateAuthToken(postgresOptions.Host, postgresOptions.Port, postgresOptions.UserId);
+            string defaultConnection = $"Host={postgresOptions.Host};User Id={postgresOptions.UserId};Password={authToken};Database={postgresOptions.Database}";
 
             services.AddDbContext<DatabaseContext>(options =>
-            {                
-                options.UseSqlServer(defaultConnection);
-                if(env.IsDevelopment())
+            {
+                options.UseNpgsql(defaultConnection);
+                if (env.IsDevelopment())
                 {
-                    Log.Information("Enabling SQL Server sensitive data logging.");
+                    Log.Information("Enabling SQL sensitive data logging.");
                     options.EnableSensitiveDataLogging(env.IsDevelopment());
-                }                
+                }
             }, ServiceLifetime.Scoped);
-            
+
             services.AddSingleton(new DbInfo(defaultConnection));
 
             return services;

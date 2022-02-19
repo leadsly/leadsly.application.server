@@ -123,6 +123,9 @@ namespace Leadsly.Domain.Supervisor
             };
 
             NewSocialAccountSetupResult cloudResourceSetupResult = await _cloudPlatformProvider.SetupNewCloudResourceForUserSocialAccountAsync(socialAccountDTO.UserId, ct);
+            bool isHealthy = cloudResourceSetupResult.IsHalHealthy;
+            _logger.LogInformation("Is hal healthy? {isHealthy}", isHealthy);
+
             if (cloudResourceSetupResult.Succeeded == false)
             {
                 // clean up aws resources

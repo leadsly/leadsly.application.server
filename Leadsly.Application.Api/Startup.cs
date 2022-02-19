@@ -43,11 +43,7 @@ namespace Leadsly.Application.Api
                     .AddEmailServiceConfiguration()
                     .AddRepositories()
                     .AddServices(Configuration)
-                    .AddRemoveNull204FormatterConfigration()
-                    .AddSpaStaticFiles(spa => 
-                    {
-                        spa.RootPath = "wwwroot";
-                    });
+                    .AddRemoveNull204FormatterConfigration();
 
             services.Configure<MvcOptions>(ApiDefaults.Configure);
         }
@@ -58,40 +54,17 @@ namespace Leadsly.Application.Api
             // if request does not contain api it will also work
             app.UsePathBase("/api");
 
-            if (env.IsDevelopment())
-            {
-                app.UseCors(ApiConstants.Cors.AllowAll);
-            }
-            else
-            {
-                app.UseCors(ApiConstants.Cors.WithOrigins);
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
-            }
-
-            app.UseDefaultFiles();
-
-            app.UseSpaStaticFiles();
-
-            app.UseSpaStaticFiles(new StaticFileOptions
-            {
-                FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "assets", "fonts")),
-                RequestPath = "/wwwroot/assets/fonts",
-                OnPrepareResponse = ctx =>
-                {
-                    ctx.Context.Response.Headers.Append("Cache-Control", "private, max-age=86400, stale-while-revalidate=604800");
-                }
-            });
-
-            app.UseSpaStaticFiles(new StaticFileOptions
-            {
-                FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "assets", "iconfont")),
-                RequestPath = "/wwwroot/assets/iconfont",
-                OnPrepareResponse = ctx =>
-                {
-                    ctx.Context.Response.Headers.Append("Cache-Control", "private, max-age=86400, stale-while-revalidate=604800");
-                }
-            });
+            app.UseCors(ApiConstants.Cors.AllowAll);
+            //if (env.IsDevelopment())
+            //{
+            //    app.UseCors(ApiConstants.Cors.AllowAll);
+            //}
+            //else
+            //{
+            //    app.UseCors(ApiConstants.Cors.WithOrigins);
+            //    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+            //    app.UseHsts();
+            //}
 
             app.UseMiddleware<ErrorHandlingMiddleware>();
 
@@ -110,11 +83,6 @@ namespace Leadsly.Application.Api
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-            });
-
-            app.UseSpa(spa =>
-            {
-                spa.Options.SourcePath = "wwwroot";
             });
         }
     }

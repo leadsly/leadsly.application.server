@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -13,9 +14,9 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "EcsTaskDefinitions",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Family = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ContainerName = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    Family = table.Column<string>(type: "text", nullable: false),
+                    ContainerName = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -26,8 +27,8 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "Organizations",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -38,13 +39,13 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "OrphanedCloudResources",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Arn = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    FriendlyName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ResourceId = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ResourceName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Reason = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    Arn = table.Column<string>(type: "text", nullable: true),
+                    FriendlyName = table.Column<string>(type: "text", nullable: true),
+                    ResourceId = table.Column<string>(type: "text", nullable: true),
+                    UserId = table.Column<string>(type: "text", nullable: true),
+                    ResourceName = table.Column<string>(type: "text", nullable: true),
+                    Reason = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -55,10 +56,10 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "Roles",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    NormalizedName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    NormalizedName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -69,8 +70,8 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "StripeCustomers",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Customer = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    Customer = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -81,11 +82,11 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "RoleClaims",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    RoleId = table.Column<string>(type: "text", nullable: false),
+                    ClaimType = table.Column<string>(type: "text", nullable: true),
+                    ClaimValue = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -102,29 +103,29 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    FirstName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    StripeCustomerId = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Deleted = table.Column<bool>(type: "bit", nullable: false),
-                    ExternalProviderUserId = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PhotoUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ExternalProvider = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Customer_StripeId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    NormalizedEmail = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    EmailConfirmed = table.Column<bool>(type: "bit", nullable: false),
-                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    SecurityStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PhoneNumberConfirmed = table.Column<bool>(type: "bit", nullable: false),
-                    TwoFactorEnabled = table.Column<bool>(type: "bit", nullable: false),
-                    LockoutEnd = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    LockoutEnabled = table.Column<bool>(type: "bit", nullable: false),
-                    AccessFailedCount = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    FirstName = table.Column<string>(type: "text", nullable: true),
+                    LastName = table.Column<string>(type: "text", nullable: true),
+                    StripeCustomerId = table.Column<string>(type: "text", nullable: true),
+                    Deleted = table.Column<bool>(type: "boolean", nullable: false),
+                    ExternalProviderUserId = table.Column<string>(type: "text", nullable: true),
+                    PhotoUrl = table.Column<string>(type: "text", nullable: true),
+                    ExternalProvider = table.Column<string>(type: "text", nullable: true),
+                    Customer_StripeId = table.Column<string>(type: "text", nullable: true),
+                    UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    NormalizedEmail = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    EmailConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    PasswordHash = table.Column<string>(type: "text", nullable: true),
+                    SecurityStamp = table.Column<string>(type: "text", nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "text", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "text", nullable: true),
+                    PhoneNumberConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(type: "boolean", nullable: false),
+                    LockoutEnd = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    LockoutEnabled = table.Column<bool>(type: "boolean", nullable: false),
+                    AccessFailedCount = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -140,8 +141,8 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "ApplicationUserOrganization",
                 columns: table => new
                 {
-                    OrganizationUsersId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    OrganizationsId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    OrganizationUsersId = table.Column<string>(type: "text", nullable: false),
+                    OrganizationsId = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -164,17 +165,17 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "Campaigns",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    ApplicationUserId = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
                     ConnectionsSentDaily = table.Column<long>(type: "bigint", nullable: false),
                     TotalConnectionsSent = table.Column<long>(type: "bigint", nullable: false),
                     ConnectionsAccepted = table.Column<long>(type: "bigint", nullable: false),
                     Replies = table.Column<long>(type: "bigint", nullable: false),
                     ProfileViews = table.Column<long>(type: "bigint", nullable: false),
-                    Active = table.Column<bool>(type: "bit", nullable: false),
-                    Expired = table.Column<bool>(type: "bit", nullable: false),
-                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Active = table.Column<bool>(type: "boolean", nullable: false),
+                    Expired = table.Column<bool>(type: "boolean", nullable: false),
+                    Notes = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -191,12 +192,12 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "SocialAccounts",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    AccountType = table.Column<int>(type: "int", nullable: false),
-                    Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ConfiguredWithUsersLeadslyAccount = table.Column<bool>(type: "bit", nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    UserId = table.Column<string>(type: "text", nullable: false),
+                    AccountType = table.Column<int>(type: "integer", nullable: false),
+                    Username = table.Column<string>(type: "text", nullable: false),
+                    ConfiguredWithUsersLeadslyAccount = table.Column<bool>(type: "boolean", nullable: false),
+                    ApplicationUserId = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -218,11 +219,11 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "UserClaims",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<string>(type: "text", nullable: false),
+                    ClaimType = table.Column<string>(type: "text", nullable: true),
+                    ClaimValue = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -239,10 +240,10 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "UserLogins",
                 columns: table => new
                 {
-                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ProviderKey = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ProviderDisplayName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    LoginProvider = table.Column<string>(type: "text", nullable: false),
+                    ProviderKey = table.Column<string>(type: "text", nullable: false),
+                    ProviderDisplayName = table.Column<string>(type: "text", nullable: true),
+                    UserId = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -259,8 +260,8 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "UserRoles",
                 columns: table => new
                 {
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    UserId = table.Column<string>(type: "text", nullable: false),
+                    RoleId = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -283,10 +284,10 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "UserTokens",
                 columns: table => new
                 {
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Value = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    UserId = table.Column<string>(type: "text", nullable: false),
+                    LoginProvider = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Value = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -303,13 +304,13 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "CloudMapServiceDiscoveryServices",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ServiceDiscoveryId = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Arn = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    NamespaceId = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CreateDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    EcsServiceId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    ServiceDiscoveryId = table.Column<string>(type: "text", nullable: false),
+                    Arn = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    NamespaceId = table.Column<string>(type: "text", nullable: false),
+                    CreateDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    EcsServiceId = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -320,23 +321,23 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "SocialAccountResources",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    SocialAccountId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    HalsUniqueName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    EcsTaskDefinitionId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    CloudMapServiceDiscoveryServiceId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    SocialAccountId = table.Column<string>(type: "text", nullable: false),
+                    HalsUniqueName = table.Column<string>(type: "text", nullable: true),
+                    EcsTaskDefinitionId = table.Column<string>(type: "text", nullable: false),
+                    CloudMapServiceDiscoveryServiceId = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_SocialAccountResources", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_SocialAccountResources_CloudMapServiceDiscoveryServices_CloudMapServiceDiscoveryServiceId",
+                        name: "FK_SocialAccountResources_CloudMapServiceDiscoveryServices_Clo~",
                         column: x => x.CloudMapServiceDiscoveryServiceId,
                         principalTable: "CloudMapServiceDiscoveryServices",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_SocialAccountResources_EcsTaskDefinitions_EcsTaskDefinitionId",
+                        name: "FK_SocialAccountResources_EcsTaskDefinitions_EcsTaskDefinition~",
                         column: x => x.EcsTaskDefinitionId,
                         principalTable: "EcsTaskDefinitions",
                         principalColumn: "Id",
@@ -353,24 +354,24 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "EcsServices",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    SocialAccountCloudResourceId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ServiceName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ServiceArn = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ClusterArn = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    SocialAccountCloudResourceId = table.Column<string>(type: "text", nullable: true),
+                    UserId = table.Column<string>(type: "text", nullable: false),
+                    ServiceName = table.Column<string>(type: "text", nullable: false),
+                    ServiceArn = table.Column<string>(type: "text", nullable: false),
+                    ClusterArn = table.Column<string>(type: "text", nullable: false),
                     CreatedAt = table.Column<long>(type: "bigint", nullable: false),
-                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    TaskDefinition = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    DesiredCount = table.Column<int>(type: "int", nullable: false),
-                    SchedulingStrategy = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    AssignPublicIp = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    CreatedBy = table.Column<string>(type: "text", nullable: false),
+                    TaskDefinition = table.Column<string>(type: "text", nullable: false),
+                    DesiredCount = table.Column<int>(type: "integer", nullable: false),
+                    SchedulingStrategy = table.Column<string>(type: "text", nullable: false),
+                    AssignPublicIp = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_EcsServices", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_EcsServices_SocialAccountResources_SocialAccountCloudResourceId",
+                        name: "FK_EcsServices_SocialAccountResources_SocialAccountCloudResour~",
                         column: x => x.SocialAccountCloudResourceId,
                         principalTable: "SocialAccountResources",
                         principalColumn: "Id");
@@ -380,9 +381,9 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "EcsServiceRegistries",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    EcsServiceId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    RegistryArn = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    EcsServiceId = table.Column<string>(type: "text", nullable: false),
+                    RegistryArn = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -420,8 +421,7 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "IX_EcsServices_SocialAccountCloudResourceId",
                 table: "EcsServices",
                 column: "SocialAccountCloudResourceId",
-                unique: true,
-                filter: "[SocialAccountCloudResourceId] IS NOT NULL");
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_RoleClaims_RoleId",
@@ -432,8 +432,7 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "RoleNameIndex",
                 table: "Roles",
                 column: "NormalizedName",
-                unique: true,
-                filter: "[NormalizedName] IS NOT NULL");
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_SocialAccountResources_CloudMapServiceDiscoveryServiceId",
@@ -490,8 +489,7 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "UserNameIndex",
                 table: "Users",
                 column: "NormalizedUserName",
-                unique: true,
-                filter: "[NormalizedUserName] IS NOT NULL");
+                unique: true);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_CloudMapServiceDiscoveryServices_EcsServices_EcsServiceId",
