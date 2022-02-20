@@ -45,7 +45,7 @@ namespace Leadsly.Domain.Providers
         private readonly IOrphanedCloudResourcesRepository _orphanedCloudResourcesRepository;
         private readonly ICloudPlatformRepository _cloudPlatformRepository;
         private readonly ILogger<CloudPlatformProvider> _logger;
-        private readonly int DefaultTimeToWaitForEcsServicePendingTasks_InSeconds = 150;
+        private readonly int DefaultTimeToWaitForEcsServicePendingTasks_InSeconds = 1;        
         private readonly string HealthCheckEndpoint = "api/healthcheck";
 
         public async Task<NewSocialAccountSetupResult> SetupNewCloudResourceForUserSocialAccountAsync(string userId, CancellationToken ct = default)
@@ -64,6 +64,7 @@ namespace Leadsly.Domain.Providers
                 };
                 result.Failures.Add(new()
                 {
+                    Code = Codes.CONFIGURATION_DATA_MISSING,
                     Detail = "Cannot get ecs service, ecs task definition or service discovery required configuration",
                     Reason = "Failed to retrieve configuration details"
                 });
@@ -83,6 +84,7 @@ namespace Leadsly.Domain.Providers
                 };
                 result.Failures.Add(new()
                 {
+                    Code = Codes.OBJECT_MAPPING,
                     Detail = "Failed to generate users social account resource data class",
                     Reason = "Failed to perform data mapping"
                 });
@@ -316,6 +318,7 @@ namespace Leadsly.Domain.Providers
 
                 result.Failures.Add(new()
                 {
+                    Code = Codes.HEALTHCHECK_FAILURE,
                     Detail = "Using private ip address health check failed.",
                     Reason = "Hal's health check failed."
                 });                
@@ -348,6 +351,7 @@ namespace Leadsly.Domain.Providers
             {
                 result.Failures.Add(new()
                 {
+                    Code = Codes.AWS_API_ERROR,
                     Detail = "Failed to get a list of resource record sets from route 53 in aws",
                     Reason = "Failed to get list resource record sets."
                 });
@@ -360,6 +364,7 @@ namespace Leadsly.Domain.Providers
                 _logger.LogError("Route 53 DNS record did not contain an entry for | {serviceDiscoveryName}.{privateNameSpaceName}. |", serviceDiscoveryName, privateNameSpaceName);
                 result.Failures.Add(new()
                 {
+                    Code = Codes.AWS_API_RESPONSE_MISSING_DATA,
                     Reason = "Failed to locate discovery service",
                     Detail = $"Route 53 DNS record did not contain an entry for {serviceDiscoveryName}"
                 });
@@ -393,6 +398,7 @@ namespace Leadsly.Domain.Providers
                 _logger.LogError("Get namespace details response was null or the status code was not 200 OK");
                 result.Failures.Add(new()
                 {
+                    Code = Codes.AWS_API_ERROR,
                     Reason = "An error occured sending request to aws api for namepsace details",
                     Detail = "Failed to get namespace details"
                 });
@@ -406,6 +412,7 @@ namespace Leadsly.Domain.Providers
                 _logger.LogError("Failed to find HostedZoneId on the response");
                 result.Failures.Add(new()
                 {
+                    Code = Codes.AWS_API_RESPONSE_MISSING_DATA,
                     Reason = "Response was missing data",
                     Detail = "Failed to find hosted zone id on the response"
                 });
@@ -445,7 +452,8 @@ namespace Leadsly.Domain.Providers
             {
                 result.Failures.Add(new()
                 {
-                    Detail = $"Failed to perform healthcheck on hal",
+                    Code = Codes.HEALTHCHECK_FAILURE,
+                    Detail = "Failed to perform healthcheck on hal",
                     Reason = "An error occured while sending an http request to hal"
                 });
                 return result;
@@ -462,6 +470,7 @@ namespace Leadsly.Domain.Providers
                 _logger.LogError(ex, "Failed to deserialize hals healthcheck response.");                
                 result.Failures.Add(new() 
                 {
+                    Code = Codes.OBJECT_MAPPING,
                     Reason = "Deserialization error occured",
                     Detail = "Failed to deserialize hals healthcheck response"
                 });
@@ -528,6 +537,7 @@ namespace Leadsly.Domain.Providers
                     _logger.LogWarning("Ecs service did not successfully start its pending tasks in the allotted time.");
                     result.Failures.Add(new()
                     {
+                        Code = Codes.AWS_CLOUD_UNEXPECTED_STATE,
                         Detail = "Ecs service did not resolve pending tasks in the default alotted time",
                         Arn = ecsServiceArn,
                         Reason = "Ecs service still has pending tasks"
@@ -544,6 +554,7 @@ namespace Leadsly.Domain.Providers
             {
                 result.Failures.Add(new()
                 {
+                    Code = Codes.AWS_CLOUD_UNEXPECTED_STATE,
                     Reason = "No running tasks found",
                     Detail = "Ecs service does not have any running tasks"
                 });
@@ -584,6 +595,16 @@ namespace Leadsly.Domain.Providers
                         break;                        
                     }
                     stopWatch.Start();
+                }
+
+                if(mainStopWatch.Elapsed.Seconds == DefaultTimeToWaitForEcsServicePendingTasks_InSeconds)
+                {
+                    result.Failures.Add(new()
+                    {
+                        Code = Codes.AWS_CLOUD_UNEXPECTED_STATE,
+                        Detail = "Expected ecs tasks to be running, but are still pending",
+                        Reason = "Ecs tasks are still pending"
+                    });
                 }
             }
 
@@ -660,6 +681,7 @@ namespace Leadsly.Domain.Providers
                 result.Succeeded = false;
                 result.Failures.Add(new()
                 {
+                    Code = Codes.AWS_API_ERROR,
                     Detail = "DescribeServices response was null or did not return 200 OK",
                     Reason = "Something went wrong with talking with AWS api"
                 });
@@ -776,6 +798,7 @@ namespace Leadsly.Domain.Providers
             {
                 result.Failures.Add(new()
                 {
+                    Code = Codes.AWS_API_ERROR,
                     Detail = "Response was null or did not equal expected OK 200",
                     Reason = "Failed to register new task definition"
                 });
@@ -792,6 +815,7 @@ namespace Leadsly.Domain.Providers
             {
                 result.Failures.Add(new()
                 {
+                    Code = Codes.AWS_API_ERROR,
                     Detail = "Response was null or did not equal expected OK 200",
                     Reason = "Failed to create new service discovery service"
                 });
@@ -818,6 +842,7 @@ namespace Leadsly.Domain.Providers
             {
                 result.Failures.Add(new()
                 {
+                    Code = Codes.AWS_API_ERROR,
                     Detail = "Response was null or did not equal expected OK 200",
                     Reason = "Failed to create new ecs service"
                 });
@@ -905,6 +930,7 @@ namespace Leadsly.Domain.Providers
                             _logger.LogInformation("Successfully verified ecs service tasks are running");
                             result.Succeeded = true;
                             mainStopWatch.Stop();
+                            stopwatch.Stop();
                             break;
                         }
                         else
@@ -914,10 +940,20 @@ namespace Leadsly.Domain.Providers
                     }
                     else
                     {
-                        // if an error occured break out of the function
                         break;
-                    }
+                    }  
                     stopwatch.Restart();
+                }
+
+                if (mainStopWatch.Elapsed.TotalSeconds == DefaultTimeToWaitForEcsServicePendingTasks_InSeconds)
+                {
+                    _logger.LogWarning("Failed to find out if ecs service tasks are running in the alotted time.");
+                    result.Failures.Add(new()
+                    {
+                        Code = Codes.AWS_CLOUD_UNEXPECTED_STATE,
+                        Reason = "Ecs service tasks are still pending",
+                        Detail = "Ecs tasks for the ecs service are still pending, but should be running."
+                    });
                 }
             }
 
@@ -938,6 +974,7 @@ namespace Leadsly.Domain.Providers
                 result.Failures.Add(new()
                 {
                     Arn = userSetup.EcsService.ServiceName,
+                    Code = Codes.AWS_API_ERROR,
                     Detail = "Aws API returned null, services were null or status code did not equal 200",
                     Reason = "Failed to get number of pending tasks for this service"
                 });

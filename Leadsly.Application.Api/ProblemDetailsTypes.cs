@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-
-namespace Leadsly.Api
+﻿namespace Leadsly.Api
 {
     public static class ProblemDetailsTypes
     {

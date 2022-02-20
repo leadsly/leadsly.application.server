@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leadsly.Domain;
+using Leadsly.Models;
+using System;
 
 namespace Leadsly.Api
 {
@@ -276,6 +278,40 @@ namespace Leadsly.Api
         }
 
         /// <summary>
+        /// Bad request when an error occurs setting up user with leadsly with errors list.
+        /// </summary>
+        /// <param name="errors"></param>
+        /// <returns></returns>
+        protected ObjectResult BadRequest_LeadslySetup(List<FailureDTO> errors)
+        {
+            Dictionary<string, string[]> errorsDictionary = errors.ToDictionary(x => Enum.GetName(x.Code ?? Codes.ERROR), x => new[] { x.Reason ?? "Error occured", x.Detail ?? "Operation failed to successfully complete" });
+
+            return ProblemDetailsResult(new ValidationProblemDetails(errorsDictionary)
+            {
+                Type = ProblemDetailsTypes.BadRequest,
+                Status = StatusCodes.Status400BadRequest,
+                Title = ReasonPhrases.GetReasonPhrase(400),
+                Detail = ProblemDetailsDescriptions.LeadslySetup,
+                Instance = this.HttpContext.Request.Path.Value
+            });
+        }
+        /// <summary>
+        /// Bad request when an error occurs setting up user with leadsly without errors list.
+        /// </summary>
+        /// <returns></returns>
+        protected ObjectResult BadRequest_LeadslySetup()
+        {
+            return ProblemDetailsResult(new ProblemDetails
+            {
+                Type = ProblemDetailsTypes.BadRequestType,
+                Status = StatusCodes.Status400BadRequest,
+                Title = ReasonPhrases.GetReasonPhrase(400),
+                Detail = ProblemDetailsDescriptions.LeadslySetup,
+                Instance = this.HttpContext.Request.Path.Value
+            });
+        }
+
+        /// <summary>
         /// Bad request when two step verification code is invalid.
         /// </summary>        
         /// <returns></returns>
@@ -288,7 +324,7 @@ namespace Leadsly.Api
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.TwoStepVerificationCodeOrProviderIsInvalid,
                 Instance = this.HttpContext.Request.Path.Value
-            }); ;
+            });
         }
 
         /// <summary>
@@ -387,7 +423,6 @@ namespace Leadsly.Api
                 Instance = this.HttpContext.Request.Path.Value
             });
         }
-
 
         /// <summary>
         /// Bad request when user registration error occurs.

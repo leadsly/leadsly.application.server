@@ -48,5 +48,6 @@
         public const string FailedToSendEmail = "Failed to send email.";
         public const string FailedToDeserialize = "Failed to deserialize object.";
         public const string CampaignNotFound = "Campaign not found.";
+        public const string LeadslySetup = "Failed to setup leadsly resources";
     }
 }

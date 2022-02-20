@@ -6,7 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-	<!--<PackageReference Include="AWSSDK.ECS" Version="3.7.4.28" />-->
 	  <PackageReference Include="AWSSDK.ECS" Version="3.3.103" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.1" />    
     <PackageReference Include="Selenium.WebDriver" Version="4.1.0" />

@@ -80,6 +80,7 @@ namespace Leadsly.Domain.Providers
             {
                 result.Failures.Add(new()
                 {
+                    Code = Codes.DATABASE_OPERATION_ERROR,
                     Arn = newSocialAccountSetup.Value.EcsTaskDefinition.TaskDefinitionArn,
                     Detail = "Something went wrong adding ecs task definition to the database",
                     Reason = "Failed to add ecs task definition to the database",                    
@@ -93,6 +94,7 @@ namespace Leadsly.Domain.Providers
             {
                 result.Failures.Add(new()
                 {
+                    Code = Codes.DATABASE_OPERATION_ERROR,
                     Arn = newSocialAccountSetup.Value.EcsService.ServiceArn,
                     Detail = "Something went wrong adding ecs service to the database",
                     Reason = "Failed to add ecs service to the database",
@@ -108,6 +110,7 @@ namespace Leadsly.Domain.Providers
             {
                 result.Failures.Add(new()
                 {
+                    Code = Codes.DATABASE_OPERATION_ERROR,
                     Arn = newSocialAccountSetup.Value.CloudMapServiceDiscovery.Arn,
                     Detail = "Something went wrong adding service discovery to the database",
                     Reason = "Failed to add discovery service the database",
@@ -136,6 +139,7 @@ namespace Leadsly.Domain.Providers
             {
                 result.Failures.Add(new()
                 {
+                    Code = Codes.DATABASE_OPERATION_ERROR,
                     Detail = "Something went wrong adding user's social account to the database",
                     Reason = "Failed to add user's social account to the database",
                 });

@@ -34,7 +34,20 @@ namespace Leadsly.Application.Api.Controllers
 
             LeadslyConnectResultDTO result = await _supervisor.SetupLeadslyForUserAsync(setupLeasdsly, ct);
 
-            return Ok();
+            if(result.Succeeded == false)
+            {
+                _logger.LogTrace("[SetupLeadslyForUserAsync] did not succeeded.");
+                if (result.Failures.Count > 0)
+                {
+                    return BadRequest_LeadslySetup(result.Failures);
+                }
+                else
+                {
+                    return BadRequest_LeadslySetup();
+                }
+            }
+
+            return Ok(result);
         }
 
     }

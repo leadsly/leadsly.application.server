@@ -23,7 +23,6 @@ namespace Leadsly.Domain.Supervisor
 
             return result;
         }
-
         /// <summary>
         /// This methods, handles the set up of user's env in aws.
         /// </summary>
@@ -82,7 +81,6 @@ namespace Leadsly.Domain.Supervisor
             result.Succeeded = true;
             return result;
         }
-
         private async Task HandleFailedConnectionAttemptToExistingCloudResourceAsync(ExistingSocialAccountSetupResult existingSocialAccountSetupResult, SocialAccount socialAccount, CancellationToken ct = default)
         {
             if (existingSocialAccountSetupResult.EcsServiceActive == false || existingSocialAccountSetupResult.IsHalHealthy == false)
@@ -100,8 +98,6 @@ namespace Leadsly.Domain.Supervisor
                // its possible that the ecs service has no tasks running but it has a task in pending state even after the default timeout time. Just log as warning for now
             }
         }
-
-
         private async Task RemoveUsersSocialAccountCloudResourcesAsync(SocialAccount socialAccount, CancellationToken ct = default)
         {
             await _cloudPlatformProvider.RemoveUsersSocialAccountCloudResourcesAsync(socialAccount, ct);
@@ -114,7 +110,6 @@ namespace Leadsly.Domain.Supervisor
                 _logger.LogError("Failed to remove users social account and the associated cloud resources. Manual intervention may be required to remove the resource.");
             }
         }
-
         private async Task<LeadslyConnectResultDTO> SetupCloudResourcesForNewSocialAccountAsync(SocialAccountDTO socialAccountDTO, CancellationToken ct = default)
         {
             LeadslyConnectResultDTO result = new()
@@ -151,7 +146,6 @@ namespace Leadsly.Domain.Supervisor
             result.Succeeded = true;
             return result;     
         }
-
         private async Task<NewSocialAccountSetupResult> SaveNewSocialAccountAsync(NewSocialAccountSetupResult newSocialAccountSetup, CancellationToken ct = default)
         {
             NewSocialAccountSetupResult result = new()
