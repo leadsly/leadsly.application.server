@@ -14,7 +14,7 @@ namespace Leadsly.Domain.Providers
     {
         public Task<NewSocialAccountSetupResult> SetupNewCloudResourceForUserSocialAccountAsync(string userId, CancellationToken ct = default);        
         public Task RollbackCloudResourcesAsync(NewSocialAccountSetupResult setupToRollback, string userId, CancellationToken ct = default);
-        public Task<ExistingSocialAccountSetupResult> ConnectToExistingCloudResourceAsync(SocialAccount socialAccount, CancellationToken ct = default);
+        public Task<ExistingSocialAccountSetupResultDTO> ConnectToExistingCloudResourceAsync(SocialAccount socialAccount, CancellationToken ct = default);
         public Task RemoveUsersSocialAccountCloudResourcesAsync(SocialAccount socialAccount, CancellationToken ct = default);
     }
 }

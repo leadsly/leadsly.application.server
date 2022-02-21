@@ -180,3 +180,6 @@ System.OperationCanceledException: The operation was canceled.
    at Leadsly.Infrastructure.Repositories.OrphanedCloudResourcesRepository.AddOrphanedCloudResourceAsync(OrphanedCloudResource orphanedResource, CancellationToken ct) in D:\Dev\Projects\leadsly\Leadsly.Application.Server\Leadsly.Infrastructure\Repositories\OrphanedCloudResourcesRepository.cs:line 29
 2022-02-20 17:52:52.933 -05:00 [Warning] Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development.
 2022-02-20 17:52:59.774 -05:00 [Warning] Failed to find out if ecs service tasks are running in the alotted time.
+2022-02-20 22:24:17.610 -05:00 [Warning] Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development.
+2022-02-20 23:13:25.290 -05:00 [Warning] Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development.
+2022-02-20 23:14:26.640 -05:00 [Warning] Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development.

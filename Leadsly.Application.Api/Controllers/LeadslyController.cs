@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Threading;
 using System.Threading.Tasks;
+using Leadsly.Domain.ViewModels;
+using Leadsly.Domain.ViewModels.Cloud;
 
 namespace Leadsly.Application.Api.Controllers
 {
@@ -26,13 +28,13 @@ namespace Leadsly.Application.Api.Controllers
         private readonly ISupervisor _supervisor;
         private readonly ILogger<LeadslyController> _logger;
 
-        [HttpPost("connect")]
+        [HttpPost("setup")]
         [AllowAnonymous]
-        public async Task<IActionResult> SetupAccountWithLeadsly(ConnectUserDTO setupLeasdsly, CancellationToken ct = default)
+        public async Task<IActionResult> SetupAccountWithLeadsly(SetupLeadslyViewModel setupLeasdsly, CancellationToken ct = default)
         {
             _logger.LogTrace("SetupUserWithLeadsly action executed.");
 
-            LeadslyConnectResultDTO result = await _supervisor.SetupLeadslyForUserAsync(setupLeasdsly, ct);
+            LeadslySetupResultViewModel result = await _supervisor.SetupLeadslyForUserAsync(setupLeasdsly, ct);
 
             if(result.Succeeded == false)
             {

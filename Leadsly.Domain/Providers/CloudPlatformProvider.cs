@@ -1,6 +1,7 @@
 ﻿using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services;
 using Leadsly.Models;
+using Leadsly.Models.Aws.DTOs;
 using Leadsly.Models.Aws.ElasticContainerService;
 using Leadsly.Models.Aws.Route53;
 using Leadsly.Models.Aws.ServiceDiscovery;
@@ -93,9 +94,9 @@ namespace Leadsly.Domain.Providers
 
             return await SetupNewContainerAsync(userSetup, ct);
         }
-        public async Task<ExistingSocialAccountSetupResult> ConnectToExistingCloudResourceAsync(SocialAccount socialAccount, CancellationToken ct = default)
+        public async Task<ExistingSocialAccountSetupResultDTO> ConnectToExistingCloudResourceAsync(SocialAccount socialAccount, CancellationToken ct = default)
         {
-            ExistingSocialAccountSetupResult result = new()
+            ExistingSocialAccountSetupResultDTO result = new()
             {
                 Succeeded = false
             };
@@ -238,7 +239,11 @@ namespace Leadsly.Domain.Providers
                         ContainerDefinitions = configuration.EcsTaskDefinitionConfig.ContainerDefinitions.Select(c => new ContainerDefinitionDTO
                         {
                             Image = c.Image,
-                            Name = taskDefinition                           
+                            Name = taskDefinition,
+                            EnviornmentVariables = new()
+                            {
+                                new KeyValuePair<string, string>(Enum.GetName(DockerEnvironmentVariables.HAL_ID), halsUniqueName)
+                            }                            
                         }).ToList(),
                         ExecutionRoleArn = configuration.EcsTaskDefinitionConfig.ExecutionRoleArn,
                         TaskRoleArn = configuration.EcsTaskDefinitionConfig.TaskRoleArn,
@@ -285,9 +290,9 @@ namespace Leadsly.Domain.Providers
 
             return userSetup;
         }
-        private async Task<ExistingSocialAccountSetupResult> PerformHalsHealthCheckWithPrivateIpAsync(CloudMapServiceDiscoveryConfig serviceDiscoveryConfig, CloudMapServiceDiscoveryService usersCloudDiscoveryService, CancellationToken ct = default)
+        private async Task<ExistingSocialAccountSetupResultDTO> PerformHalsHealthCheckWithPrivateIpAsync(CloudMapServiceDiscoveryConfig serviceDiscoveryConfig, CloudMapServiceDiscoveryService usersCloudDiscoveryService, CancellationToken ct = default)
         {
-            ExistingSocialAccountSetupResult result = new()
+            ExistingSocialAccountSetupResultDTO result = new()
             {
                 Succeeded = false
             };
@@ -480,9 +485,9 @@ namespace Leadsly.Domain.Providers
             result.Succeeded = true;
             return result;
         }
-        private async Task<ExistingSocialAccountSetupResult> ValidateEcsServiceForSocialAccountAsync(Amazon.ECS.Model.Service ecsServiceDetails, SocialAccount socialAccount, CancellationToken ct = default)
+        private async Task<ExistingSocialAccountSetupResultDTO> ValidateEcsServiceForSocialAccountAsync(Amazon.ECS.Model.Service ecsServiceDetails, SocialAccount socialAccount, CancellationToken ct = default)
         {
-            ExistingSocialAccountSetupResult result = new()
+            ExistingSocialAccountSetupResultDTO result = new()
             {
                 Succeeded = false
             };
@@ -508,9 +513,9 @@ namespace Leadsly.Domain.Providers
             result.Succeeded = true;
             return result;
         }
-        private async Task<ExistingSocialAccountSetupResult> EnsureEcsServiceHasRunningTasksAsync(Amazon.ECS.Model.Service ecsServiceDetails, CancellationToken ct = default)
+        private async Task<ExistingSocialAccountSetupResultDTO> EnsureEcsServiceHasRunningTasksAsync(Amazon.ECS.Model.Service ecsServiceDetails, CancellationToken ct = default)
         {
-            ExistingSocialAccountSetupResult result = new()
+            ExistingSocialAccountSetupResultDTO result = new()
             {
                 Succeeded = false,
                 EcsServiceHasPendingTasks = false,
@@ -570,9 +575,9 @@ namespace Leadsly.Domain.Providers
             result.Succeeded = true;
             return result;
         }
-        private async Task<ExistingSocialAccountSetupResult> WaitForPendingTasksToStartAsync(Amazon.ECS.Model.Service ecsServiceDetails, CancellationToken ct = default)
+        private async Task<ExistingSocialAccountSetupResultDTO> WaitForPendingTasksToStartAsync(Amazon.ECS.Model.Service ecsServiceDetails, CancellationToken ct = default)
         {
-            ExistingSocialAccountSetupResult result = new()
+            ExistingSocialAccountSetupResultDTO result = new()
             {
                 Succeeded = false
             };
@@ -1233,7 +1238,8 @@ namespace Leadsly.Domain.Providers
                 EcsContainerDefinitions = taskDefinition.ContainerDefinitions.Select(c => new EcsContainerDefinition
                 { 
                     Image = c.Image,
-                    Name = taskDefinition.ContainerName                    
+                    Name = taskDefinition.ContainerName,
+                    EnviornmentVariables = c.EnviornmentVariables
                 }).ToList(),
                 ExecutionRoleArn = taskDefinition.ExecutionRoleArn,
                 TaskRoleArn = taskDefinition.TaskRoleArn,

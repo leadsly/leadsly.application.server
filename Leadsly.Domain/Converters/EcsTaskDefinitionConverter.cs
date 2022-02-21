@@ -1,4 +1,5 @@
 ﻿using Leadsly.Models;
+using Leadsly.Models.Aws.DTOs;
 using Leadsly.Models.Entities;
 using System;
 using System.Collections.Generic;

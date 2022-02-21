@@ -10,28 +10,23 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Leadsly.Domain.ViewModels;
+using Leadsly.Domain.Converters;
+using Leadsly.Domain.ViewModels.Cloud;
 
 namespace Leadsly.Domain.Supervisor
 {
     public partial class Supervisor : ISupervisor
     {
-        public async Task<LeadslyConnectionResult> ConnectAccountToLeadslyAsync(ConnectLeadslyViewModel connectAccount, CancellationToken ct = default)
-        {
-            await _leadslyBotApiService.ConnectToLeadslyAsync(connectAccount, ct);
-
-            LeadslyConnectionResult result = new LeadslyConnectionResult();
-
-            return result;
-        }
         /// <summary>
         /// This methods, handles the set up of user's env in aws.
         /// </summary>
         /// <param name="setup"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public async Task<LeadslyConnectResultDTO> SetupLeadslyForUserAsync(ConnectUserDTO setup, CancellationToken ct = default)
+        public async Task<LeadslySetupResultViewModel> SetupLeadslyForUserAsync(SetupLeadslyViewModel setup, CancellationToken ct = default)
         {
-            LeadslyConnectResultDTO result = new()
+            LeadslySetupResultViewModel result = new()
             {
                 Succeeded = false
             };
@@ -40,7 +35,6 @@ namespace Leadsly.Domain.Supervisor
             {
                 AccountType = setup.SocialAccountType,
                 Username = setup.Username,
-                Password = setup.Password,
                 UserId = setup.UserId
             };
 
@@ -50,26 +44,28 @@ namespace Leadsly.Domain.Supervisor
             // if null social account hasn't been registered before for this user
             if(socialAccount == null)
             {
-                result = await SetupCloudResourcesForNewSocialAccountAsync(socialAccountDTO, ct);
+                result = LeadslySetupConverter.Convert(await SetupCloudResourcesForNewSocialAccountAsync(socialAccountDTO, ct));
+                result.NewUser = true;
             }
             // social account has been registered before check the ecs service task status and get connection info
             else
             {
-                result = await ConnectUserToExistingCloudResourcesAsync(socialAccount, ct);
+                result = LeadslySetupConverter.Convert(await ConnectUserToExistingCloudResourcesAsync(socialAccount, ct));
+                result.NewUser = false;
             }
 
             return result;
         }
 
-        private async Task<LeadslyConnectResultDTO> ConnectUserToExistingCloudResourcesAsync(SocialAccount socialAccount, CancellationToken ct = default)
+        private async Task<LeadslySetupResultDTO> ConnectUserToExistingCloudResourcesAsync(SocialAccount socialAccount, CancellationToken ct = default)
         {
-            LeadslyConnectResultDTO result = new LeadslyConnectResultDTO
+            LeadslySetupResultDTO result = new LeadslySetupResultDTO
             {
                 Succeeded = false,
                 RequiresNewCloudResource = false
             };
 
-            ExistingSocialAccountSetupResult connectingToExistingCloudResourceResult = await _cloudPlatformProvider.ConnectToExistingCloudResourceAsync(socialAccount, ct);
+            ExistingSocialAccountSetupResultDTO connectingToExistingCloudResourceResult = await _cloudPlatformProvider.ConnectToExistingCloudResourceAsync(socialAccount, ct);
 
             if(connectingToExistingCloudResourceResult.Succeeded == false)
             {
@@ -81,7 +77,7 @@ namespace Leadsly.Domain.Supervisor
             result.Succeeded = true;
             return result;
         }
-        private async Task HandleFailedConnectionAttemptToExistingCloudResourceAsync(ExistingSocialAccountSetupResult existingSocialAccountSetupResult, SocialAccount socialAccount, CancellationToken ct = default)
+        private async Task HandleFailedConnectionAttemptToExistingCloudResourceAsync(ExistingSocialAccountSetupResultDTO existingSocialAccountSetupResult, SocialAccount socialAccount, CancellationToken ct = default)
         {
             if (existingSocialAccountSetupResult.EcsServiceActive == false || existingSocialAccountSetupResult.IsHalHealthy == false)
             {
@@ -110,9 +106,9 @@ namespace Leadsly.Domain.Supervisor
                 _logger.LogError("Failed to remove users social account and the associated cloud resources. Manual intervention may be required to remove the resource.");
             }
         }
-        private async Task<LeadslyConnectResultDTO> SetupCloudResourcesForNewSocialAccountAsync(SocialAccountDTO socialAccountDTO, CancellationToken ct = default)
+        private async Task<LeadslySetupResultDTO> SetupCloudResourcesForNewSocialAccountAsync(SocialAccountDTO socialAccountDTO, CancellationToken ct = default)
         {
-            LeadslyConnectResultDTO result = new()
+            LeadslySetupResultDTO result = new()
             {
                 Succeeded = false
             };

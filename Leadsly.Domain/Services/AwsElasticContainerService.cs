@@ -156,12 +156,17 @@ namespace Leadsly.Domain.Services
                     Family = registerTaskDefinitionRequest.Family,
                     ContainerDefinitions = registerTaskDefinitionRequest.EcsContainerDefinitions.Select(c => new ContainerDefinition
                     {
-                        Name = c.Name,                        
-                        Image = c.Image
+                        Name = c.Name,
+                        Image = c.Image,
+                        Environment = c.EnviornmentVariables.Select(var => new KeyValuePair 
+                        {
+                            Name = var.Key,
+                            Value = var.Value
+                        }).ToList()
                     }).ToList(),
                     Cpu = registerTaskDefinitionRequest.Cpu,
                     Memory = registerTaskDefinitionRequest.Memory,
-                    TaskRoleArn = registerTaskDefinitionRequest.TaskRoleArn,                    
+                    TaskRoleArn = registerTaskDefinitionRequest.TaskRoleArn,
                     ExecutionRoleArn = registerTaskDefinitionRequest.ExecutionRoleArn,
                     NetworkMode = registerTaskDefinitionRequest.NetworkMode,
                 }, ct);

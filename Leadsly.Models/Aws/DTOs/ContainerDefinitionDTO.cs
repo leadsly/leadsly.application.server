@@ -4,13 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Models.Aws.ElasticContainerService
+namespace Leadsly.Models.Aws.DTOs
 {
-    public class EcsContainerDefinition
+    public class ContainerDefinitionDTO
     {
         public string Name { get; set; }
-        public List<EcsPortMapping> PortMappings { get; set; }
         public string Image { get; set; }
+        public List<PortMappingDTO> PortMappings { get; set; }
         public List<KeyValuePair<string, string>> EnviornmentVariables { get; set; }
     }
 }

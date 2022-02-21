@@ -530,14 +530,6 @@ namespace Leadsly.Application.Api.Controllers
             return Ok(generalDetails);
         }
 
-        [HttpPost("{id}/leadsly/connect")]
-        public async Task<IActionResult> ConnectAccountToLeadsly(string id, [FromBody] ConnectLeadslyViewModel leadslyConnect, CancellationToken ct = default)
-        {
-            LeadslyConnectionResult result = await _supervisor.ConnectAccountToLeadslyAsync(leadslyConnect, ct);
-
-            return Ok();
-        }
-
 
         /// <summary>
         /// Resends email confirmation email.

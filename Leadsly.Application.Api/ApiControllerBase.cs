@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Leadsly.Domain;
 using Leadsly.Models;
 using System;
+using Leadsly.Domain.ViewModels;
 
 namespace Leadsly.Api
 {
@@ -282,7 +283,7 @@ namespace Leadsly.Api
         /// </summary>
         /// <param name="errors"></param>
         /// <returns></returns>
-        protected ObjectResult BadRequest_LeadslySetup(List<FailureDTO> errors)
+        protected ObjectResult BadRequest_LeadslySetup(List<FailureViewModel> errors)
         {
             Dictionary<string, string[]> errorsDictionary = errors.ToDictionary(x => Enum.GetName(x.Code ?? Codes.ERROR), x => new[] { x.Reason ?? "Error occured", x.Detail ?? "Operation failed to successfully complete" });
 
