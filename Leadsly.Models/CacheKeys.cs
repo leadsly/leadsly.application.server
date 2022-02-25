@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.ViewModels.LeadslyBot
+namespace Leadsly.Models
 {
-    public class LeadslyConnectionResultViewModel
+    public enum CacheKeys
     {
-        
+        None
     }
 }

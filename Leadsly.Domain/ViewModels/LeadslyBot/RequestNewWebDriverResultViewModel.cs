@@ -5,13 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.ViewModels.Cloud
+namespace Leadsly.Domain.ViewModels.LeadslyBot
 {
-    public class LeadslySetupResultViewModel
+    public class RequestNewWebDriverResultViewModel
     {
         public bool Succeeded { get; set; }
-        public bool RequiresNewCloudResource { get; set; }
-        public bool NewUser { get; set; }
         public List<FailureViewModel> Failures { get; set; } = new();
     }
 }

@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Domain.ViewModels.LeadslyBot
 {
-    public class ConnectLeadslyViewModel
+    public class TwoFactorAuthResultViewModel
     {
-        public string Email { get; set; }
-        public string Password { get; set; }
+        public bool Succeeded { get; set; }
+        public List<FailureViewModel> Failures { get; set; }
     }
 }

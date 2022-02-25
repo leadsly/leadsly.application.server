@@ -72,10 +72,7 @@ namespace Leadsly.Application.Api.Configurations
             //LeadslyBotApiOptions options = new LeadslyBotApiOptions();
             //configuration.GetSection(nameof(LeadslyBotApiOptions)).Bind(options);
 
-            services.AddHttpClient<ILeadslyBotApiService, LeadslyBotApiService>(opt =>
-            {
-                // opt.BaseAddress = new Uri(options.ApiUrl);
-            });
+            services.AddHttpClient<ILeadslyHalApiService, LeadslyHalApiService>();
 
             services.Configure<CloudPlatformConfigurationOptions>(options => configuration.GetSection(nameof(CloudPlatformConfigurationOptions)).Bind(options));
             CloudPlatformConfigurationOptions cloudPlatformConfigurationOptions = new CloudPlatformConfigurationOptions();
@@ -87,10 +84,11 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped(typeof(AmazonRoute53Client));
             services.AddScoped<ICloudPlatformProvider, CloudPlatformProvider>();            
             services.AddScoped<IUserProvider, UserProvider>();
+            services.AddScoped<ILeadslyHalProvider, LeadslyHalProvider>();
             services.AddScoped<IAwsElasticContainerService, AwsElasticContainerService>();
             services.AddScoped<IAwsServiceDiscoveryService, AwsServiceDiscoveryService>();
             services.AddScoped<IAwsRoute53Service, AwsRoute53Service>();
-            services.AddScoped<ILeadslyBotApiService, LeadslyBotApiService>();
+            services.AddScoped<ILeadslyHalApiService, LeadslyHalApiService>();
             
             return services;
         }

@@ -2,6 +2,7 @@
 using Leadsly.Domain.Services;
 using Leadsly.Domain.Providers;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Leadsly.Domain.Supervisor
 {
@@ -9,29 +10,35 @@ namespace Leadsly.Domain.Supervisor
     {
         public Supervisor(LeadslyUserManager userManager, 
             IStripeRepository stripeRepository, 
-            ICloudPlatformRepository cloudPlatformRepository,
-            ILeadslyBotApiService leadslyBotApiService,
+            ILeadslyHalApiService leadslyBotApiService,
             ICloudPlatformProvider cloudPlatformProvider,
+            ILeadslyHalProvider leadslyHalProvider,
             ISocialAccountRepository socialAccountRepository,
+            IMemoryCache memoryCache,
             IUserProvider userProvider,
+
             ILogger<Supervisor> logger)
         {
             _userManager = userManager;
             _stripeRepository = stripeRepository;
             _leadslyBotApiService = leadslyBotApiService;
             _cloudPlatformProvider = cloudPlatformProvider;
+            _leadslyHalProvider = leadslyHalProvider;
             _socialAccountRepository = socialAccountRepository;
+            _memoryCache = memoryCache;
             _userProvider = userProvider;            
             _logger = logger;            
         }
 
         private readonly LeadslyUserManager _userManager;
+        private readonly ILeadslyHalProvider _leadslyHalProvider;
         private readonly IUserProvider _userProvider;
         private readonly ISocialAccountRepository _socialAccountRepository;
         private readonly ICloudPlatformProvider _cloudPlatformProvider;
         private readonly IStripeRepository _stripeRepository;        
         private readonly ILogger<Supervisor> _logger;
-        private readonly ILeadslyBotApiService _leadslyBotApiService;
+        private readonly IMemoryCache _memoryCache;
+        private readonly ILeadslyHalApiService _leadslyBotApiService;
 
     }
 }

@@ -6,6 +6,7 @@ using Leadsly.Models.Aws.ElasticContainerService;
 using Leadsly.Models.Aws.Route53;
 using Leadsly.Models.Aws.ServiceDiscovery;
 using Leadsly.Models.Entities;
+using Leadsly.Models.Requests;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -26,7 +27,7 @@ namespace Leadsly.Domain.Providers
             ICloudPlatformRepository cloudPlatformRepository,
             IAwsServiceDiscoveryService awsServiceDiscoveryService,
             IAwsRoute53Service awsRoute53Service,
-            ILeadslyBotApiService leadslyBotApiService,
+            ILeadslyHalApiService leadslyBotApiService,
             IOrphanedCloudResourcesRepository orphanedCloudResourcesRepository,
             ILogger<CloudPlatformProvider> logger)
         {
@@ -39,14 +40,14 @@ namespace Leadsly.Domain.Providers
             _logger = logger;
         }
 
-        private readonly ILeadslyBotApiService _leadslyBotApiService;
+        private readonly ILeadslyHalApiService _leadslyBotApiService;
         private readonly IAwsElasticContainerService _awsElasticContainerService;
         private readonly IAwsRoute53Service _awsRoute53Service;
         private readonly IAwsServiceDiscoveryService _awsServiceDiscoveryService;
         private readonly IOrphanedCloudResourcesRepository _orphanedCloudResourcesRepository;
         private readonly ICloudPlatformRepository _cloudPlatformRepository;
         private readonly ILogger<CloudPlatformProvider> _logger;
-        private readonly int DefaultTimeToWaitForEcsServicePendingTasks_InSeconds = 1;        
+        private readonly int DefaultTimeToWaitForEcsServicePendingTasks_InSeconds = 120;        
         private readonly string HealthCheckEndpoint = "api/healthcheck";
 
         public async Task<NewSocialAccountSetupResult> SetupNewCloudResourceForUserSocialAccountAsync(string userId, CancellationToken ct = default)
@@ -147,7 +148,7 @@ namespace Leadsly.Domain.Providers
         {
             HalRequest halHealthCheckRequest = new()
             {
-                DiscoveryServiceName = serviceDiscoveryName,
+                ServiceDiscoveryName = serviceDiscoveryName,
                 NamespaceName = configuration.ServiceDiscoveryConfig.Name,
                 RequestUrl = HealthCheckEndpoint
             };

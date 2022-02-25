@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Leadsly.Domain.ViewModels.Cloud
 {
     [DataContract]
-    public class SetupLeadslyViewModel
+    public class SetupAccountViewModel
     {
         [DataMember(Name = "userId")]
         public string UserId { get; set; }

@@ -296,6 +296,64 @@ namespace Leadsly.Api
                 Instance = this.HttpContext.Request.Path.Value
             });
         }
+
+        /// <summary>
+        /// Bad request when an error occurs creating selenium web driver.
+        /// </summary>
+        /// <param name="errors"></param>
+        /// <returns></returns>
+        protected ObjectResult BadRequest_LeadslyCreateWebDriver(List<FailureViewModel> errors)
+        {
+            Dictionary<string, string[]> errorsDictionary = errors.ToDictionary(x => Enum.GetName(x.Code ?? Codes.ERROR), x => new[] { x.Reason ?? "Error occured", x.Detail ?? "Operation failed to successfully complete" });
+
+            return ProblemDetailsResult(new ValidationProblemDetails(errorsDictionary)
+            {
+                Type = ProblemDetailsTypes.BadRequest,
+                Status = StatusCodes.Status400BadRequest,
+                Title = ReasonPhrases.GetReasonPhrase(400),
+                Detail = ProblemDetailsDescriptions.WebDriverCreationError,
+                Instance = this.HttpContext.Request.Path.Value
+            });
+        }
+
+        /// <summary>
+        /// Bad request when an error occurs trying to authenticate user's social account
+        /// </summary>
+        /// <param name="errors"></param>
+        /// <returns></returns>
+        protected ObjectResult BadRequest_LeadslyAuthenticationError(List<FailureViewModel> errors)
+        {
+            Dictionary<string, string[]> errorsDictionary = errors.ToDictionary(x => Enum.GetName(x.Code ?? Codes.ERROR), x => new[] { x.Reason ?? "Error occured", x.Detail ?? "Operation failed to successfully complete" });
+
+            return ProblemDetailsResult(new ValidationProblemDetails(errorsDictionary)
+            {
+                Type = ProblemDetailsTypes.BadRequest,
+                Status = StatusCodes.Status400BadRequest,
+                Title = ReasonPhrases.GetReasonPhrase(400),
+                Detail = ProblemDetailsDescriptions.LeadslySocialAccountAuthenticationError,
+                Instance = this.HttpContext.Request.Path.Value
+            });
+        }
+
+        /// <summary>
+        /// Bad request when an error occurs trying to perform two factor auth on user's social account
+        /// </summary>
+        /// <param name="errors"></param>
+        /// <returns></returns>
+        protected ObjectResult BadRequest_LeadslyTwoFactorAuthError(List<FailureViewModel> errors)
+        {
+            Dictionary<string, string[]> errorsDictionary = errors.ToDictionary(x => Enum.GetName(x.Code ?? Codes.ERROR), x => new[] { x.Reason ?? "Error occured", x.Detail ?? "Operation failed to successfully complete" });
+
+            return ProblemDetailsResult(new ValidationProblemDetails(errorsDictionary)
+            {
+                Type = ProblemDetailsTypes.BadRequest,
+                Status = StatusCodes.Status400BadRequest,
+                Title = ReasonPhrases.GetReasonPhrase(400),
+                Detail = ProblemDetailsDescriptions.LeadslySocialAccountAuthenticationError,
+                Instance = this.HttpContext.Request.Path.Value
+            });
+        }
+
         /// <summary>
         /// Bad request when an error occurs setting up user with leadsly without errors list.
         /// </summary>

@@ -11,9 +11,9 @@ namespace Leadsly.Domain.Converters
 {
     public static class LeadslySetupConverter
     {
-        public static LeadslySetupResultViewModel Convert(LeadslySetupResultDTO dto)
+        public static SetupAccountResultViewModel Convert(LeadslySetupResultDTO dto)
         {
-            return new LeadslySetupResultViewModel
+            return new SetupAccountResultViewModel
             {
                RequiresNewCloudResource = dto.RequiresNewCloudResource,
                Succeeded = dto.Succeeded,

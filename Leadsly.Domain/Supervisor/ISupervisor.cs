@@ -13,6 +13,9 @@ namespace Leadsly.Domain.Supervisor
     public interface ISupervisor
     {
         Task<Customer_Stripe> AddCustomerAsync_Stripe(Customer_Stripe stripeCustomerViewModel);
-        Task<LeadslySetupResultViewModel> SetupLeadslyForUserAsync(SetupLeadslyViewModel setup, CancellationToken ct = default);
+        Task<SetupAccountResultViewModel> LeadslyAccountSetupAsync(SetupAccountViewModel setup, CancellationToken ct = default);
+        Task<RequestNewWebDriverResultViewModel> LeadslyRequestNewWebDriverAsync(RequestNewWebDriverViewModel request, CancellationToken ct = default);
+        Task<ConnectAccountResultViewModel> LeadslyAuthenticateUserAsync(ConnectAccountViewModel connect, CancellationToken ct = default);
+        Task<TwoFactorAuthResultViewModel> LeadslyTwoFactorAuthAsync(TwoFactorAuthViewModel twoFactorAuth, CancellationToken ct = default);
     }
 }

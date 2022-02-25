@@ -43,7 +43,8 @@ namespace Leadsly.Application.Api
                     .AddEmailServiceConfiguration()
                     .AddRepositories()
                     .AddServices(Configuration)
-                    .AddRemoveNull204FormatterConfigration();
+                    .AddRemoveNull204FormatterConfigration()
+                    .AddMemoryCache();
 
             services.Configure<MvcOptions>(ApiDefaults.Configure);
         }
