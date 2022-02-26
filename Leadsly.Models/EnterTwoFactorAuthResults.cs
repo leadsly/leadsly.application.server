@@ -11,6 +11,6 @@ namespace Leadsly.Models
     {
         public bool Succeeded { get; set; }
         public EnterTwoFactorAuthCodeResponse Value { get; set; }
-        public List<FailureDTO> Failures { get; set; }
+        public List<FailureDTO> Failures { get; set; } = new();
     }
 }

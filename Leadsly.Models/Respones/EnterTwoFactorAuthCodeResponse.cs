@@ -9,7 +9,8 @@ namespace Leadsly.Models.Respones
     public class EnterTwoFactorAuthCodeResponse : LeadslyBaseResponse
     {
         public bool Succeeded { get; set; }
-        public bool CodeExpired { get; set; }
+        public bool InvalidOrExpiredCode { get; set; }
+        public bool DidUnexpectedErrorOccur { get; set; }        
         public List<FailureDTO> Failures { get; set; } = new();
     }
 }

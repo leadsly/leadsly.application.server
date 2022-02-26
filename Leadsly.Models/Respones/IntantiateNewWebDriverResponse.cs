@@ -8,6 +8,7 @@ namespace Leadsly.Models.Respones
 {
     public class IntantiateNewWebDriverResponse : LeadslyBaseResponse
     {
+        public bool Succeeded { get; set; }
         public string WebDriverId { get; set; }
     }
 }

@@ -2,17 +2,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Leadsly.Domain.ViewModels.LeadslyBot
 {
-    [DataContract]
-    public class RequestNewWebDriverResultViewModel
-    {
+    public class ConnectUserAccountResponseViewModel
+    {        
         public bool Succeeded { get; set; }        
-        public IntantiateNewWebDriverResponseViewModel Value { get; set; }
+        public string WebDriverId { get; set; }        
+        public bool TwoFactorAuthRequired { get; set; }        
+        public TwoFactorAuthType TwoFactorAuthType { get; set; }        
+        public bool UnexpectedErrorOccured { get; set; }
         public List<FailureViewModel> Failures { get; set; } = new();
     }
 }

@@ -10,8 +10,7 @@ namespace Leadsly.Domain.ViewModels.LeadslyBot
     public class ConnectAccountResultViewModel
     {
         public bool Succeeded { get; set; }
-        public bool TwoFactorAuthRequired { get; set; }
-        public TwoFactorAuthType TwoFactorAuthType { get; set; }
+        public ConnectUserAccountResponseViewModel Value { get; set; }
         public List<FailureViewModel> Failures { get; set; } = new();
     }
 }

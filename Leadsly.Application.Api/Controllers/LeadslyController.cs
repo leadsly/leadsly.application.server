@@ -67,7 +67,7 @@ namespace Leadsly.Application.Api.Controllers
                 return BadRequest_LeadslyCreateWebDriver(result.Failures);
             }
 
-            return Ok(result);
+            return Ok(result.Value);
         }
 
         [HttpPost("connect")]
@@ -83,7 +83,7 @@ namespace Leadsly.Application.Api.Controllers
                 return BadRequest_LeadslyAuthenticationError(result.Failures);
             }
 
-            return Ok(result);
+            return Ok(result.Value);
         }
 
         [HttpPost("connect/2fa")]
@@ -99,7 +99,7 @@ namespace Leadsly.Application.Api.Controllers
                 return BadRequest_LeadslyTwoFactorAuthError(result.Failures);
             }
 
-            return Ok(result);
+            return Ok(result.Value);
         }
 
     }

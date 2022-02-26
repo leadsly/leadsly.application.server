@@ -237,3 +237,4 @@ System.Net.Http.HttpRequestException: An error occurred while sending the reques
    at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
    at Leadsly.Domain.Services.LeadslyHalApiService.AuthenticateUserSocialAccountAsync(ConnectUserAccountRequest authRequest, CancellationToken ct) in D:\Dev\Projects\leadsly\Leadsly.Application.Server\Leadsly.Domain\Services\LeadslyHalApiService.cs:line 103
 2022-02-24 20:56:14.903 -05:00 [Error] Failed to send request to authenticate user's social account. The response is null or status code is not successful
+2022-02-24 20:58:25.831 -05:00 [Warning] Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development.

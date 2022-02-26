@@ -70,7 +70,8 @@ namespace Leadsly.Domain.Supervisor
                 result.Failures = FailureConverter.ConvertList(enterTwoFactorAuthResults.Failures);
                 return result;
             }
-            
+
+            result.Value = HalAuthenticationConverter.Convert(enterTwoFactorAuthResults.Value);
             result.Succeeded = true;
             return result;
         }
@@ -131,8 +132,7 @@ namespace Leadsly.Domain.Supervisor
                 return result;
             }
 
-            result.TwoFactorAuthRequired = connectResult.Value.TwoFactorAuthRequired;
-            result.TwoFactorAuthType = connectResult.Value.TwoFactorAuthType;
+            result.Value = HalAuthenticationConverter.Convert(connectResult.Value);
             result.Succeeded = true;
             return result;
         }
@@ -195,6 +195,7 @@ namespace Leadsly.Domain.Supervisor
 
             _memoryCache.Set(socialAccount.Id, newWebDriverResult.Value.WebDriverId, TimeSpan.FromMinutes(WebDriverId_TimeToEvictionInMin_Cache));
 
+            result.Value = HalAuthenticationConverter.Convert(newWebDriverResult.Value);            
             result.Succeeded = true;
             return result;
         }

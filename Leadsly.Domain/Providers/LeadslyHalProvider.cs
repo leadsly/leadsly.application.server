@@ -31,6 +31,7 @@ namespace Leadsly.Domain.Providers
         private readonly ILogger<LeadslyHalProvider> _logger;
         private readonly string RequestNewWebDriverUrl = "api/webdriver";
         private readonly string AuthenticateUserSocialAccount = "api/authentication";
+        private readonly string AuthenticateUserSocialAccount2Fa = "api/authentication/2fa";
         private readonly int DefaultTimeoutInSeconds_WebDriver = 10;
 
         public async Task<InstantiateNewWebDriverResult> RequestNewWebDriverInstanceAsync(SocialAccountCloudResource resource, CancellationToken ct = default)
@@ -103,7 +104,7 @@ namespace Leadsly.Domain.Providers
                     Code = Codes.DESERIALIZATION_ERROR,
                     Reason = "Failed to deserialize response",
                     Detail = "Failed to deserialize response content into an object"
-                }); ;
+                });
                 return result;
             }
             result.Succeeded = true;
@@ -140,9 +141,9 @@ namespace Leadsly.Domain.Providers
                 Username = connect.Username,
                 WebDriverId = webDriverId,
                 ConnectAuthUrl = connect.SocialAccountType == SocialAccountType.LinkedIn ? "https://www.LinkedIn.com" : throw new NotImplementedException("Url for non linkedin accounts has not been yet determined")
-            };            
+            };
 
-            return await AuthenticateUserAsync(request, ct);
+            return await AuthenticateUserAsync(request, ct);            
         }
 
         private async Task<ConnectUserAccountResult> AuthenticateUserAsync(ConnectUserAccountRequest request, CancellationToken ct = default)
@@ -217,6 +218,7 @@ namespace Leadsly.Domain.Providers
 
             EnterTwoFactorAuthCodeRequest request = new()
             {
+                RequestUrl = AuthenticateUserSocialAccount2Fa,
                 NamespaceName = configuration.ServiceDiscoveryConfig.Name,
                 ServiceDiscoveryName = resource.CloudMapServiceDiscoveryService.Name,
                 TwoFactorAuthCode = twoFactorAuth.Code,
