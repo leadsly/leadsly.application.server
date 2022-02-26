@@ -718,16 +718,16 @@ namespace Leadsly.Domain.Providers
             result.Service = ecsServiceDetails;
             return result;            
         }
-        private List<FailureDTO> HandleAwsFailrues(List<Amazon.ECS.Model.Failure> failrues)
+        private List<Failure> HandleAwsFailrues(List<Amazon.ECS.Model.Failure> failrues)
         {
-            List<FailureDTO> failuresDTO = new();
+            List<Failure> failuresDTO = new();
             failuresDTO = failrues.Select(f =>
             {
                 string reason = f.Reason;
                 string arn = f.Arn;
                 _logger.LogError("Reason: ", reason);
                 _logger.LogError("Arn: ", arn);
-                return new FailureDTO
+                return new Failure
                 {
                     Arn = f.Arn,
                     Reason = f.Reason

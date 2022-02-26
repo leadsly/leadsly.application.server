@@ -1,0 +1,14 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Leadsly.Models.ViewModels.Interfaces
+{
+    public interface IEnterTwoFactorAuthCodeResponse : IOperationResponse
+    {
+        public bool InvalidOrExpiredCode { get; set; }
+        public bool DidUnexpectedErrorOccur { get; set; }
+    }
+}

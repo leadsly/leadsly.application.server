@@ -9,7 +9,7 @@ namespace Leadsly.Models
     public class HalHealthCheckResponse
     {
         public bool Succeeded { get; set; }
-        public List<FailureDTO> Failures { get; set; } = new();
+        public List<Failure> Failures { get; set; } = new();
         public HalHealthCheck Value { get; set; }
     }
 }

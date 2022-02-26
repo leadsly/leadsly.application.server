@@ -1,4 +1,4 @@
-﻿using Leadsly.Domain.ViewModels;
+﻿using Leadsly.Models.ViewModels;
 using Leadsly.Domain.Models;
 using JWT;
 using JWT.Algorithms;

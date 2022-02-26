@@ -10,6 +10,6 @@ namespace Leadsly.Models.Aws.ElasticContainerService
     {
         public bool Succeeded { get; set; }
         public Amazon.ECS.Model.Service Service { get; set; }
-        public List<FailureDTO> Failures { get; set; }
+        public List<Failure> Failures { get; set; }
     }
 }

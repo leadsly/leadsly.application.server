@@ -6,10 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Threading;
 using System.Threading.Tasks;
-using Leadsly.Domain.ViewModels;
-using Leadsly.Domain.ViewModels.Cloud;
-using Leadsly.Domain.ViewModels.LeadslyBot;
 using System.Net.Http;
+using Leadsly.Models.ViewModels.Hal;
+using Leadsly.Models.ViewModels.Interfaces;
+using Leadsly.Models.ViewModels.Cloud;
 
 namespace Leadsly.Application.Api.Controllers
 {
@@ -60,9 +60,9 @@ namespace Leadsly.Application.Api.Controllers
         {
             _logger.LogTrace("RequestNewDriver action executed.");
 
-            RequestNewWebDriverResultViewModel result = await _supervisor.LeadslyRequestNewWebDriverAsync(newWebDriverRequest, ct);
+            HalOperationResult<INewWebDriverResponse> result = await _supervisor.LeadslyRequestNewWebDriverAsync<INewWebDriverResponse>(newWebDriverRequest, ct);
 
-            if(result.Succeeded == false)
+            if (result.Succeeded == false)
             {
                 return BadRequest_LeadslyCreateWebDriver(result.Failures);
             }
@@ -76,7 +76,7 @@ namespace Leadsly.Application.Api.Controllers
         {
             _logger.LogTrace("Connect action executed.");
 
-            ConnectAccountResultViewModel result = await _supervisor.LeadslyAuthenticateUserAsync(connect, ct);
+            HalOperationResult<IConnectAccountResponse> result = await _supervisor.LeadslyAuthenticateUserAsync<IConnectAccountResponse>(connect, ct);
 
             if (result.Succeeded == false)
             {
@@ -92,7 +92,7 @@ namespace Leadsly.Application.Api.Controllers
         {
             _logger.LogTrace("TwoFactorAuth action executed");
 
-            TwoFactorAuthResultViewModel result = await _supervisor.LeadslyTwoFactorAuthAsync(twoFactorAuth, ct);
+            HalOperationResult<IEnterTwoFactorAuthCodeResponse> result = await _supervisor.LeadslyTwoFactorAuthAsync<IEnterTwoFactorAuthCodeResponse>(twoFactorAuth, ct);
 
             if (result.Succeeded == false)
             {

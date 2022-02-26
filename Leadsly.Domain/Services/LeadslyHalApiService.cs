@@ -1,8 +1,7 @@
 ﻿using Leadsly.Domain.Models;
-using Leadsly.Domain.ViewModels.LeadslyBot;
+using Leadsly.Models.ViewModels.Hal;
 using Leadsly.Models;
 using Leadsly.Models.Requests;
-using Leadsly.Models.Respones;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -12,6 +11,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Leadsly.Models.Requests.Hal;
 
 namespace Leadsly.Domain.Services
 {
@@ -51,7 +51,7 @@ namespace Leadsly.Domain.Services
             return response;
         }
 
-        public async Task<HttpResponseMessage> RequestNewWebDriverInstanceAsync(IntantiateNewWebDriverRequest instantiateNewWebDriverRequest, CancellationToken ct = default)
+        public async Task<HttpResponseMessage> RequestNewWebDriverInstanceAsync(INewWebDriverRequest instantiateNewWebDriverRequest, CancellationToken ct = default)
         {
             // string url = $"{HttpPrefix}{instantiateNewWebDriverRequest.ServiceDiscoveryName}.{instantiateNewWebDriverRequest.NamespaceName}";
             string url = "http://localhost:5020";
@@ -79,7 +79,7 @@ namespace Leadsly.Domain.Services
             return response;
         }
 
-        public async Task<HttpResponseMessage> AuthenticateUserSocialAccountAsync(ConnectUserAccountRequest authRequest, CancellationToken ct = default)
+        public async Task<HttpResponseMessage> AuthenticateUserSocialAccountAsync(IConnectAccountRequest authRequest, CancellationToken ct = default)
         {
             // string url = $"{HttpPrefix}{authRequest.ServiceDiscoveryName}.{authRequest.NamespaceName}";
             string url = "http://localhost:5020";
@@ -110,7 +110,7 @@ namespace Leadsly.Domain.Services
             return response;
         }
 
-        public async Task<HttpResponseMessage> EnterTwoFactorAuthCodeAsync(EnterTwoFactorAuthCodeRequest enterTwoFactorAuthRequest, CancellationToken ct = default)
+        public async Task<HttpResponseMessage> EnterTwoFactorAuthCodeAsync(IEnterTwoFactorAuthCodeRequest enterTwoFactorAuthRequest, CancellationToken ct = default)
         {
             // string url = $"{HttpPrefix}{enterTwoFactorAuthRequest.ServiceDiscoveryName}.{enterTwoFactorAuthRequest.NamespaceName}";
             string url = "http://localhost:5020";
@@ -122,7 +122,7 @@ namespace Leadsly.Domain.Services
                 Content = JsonContent.Create(new
                 {
                     WebDriverId = enterTwoFactorAuthRequest.WebDriverId,
-                    Code = enterTwoFactorAuthRequest.TwoFactorAuthCode
+                    Code = enterTwoFactorAuthRequest.Code
                 })
             };
 

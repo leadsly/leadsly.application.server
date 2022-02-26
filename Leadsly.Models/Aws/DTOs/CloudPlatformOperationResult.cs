@@ -9,7 +9,7 @@ namespace Leadsly.Models.Aws.DTOs
     public class CloudPlatformOperationResult
     {
         public bool Succeeded { get; set; }
-        public List<FailureDTO> Failures { get; set; } = new();
+        public List<Failure> Failures { get; set; } = new();
         public object Value { get; set; }
     }
 }

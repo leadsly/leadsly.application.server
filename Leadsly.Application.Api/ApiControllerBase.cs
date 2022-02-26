@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Leadsly.Domain;
 using Leadsly.Models;
 using System;
-using Leadsly.Domain.ViewModels;
+using Leadsly.Models.ViewModels;
 
 namespace Leadsly.Api
 {
@@ -302,7 +302,7 @@ namespace Leadsly.Api
         /// </summary>
         /// <param name="errors"></param>
         /// <returns></returns>
-        protected ObjectResult BadRequest_LeadslyCreateWebDriver(List<FailureViewModel> errors)
+        protected ObjectResult BadRequest_LeadslyCreateWebDriver(List<Failure> errors)
         {
             Dictionary<string, string[]> errorsDictionary = errors.ToDictionary(x => Enum.GetName(x.Code ?? Codes.ERROR), x => new[] { x.Reason ?? "Error occured", x.Detail ?? "Operation failed to successfully complete" });
 
@@ -321,7 +321,7 @@ namespace Leadsly.Api
         /// </summary>
         /// <param name="errors"></param>
         /// <returns></returns>
-        protected ObjectResult BadRequest_LeadslyAuthenticationError(List<FailureViewModel> errors)
+        protected ObjectResult BadRequest_LeadslyAuthenticationError(List<Failure> errors)
         {
             Dictionary<string, string[]> errorsDictionary = errors.ToDictionary(x => Enum.GetName(x.Code ?? Codes.ERROR), x => new[] { x.Reason ?? "Error occured", x.Detail ?? "Operation failed to successfully complete" });
 
@@ -340,7 +340,7 @@ namespace Leadsly.Api
         /// </summary>
         /// <param name="errors"></param>
         /// <returns></returns>
-        protected ObjectResult BadRequest_LeadslyTwoFactorAuthError(List<FailureViewModel> errors)
+        protected ObjectResult BadRequest_LeadslyTwoFactorAuthError(List<Failure> errors)
         {
             Dictionary<string, string[]> errorsDictionary = errors.ToDictionary(x => Enum.GetName(x.Code ?? Codes.ERROR), x => new[] { x.Reason ?? "Error occured", x.Detail ?? "Operation failed to successfully complete" });
 

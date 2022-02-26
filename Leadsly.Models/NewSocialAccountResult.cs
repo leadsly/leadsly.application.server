@@ -11,6 +11,6 @@ namespace Leadsly.Models
     {
         public bool Succeeded { get; set; }
         public SocialAccount Value { get; set; }
-        public List<FailureDTO> Failures { get; set; } = new();
+        public List<Failure> Failures { get; set; } = new();
     }
 }

@@ -1,4 +1,4 @@
-﻿using Leadsly.Domain.ViewModels.LeadslyBot;
+﻿using Leadsly.Models.ViewModels.Hal;
 using Leadsly.Models;
 using Leadsly.Models.Entities;
 using System;
@@ -6,27 +6,26 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Leadsly.Domain.Converters;
-using Leadsly.Domain.ViewModels.Cloud;
+using Leadsly.Models.ViewModels.Cloud;
 using Microsoft.Extensions.Caching.Memory;
+using Leadsly.Models.ViewModels.Interfaces;
+using Leadsly.Models.Requests;
 
 namespace Leadsly.Domain.Supervisor
 {
     public partial class Supervisor : ISupervisor
     {
         private readonly int WebDriverId_TimeToEvictionInMin_Cache = 3;
-        public async Task<TwoFactorAuthResultViewModel> LeadslyTwoFactorAuthAsync(TwoFactorAuthViewModel twoFactorAuth, CancellationToken ct = default)
+        
+        public async Task<HalOperationResult<T>> LeadslyTwoFactorAuthAsync<T>(TwoFactorAuthViewModel twoFactorAuth, CancellationToken ct = default)
+            where T : IOperationResponse
         {
-            TwoFactorAuthResultViewModel result = new()
+            HalOperationResult<T> result = new()
             {
                 Succeeded = false
             };
 
-            SocialAccountDTO socialAccountDTO = new()
-            {
-                AccountType = twoFactorAuth.SocialAccountType,
-                Username = twoFactorAuth.Username,
-                UserId = twoFactorAuth.UserId
-            };
+            SocialAccountDTO socialAccountDTO = twoFactorAuth.GetSocialAccountData();
 
             SocialAccount socialAccount = await _userProvider.GetRegisteredSocialAccountAsync(socialAccountDTO, ct);
 
@@ -54,40 +53,17 @@ namespace Leadsly.Domain.Supervisor
                 return result;
             }
 
-            return await TwoFactorAuthAsync(socialAccount, twoFactorAuth, webDriverId, ct);
+            return await _leadslyHalProvider.EnterTwoFactorAuthAsync<T>(socialAccount.SocialAccountCloudResource, twoFactorAuth, webDriverId, ct);            
         }
-        private async Task<TwoFactorAuthResultViewModel> TwoFactorAuthAsync(SocialAccount socialAccount, TwoFactorAuthViewModel twoFactorAuth, string webDriverId, CancellationToken ct = default)
+        public async Task<HalOperationResult<T>> LeadslyAuthenticateUserAsync<T>(ConnectAccountViewModel connect, CancellationToken ct = default)
+            where T : IOperationResponse
         {
-            TwoFactorAuthResultViewModel result = new()
+            HalOperationResult<T> result = new()
             {
                 Succeeded = false
             };
 
-            EnterTwoFactorAuthResults enterTwoFactorAuthResults = await _leadslyHalProvider.EnterTwoFactorAuthAsync(socialAccount.SocialAccountCloudResource, twoFactorAuth, webDriverId, ct);
-
-            if(enterTwoFactorAuthResults.Succeeded == false)
-            {
-                result.Failures = FailureConverter.ConvertList(enterTwoFactorAuthResults.Failures);
-                return result;
-            }
-
-            result.Value = HalAuthenticationConverter.Convert(enterTwoFactorAuthResults.Value);
-            result.Succeeded = true;
-            return result;
-        }
-        public async Task<ConnectAccountResultViewModel> LeadslyAuthenticateUserAsync(ConnectAccountViewModel connect, CancellationToken ct = default)
-        {
-            ConnectAccountResultViewModel result = new()
-            {
-                Succeeded = false
-            };
-
-            SocialAccountDTO socialAccountDTO = new()
-            {
-                AccountType = connect.SocialAccountType,
-                Username = connect.Username,
-                UserId = connect.UserId
-            };
+            SocialAccountDTO socialAccountDTO = connect.GetSocialAccountData();
 
             SocialAccount socialAccount = await _userProvider.GetRegisteredSocialAccountAsync(socialAccountDTO, ct);
 
@@ -115,44 +91,21 @@ namespace Leadsly.Domain.Supervisor
                 return result;
             }
 
-            return await AuthenticateUserAsync(socialAccount, connect, webDriverId, ct);
+            return await _leadslyHalProvider.ConnectUserAccountAsync<T>(socialAccount.SocialAccountCloudResource, connect, webDriverId, ct);            
         }
-        private async Task<ConnectAccountResultViewModel> AuthenticateUserAsync(SocialAccount socialAccount, ConnectAccountViewModel connect, string webDriverId, CancellationToken ct = default)
+        public async Task<HalOperationResult<T>> LeadslyRequestNewWebDriverAsync<T>(RequestNewWebDriverViewModel request, CancellationToken ct = default)
+            where T : IOperationResponse
         {
-            ConnectAccountResultViewModel result = new()
+            HalOperationResult<T> result = new()
             {
-                Succeeded = false
+                Succeeded = false                
             };
 
-            ConnectUserAccountResult connectResult = await _leadslyHalProvider.ConnectUserAccountAsync(socialAccount.SocialAccountCloudResource, connect, webDriverId, ct);
-
-            if(connectResult.Succeeded == false)
-            {
-                result.Failures = FailureConverter.ConvertList(connectResult.Failures);
-                return result;
-            }
-
-            result.Value = HalAuthenticationConverter.Convert(connectResult.Value);
-            result.Succeeded = true;
-            return result;
-        }
-        public async Task<RequestNewWebDriverResultViewModel> LeadslyRequestNewWebDriverAsync(RequestNewWebDriverViewModel request, CancellationToken ct = default)
-        {
-            RequestNewWebDriverResultViewModel result = new()
-            {
-                Succeeded = false
-            };
-
-            SocialAccountDTO socialAccountDTO = new()
-            {
-                AccountType = request.SocialAccountType,
-                Username = request.Username,
-                UserId = request.UserId
-            };
+            SocialAccountDTO socialAccountDTO = request.GetSocialAccountData();
 
             SocialAccount socialAccount = await _userProvider.GetRegisteredSocialAccountAsync(socialAccountDTO, ct);
 
-            if(socialAccount == null)
+            if (socialAccount == null)
             {
                 result.Failures.Add(new()
                 {
@@ -163,48 +116,8 @@ namespace Leadsly.Domain.Supervisor
                 return result;
             }
 
-            return await RequestNewWebDriverAsync(socialAccount, ct);
+            return await RequestNewWebDriverAsync<T>(socialAccount, ct);
         }
-        private async Task<RequestNewWebDriverResultViewModel> RequestNewWebDriverAsync(SocialAccount socialAccount, CancellationToken ct = default)
-        {
-            RequestNewWebDriverResultViewModel result = new()
-            {
-                Succeeded = false
-            };
-
-            if(socialAccount.SocialAccountCloudResource == null)
-            {
-                _logger.LogError("Social account cloud resource information is missing. Cannot continue without it. It was not retrieved from the database");
-                result.Failures.Add(new()
-                {
-                    Code = Codes.CONFIGURATION_DATA_MISSING,
-                    Reason = "Social account cloud resource data missing",
-                    Detail = "Cloud resources information missing"
-                });
-
-                return result;
-            }
-
-            InstantiateNewWebDriverResult newWebDriverResult = await _leadslyHalProvider.RequestNewWebDriverInstanceAsync(socialAccount.SocialAccountCloudResource, ct);
-
-            if(newWebDriverResult.Succeeded == false)
-            {
-                result.Failures = FailureConverter.ConvertList(newWebDriverResult.Failures);
-                return result;
-            }
-
-            _memoryCache.Set(socialAccount.Id, newWebDriverResult.Value.WebDriverId, TimeSpan.FromMinutes(WebDriverId_TimeToEvictionInMin_Cache));
-
-            result.Value = HalAuthenticationConverter.Convert(newWebDriverResult.Value);            
-            result.Succeeded = true;
-            return result;
-        }
-        /// <summary>
-        /// This methods, handles the set up of user's env in aws.
-        /// </summary>
-        /// <param name="setup"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
         public async Task<SetupAccountResultViewModel> LeadslyAccountSetupAsync(SetupAccountViewModel setup, CancellationToken ct = default)
         {
             SetupAccountResultViewModel result = new()
@@ -223,7 +136,7 @@ namespace Leadsly.Domain.Supervisor
             SocialAccount socialAccount = await _userProvider.GetRegisteredSocialAccountAsync(socialAccountDTO, ct);
 
             // if null social account hasn't been registered before for this user
-            if(socialAccount == null)
+            if (socialAccount == null)
             {
                 result = LeadslySetupConverter.Convert(await SetupCloudResourcesForNewSocialAccountAsync(socialAccountDTO, ct));
                 result.NewUser = true;
@@ -237,6 +150,45 @@ namespace Leadsly.Domain.Supervisor
 
             return result;
         }
+        private async Task<HalOperationResult<T>> RequestNewWebDriverAsync<T>(SocialAccount socialAccount, CancellationToken ct = default)
+            where T : IOperationResponse
+        {
+            HalOperationResult<T> result = new()
+            {
+                Succeeded = false
+            };
+
+            if (socialAccount.SocialAccountCloudResource == null)
+            {
+                _logger.LogError("Social account cloud resource information is missing. Cannot continue without it. It was not retrieved from the database");
+                result.Failures.Add(new()
+                {
+                    Code = Codes.CONFIGURATION_DATA_MISSING,
+                    Reason = "Social account cloud resource data missing",
+                    Detail = "Cloud resources information missing"
+                });
+
+                return result;
+            }
+
+            result = await _leadslyHalProvider.RequestNewWebDriverInstanceAsync<T>(socialAccount.SocialAccountCloudResource, ct);
+
+            if (result.Succeeded == false)
+            {
+                return result;
+            }
+
+            _memoryCache.Set(socialAccount.Id, ((INewWebDriverResponse)result.Value).WebDriverId, TimeSpan.FromMinutes(WebDriverId_TimeToEvictionInMin_Cache));
+
+            result.Succeeded = true;
+            return result;
+        }        
+        /// <summary>
+        /// This methods, handles the set up of user's env in aws.
+        /// </summary>
+        /// <param name="setup"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>        
         private async Task<LeadslySetupResultDTO> ConnectUserToExistingCloudResourcesAsync(SocialAccount socialAccount, CancellationToken ct = default)
         {
             LeadslySetupResultDTO result = new LeadslySetupResultDTO

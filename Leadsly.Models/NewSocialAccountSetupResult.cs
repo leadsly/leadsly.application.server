@@ -18,7 +18,7 @@ namespace Leadsly.Models
         public string Password { get; set; }
         public SocialAccountType AccountType { get; set; }
         public SocialAccountCloudResourceDTO Value { get; set; }
-        public List<FailureDTO> Failures { get; set; } = new();
+        public List<Failure> Failures { get; set; } = new();
 
     }
 }

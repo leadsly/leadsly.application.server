@@ -1,10 +1,9 @@
 ﻿using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services;
-using Leadsly.Domain.ViewModels.LeadslyBot;
+using Leadsly.Models.ViewModels.Hal;
 using Leadsly.Models;
 using Leadsly.Models.Entities;
 using Leadsly.Models.Requests;
-using Leadsly.Models.Respones;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -14,6 +13,9 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Leadsly.Models.ViewModels.Interfaces;
+using Leadsly.Models.Requests.Hal;
+using Leadsly.Models.Respones.Hal;
 
 namespace Leadsly.Domain.Providers
 {
@@ -34,9 +36,10 @@ namespace Leadsly.Domain.Providers
         private readonly string AuthenticateUserSocialAccount2Fa = "api/authentication/2fa";
         private readonly int DefaultTimeoutInSeconds_WebDriver = 10;
 
-        public async Task<InstantiateNewWebDriverResult> RequestNewWebDriverInstanceAsync(SocialAccountCloudResource resource, CancellationToken ct = default)
+        public async Task<HalOperationResult<T>> RequestNewWebDriverInstanceAsync<T>(SocialAccountCloudResource resource, CancellationToken ct = default)
+            where T : IOperationResponse
         {
-            InstantiateNewWebDriverResult result = new()
+            HalOperationResult<T> result = new()
             {
                 Succeeded = false
             };
@@ -55,7 +58,7 @@ namespace Leadsly.Domain.Providers
             }
             // perform initial healthcheck to hal via service discovery service name
             CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
-            IntantiateNewWebDriverRequest request = new()
+            INewWebDriverRequest request = new NewWebDriverRequest()
             {
                 NamespaceName = configuration.ServiceDiscoveryConfig.Name,
                 RequestUrl = RequestNewWebDriverUrl,
@@ -63,12 +66,13 @@ namespace Leadsly.Domain.Providers
                 DefaultTimeoutInSeconds = DefaultTimeoutInSeconds_WebDriver
             };
 
-            return await RequestNewWebDriverAsync(request, ct);
+            return await RequestNewWebDriverAsync<T>(request, ct);
         }
 
-        private async Task<InstantiateNewWebDriverResult> RequestNewWebDriverAsync(IntantiateNewWebDriverRequest request, CancellationToken ct = default)
+        private async Task<HalOperationResult<T>> RequestNewWebDriverAsync<T>(INewWebDriverRequest request, CancellationToken ct = default)
+            where T : IOperationResponse
         {
-            InstantiateNewWebDriverResult result = new()
+            HalOperationResult<T> result = new()
             {
                 Succeeded = false
             };
@@ -76,7 +80,7 @@ namespace Leadsly.Domain.Providers
             _logger.LogInformation("Requesting new web driver instance from hal");
             HttpResponseMessage response = await _leadslyHalApiService.RequestNewWebDriverInstanceAsync(request, ct);
 
-            if(response == null || response?.IsSuccessStatusCode == false)
+            if (response == null || response?.IsSuccessStatusCode == false)
             {
                 _logger.LogError("Failed to send request to create new webdriver instance. The response is null or status code is not successful");
                 result.Failures.Add(new()
@@ -92,11 +96,11 @@ namespace Leadsly.Domain.Providers
             {
                 _logger.LogInformation("Attempting to deserialize response.");
                 string content = await response.Content.ReadAsStringAsync();
-                IntantiateNewWebDriverResponse newWebDriverResponse = JsonConvert.DeserializeObject<IntantiateNewWebDriverResponse>(content);
+                INewWebDriverResponse newWebDriverResponse = JsonConvert.DeserializeObject<NewWebDriverResponse>(content);
                 _logger.LogInformation("Successfully deserialized response into an object");
-                result.Value = newWebDriverResponse;
+                result.Value = (T)newWebDriverResponse;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to deserialize response from hal");
                 result.Failures.Add(new()
@@ -111,9 +115,10 @@ namespace Leadsly.Domain.Providers
             return result;
         }
 
-        public async Task<ConnectUserAccountResult> ConnectUserAccountAsync(SocialAccountCloudResource resource, ConnectAccountViewModel connect, string webDriverId, CancellationToken ct = default)
+        public async Task<HalOperationResult<T>> ConnectUserAccountAsync<T>(SocialAccountCloudResource resource, ConnectAccountViewModel connect, string webDriverId, CancellationToken ct = default)
+            where T : IOperationResponse
         {
-            ConnectUserAccountResult result = new()
+            HalOperationResult<T> result = new()
             {
                 Succeeded = false
             };
@@ -132,7 +137,7 @@ namespace Leadsly.Domain.Providers
             }
             // perform initial healthcheck to hal via service discovery service name
             CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
-            ConnectUserAccountRequest request = new()
+            IConnectAccountRequest request = new ConnectAccountRequest()
             {
                 NamespaceName = configuration.ServiceDiscoveryConfig.Name,
                 ServiceDiscoveryName = resource.CloudMapServiceDiscoveryService.Name,
@@ -143,12 +148,13 @@ namespace Leadsly.Domain.Providers
                 ConnectAuthUrl = connect.SocialAccountType == SocialAccountType.LinkedIn ? "https://www.LinkedIn.com" : throw new NotImplementedException("Url for non linkedin accounts has not been yet determined")
             };
 
-            return await AuthenticateUserAsync(request, ct);            
+            return await AuthenticateUserAsync<T>(request, ct);
         }
 
-        private async Task<ConnectUserAccountResult> AuthenticateUserAsync(ConnectUserAccountRequest request, CancellationToken ct = default)
+        private async Task<HalOperationResult<T>> AuthenticateUserAsync<T>(IConnectAccountRequest request, CancellationToken ct = default)
+            where T : IOperationResponse
         {
-            ConnectUserAccountResult result = new()
+            HalOperationResult<T> result = new()
             {
                 Succeeded = false
             };
@@ -173,9 +179,9 @@ namespace Leadsly.Domain.Providers
             {
                 _logger.LogInformation("Attempting to deserialize response.");
                 string content = await response.Content.ReadAsStringAsync();
-                ConnectUserAccountResponse connectAccountResponse = JsonConvert.DeserializeObject<ConnectUserAccountResponse>(content);
+                IConnectAccountResponse connectAccountResponse = JsonConvert.DeserializeObject<ConnectAccountResponse>(content);
                 _logger.LogInformation("Successfully deserialized response into an object");
-                result.Value = connectAccountResponse;
+                result.Value = (T)connectAccountResponse;
             }
             catch (Exception ex)
             {
@@ -193,9 +199,10 @@ namespace Leadsly.Domain.Providers
             return result;
         }
 
-        public async Task<EnterTwoFactorAuthResults> EnterTwoFactorAuthAsync(SocialAccountCloudResource resource, TwoFactorAuthViewModel twoFactorAuth, string webDriverId, CancellationToken ct = default)
+        public async Task<HalOperationResult<T>> EnterTwoFactorAuthAsync<T>(SocialAccountCloudResource resource, TwoFactorAuthViewModel twoFactorAuth, string webDriverId, CancellationToken ct = default)
+            where T : IOperationResponse
         {
-            EnterTwoFactorAuthResults result = new()
+            HalOperationResult<T> result = new()
             {
                 Succeeded = false
             };
@@ -216,21 +223,22 @@ namespace Leadsly.Domain.Providers
             // perform initial healthcheck to hal via service discovery service name
             CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
 
-            EnterTwoFactorAuthCodeRequest request = new()
+            IEnterTwoFactorAuthCodeRequest request = new EnterTwoFactorAuthCodeRequest()
             {
                 RequestUrl = AuthenticateUserSocialAccount2Fa,
                 NamespaceName = configuration.ServiceDiscoveryConfig.Name,
                 ServiceDiscoveryName = resource.CloudMapServiceDiscoveryService.Name,
-                TwoFactorAuthCode = twoFactorAuth.Code,
+                Code = twoFactorAuth.Code,
                 WebDriverId = webDriverId
             };
 
-            return await TwoFactorAuthCodeAsync(request, ct);
+            return await TwoFactorAuthCodeAsync<T>(request, ct);
         }
 
-        private async Task<EnterTwoFactorAuthResults> TwoFactorAuthCodeAsync(EnterTwoFactorAuthCodeRequest request, CancellationToken ct = default)
+        private async Task<HalOperationResult<T>> TwoFactorAuthCodeAsync<T>(IEnterTwoFactorAuthCodeRequest request, CancellationToken ct = default)
+            where T : IOperationResponse
         {
-            EnterTwoFactorAuthResults result = new()
+            HalOperationResult<T> result = new()
             {
                 Succeeded = false
             };
@@ -255,9 +263,9 @@ namespace Leadsly.Domain.Providers
             {
                 _logger.LogInformation("Attempting to deserialize response.");
                 string content = await response.Content.ReadAsStringAsync();
-                EnterTwoFactorAuthCodeResponse connectAccountResponse = JsonConvert.DeserializeObject<EnterTwoFactorAuthCodeResponse>(content);
+                IEnterTwoFactorAuthCodeResponse connectAccountResponse = JsonConvert.DeserializeObject<EnterTwoFactorAuthCodeResponse>(content);
                 _logger.LogInformation("Successfully deserialized response into an object");
-                result.Value = connectAccountResponse;
+                result.Value = (T)connectAccountResponse;
             }
             catch (Exception ex)
             {

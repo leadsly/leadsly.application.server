@@ -1,5 +1,5 @@
 ﻿using Leadsly.Domain.Models;
-using Leadsly.Domain.ViewModels;
+using Leadsly.Models.ViewModels;
 using Leadsly.Models.Entities;
 using System.Linq;
 

@@ -1,4 +1,4 @@
-﻿using Leadsly.Domain.ViewModels;
+﻿using Leadsly.Models.ViewModels;
 using Leadsly.Models;
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ namespace Leadsly.Domain.Converters
 {
     public static class FailureConverter
     {
-        public static List<FailureViewModel> ConvertList(List<FailureDTO> dtos)
+        public static List<FailureViewModel> ConvertList(List<Failure> dtos)
         {
             return dtos.Select(dto => new FailureViewModel
             {
