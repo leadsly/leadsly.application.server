@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Models.ViewModels.Interfaces
+namespace Leadsly.Models.ViewModels.Response.Hal
 {
-    public interface IEnterTwoFactorAuthCodeResponse : IOperationResponse
+    public class EnterTwoFactorAuthCodeResponseViewModel : ResultBaseViewModel, IEnterTwoFactorAuthCodeResponseViewModel
     {
         public bool InvalidOrExpiredCode { get; set; }
         public bool DidUnexpectedErrorOccur { get; set; }

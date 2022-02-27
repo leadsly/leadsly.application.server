@@ -1,13 +1,12 @@
-﻿using Leadsly.Domain.Models;
-using Leadsly.Models.ViewModels;
-using Leadsly.Models.ViewModels.Hal;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using System.Threading;
 using System.Threading.Tasks;
 using Leadsly.Models.Entities;
 using Leadsly.Models;
 using Leadsly.Models.ViewModels.Cloud;
-using Leadsly.Models.ViewModels.Interfaces;
+using Leadsly.Models.Requests;
+using Leadsly.Models.ViewModels.Response;
+using Leadsly.Models.Responses;
 
 namespace Leadsly.Domain.Supervisor
 {
@@ -15,11 +14,11 @@ namespace Leadsly.Domain.Supervisor
     {
         Task<Customer_Stripe> AddCustomerAsync_Stripe(Customer_Stripe stripeCustomerViewModel);
         Task<SetupAccountResultViewModel> LeadslyAccountSetupAsync(SetupAccountViewModel setup, CancellationToken ct = default);        
-        Task<HalOperationResult<T>> LeadslyRequestNewWebDriverAsync<T>(RequestNewWebDriverViewModel request, CancellationToken ct = default)
-            where T : IOperationResponse;        
-        Task<HalOperationResult<T>> LeadslyAuthenticateUserAsync<T>(ConnectAccountViewModel connect, CancellationToken ct = default)
-            where T : IOperationResponse;
-        Task<HalOperationResult<T>> LeadslyTwoFactorAuthAsync<T>(TwoFactorAuthViewModel twoFactorAuth, CancellationToken ct = default)
-            where T : IOperationResponse;
+        Task<HalOperationResult<T>> LeadslyRequestNewWebDriverAsync<T>(NewWebDriverRequest request, CancellationToken ct = default)
+            where T : IOperationResponseViewModel;
+        Task<HalOperationResult<T>> LeadslyAuthenticateUserAsync<T>(ConnectAccountRequest request, CancellationToken ct = default)
+            where T : IOperationResponseViewModel;
+        Task<HalOperationResult<T>> LeadslyTwoFactorAuthAsync<T>(TwoFactorAuthRequest request, CancellationToken ct = default)
+            where T : IOperationResponseViewModel;
     }
 }

@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Models.Requests
+namespace Leadsly.Models.Requests.Hal
 {
-    public class EnterTwoFactorAuthCodeRequest : HalRequestBase, IEnterTwoFactorAuthCodeRequest
+    public class EnterTwoFactorAuthCodeRequest : BaseRequest, IEnterTwoFactorAuthCodeRequest
     {
         public string Code { get; set; }
         public string WebDriverId { get; set; }

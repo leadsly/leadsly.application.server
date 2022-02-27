@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Models
+namespace Leadsly.Models.ViewModels
 {
-    public interface IOperationResult
+    public interface IOperationResultViewModel
     {
         public bool Succeeded { get; set; }
-        public List<Failure> Failures { get; set; }
+        public List<FailureViewModel> Failures { get; set; }
     }
 }

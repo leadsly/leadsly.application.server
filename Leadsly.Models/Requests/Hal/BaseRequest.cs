@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Models.Requests
 {
-    public class HalRequestBase : IHalRequest
+    public class BaseRequest : IRequest
     {
         public string ServiceDiscoveryName { get; set; } = string.Empty;
         public string NamespaceName { get; set; } = string.Empty;

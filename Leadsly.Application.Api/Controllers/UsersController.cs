@@ -3,7 +3,6 @@ using Leadsly.Domain.Models;
 using Leadsly.Domain.Supervisor;
 using Leadsly.Models.ViewModels;
 using Leadsly.Models.ViewModels.Campaigns;
-using Leadsly.Models.ViewModels.Hal;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Models.Requests.Hal
 {
-    public interface IHalRequest
+    public interface IRequest
     {
         public string ServiceDiscoveryName { get; }
         public string NamespaceName { get; }

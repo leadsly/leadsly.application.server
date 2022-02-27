@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Models.Requests.Hal
 {
-    public interface IConnectAccountRequest : IHalRequest
+    public interface IConnectAccountRequest : IRequest
     {
         public string WebDriverId { get; }
         public string Username { get; }

@@ -1,6 +1,5 @@
 ﻿using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services;
-using Leadsly.Models.ViewModels.Hal;
 using Leadsly.Models;
 using Leadsly.Models.Entities;
 using Leadsly.Models.Requests;
@@ -13,9 +12,13 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Leadsly.Models.ViewModels.Interfaces;
 using Leadsly.Models.Requests.Hal;
-using Leadsly.Models.Respones.Hal;
+using ConnectAccountRequest = Leadsly.Models.Requests.Hal.ConnectAccountRequest;
+using NewWebDriverRequest = Leadsly.Models.Requests.Hal.NewWebDriverRequest;
+using Leadsly.Domain.Converters;
+using Leadsly.Models.ViewModels.Response;
+using Leadsly.Models.Responses.Hal;
+using Leadsly.Models.Responses;
 
 namespace Leadsly.Domain.Providers
 {
@@ -37,7 +40,7 @@ namespace Leadsly.Domain.Providers
         private readonly int DefaultTimeoutInSeconds_WebDriver = 10;
 
         public async Task<HalOperationResult<T>> RequestNewWebDriverInstanceAsync<T>(SocialAccountCloudResource resource, CancellationToken ct = default)
-            where T : IOperationResponse
+            where T : IOperationResponseViewModel
         {
             HalOperationResult<T> result = new()
             {
@@ -70,7 +73,7 @@ namespace Leadsly.Domain.Providers
         }
 
         private async Task<HalOperationResult<T>> RequestNewWebDriverAsync<T>(INewWebDriverRequest request, CancellationToken ct = default)
-            where T : IOperationResponse
+            where T : IOperationResponseViewModel
         {
             HalOperationResult<T> result = new()
             {
@@ -97,8 +100,8 @@ namespace Leadsly.Domain.Providers
                 _logger.LogInformation("Attempting to deserialize response.");
                 string content = await response.Content.ReadAsStringAsync();
                 INewWebDriverResponse newWebDriverResponse = JsonConvert.DeserializeObject<NewWebDriverResponse>(content);
-                _logger.LogInformation("Successfully deserialized response into an object");
-                result.Value = (T)newWebDriverResponse;
+                _logger.LogInformation("Successfully deserialized response into an object");                
+                result.Value = (T)WebDriverConverter.Convert(newWebDriverResponse);
             }
             catch (Exception ex)
             {
@@ -115,8 +118,8 @@ namespace Leadsly.Domain.Providers
             return result;
         }
 
-        public async Task<HalOperationResult<T>> ConnectUserAccountAsync<T>(SocialAccountCloudResource resource, ConnectAccountViewModel connect, string webDriverId, CancellationToken ct = default)
-            where T : IOperationResponse
+        public async Task<HalOperationResult<T>> ConnectUserAccountAsync<T>(SocialAccountCloudResource resource, Leadsly.Models.Requests.ConnectAccountRequest connect, string webDriverId, CancellationToken ct = default)
+            where T : IOperationResponseViewModel
         {
             HalOperationResult<T> result = new()
             {
@@ -152,7 +155,7 @@ namespace Leadsly.Domain.Providers
         }
 
         private async Task<HalOperationResult<T>> AuthenticateUserAsync<T>(IConnectAccountRequest request, CancellationToken ct = default)
-            where T : IOperationResponse
+            where T : IOperationResponseViewModel
         {
             HalOperationResult<T> result = new()
             {
@@ -181,7 +184,7 @@ namespace Leadsly.Domain.Providers
                 string content = await response.Content.ReadAsStringAsync();
                 IConnectAccountResponse connectAccountResponse = JsonConvert.DeserializeObject<ConnectAccountResponse>(content);
                 _logger.LogInformation("Successfully deserialized response into an object");
-                result.Value = (T)connectAccountResponse;
+                result.Value = (T)ConnectAccountConverter.Convert(connectAccountResponse);
             }
             catch (Exception ex)
             {
@@ -199,8 +202,8 @@ namespace Leadsly.Domain.Providers
             return result;
         }
 
-        public async Task<HalOperationResult<T>> EnterTwoFactorAuthAsync<T>(SocialAccountCloudResource resource, TwoFactorAuthViewModel twoFactorAuth, string webDriverId, CancellationToken ct = default)
-            where T : IOperationResponse
+        public async Task<HalOperationResult<T>> EnterTwoFactorAuthAsync<T>(SocialAccountCloudResource resource, TwoFactorAuthRequest twoFactorAuth, string webDriverId, CancellationToken ct = default)
+            where T : IOperationResponseViewModel
         {
             HalOperationResult<T> result = new()
             {
@@ -236,7 +239,7 @@ namespace Leadsly.Domain.Providers
         }
 
         private async Task<HalOperationResult<T>> TwoFactorAuthCodeAsync<T>(IEnterTwoFactorAuthCodeRequest request, CancellationToken ct = default)
-            where T : IOperationResponse
+            where T : IOperationResponseViewModel
         {
             HalOperationResult<T> result = new()
             {
@@ -265,7 +268,7 @@ namespace Leadsly.Domain.Providers
                 string content = await response.Content.ReadAsStringAsync();
                 IEnterTwoFactorAuthCodeResponse connectAccountResponse = JsonConvert.DeserializeObject<EnterTwoFactorAuthCodeResponse>(content);
                 _logger.LogInformation("Successfully deserialized response into an object");
-                result.Value = (T)connectAccountResponse;
+                result.Value = (T)ConnectAccountConverter.Convert(connectAccountResponse);
             }
             catch (Exception ex)
             {

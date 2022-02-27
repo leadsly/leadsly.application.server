@@ -7,9 +7,10 @@ using Microsoft.Extensions.Logging;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Net.Http;
-using Leadsly.Models.ViewModels.Hal;
-using Leadsly.Models.ViewModels.Interfaces;
 using Leadsly.Models.ViewModels.Cloud;
+using Leadsly.Models.Requests;
+using Leadsly.Models.Responses.Hal;
+using Leadsly.Models.ViewModels.Response.Hal;
 
 namespace Leadsly.Application.Api.Controllers
 {
@@ -56,11 +57,11 @@ namespace Leadsly.Application.Api.Controllers
 
         [HttpPost("webdriver")]
         [AllowAnonymous]
-        public async Task<IActionResult> RequestNewDriver(RequestNewWebDriverViewModel newWebDriverRequest, CancellationToken ct = default)
+        public async Task<IActionResult> RequestNewDriver(NewWebDriverRequest request, CancellationToken ct = default)
         {
             _logger.LogTrace("RequestNewDriver action executed.");
 
-            HalOperationResult<INewWebDriverResponse> result = await _supervisor.LeadslyRequestNewWebDriverAsync<INewWebDriverResponse>(newWebDriverRequest, ct);
+            HalOperationResult<INewWebDriverResponseViewModel> result = await _supervisor.LeadslyRequestNewWebDriverAsync<INewWebDriverResponseViewModel>(request, ct);
 
             if (result.Succeeded == false)
             {
@@ -72,11 +73,11 @@ namespace Leadsly.Application.Api.Controllers
 
         [HttpPost("connect")]
         [AllowAnonymous]
-        public async Task<IActionResult> Connect(ConnectAccountViewModel connect, CancellationToken ct = default)
+        public async Task<IActionResult> Connect(ConnectAccountRequest request, CancellationToken ct = default)
         {
             _logger.LogTrace("Connect action executed.");
 
-            HalOperationResult<IConnectAccountResponse> result = await _supervisor.LeadslyAuthenticateUserAsync<IConnectAccountResponse>(connect, ct);
+            HalOperationResult<IConnectAccountResponseViewModel> result = await _supervisor.LeadslyAuthenticateUserAsync<IConnectAccountResponseViewModel>(request, ct);
 
             if (result.Succeeded == false)
             {
@@ -88,11 +89,11 @@ namespace Leadsly.Application.Api.Controllers
 
         [HttpPost("connect/2fa")]
         [AllowAnonymous]
-        public async Task<IActionResult> TwoFactorAuth(TwoFactorAuthViewModel twoFactorAuth, CancellationToken ct = default)
+        public async Task<IActionResult> TwoFactorAuth(TwoFactorAuthRequest request, CancellationToken ct = default)
         {
             _logger.LogTrace("TwoFactorAuth action executed");
 
-            HalOperationResult<IEnterTwoFactorAuthCodeResponse> result = await _supervisor.LeadslyTwoFactorAuthAsync<IEnterTwoFactorAuthCodeResponse>(twoFactorAuth, ct);
+            HalOperationResult<IEnterTwoFactorAuthCodeResponseViewModel> result = await _supervisor.LeadslyTwoFactorAuthAsync<IEnterTwoFactorAuthCodeResponseViewModel>(request, ct);
 
             if (result.Succeeded == false)
             {

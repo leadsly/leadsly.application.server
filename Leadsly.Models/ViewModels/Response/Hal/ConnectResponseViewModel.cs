@@ -1,23 +1,19 @@
-﻿using Leadsly.Models.ViewModels.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Models.Respones.Hal
+namespace Leadsly.Models.ViewModels.Response.Hal
 {
-    [DataContract]
-    public class ConnectAccountResponse : ResultBase, IConnectAccountResponse
+    public class ConnectResponseViewModel : ResultBaseViewModel, IConnectAccountResponseViewModel
     {
-        [DataMember]
         public string WebDriverId { get; set; }
-        [DataMember]
+
         public bool TwoFactorAuthRequired { get; set; }
-        [DataMember]
+
         public TwoFactorAuthType TwoFactorAuthType { get; set; }
-        [DataMember]
+
         public bool UnexpectedErrorOccured { get; set; }
     }
 }

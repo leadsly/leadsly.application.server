@@ -1,5 +1,4 @@
-﻿using Leadsly.Models.ViewModels.Hal;
-using Leadsly.Models;
+﻿using Leadsly.Models;
 using Leadsly.Models.Entities;
 using System;
 using System.Threading;
@@ -8,8 +7,10 @@ using Microsoft.Extensions.Logging;
 using Leadsly.Domain.Converters;
 using Leadsly.Models.ViewModels.Cloud;
 using Microsoft.Extensions.Caching.Memory;
-using Leadsly.Models.ViewModels.Interfaces;
 using Leadsly.Models.Requests;
+using NewWebDriverRequest = Leadsly.Models.Requests.NewWebDriverRequest;
+using Leadsly.Models.ViewModels.Response;
+using Leadsly.Models.Responses.Hal;
 
 namespace Leadsly.Domain.Supervisor
 {
@@ -17,15 +18,15 @@ namespace Leadsly.Domain.Supervisor
     {
         private readonly int WebDriverId_TimeToEvictionInMin_Cache = 3;
         
-        public async Task<HalOperationResult<T>> LeadslyTwoFactorAuthAsync<T>(TwoFactorAuthViewModel twoFactorAuth, CancellationToken ct = default)
-            where T : IOperationResponse
+        public async Task<HalOperationResult<T>> LeadslyTwoFactorAuthAsync<T>(TwoFactorAuthRequest request, CancellationToken ct = default)
+            where T : IOperationResponseViewModel
         {
             HalOperationResult<T> result = new()
             {
                 Succeeded = false
             };
 
-            SocialAccountDTO socialAccountDTO = twoFactorAuth.GetSocialAccountData();
+            SocialAccountDTO socialAccountDTO = request.GetSocialAccountData();
 
             SocialAccount socialAccount = await _userProvider.GetRegisteredSocialAccountAsync(socialAccountDTO, ct);
 
@@ -53,17 +54,17 @@ namespace Leadsly.Domain.Supervisor
                 return result;
             }
 
-            return await _leadslyHalProvider.EnterTwoFactorAuthAsync<T>(socialAccount.SocialAccountCloudResource, twoFactorAuth, webDriverId, ct);            
+            return await _leadslyHalProvider.EnterTwoFactorAuthAsync<T>(socialAccount.SocialAccountCloudResource, request, webDriverId, ct);            
         }
-        public async Task<HalOperationResult<T>> LeadslyAuthenticateUserAsync<T>(ConnectAccountViewModel connect, CancellationToken ct = default)
-            where T : IOperationResponse
+        public async Task<HalOperationResult<T>> LeadslyAuthenticateUserAsync<T>(ConnectAccountRequest request, CancellationToken ct = default)
+            where T : IOperationResponseViewModel
         {
             HalOperationResult<T> result = new()
             {
                 Succeeded = false
             };
 
-            SocialAccountDTO socialAccountDTO = connect.GetSocialAccountData();
+            SocialAccountDTO socialAccountDTO = request.GetSocialAccountData();
 
             SocialAccount socialAccount = await _userProvider.GetRegisteredSocialAccountAsync(socialAccountDTO, ct);
 
@@ -91,10 +92,10 @@ namespace Leadsly.Domain.Supervisor
                 return result;
             }
 
-            return await _leadslyHalProvider.ConnectUserAccountAsync<T>(socialAccount.SocialAccountCloudResource, connect, webDriverId, ct);            
+            return await _leadslyHalProvider.ConnectUserAccountAsync<T>(socialAccount.SocialAccountCloudResource, request, webDriverId, ct);            
         }
-        public async Task<HalOperationResult<T>> LeadslyRequestNewWebDriverAsync<T>(RequestNewWebDriverViewModel request, CancellationToken ct = default)
-            where T : IOperationResponse
+        public async Task<HalOperationResult<T>> LeadslyRequestNewWebDriverAsync<T>(NewWebDriverRequest request, CancellationToken ct = default)
+            where T : IOperationResponseViewModel
         {
             HalOperationResult<T> result = new()
             {
@@ -151,7 +152,7 @@ namespace Leadsly.Domain.Supervisor
             return result;
         }
         private async Task<HalOperationResult<T>> RequestNewWebDriverAsync<T>(SocialAccount socialAccount, CancellationToken ct = default)
-            where T : IOperationResponse
+            where T : IOperationResponseViewModel
         {
             HalOperationResult<T> result = new()
             {

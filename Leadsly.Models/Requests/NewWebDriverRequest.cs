@@ -1,15 +1,23 @@
-﻿using Leadsly.Models.Requests.Hal;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Leadsly.Models.Requests
 {
-    public class NewWebDriverRequest : HalRequestBase, INewWebDriverRequest
+    [DataContract]
+    public class NewWebDriverRequest : AccountBaseRequest, ISocialAccount
     {
-        public int DefaultTimeoutInSeconds { get; set; }
+        public SocialAccountDTO GetSocialAccountData()
+        {
+            return new()
+            {
+                AccountType = base.SocialAccountType,
+                UserId = base.UserId,
+                Username = base.Username
+            };
+        }
     }
-    
 }

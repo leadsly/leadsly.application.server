@@ -7,18 +7,21 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Models.ViewModels.Hal
+namespace Leadsly.Models.Requests
 {
     [DataContract]
-    public class RequestNewWebDriverViewModel : RequestForHalBaseViewModel, ISocialAccount
+    public class TwoFactorAuthRequest : AccountBaseRequest, ISocialAccount
     {
+        [DataMember(Name = "code")]
+        public string Code { get; set; }
+
         public SocialAccountDTO GetSocialAccountData()
         {
             return new()
             {
-                AccountType = SocialAccountType,
-                Username = Username,
-                UserId = UserId
+                AccountType = base.SocialAccountType,
+                Username = base.Username,
+                UserId = base.UserId
             };
         }
     }

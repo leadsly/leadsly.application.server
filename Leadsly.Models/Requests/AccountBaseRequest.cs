@@ -6,10 +6,10 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Models.ViewModels.Hal
+namespace Leadsly.Models.Requests
 {
     [DataContract]
-    public class RequestForHalBaseViewModel
+    public class AccountBaseRequest
     {
         [DataMember(Name = "userId")]
         public string UserId { get; set; }

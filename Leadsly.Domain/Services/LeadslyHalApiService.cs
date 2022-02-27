@@ -1,6 +1,4 @@
-﻿using Leadsly.Domain.Models;
-using Leadsly.Models.ViewModels.Hal;
-using Leadsly.Models;
+﻿using Leadsly.Models;
 using Leadsly.Models.Requests;
 using Microsoft.Extensions.Logging;
 using System;
@@ -27,7 +25,7 @@ namespace Leadsly.Domain.Services
         private readonly ILogger<LeadslyHalApiService> _logger;
         private const string HttpPrefix = "http://";
 
-        public async Task<HttpResponseMessage> PerformHealthCheckAsync(HalRequest halRequest, CancellationToken ct = default)
+        public async Task<HttpResponseMessage> PerformHealthCheckAsync(HealthCheckRequest halRequest, CancellationToken ct = default)
         {
             string url = halRequest.PrivateIpAddress != null ? $"{HttpPrefix}{halRequest.PrivateIpAddress}" : $"{HttpPrefix}{halRequest.ServiceDiscoveryName}.{halRequest.NamespaceName}";
 

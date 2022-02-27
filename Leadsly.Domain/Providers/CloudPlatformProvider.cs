@@ -7,6 +7,7 @@ using Leadsly.Models.Aws.Route53;
 using Leadsly.Models.Aws.ServiceDiscovery;
 using Leadsly.Models.Entities;
 using Leadsly.Models.Requests;
+using Leadsly.Models.Requests.Hal;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -146,7 +147,7 @@ namespace Leadsly.Domain.Providers
         }
         private async Task<HalHealthCheckResponse> RunHalsHealthCheckAsync(string serviceDiscoveryName, CloudPlatformConfiguration configuration, CancellationToken ct = default)
         {
-            HalRequest halHealthCheckRequest = new()
+            HealthCheckRequest halHealthCheckRequest = new()
             {
                 ServiceDiscoveryName = serviceDiscoveryName,
                 NamespaceName = configuration.ServiceDiscoveryConfig.Name,
@@ -309,7 +310,7 @@ namespace Leadsly.Domain.Providers
             }
 
             // perform healthcheck with fresh private ip address
-            HalRequest halHealthCheckWithPrivateIpRequest = new()
+            HealthCheckRequest halHealthCheckWithPrivateIpRequest = new()
             {
                 PrivateIpAddress = (string)dnsPrivateIpAddressResult.Value,
                 NamespaceName = serviceDiscoveryConfig.Name,
@@ -446,7 +447,7 @@ namespace Leadsly.Domain.Providers
 
             return await _awsServiceDiscoveryService.GetNamespaceAsync(request, ct);
         }
-        private async Task<HalHealthCheckResponse> PerformHalsHealthCheckAsync(HalRequest healthCheckRequest, CancellationToken ct = default)
+        private async Task<HalHealthCheckResponse> PerformHalsHealthCheckAsync(HealthCheckRequest healthCheckRequest, CancellationToken ct = default)
         {
             HalHealthCheckResponse result = new()
             {

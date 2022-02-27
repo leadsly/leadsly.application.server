@@ -1,12 +1,11 @@
-﻿using Leadsly.Models.ViewModels.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Models.Respones.Hal
+namespace Leadsly.Models.Responses.Hal
 {
     [DataContract]
     public class EnterTwoFactorAuthCodeResponse : ResultBase, IEnterTwoFactorAuthCodeResponse

@@ -1,20 +1,28 @@
-﻿using Leadsly.Models.Requests.Hal;
+﻿using Leadsly.Models;
+using Leadsly.Models.Requests;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Leadsly.Models.Requests
 {
-    public class ConnectAccountRequest : HalRequestBase, IConnectAccountRequest
+    [DataContract]
+    public class ConnectAccountRequest : AccountBaseRequest, ISocialAccount
     {
-        public string WebDriverId { get; set; }
-
-        public string Username { get; set; }
-
+        [DataMember(Name = "password", IsRequired = true)]
         public string Password { get; set; }
 
-        public string ConnectAuthUrl { get; set; }
+        public SocialAccountDTO GetSocialAccountData()
+        {
+            return new()
+            {
+                AccountType = base.SocialAccountType,
+                UserId = base.UserId,
+                Username = base.Username
+            };
+        }
     }
 }

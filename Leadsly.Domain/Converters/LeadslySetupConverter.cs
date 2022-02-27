@@ -7,7 +7,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-
 namespace Leadsly.Domain.Converters
 {
     public static class LeadslySetupConverter
@@ -21,5 +20,6 @@ namespace Leadsly.Domain.Converters
                Failures = FailureConverter.ConvertList(dto.Failures)               
             };
         }
+               
     }
 }

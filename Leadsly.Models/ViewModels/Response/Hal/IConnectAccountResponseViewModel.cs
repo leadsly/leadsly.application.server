@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Models.ViewModels.Interfaces
+namespace Leadsly.Models.ViewModels.Response.Hal
 {
-    public interface IConnectAccountResponse : IOperationResponse
+    public interface IConnectAccountResponseViewModel : IOperationResponseViewModel
     {
         public string WebDriverId { get; }
         public bool TwoFactorAuthRequired { get; }
