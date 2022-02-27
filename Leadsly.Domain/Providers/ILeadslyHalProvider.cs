@@ -14,10 +14,10 @@ namespace Leadsly.Domain.Providers
     public interface ILeadslyHalProvider
     {
         Task<HalOperationResult<T>> RequestNewWebDriverInstanceAsync<T>(SocialAccountCloudResource cloudResource, CancellationToken ct = default)
-            where T : IOperationResponseViewModel;        
+            where T : IOperationResponse;        
         Task<HalOperationResult<T>> ConnectUserAccountAsync<T>(SocialAccountCloudResource resource, Leadsly.Models.Requests.ConnectAccountRequest connect, string webDriverId, CancellationToken ct = default)
-            where T : IOperationResponseViewModel;        
+            where T : IOperationResponse;        
         Task<HalOperationResult<T>> EnterTwoFactorAuthAsync<T>(SocialAccountCloudResource resource, Leadsly.Models.Requests.TwoFactorAuthRequest twoFactorAuth, string webDriverId, CancellationToken ct = default)
-            where T : IOperationResponseViewModel;
+            where T : IOperationResponse;
     }
 }

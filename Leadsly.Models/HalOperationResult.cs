@@ -1,4 +1,4 @@
-﻿using Leadsly.Models.ViewModels.Response;
+﻿using Leadsly.Models.Responses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 namespace Leadsly.Models
 {
     public class HalOperationResult<T> : ResultBase
-        where T : IOperationResponseViewModel
+        where T : IOperationResponse
     {
-        public T Value{ get; set; }
+        public T Value { get; set; }
     }
 }

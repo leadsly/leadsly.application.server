@@ -11,6 +11,7 @@ using Leadsly.Models.ViewModels.Cloud;
 using Leadsly.Models.Requests;
 using Leadsly.Models.Responses.Hal;
 using Leadsly.Models.ViewModels.Response.Hal;
+using Leadsly.Models.ViewModels;
 
 namespace Leadsly.Application.Api.Controllers
 {
@@ -61,7 +62,7 @@ namespace Leadsly.Application.Api.Controllers
         {
             _logger.LogTrace("RequestNewDriver action executed.");
 
-            HalOperationResult<INewWebDriverResponseViewModel> result = await _supervisor.LeadslyRequestNewWebDriverAsync<INewWebDriverResponseViewModel>(request, ct);
+            HalOperationResultViewModel<INewWebDriverResponseViewModel> result = await _supervisor.LeadslyRequestNewWebDriverAsync<INewWebDriverResponseViewModel>(request, ct);
 
             if (result.Succeeded == false)
             {
@@ -77,7 +78,7 @@ namespace Leadsly.Application.Api.Controllers
         {
             _logger.LogTrace("Connect action executed.");
 
-            HalOperationResult<IConnectAccountResponseViewModel> result = await _supervisor.LeadslyAuthenticateUserAsync<IConnectAccountResponseViewModel>(request, ct);
+            HalOperationResultViewModel<IConnectAccountResponseViewModel> result = await _supervisor.LeadslyAuthenticateUserAsync<IConnectAccountResponseViewModel>(request, ct);
 
             if (result.Succeeded == false)
             {
@@ -93,7 +94,7 @@ namespace Leadsly.Application.Api.Controllers
         {
             _logger.LogTrace("TwoFactorAuth action executed");
 
-            HalOperationResult<IEnterTwoFactorAuthCodeResponseViewModel> result = await _supervisor.LeadslyTwoFactorAuthAsync<IEnterTwoFactorAuthCodeResponseViewModel>(request, ct);
+            HalOperationResultViewModel<IEnterTwoFactorAuthCodeResponseViewModel> result = await _supervisor.LeadslyTwoFactorAuthAsync<IEnterTwoFactorAuthCodeResponseViewModel>(request, ct);
 
             if (result.Succeeded == false)
             {

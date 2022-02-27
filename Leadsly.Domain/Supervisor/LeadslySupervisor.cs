@@ -11,6 +11,7 @@ using Leadsly.Models.Requests;
 using NewWebDriverRequest = Leadsly.Models.Requests.NewWebDriverRequest;
 using Leadsly.Models.ViewModels.Response;
 using Leadsly.Models.Responses.Hal;
+using Leadsly.Models.ViewModels;
 
 namespace Leadsly.Domain.Supervisor
 {
@@ -18,10 +19,10 @@ namespace Leadsly.Domain.Supervisor
     {
         private readonly int WebDriverId_TimeToEvictionInMin_Cache = 3;
         
-        public async Task<HalOperationResult<T>> LeadslyTwoFactorAuthAsync<T>(TwoFactorAuthRequest request, CancellationToken ct = default)
+        public async Task<HalOperationResultViewModel<T>> LeadslyTwoFactorAuthAsync<T>(TwoFactorAuthRequest request, CancellationToken ct = default)
             where T : IOperationResponseViewModel
         {
-            HalOperationResult<T> result = new()
+            HalOperationResultViewModel<T> result = new()
             {
                 Succeeded = false
             };
@@ -54,12 +55,32 @@ namespace Leadsly.Domain.Supervisor
                 return result;
             }
 
-            return await _leadslyHalProvider.EnterTwoFactorAuthAsync<T>(socialAccount.SocialAccountCloudResource, request, webDriverId, ct);            
+            return await EnterTwofactorAuthCodeAsync<T>(socialAccount.SocialAccountCloudResource, request, webDriverId, ct);        
         }
-        public async Task<HalOperationResult<T>> LeadslyAuthenticateUserAsync<T>(ConnectAccountRequest request, CancellationToken ct = default)
+        private async Task<HalOperationResultViewModel<T>> EnterTwofactorAuthCodeAsync<T>(SocialAccountCloudResource resource, TwoFactorAuthRequest request, string webDriverId, CancellationToken ct = default)
             where T : IOperationResponseViewModel
         {
-            HalOperationResult<T> result = new()
+            HalOperationResultViewModel<T> result = new()
+            {
+                Succeeded = false
+            };
+
+            HalOperationResult<IEnterTwoFactorAuthCodeResponse> halResult = await _leadslyHalProvider.EnterTwoFactorAuthAsync<IEnterTwoFactorAuthCodeResponse>(resource, request, webDriverId, ct);
+
+            if(halResult.Succeeded == false)
+            {
+                result.Failures = FailureConverter.ConvertList(halResult.Failures);
+                return result;
+            }
+
+            result.Value = (T)ConnectAccountConverter.Convert(halResult.Value);
+            result.Succeeded = true;
+            return result;
+        }
+        public async Task<HalOperationResultViewModel<T>> LeadslyAuthenticateUserAsync<T>(ConnectAccountRequest request, CancellationToken ct = default)
+            where T : IOperationResponseViewModel
+        {
+            HalOperationResultViewModel<T> result = new()
             {
                 Succeeded = false
             };
@@ -92,12 +113,13 @@ namespace Leadsly.Domain.Supervisor
                 return result;
             }
 
-            return await _leadslyHalProvider.ConnectUserAccountAsync<T>(socialAccount.SocialAccountCloudResource, request, webDriverId, ct);            
+            return await AuthenticateUserAsync<T>(socialAccount.SocialAccountCloudResource, request, webDriverId, ct);
+            
         }
-        public async Task<HalOperationResult<T>> LeadslyRequestNewWebDriverAsync<T>(NewWebDriverRequest request, CancellationToken ct = default)
+        public async Task<HalOperationResultViewModel<T>> LeadslyRequestNewWebDriverAsync<T>(NewWebDriverRequest request, CancellationToken ct = default)
             where T : IOperationResponseViewModel
         {
-            HalOperationResult<T> result = new()
+            HalOperationResultViewModel<T> result = new()
             {
                 Succeeded = false                
             };
@@ -151,10 +173,30 @@ namespace Leadsly.Domain.Supervisor
 
             return result;
         }
-        private async Task<HalOperationResult<T>> RequestNewWebDriverAsync<T>(SocialAccount socialAccount, CancellationToken ct = default)
+        private async Task<HalOperationResultViewModel<T>> AuthenticateUserAsync<T>(SocialAccountCloudResource resource, ConnectAccountRequest request, string webDriverId, CancellationToken ct = default)
             where T : IOperationResponseViewModel
         {
-            HalOperationResult<T> result = new()
+            HalOperationResultViewModel<T> result = new()
+            {
+                Succeeded = false
+            };
+
+            HalOperationResult<IConnectAccountResponse> halResult = await _leadslyHalProvider.ConnectUserAccountAsync<IConnectAccountResponse>(resource, request, webDriverId, ct);
+
+            if (halResult.Succeeded == false)
+            {
+                result.Failures = FailureConverter.ConvertList(halResult.Failures);
+                return result;
+            }
+
+            result.Value = (T)ConnectAccountConverter.Convert(halResult.Value);
+            result.Succeeded = true;
+            return result;
+        }
+        private async Task<HalOperationResultViewModel<T>> RequestNewWebDriverAsync<T>(SocialAccount socialAccount, CancellationToken ct = default)
+            where T : IOperationResponseViewModel
+        {
+            HalOperationResultViewModel<T> result = new()
             {
                 Succeeded = false
             };
@@ -172,15 +214,17 @@ namespace Leadsly.Domain.Supervisor
                 return result;
             }
 
-            result = await _leadslyHalProvider.RequestNewWebDriverInstanceAsync<T>(socialAccount.SocialAccountCloudResource, ct);
+            HalOperationResult<INewWebDriverResponse> halResult = await _leadslyHalProvider.RequestNewWebDriverInstanceAsync<INewWebDriverResponse>(socialAccount.SocialAccountCloudResource, ct);
 
-            if (result.Succeeded == false)
+            if (halResult.Succeeded == false)
             {
+                result.Failures = FailureConverter.ConvertList(halResult.Failures);
                 return result;
             }
 
             _memoryCache.Set(socialAccount.Id, ((INewWebDriverResponse)result.Value).WebDriverId, TimeSpan.FromMinutes(WebDriverId_TimeToEvictionInMin_Cache));
 
+            result.Value = (T)WebDriverConverter.Convert(halResult.Value);
             result.Succeeded = true;
             return result;
         }        
