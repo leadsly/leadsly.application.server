@@ -12,6 +12,7 @@ using NewWebDriverRequest = Leadsly.Models.Requests.NewWebDriverRequest;
 using Leadsly.Models.ViewModels.Response;
 using Leadsly.Models.Responses.Hal;
 using Leadsly.Models.ViewModels;
+using Leadsly.Models.ViewModels.Response.Hal;
 
 namespace Leadsly.Domain.Supervisor
 {
@@ -222,9 +223,8 @@ namespace Leadsly.Domain.Supervisor
                 return result;
             }
 
-            _memoryCache.Set(socialAccount.Id, ((INewWebDriverResponse)result.Value).WebDriverId, TimeSpan.FromMinutes(WebDriverId_TimeToEvictionInMin_Cache));
-
             result.Value = (T)WebDriverConverter.Convert(halResult.Value);
+            _memoryCache.Set(socialAccount.Id, ((INewWebDriverResponseViewModel)result.Value).WebDriverId, TimeSpan.FromMinutes(WebDriverId_TimeToEvictionInMin_Cache));
             result.Succeeded = true;
             return result;
         }        

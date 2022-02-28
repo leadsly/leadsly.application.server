@@ -9,6 +9,6 @@ namespace Leadsly.Models.ViewModels
     public class ResultBaseViewModel : IOperationResultViewModel
     {
         public bool Succeeded { get; set; }
-        public List<FailureViewModel> Failures { get; set; }
+        public List<FailureViewModel> Failures { get; set; } = new();
     }
 }

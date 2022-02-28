@@ -37,7 +37,8 @@ namespace Leadsly.Domain.Providers
         private readonly string RequestNewWebDriverUrl = "api/webdriver";
         private readonly string AuthenticateUserSocialAccount = "api/authentication";
         private readonly string AuthenticateUserSocialAccount2Fa = "api/authentication/2fa";
-        private readonly int DefaultTimeoutInSeconds_WebDriver = 10;
+        // zero is default and it's best to keep it that way.
+        private readonly int DefaultTimeoutInSeconds_WebDriver = 0;
 
         public async Task<HalOperationResult<T>> RequestNewWebDriverInstanceAsync<T>(SocialAccountCloudResource resource, CancellationToken ct = default)
             where T : IOperationResponse
