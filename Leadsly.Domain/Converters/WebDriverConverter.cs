@@ -14,7 +14,6 @@ namespace Leadsly.Domain.Converters
         {
             return new NewWebDriverResponseViewModel
             {
-                Failures = FailureConverter.ConvertList(response.Failures ?? new()),
                 Succeeded = response.Succeeded,
                 WebDriverId = response.WebDriverId
             };

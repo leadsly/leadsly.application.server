@@ -2,9 +2,9 @@
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Leadsly.Api.Exceptions
+namespace Leadsly.Domain.Exceptions
 {
-    public class LeadslySecurityTokenException : SecurityTokenException, ILeadslyWebApiException
+    public class LeadslySecurityTokenException : SecurityTokenException, ILeadslyApiException
     {
         public string Type => ProblemDetailsTypes.InternalServerErrorType;
 

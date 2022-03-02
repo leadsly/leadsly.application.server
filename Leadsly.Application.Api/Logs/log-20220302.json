@@ -1,0 +1,130 @@
+2022-03-02 14:45:55.592 -05:00 [Warning] Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development.
+2022-03-02 14:46:28.716 -05:00 [Error] Failed to send request to authenticate user's social account. The response is null or status code is not successful
+2022-03-02 14:50:42.559 -05:00 [Warning] Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development.
+2022-03-02 14:55:41.582 -05:00 [Warning] Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development.
+2022-03-02 14:58:17.999 -05:00 [Warning] Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development.
+2022-03-02 15:59:17.905 -05:00 [Warning] Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development.
+2022-03-02 16:00:52.475 -05:00 [Error] Failed to send request to instantiate new web driver instance
+System.Net.Http.HttpRequestException: Error while copying content to a stream.
+ ---> System.IO.IOException: The response ended prematurely.
+   at System.Net.Http.HttpConnection.FillAsync(Boolean async)
+   at System.Net.Http.HttpConnection.ChunkedEncodingReadStream.CopyToAsyncCore(Stream destination, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionResponseContent.SerializeToStreamAsync(Stream stream, TransportContext context, CancellationToken cancellationToken)
+   at System.Net.Http.HttpContent.LoadIntoBufferAsyncCore(Task serializeToStreamTask, MemoryStream tempBuffer)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.HttpContent.LoadIntoBufferAsyncCore(Task serializeToStreamTask, MemoryStream tempBuffer)
+   at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+   at Leadsly.Domain.Services.LeadslyHalApiService.AuthenticateUserSocialAccountAsync(IConnectAccountRequest authRequest, CancellationToken ct) in D:\Dev\Projects\leadsly\Leadsly.Application.Server\Leadsly.Domain\Services\LeadslyHalApiService.cs:line 100
+2022-03-02 16:00:52.524 -05:00 [Error] Failed to send request to authenticate user's social account. The response is null or status code is not successful
+2022-03-02 16:00:53.234 -05:00 [Error] Exception occured when processing request.
+2022-03-02 16:00:53.638 -05:00 [Error] HTTP "POST" "/api/leadsly/connect" responded 500 in 9013.0535 ms
+System.ArgumentNullException: Value cannot be null. (Parameter 'source')
+   at System.Linq.ThrowHelper.ThrowArgumentNullException(ExceptionArgument argument)
+   at System.Linq.Enumerable.TryGetFirst[TSource](IEnumerable`1 source, Boolean& found)
+   at System.Linq.Enumerable.FirstOrDefault[TSource](IEnumerable`1 source)
+   at Leadsly.Domain.Providers.LeadslyHalProvider.AuthenticateUserAsync[T](IConnectAccountRequest request, CancellationToken ct) in D:\Dev\Projects\leadsly\Leadsly.Application.Server\Leadsly.Domain\Providers\LeadslyHalProvider.cs:line 204
+   at Leadsly.Domain.Providers.LeadslyHalProvider.ConnectUserAccountAsync[T](SocialAccountCloudResource resource, ConnectAccountRequest connect, CancellationToken ct) in D:\Dev\Projects\leadsly\Leadsly.Application.Server\Leadsly.Domain\Providers\LeadslyHalProvider.cs:line 184
+   at Leadsly.Domain.Supervisor.Supervisor.AuthenticateUserAsync[T](SocialAccountCloudResource resource, ConnectAccountRequest request, String webDriverId, CancellationToken ct) in D:\Dev\Projects\leadsly\Leadsly.Application.Server\Leadsly.Domain\Supervisor\LeadslySupervisor.cs:line 131
+   at Leadsly.Domain.Supervisor.Supervisor.LeadslyAuthenticateUserAsync[T](ConnectAccountRequest request, CancellationToken ct) in D:\Dev\Projects\leadsly\Leadsly.Application.Server\Leadsly.Domain\Supervisor\LeadslySupervisor.cs:line 88
+   at Leadsly.Application.Api.Controllers.LeadslyController.Connect(ConnectAccountRequest request, CancellationToken ct) in D:\Dev\Projects\leadsly\Leadsly.Application.Server\Leadsly.Application.Api\Controllers\LeadslyController.cs:line 81
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextExceptionFilterAsync>g__Awaited|26_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ExceptionContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|6_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+2022-03-02 16:02:17.680 -05:00 [Error] Failed to send request to instantiate new web driver instance
+System.Net.Http.HttpRequestException: Error while copying content to a stream.
+ ---> System.IO.IOException: The response ended prematurely.
+   at System.Net.Http.HttpConnection.FillAsync(Boolean async)
+   at System.Net.Http.HttpConnection.ChunkedEncodingReadStream.CopyToAsyncCore(Stream destination, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionResponseContent.SerializeToStreamAsync(Stream stream, TransportContext context, CancellationToken cancellationToken)
+   at System.Net.Http.HttpContent.LoadIntoBufferAsyncCore(Task serializeToStreamTask, MemoryStream tempBuffer)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.HttpContent.LoadIntoBufferAsyncCore(Task serializeToStreamTask, MemoryStream tempBuffer)
+   at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+   at Leadsly.Domain.Services.LeadslyHalApiService.AuthenticateUserSocialAccountAsync(IConnectAccountRequest authRequest, CancellationToken ct) in D:\Dev\Projects\leadsly\Leadsly.Application.Server\Leadsly.Domain\Services\LeadslyHalApiService.cs:line 100
+2022-03-02 16:02:33.934 -05:00 [Error] Failed to send request to authenticate user's social account. The response is null or status code is not successful
+2022-03-02 16:02:37.072 -05:00 [Error] Exception occured when processing request.
+2022-03-02 16:02:37.404 -05:00 [Error] HTTP "POST" "/api/leadsly/connect" responded 500 in 80512.0769 ms
+System.ArgumentNullException: Value cannot be null. (Parameter 'source')
+   at System.Linq.ThrowHelper.ThrowArgumentNullException(ExceptionArgument argument)
+   at System.Linq.Enumerable.TryGetFirst[TSource](IEnumerable`1 source, Boolean& found)
+   at System.Linq.Enumerable.FirstOrDefault[TSource](IEnumerable`1 source)
+   at Leadsly.Domain.Providers.LeadslyHalProvider.AuthenticateUserAsync[T](IConnectAccountRequest request, CancellationToken ct) in D:\Dev\Projects\leadsly\Leadsly.Application.Server\Leadsly.Domain\Providers\LeadslyHalProvider.cs:line 204
+   at Leadsly.Domain.Providers.LeadslyHalProvider.ConnectUserAccountAsync[T](SocialAccountCloudResource resource, ConnectAccountRequest connect, CancellationToken ct) in D:\Dev\Projects\leadsly\Leadsly.Application.Server\Leadsly.Domain\Providers\LeadslyHalProvider.cs:line 184
+   at Leadsly.Domain.Supervisor.Supervisor.AuthenticateUserAsync[T](SocialAccountCloudResource resource, ConnectAccountRequest request, String webDriverId, CancellationToken ct) in D:\Dev\Projects\leadsly\Leadsly.Application.Server\Leadsly.Domain\Supervisor\LeadslySupervisor.cs:line 131
+   at Leadsly.Domain.Supervisor.Supervisor.LeadslyAuthenticateUserAsync[T](ConnectAccountRequest request, CancellationToken ct) in D:\Dev\Projects\leadsly\Leadsly.Application.Server\Leadsly.Domain\Supervisor\LeadslySupervisor.cs:line 88
+   at Leadsly.Application.Api.Controllers.LeadslyController.Connect(ConnectAccountRequest request, CancellationToken ct) in D:\Dev\Projects\leadsly\Leadsly.Application.Server\Leadsly.Application.Api\Controllers\LeadslyController.cs:line 81
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeNextExceptionFilterAsync>g__Awaited|26_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Rethrow(ExceptionContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|6_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+2022-03-02 16:02:59.576 -05:00 [Warning] Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development.
+2022-03-02 16:03:21.062 -05:00 [Error] Failed to send request to instantiate new web driver instance
+System.Net.Http.HttpRequestException: Error while copying content to a stream.
+ ---> System.IO.IOException: The response ended prematurely.
+   at System.Net.Http.HttpConnection.FillAsync(Boolean async)
+   at System.Net.Http.HttpConnection.ChunkedEncodingReadStream.CopyToAsyncCore(Stream destination, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionResponseContent.SerializeToStreamAsync(Stream stream, TransportContext context, CancellationToken cancellationToken)
+   at System.Net.Http.HttpContent.LoadIntoBufferAsyncCore(Task serializeToStreamTask, MemoryStream tempBuffer)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.HttpContent.LoadIntoBufferAsyncCore(Task serializeToStreamTask, MemoryStream tempBuffer)
+   at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+   at Leadsly.Domain.Services.LeadslyHalApiService.AuthenticateUserSocialAccountAsync(IConnectAccountRequest authRequest, CancellationToken ct) in D:\Dev\Projects\leadsly\Leadsly.Application.Server\Leadsly.Domain\Services\LeadslyHalApiService.cs:line 100
+2022-03-02 16:03:38.109 -05:00 [Error] Failed to send request to authenticate user's social account. The response is null or status code is not successful
+2022-03-02 16:11:44.250 -05:00 [Error] Failed to send request to instantiate new web driver instance
+System.Net.Http.HttpRequestException: Error while copying content to a stream.
+ ---> System.IO.IOException: The response ended prematurely.
+   at System.Net.Http.HttpConnection.FillAsync(Boolean async)
+   at System.Net.Http.HttpConnection.ChunkedEncodingReadStream.CopyToAsyncCore(Stream destination, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionResponseContent.SerializeToStreamAsync(Stream stream, TransportContext context, CancellationToken cancellationToken)
+   at System.Net.Http.HttpContent.LoadIntoBufferAsyncCore(Task serializeToStreamTask, MemoryStream tempBuffer)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.HttpContent.LoadIntoBufferAsyncCore(Task serializeToStreamTask, MemoryStream tempBuffer)
+   at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+   at Leadsly.Domain.Services.LeadslyHalApiService.AuthenticateUserSocialAccountAsync(IConnectAccountRequest authRequest, CancellationToken ct) in D:\Dev\Projects\leadsly\Leadsly.Application.Server\Leadsly.Domain\Services\LeadslyHalApiService.cs:line 100
+2022-03-02 16:11:46.206 -05:00 [Error] Failed to send request to authenticate user's social account. The response is null or status code is not successful
+2022-03-02 16:13:52.287 -05:00 [Error] Failed to send request to instantiate new web driver instance
+System.Net.Http.HttpRequestException: An error occurred while sending the request.
+ ---> System.IO.IOException: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+ ---> System.Net.Sockets.SocketException (10054): An existing connection was forcibly closed by the remote host.
+   --- End of inner exception stack trace ---
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource<System.Int32>.GetResult(Int16 token)
+   at System.Net.Security.SslStream.EnsureFullTlsFrameAsync[TIOAdapter](TIOAdapter adapter)
+   at System.Net.Security.SslStream.ReadAsyncInternal[TIOAdapter](TIOAdapter adapter, Memory`1 buffer)
+   at System.Net.Http.HttpConnection.InitialFillAsync(Boolean async)
+   at System.Net.Http.HttpConnection.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.HttpConnection.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at Microsoft.Extensions.Http.Logging.LoggingHttpMessageHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at Microsoft.Extensions.Http.Logging.LoggingScopeHttpMessageHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+   at Leadsly.Domain.Services.LeadslyHalApiService.AuthenticateUserSocialAccountAsync(IConnectAccountRequest authRequest, CancellationToken ct) in D:\Dev\Projects\leadsly\Leadsly.Application.Server\Leadsly.Domain\Services\LeadslyHalApiService.cs:line 100
+2022-03-02 16:13:54.947 -05:00 [Error] Failed to send request to authenticate user's social account. The response is null or status code is not successful
+2022-03-02 16:14:47.970 -05:00 [Warning] Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development.
+2022-03-02 16:15:11.360 -05:00 [Error] Failed to send request to authenticate user's social account. The response is null or status code is not successful
+2022-03-02 16:18:28.061 -05:00 [Warning] Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development.
+2022-03-02 16:19:00.546 -05:00 [Error] Failed to send request to authenticate user's social account. The response is null or status code is not successful

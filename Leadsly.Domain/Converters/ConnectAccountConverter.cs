@@ -15,7 +15,6 @@ namespace Leadsly.Domain.Converters
             return new EnterTwoFactorAuthCodeResponseViewModel
             {
                 DidUnexpectedErrorOccur = response.DidUnexpectedErrorOccur,
-                Failures = FailureConverter.ConvertList(response.Failures),
                 InvalidOrExpiredCode = response.InvalidOrExpiredCode,
                 Succeeded = response.Succeeded
             };
@@ -25,7 +24,6 @@ namespace Leadsly.Domain.Converters
         {
             return new ConnectResponseViewModel
             {
-                Failures = FailureConverter.ConvertList(response.Failures),
                 Succeeded= response.Succeeded,
                 TwoFactorAuthRequired = response.TwoFactorAuthRequired,
                 TwoFactorAuthType = response.TwoFactorAuthType,

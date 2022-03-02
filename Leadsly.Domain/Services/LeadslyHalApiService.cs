@@ -89,8 +89,7 @@ namespace Leadsly.Domain.Services
                 {
                     Username = authRequest.Username,
                     Password = authRequest.Password,
-                    ConnectAuthUrl = authRequest.ConnectAuthUrl,
-                    WindowHandleId = authRequest.WindowHandleId
+                    ConnectAuthUrl = authRequest.ConnectAuthUrl
                 })
             };
 

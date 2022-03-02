@@ -1,4 +1,4 @@
-﻿namespace Leadsly.Api
+﻿namespace Leadsly.Domain
 {
     public static class ProblemDetailsDescriptions
     {

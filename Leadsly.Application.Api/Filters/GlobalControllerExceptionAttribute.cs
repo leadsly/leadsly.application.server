@@ -1,4 +1,4 @@
-﻿using Leadsly.Api.Exceptions;
+﻿using Leadsly.Domain.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -22,7 +22,7 @@ namespace Leadsly.Api.Filters
         public override void OnException(ExceptionContext context)
         {
             // All user exceptions implement IWebApiException
-            if (context.Exception is ILeadslyWebApiException webApiException)
+            if (context.Exception is ILeadslyApiException webApiException)
             {
                 _logger.LogError(context.Exception, "Error occured processing request.");
 

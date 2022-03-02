@@ -1,6 +1,6 @@
-﻿namespace Leadsly.Api.Exceptions
+﻿namespace Leadsly.Domain.Exceptions
 {
-    interface ILeadslyWebApiException
+    public interface ILeadslyApiException
     {
         string Type { get; }
         string Title { get; }

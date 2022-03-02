@@ -1,4 +1,4 @@
-﻿using Leadsly.Api.Exceptions;
+﻿using Leadsly.Domain.Exceptions;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Net;
@@ -30,7 +30,7 @@ namespace Leadsly.Api.Middlewares
         private static Task HandleException(HttpContext context, Exception ex)
         {
             // If the exception is not user based
-            if (ex is not ILeadslyWebApiException)
+            if (ex is not ILeadslyApiException)
             {
                 // 500 if unexpected
                 HttpStatusCode code = HttpStatusCode.InternalServerError; 

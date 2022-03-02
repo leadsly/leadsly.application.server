@@ -133,6 +133,7 @@ namespace Leadsly.Domain.Supervisor
             if (halResult.Succeeded == false)
             {
                 result.Failures = FailureConverter.ConvertList(halResult.Failures);
+                result.ProblemDetails = halResult.ProblemDetails;
                 return result;
             }
 

@@ -2,9 +2,9 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 
-namespace Leadsly.Api.Exceptions
+namespace Leadsly.Domain.Exceptions
 {
-    public class LeadslyInvalidJwtException : InvalidJwtException, ILeadslyWebApiException
+    public class LeadslyInvalidJwtException : InvalidJwtException, ILeadslyApiException
     {
         public LeadslyInvalidJwtException(string message) : base(message) { }
 

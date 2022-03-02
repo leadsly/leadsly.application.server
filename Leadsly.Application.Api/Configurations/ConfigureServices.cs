@@ -38,6 +38,8 @@ using Leadsly.Application.Domain.OptionsJsonModels;
 using Amazon.ServiceDiscovery;
 using Amazon.Route53;
 using Amazon.RDS.Util;
+using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
+using System.Collections.Generic;
 
 namespace Leadsly.Application.Api.Configurations
 {
@@ -294,7 +296,6 @@ namespace Leadsly.Application.Api.Configurations
             builder.AddNewtonsoftJson(options =>
             {
                 options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-
                 // Serialize the name of enum values rather than their integer value
                 options.SerializerSettings.Converters.Add(new StringEnumConverter());
             });

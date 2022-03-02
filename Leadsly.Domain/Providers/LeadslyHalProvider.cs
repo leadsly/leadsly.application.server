@@ -19,6 +19,10 @@ using Leadsly.Domain.Converters;
 using Leadsly.Application.Model.ViewModels.Response;
 using Leadsly.Application.Model.Responses.Hal;
 using Leadsly.Application.Model.Responses;
+using Microsoft.AspNetCore.Mvc;
+using Leadsly.Domain.Exceptions;
+using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
+using System.Net.Http.Formatting;
 
 namespace Leadsly.Domain.Providers
 {
@@ -84,28 +88,29 @@ namespace Leadsly.Domain.Providers
             _logger.LogInformation("Requesting new web driver instance from hal");
             HttpResponseMessage response = await _leadslyHalApiService.RequestNewWebDriverInstanceAsync(request, ct);
 
-            if (response == null || response?.IsSuccessStatusCode == false)
+            if (response == null || response?.StatusCode == System.Net.HttpStatusCode.InternalServerError)
             {
                 _logger.LogError("Failed to send request to create new webdriver instance. The response is null or status code is not successful");
+                IEnumerable<string> values = default;
+                response?.Headers.TryGetValues(CustomHeaderKeys.Origin, out values);
                 result.Failures.Add(new()
                 {
-                    Code = Codes.HAL_API_ERROR,
-                    Reason = "Failed to get a response from Hal",
-                    Detail = "Failed to send request to instantiate new web driver instance"
-                });
+                    Code = Codes.HAL_INTERNAL_SERVER_ERRPR,
+                    Reason = response?.StatusCode == System.Net.HttpStatusCode.InternalServerError ? await response.Content.ReadAsStringAsync() : "Response to get new webdriver is null",
+                    Detail = $"Failed to send new web driver request to hal {values?.FirstOrDefault()}",
+                });                
                 return result;
+            }
+
+            if(response.IsSuccessStatusCode == false)
+            {
+                return await HandleFailedHalResponseAsync<T>(response);
             }
 
             result = await DeserializeNewWebDriverResponse<T>(response);
             
             if(result.Succeeded == false)
             {
-                return result;
-            }
-
-            if(result.Value.Succeeded == false)
-            {
-                result.Failures = result.Value.Failures;
                 return result;
             }
 
@@ -192,16 +197,23 @@ namespace Leadsly.Domain.Providers
 
             HttpResponseMessage response = await _leadslyHalApiService.AuthenticateUserSocialAccountAsync(request, ct);
 
-            if (response == null || response?.IsSuccessStatusCode == false)
-            {
+            if (response == null || response?.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+            {                
                 _logger.LogError("Failed to send request to authenticate user's social account. The response is null or status code is not successful");
+                IEnumerable<string> values = default;
+                response?.Headers.TryGetValues(CustomHeaderKeys.Origin, out values);
                 result.Failures.Add(new()
                 {
-                    Code = Codes.HAL_API_ERROR,
-                    Reason = "Failed to get a response from Hal",
-                    Detail = "Failed to send request to authenticate user's social account"
+                    Code = Codes.HAL_INTERNAL_SERVER_ERRPR,
+                    Reason = response?.StatusCode == System.Net.HttpStatusCode.InternalServerError ? await response.Content.ReadAsStringAsync() : "Response to authenticate user's social account is null",
+                    Detail = $"Failed to send authentication request to hal {values?.FirstOrDefault()}",
                 });
                 return result;
+            }
+
+            if(response.IsSuccessStatusCode == false)
+            {                
+                return await HandleFailedHalResponseAsync<T>(response);
             }
 
             result = await DeserializeConnectAccountResponse<T>(response);
@@ -212,14 +224,34 @@ namespace Leadsly.Domain.Providers
                 return result;
             }
 
-            // check if response from hal was successfull
-            if(result.Value.Succeeded == false)
+            result.Succeeded = true;
+            return result;
+        }
+
+        private async Task<HalOperationResult<T>> HandleFailedHalResponseAsync<T>(HttpResponseMessage response)
+            where T : IOperationResponse
+        {
+            HalOperationResult<T> result = new();
+
+            try
             {
-                result.Failures = result.Value.Failures;
-                return result;
+                // special handling for validation and problem details because extension properties were not deserializing
+                result.ProblemDetails = await response.Content.ReadAsAsync<ValidationProblemDetails>(
+                    new[] {
+                        new JsonMediaTypeFormatter
+                        {
+                            SerializerSettings = new JsonSerializerSettings
+                            {
+                                Converters =  { new ValidationProblemDetailsConverter(), new ProblemDetailsConverter() }
+                            }
+                        }
+                    });
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "Failed to deserialize problem details response");
             }
 
-            result.Succeeded = true;
             return result;
         }
 
@@ -303,27 +335,28 @@ namespace Leadsly.Domain.Providers
 
             HttpResponseMessage response = await _leadslyHalApiService.EnterTwoFactorAuthCodeAsync(request, ct);
 
-            if (response == null || response?.IsSuccessStatusCode == false)
+            if (response == null || response?.StatusCode == System.Net.HttpStatusCode.InternalServerError)
             {
                 _logger.LogError("Failed to send request to enter user's two factor auth code. The response is null or status code is not successful");
+                IEnumerable<string> values = default;
+                response?.Headers.TryGetValues(CustomHeaderKeys.Origin, out values);
                 result.Failures.Add(new()
                 {
-                    Code = Codes.HAL_API_ERROR,
-                    Reason = "Failed to get a response from Hal",
-                    Detail = "Failed to send request to authenticate user's social account"
+                    Code = Codes.HAL_INTERNAL_SERVER_ERRPR,
+                    Reason = response?.StatusCode == System.Net.HttpStatusCode.InternalServerError ? await response.Content.ReadAsStringAsync() : "Response to enter user's two factor auth code null",
+                    Detail = $"Failed to send two factor auth code request to hal {values?.FirstOrDefault()}",
                 });
                 return result;
+            }
+
+            if(response.IsSuccessStatusCode == false)
+            {
+                return await HandleFailedHalResponseAsync<T>(response);
             }
 
             result = await DeserializeEnterTwoFactorAuthCodeResponse<T>(response);
             if(result.Succeeded == false)
             {
-                return result;
-            }
-
-            if(result.Value.Succeeded == false)
-            {
-                result.Failures = result.Value.Failures;
                 return result;
             }
 

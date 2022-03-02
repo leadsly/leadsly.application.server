@@ -80,8 +80,14 @@ namespace Leadsly.Application.Api.Controllers
 
             HalOperationResultViewModel<IConnectAccountResponseViewModel> result = await _supervisor.LeadslyAuthenticateUserAsync<IConnectAccountResponseViewModel>(request, ct);
 
-            if (result.Succeeded == false)
+            // problem details from hal
+            if (result.ProblemDetails != null)
             {
+                return ProblemDetailsResult(result.ProblemDetails);
+            }
+
+            if (result.Succeeded == false)
+            {   
                 return BadRequest_LeadslyAuthenticationError(result.Failures);
             }
 
