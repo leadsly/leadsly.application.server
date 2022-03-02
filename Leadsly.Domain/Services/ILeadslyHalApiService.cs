@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Leadsly.Models.Requests.Hal;
+using Leadsly.Application.Model.Requests.Hal;
 
 namespace Leadsly.Domain.Services
 {

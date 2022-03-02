@@ -1,21 +1,23 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System.Threading;
 using System.Threading.Tasks;
-using Leadsly.Models.Entities;
-using Leadsly.Models;
-using Leadsly.Models.ViewModels.Cloud;
-using Leadsly.Models.Requests;
-using Leadsly.Models.ViewModels.Response;
-using Leadsly.Models.Responses;
-using Leadsly.Models.ViewModels;
+using Leadsly.Application.Model.Entities;
+using Leadsly.Application.Model;
+using Leadsly.Application.Model.ViewModels.Cloud;
+using Leadsly.Application.Model.Requests;
+using Leadsly.Application.Model.ViewModels.Response;
+using Leadsly.Application.Model.Responses;
+using Leadsly.Application.Model.ViewModels;
+using System;
 
 namespace Leadsly.Domain.Supervisor
 {
     public interface ISupervisor
     {
         Task<Customer_Stripe> AddCustomerAsync_Stripe(Customer_Stripe stripeCustomerViewModel);
-        Task<SetupAccountResultViewModel> LeadslyAccountSetupAsync(SetupAccountViewModel setup, CancellationToken ct = default);   
-        
+        Task<SetupAccountResultViewModel> LeadslyAccountSetupAsync(SetupAccountViewModel setup, CancellationToken ct = default);
+
+        [Obsolete("This method is not longer used. We are not creating new chrome instances per campaign, we're using new tabs instead")]
         Task<HalOperationResultViewModel<T>> LeadslyRequestNewWebDriverAsync<T>(NewWebDriverRequest request, CancellationToken ct = default)
             where T : IOperationResponseViewModel;
         Task<HalOperationResultViewModel<T>> LeadslyAuthenticateUserAsync<T>(ConnectAccountRequest request, CancellationToken ct = default)

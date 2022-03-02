@@ -1,5 +1,5 @@
-﻿using Leadsly.Models;
-using Leadsly.Models.Requests;
+﻿using Leadsly.Application.Model;
+using Leadsly.Application.Model.Requests;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Leadsly.Models.Requests.Hal;
+using Leadsly.Application.Model.Requests.Hal;
 
 namespace Leadsly.Domain.Services
 {
@@ -90,7 +90,7 @@ namespace Leadsly.Domain.Services
                     Username = authRequest.Username,
                     Password = authRequest.Password,
                     ConnectAuthUrl = authRequest.ConnectAuthUrl,
-                    WebDriverId = authRequest.WebDriverId
+                    WindowHandleId = authRequest.WindowHandleId
                 })
             };
 
@@ -119,7 +119,7 @@ namespace Leadsly.Domain.Services
                 RequestUri = new Uri($"{url}/{enterTwoFactorAuthRequest.RequestUrl}", UriKind.Absolute),
                 Content = JsonContent.Create(new
                 {
-                    WebDriverId = enterTwoFactorAuthRequest.WebDriverId,
+                    WindowHandleId = enterTwoFactorAuthRequest.WindowHandleId,
                     Code = enterTwoFactorAuthRequest.Code
                 })
             };

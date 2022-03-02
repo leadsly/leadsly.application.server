@@ -4,7 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Amazon.ECS.Model;
-using Leadsly.Models.Aws.ElasticContainerService;
+using Leadsly.Application.Model.Aws.ElasticContainerService;
 using System.Linq;
 
 namespace Leadsly.Domain.Services

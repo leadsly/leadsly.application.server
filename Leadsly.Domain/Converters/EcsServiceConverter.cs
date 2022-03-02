@@ -1,6 +1,6 @@
-﻿using Leadsly.Models;
-using Leadsly.Models.Aws.DTOs;
-using Leadsly.Models.Entities;
+﻿using Leadsly.Application.Model;
+using Leadsly.Application.Model.Aws.DTOs;
+using Leadsly.Application.Model.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;

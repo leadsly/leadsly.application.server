@@ -1,5 +1,5 @@
-﻿using Leadsly.Models.Responses.Hal;
-using Leadsly.Models.ViewModels.Response.Hal;
+﻿using Leadsly.Application.Model.Responses.Hal;
+using Leadsly.Application.Model.ViewModels.Response.Hal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,7 +30,7 @@ namespace Leadsly.Domain.Converters
                 TwoFactorAuthRequired = response.TwoFactorAuthRequired,
                 TwoFactorAuthType = response.TwoFactorAuthType,
                 UnexpectedErrorOccured = response.UnexpectedErrorOccured,
-                WebDriverId = response.WebDriverId
+                WindowHandleId = response.WindowHandleId
             };
         }
 

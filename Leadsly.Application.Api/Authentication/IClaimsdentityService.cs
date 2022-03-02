@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Leadsly.Domain;
-using Leadsly.Models.Entities;
+using Leadsly.Application.Model.Entities;
 
 namespace Leadsly.Application.Api.Authentication
 {

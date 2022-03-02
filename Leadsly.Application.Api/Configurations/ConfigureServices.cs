@@ -19,7 +19,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Stripe;
 using Leadsly.Domain.Services;
-using Leadsly.Models.Entities;
+using Leadsly.Application.Model.Entities;
 using Leadsly.Infrastructure.Repositories;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain;

@@ -1,6 +1,6 @@
 ﻿using Leadsly.Domain.OptionsJsonModels;
 using Leadsly.Domain.Repositories;
-using Leadsly.Models.Entities;
+using Leadsly.Application.Model.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

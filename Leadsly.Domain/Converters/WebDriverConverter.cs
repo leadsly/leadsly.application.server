@@ -1,5 +1,5 @@
-﻿using Leadsly.Models.Responses.Hal;
-using Leadsly.Models.ViewModels.Response.Hal;
+﻿using Leadsly.Application.Model.Responses.Hal;
+using Leadsly.Application.Model.ViewModels.Response.Hal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +14,7 @@ namespace Leadsly.Domain.Converters
         {
             return new NewWebDriverResponseViewModel
             {
-                Failures = FailureConverter.ConvertList(response.Failures),
+                Failures = FailureConverter.ConvertList(response.Failures ?? new()),
                 Succeeded = response.Succeeded,
                 WebDriverId = response.WebDriverId
             };

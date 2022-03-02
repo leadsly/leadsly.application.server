@@ -1,4 +1,4 @@
-﻿using Leadsly.Models.Entities;
+﻿using Leadsly.Application.Model.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -9,9 +9,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Leadsly.Domain;
-using Leadsly.Models;
+using Leadsly.Application.Model;
 using System;
-using Leadsly.Models.ViewModels;
+using Leadsly.Application.Model.ViewModels;
 
 namespace Leadsly.Api
 {

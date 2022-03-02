@@ -39,7 +39,7 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("ApplicationUserOrganization");
                 });
 
-            modelBuilder.Entity("Leadsly.Models.Entities.ApplicationUser", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("text");
@@ -129,7 +129,7 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
-            modelBuilder.Entity("Leadsly.Models.Entities.Campaign", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaign", b =>
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
@@ -175,7 +175,7 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("Campaigns");
                 });
 
-            modelBuilder.Entity("Leadsly.Models.Entities.CloudMapServiceDiscoveryService", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.CloudMapServiceDiscoveryService", b =>
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
@@ -212,7 +212,7 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("CloudMapServiceDiscoveryServices");
                 });
 
-            modelBuilder.Entity("Leadsly.Models.Entities.Customer_Stripe", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.Customer_Stripe", b =>
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
@@ -227,7 +227,7 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("StripeCustomers", (string)null);
                 });
 
-            modelBuilder.Entity("Leadsly.Models.Entities.EcsService", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.EcsService", b =>
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
@@ -282,7 +282,7 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("EcsServices");
                 });
 
-            modelBuilder.Entity("Leadsly.Models.Entities.EcsServiceRegistry", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.EcsServiceRegistry", b =>
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
@@ -303,7 +303,7 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("EcsServiceRegistries");
                 });
 
-            modelBuilder.Entity("Leadsly.Models.Entities.EcsTaskDefinition", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.EcsTaskDefinition", b =>
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
@@ -322,7 +322,7 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("EcsTaskDefinitions");
                 });
 
-            modelBuilder.Entity("Leadsly.Models.Entities.Organization", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.Organization", b =>
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
@@ -337,7 +337,7 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("Organizations");
                 });
 
-            modelBuilder.Entity("Leadsly.Models.Entities.OrphanedCloudResource", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.OrphanedCloudResource", b =>
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
@@ -366,7 +366,7 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("OrphanedCloudResources");
                 });
 
-            modelBuilder.Entity("Leadsly.Models.Entities.SocialAccount", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.SocialAccount", b =>
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
@@ -398,7 +398,7 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("SocialAccounts");
                 });
 
-            modelBuilder.Entity("Leadsly.Models.Entities.SocialAccountCloudResource", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.SocialAccountCloudResource", b =>
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
@@ -565,31 +565,31 @@ namespace Leadsly.Infrastructure.Migrations
 
             modelBuilder.Entity("ApplicationUserOrganization", b =>
                 {
-                    b.HasOne("Leadsly.Models.Entities.ApplicationUser", null)
+                    b.HasOne("Leadsly.Application.Model.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("OrganizationUsersId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Leadsly.Models.Entities.Organization", null)
+                    b.HasOne("Leadsly.Application.Model.Entities.Organization", null)
                         .WithMany()
                         .HasForeignKey("OrganizationsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Leadsly.Models.Entities.ApplicationUser", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.ApplicationUser", b =>
                 {
-                    b.HasOne("Leadsly.Models.Entities.Customer_Stripe", "Customer_Stripe")
+                    b.HasOne("Leadsly.Application.Model.Entities.Customer_Stripe", "Customer_Stripe")
                         .WithMany()
                         .HasForeignKey("Customer_StripeId");
 
                     b.Navigation("Customer_Stripe");
                 });
 
-            modelBuilder.Entity("Leadsly.Models.Entities.Campaign", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaign", b =>
                 {
-                    b.HasOne("Leadsly.Models.Entities.ApplicationUser", "ApplicationUser")
+                    b.HasOne("Leadsly.Application.Model.Entities.ApplicationUser", "ApplicationUser")
                         .WithMany("Campaigns")
                         .HasForeignKey("ApplicationUserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -598,29 +598,29 @@ namespace Leadsly.Infrastructure.Migrations
                     b.Navigation("ApplicationUser");
                 });
 
-            modelBuilder.Entity("Leadsly.Models.Entities.CloudMapServiceDiscoveryService", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.CloudMapServiceDiscoveryService", b =>
                 {
-                    b.HasOne("Leadsly.Models.Entities.EcsService", "EcsService")
+                    b.HasOne("Leadsly.Application.Model.Entities.EcsService", "EcsService")
                         .WithOne("CloudMapServiceDiscoveryService")
-                        .HasForeignKey("Leadsly.Models.Entities.CloudMapServiceDiscoveryService", "EcsServiceId")
+                        .HasForeignKey("Leadsly.Application.Model.Entities.CloudMapServiceDiscoveryService", "EcsServiceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("EcsService");
                 });
 
-            modelBuilder.Entity("Leadsly.Models.Entities.EcsService", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.EcsService", b =>
                 {
-                    b.HasOne("Leadsly.Models.Entities.SocialAccountCloudResource", "SocialAccountCloudResource")
+                    b.HasOne("Leadsly.Application.Model.Entities.SocialAccountCloudResource", "SocialAccountCloudResource")
                         .WithOne("EcsService")
-                        .HasForeignKey("Leadsly.Models.Entities.EcsService", "SocialAccountCloudResourceId");
+                        .HasForeignKey("Leadsly.Application.Model.Entities.EcsService", "SocialAccountCloudResourceId");
 
                     b.Navigation("SocialAccountCloudResource");
                 });
 
-            modelBuilder.Entity("Leadsly.Models.Entities.EcsServiceRegistry", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.EcsServiceRegistry", b =>
                 {
-                    b.HasOne("Leadsly.Models.Entities.EcsService", "EcsService")
+                    b.HasOne("Leadsly.Application.Model.Entities.EcsService", "EcsService")
                         .WithMany("EcsServiceRegistries")
                         .HasForeignKey("EcsServiceId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -629,13 +629,13 @@ namespace Leadsly.Infrastructure.Migrations
                     b.Navigation("EcsService");
                 });
 
-            modelBuilder.Entity("Leadsly.Models.Entities.SocialAccount", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.SocialAccount", b =>
                 {
-                    b.HasOne("Leadsly.Models.Entities.ApplicationUser", null)
+                    b.HasOne("Leadsly.Application.Model.Entities.ApplicationUser", null)
                         .WithMany("SocialAccounts")
                         .HasForeignKey("ApplicationUserId");
 
-                    b.HasOne("Leadsly.Models.Entities.ApplicationUser", "User")
+                    b.HasOne("Leadsly.Application.Model.Entities.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -644,23 +644,23 @@ namespace Leadsly.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Leadsly.Models.Entities.SocialAccountCloudResource", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.SocialAccountCloudResource", b =>
                 {
-                    b.HasOne("Leadsly.Models.Entities.CloudMapServiceDiscoveryService", "CloudMapServiceDiscoveryService")
+                    b.HasOne("Leadsly.Application.Model.Entities.CloudMapServiceDiscoveryService", "CloudMapServiceDiscoveryService")
                         .WithMany()
                         .HasForeignKey("CloudMapServiceDiscoveryServiceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Leadsly.Models.Entities.EcsTaskDefinition", "EcsTaskDefinition")
+                    b.HasOne("Leadsly.Application.Model.Entities.EcsTaskDefinition", "EcsTaskDefinition")
                         .WithMany()
                         .HasForeignKey("EcsTaskDefinitionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Leadsly.Models.Entities.SocialAccount", "SocialAccount")
+                    b.HasOne("Leadsly.Application.Model.Entities.SocialAccount", "SocialAccount")
                         .WithOne("SocialAccountCloudResource")
-                        .HasForeignKey("Leadsly.Models.Entities.SocialAccountCloudResource", "SocialAccountId")
+                        .HasForeignKey("Leadsly.Application.Model.Entities.SocialAccountCloudResource", "SocialAccountId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -682,7 +682,7 @@ namespace Leadsly.Infrastructure.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("Leadsly.Models.Entities.ApplicationUser", null)
+                    b.HasOne("Leadsly.Application.Model.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -691,7 +691,7 @@ namespace Leadsly.Infrastructure.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("Leadsly.Models.Entities.ApplicationUser", null)
+                    b.HasOne("Leadsly.Application.Model.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -706,7 +706,7 @@ namespace Leadsly.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Leadsly.Models.Entities.ApplicationUser", null)
+                    b.HasOne("Leadsly.Application.Model.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -715,21 +715,21 @@ namespace Leadsly.Infrastructure.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("Leadsly.Models.Entities.ApplicationUser", null)
+                    b.HasOne("Leadsly.Application.Model.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Leadsly.Models.Entities.ApplicationUser", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.ApplicationUser", b =>
                 {
                     b.Navigation("Campaigns");
 
                     b.Navigation("SocialAccounts");
                 });
 
-            modelBuilder.Entity("Leadsly.Models.Entities.EcsService", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.EcsService", b =>
                 {
                     b.Navigation("CloudMapServiceDiscoveryService")
                         .IsRequired();
@@ -737,13 +737,13 @@ namespace Leadsly.Infrastructure.Migrations
                     b.Navigation("EcsServiceRegistries");
                 });
 
-            modelBuilder.Entity("Leadsly.Models.Entities.SocialAccount", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.SocialAccount", b =>
                 {
                     b.Navigation("SocialAccountCloudResource")
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Leadsly.Models.Entities.SocialAccountCloudResource", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.SocialAccountCloudResource", b =>
                 {
                     b.Navigation("EcsService")
                         .IsRequired();

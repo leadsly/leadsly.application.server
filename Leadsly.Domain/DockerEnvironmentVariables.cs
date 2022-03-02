@@ -8,7 +8,7 @@ namespace Leadsly.Domain
 {
     public enum DockerEnvironmentVariables
     {
-        NONE,
+        None,
         HAL_ID
     }
 }

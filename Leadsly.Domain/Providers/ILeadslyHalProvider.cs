@@ -1,7 +1,7 @@
-﻿using Leadsly.Models;
-using Leadsly.Models.Entities;
-using Leadsly.Models.Responses;
-using Leadsly.Models.ViewModels.Response;
+﻿using Leadsly.Application.Model;
+using Leadsly.Application.Model.Entities;
+using Leadsly.Application.Model.Responses;
+using Leadsly.Application.Model.ViewModels.Response;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,9 +15,9 @@ namespace Leadsly.Domain.Providers
     {
         Task<HalOperationResult<T>> RequestNewWebDriverInstanceAsync<T>(SocialAccountCloudResource cloudResource, CancellationToken ct = default)
             where T : IOperationResponse;        
-        Task<HalOperationResult<T>> ConnectUserAccountAsync<T>(SocialAccountCloudResource resource, Leadsly.Models.Requests.ConnectAccountRequest connect, string webDriverId, CancellationToken ct = default)
+        Task<HalOperationResult<T>> ConnectUserAccountAsync<T>(SocialAccountCloudResource resource, Leadsly.Application.Model.Requests.ConnectAccountRequest connect, CancellationToken ct = default)
             where T : IOperationResponse;        
-        Task<HalOperationResult<T>> EnterTwoFactorAuthAsync<T>(SocialAccountCloudResource resource, Leadsly.Models.Requests.TwoFactorAuthRequest twoFactorAuth, string webDriverId, CancellationToken ct = default)
+        Task<HalOperationResult<T>> EnterTwoFactorAuthAsync<T>(SocialAccountCloudResource resource, Leadsly.Application.Model.Requests.TwoFactorAuthRequest twoFactorAuth, CancellationToken ct = default)
             where T : IOperationResponse;
     }
 }

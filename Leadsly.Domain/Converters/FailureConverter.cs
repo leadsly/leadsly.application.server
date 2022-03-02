@@ -1,5 +1,5 @@
-﻿using Leadsly.Models.ViewModels;
-using Leadsly.Models;
+﻿using Leadsly.Application.Model.ViewModels;
+using Leadsly.Application.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +14,7 @@ namespace Leadsly.Domain.Converters
         {
             return dtos.Select(dto => new FailureViewModel
             {
-                Code = dto.Code,
+                Code = dto.Code ?? Codes.ERROR,
                 Detail = dto.Detail,
                 Reason = dto.Reason
             }).ToList();

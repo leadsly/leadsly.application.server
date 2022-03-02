@@ -1,13 +1,13 @@
 ﻿using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services;
-using Leadsly.Models;
-using Leadsly.Models.Aws.DTOs;
-using Leadsly.Models.Aws.ElasticContainerService;
-using Leadsly.Models.Aws.Route53;
-using Leadsly.Models.Aws.ServiceDiscovery;
-using Leadsly.Models.Entities;
-using Leadsly.Models.Requests;
-using Leadsly.Models.Requests.Hal;
+using Leadsly.Application.Model;
+using Leadsly.Application.Model.Aws.DTOs;
+using Leadsly.Application.Model.Aws.ElasticContainerService;
+using Leadsly.Application.Model.Aws.Route53;
+using Leadsly.Application.Model.Aws.ServiceDiscovery;
+using Leadsly.Application.Model.Entities;
+using Leadsly.Application.Model.Requests;
+using Leadsly.Application.Model.Requests.Hal;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -1205,7 +1205,7 @@ namespace Leadsly.Domain.Providers
                 Subnets = EcsService.Subnets,
                 TaskDefinition = EcsService.TaskDefinition,
                 ServiceName = EcsService.ServiceName,
-                EcsServiceRegistries = EcsService.Registries.Select(r => new Leadsly.Models.Aws.ElasticContainerService.EcsServiceRegistry
+                EcsServiceRegistries = EcsService.Registries.Select(r => new Leadsly.Application.Model.Aws.ElasticContainerService.EcsServiceRegistry
                 {
                     RegistryArn = r.RegistryArn
                 }).ToList()

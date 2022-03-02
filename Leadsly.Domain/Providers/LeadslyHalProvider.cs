@@ -1,8 +1,8 @@
 ﻿using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services;
-using Leadsly.Models;
-using Leadsly.Models.Entities;
-using Leadsly.Models.Requests;
+using Leadsly.Application.Model;
+using Leadsly.Application.Model.Entities;
+using Leadsly.Application.Model.Requests;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -12,13 +12,13 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Leadsly.Models.Requests.Hal;
-using ConnectAccountRequest = Leadsly.Models.Requests.Hal.ConnectAccountRequest;
-using NewWebDriverRequest = Leadsly.Models.Requests.Hal.NewWebDriverRequest;
+using Leadsly.Application.Model.Requests.Hal;
+using ConnectAccountRequest = Leadsly.Application.Model.Requests.Hal.ConnectAccountRequest;
+using NewWebDriverRequest = Leadsly.Application.Model.Requests.Hal.NewWebDriverRequest;
 using Leadsly.Domain.Converters;
-using Leadsly.Models.ViewModels.Response;
-using Leadsly.Models.Responses.Hal;
-using Leadsly.Models.Responses;
+using Leadsly.Application.Model.ViewModels.Response;
+using Leadsly.Application.Model.Responses.Hal;
+using Leadsly.Application.Model.Responses;
 
 namespace Leadsly.Domain.Providers
 {
@@ -96,13 +96,38 @@ namespace Leadsly.Domain.Providers
                 return result;
             }
 
+            result = await DeserializeNewWebDriverResponse<T>(response);
+            
+            if(result.Succeeded == false)
+            {
+                return result;
+            }
+
+            if(result.Value.Succeeded == false)
+            {
+                result.Failures = result.Value.Failures;
+                return result;
+            }
+
+            result.Succeeded = true;
+            return result;
+        }
+
+        private async Task<HalOperationResult<T>> DeserializeNewWebDriverResponse<T>(HttpResponseMessage response)
+            where T : IOperationResponse
+        {
+            HalOperationResult<T> result = new()
+            {
+                Succeeded = false
+            };
+
             try
             {
                 _logger.LogInformation("Attempting to deserialize response.");
                 string content = await response.Content.ReadAsStringAsync();
-                INewWebDriverResponse newWebDriverResponse = JsonConvert.DeserializeObject<NewWebDriverResponse>(content);
-                _logger.LogInformation("Successfully deserialized response into an object");                
-                result.Value = (T)newWebDriverResponse;
+                INewWebDriverResponse resp = JsonConvert.DeserializeObject<NewWebDriverResponse>(content);
+                _logger.LogInformation("Successfully deserialized response into an object");
+                result.Value = (T)resp;
             }
             catch (Exception ex)
             {
@@ -115,11 +140,12 @@ namespace Leadsly.Domain.Providers
                 });
                 return result;
             }
+
             result.Succeeded = true;
             return result;
         }
 
-        public async Task<HalOperationResult<T>> ConnectUserAccountAsync<T>(SocialAccountCloudResource resource, Leadsly.Models.Requests.ConnectAccountRequest connect, string webDriverId, CancellationToken ct = default)
+        public async Task<HalOperationResult<T>> ConnectUserAccountAsync<T>(SocialAccountCloudResource resource, Leadsly.Application.Model.Requests.ConnectAccountRequest connect, CancellationToken ct = default)
             where T : IOperationResponse
         {
             HalOperationResult<T> result = new()
@@ -148,7 +174,6 @@ namespace Leadsly.Domain.Providers
                 RequestUrl = AuthenticateUserSocialAccount,
                 Password = connect.Password,
                 Username = connect.Username,
-                WebDriverId = webDriverId,
                 ConnectAuthUrl = connect.SocialAccountType == SocialAccountType.LinkedIn ? "https://www.LinkedIn.com" : throw new NotImplementedException("Url for non linkedin accounts has not been yet determined")
             };
 
@@ -179,13 +204,40 @@ namespace Leadsly.Domain.Providers
                 return result;
             }
 
+            result = await DeserializeConnectAccountResponse<T>(response);
+
+            // check if deserialization succeeded
+            if(result.Succeeded == false)
+            {
+                return result;
+            }
+
+            // check if response from hal was successfull
+            if(result.Value.Succeeded == false)
+            {
+                result.Failures = result.Value.Failures;
+                return result;
+            }
+
+            result.Succeeded = true;
+            return result;
+        }
+
+        private async Task<HalOperationResult<T>> DeserializeConnectAccountResponse<T>(HttpResponseMessage response)
+            where T : IOperationResponse
+        {
+            HalOperationResult<T> result = new()
+            {
+                Succeeded = false
+            };
+
             try
             {
                 _logger.LogInformation("Attempting to deserialize response.");
                 string content = await response.Content.ReadAsStringAsync();
-                IConnectAccountResponse connectAccountResponse = JsonConvert.DeserializeObject<ConnectAccountResponse>(content);
+                IConnectAccountResponse resp = JsonConvert.DeserializeObject<ConnectAccountResponse>(content);
                 _logger.LogInformation("Successfully deserialized response into an object");
-                result.Value = (T)connectAccountResponse;
+                result.Value = (T)resp;
             }
             catch (Exception ex)
             {
@@ -203,7 +255,7 @@ namespace Leadsly.Domain.Providers
             return result;
         }
 
-        public async Task<HalOperationResult<T>> EnterTwoFactorAuthAsync<T>(SocialAccountCloudResource resource, TwoFactorAuthRequest twoFactorAuth, string webDriverId, CancellationToken ct = default)
+        public async Task<HalOperationResult<T>> EnterTwoFactorAuthAsync<T>(SocialAccountCloudResource resource, TwoFactorAuthRequest twoFactorAuth, CancellationToken ct = default)
             where T : IOperationResponse
         {
             HalOperationResult<T> result = new()
@@ -233,7 +285,7 @@ namespace Leadsly.Domain.Providers
                 NamespaceName = configuration.ServiceDiscoveryConfig.Name,
                 ServiceDiscoveryName = resource.CloudMapServiceDiscoveryService.Name,
                 Code = twoFactorAuth.Code,
-                WebDriverId = webDriverId
+                WindowHandleId = twoFactorAuth.WindowHandleId
             };
 
             return await TwoFactorAuthCodeAsync<T>(request, ct);
@@ -263,13 +315,37 @@ namespace Leadsly.Domain.Providers
                 return result;
             }
 
+            result = await DeserializeEnterTwoFactorAuthCodeResponse<T>(response);
+            if(result.Succeeded == false)
+            {
+                return result;
+            }
+
+            if(result.Value.Succeeded == false)
+            {
+                result.Failures = result.Value.Failures;
+                return result;
+            }
+
+            result.Succeeded = true;
+            return result;
+        }
+
+        private async Task<HalOperationResult<T>> DeserializeEnterTwoFactorAuthCodeResponse<T>(HttpResponseMessage response)
+            where T : IOperationResponse
+        {
+            HalOperationResult<T> result = new()
+            {
+                Succeeded = false
+            };
+
             try
             {
                 _logger.LogInformation("Attempting to deserialize response.");
                 string content = await response.Content.ReadAsStringAsync();
-                IEnterTwoFactorAuthCodeResponse connectAccountResponse = JsonConvert.DeserializeObject<EnterTwoFactorAuthCodeResponse>(content);
+                IEnterTwoFactorAuthCodeResponse resp = JsonConvert.DeserializeObject<EnterTwoFactorAuthCodeResponse>(content);
                 _logger.LogInformation("Successfully deserialized response into an object");
-                result.Value = (T)connectAccountResponse;
+                result.Value = (T)resp;
             }
             catch (Exception ex)
             {

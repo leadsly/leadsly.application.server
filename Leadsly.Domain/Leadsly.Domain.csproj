@@ -19,7 +19,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Leadsly.Models\Leadsly.Models.csproj" />
+      <ProjectReference Include="..\..\Leadsly.Application.Model\Leadsly.Application.Model.csproj" />
     </ItemGroup>
 
 </Project>

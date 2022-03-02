@@ -51,9 +51,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\Leadsly.Application.Model\Leadsly.Application.Model.csproj" />
 		<ProjectReference Include="..\Leadsly.Domain\Leadsly.Domain.csproj" />
 		<ProjectReference Include="..\Leadsly.Infrastructure\Leadsly.Infrastructure.csproj" />
-		<ProjectReference Include="..\Leadsly.Models\Leadsly.Models.csproj" />
 	</ItemGroup>
 
 </Project>

@@ -1,8 +1,8 @@
 ﻿using Amazon.SimpleEmailV2.Model;
 using Leadsly.Domain.Models;
 using Leadsly.Domain.Supervisor;
-using Leadsly.Models.ViewModels;
-using Leadsly.Models.ViewModels.Campaigns;
+using Leadsly.Application.Model.ViewModels;
+using Leadsly.Application.Model.ViewModels.Campaigns;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -13,13 +13,13 @@ using System.Linq;
 using System.Text.Encodings.Web;
 using System.Threading;
 using System.Threading.Tasks;
-using Leadsly.Models.Entities;
+using Leadsly.Application.Model.Entities;
 using Leadsly.Domain;
 using Leadsly.Application.Api.Services;
 using Leadsly.Api;
-using Leadsly.Models.ViewModels.Reports;
+using Leadsly.Application.Model.ViewModels.Reports;
 using System;
-using Leadsly.Models.ViewModels.Reports.ApexCharts;
+using Leadsly.Application.Model.ViewModels.Reports.ApexCharts;
 using Leadsly.Application.Domain.OptionsJsonModels;
 
 namespace Leadsly.Application.Api.Controllers

@@ -1,6 +1,6 @@
 ﻿using Amazon.ServiceDiscovery.Model;
-using Leadsly.Models.Aws;
-using Leadsly.Models.Aws.ServiceDiscovery;
+using Leadsly.Application.Model.Aws;
+using Leadsly.Application.Model.Aws.ServiceDiscovery;
 using System;
 using System.Collections.Generic;
 using System.Linq;

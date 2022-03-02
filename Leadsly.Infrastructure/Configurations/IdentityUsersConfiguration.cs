@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Leadsly.Models.Entities;
+using Leadsly.Application.Model.Entities;
 
 namespace Leadsly.Infrastructure.Configurations
 {

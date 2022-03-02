@@ -1,4 +1,4 @@
-﻿using Leadsly.Models.ViewModels;
+﻿using Leadsly.Application.Model.ViewModels;
 using System.Security.Claims;
 using System.Threading.Tasks;
 

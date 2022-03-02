@@ -1,6 +1,6 @@
-﻿using Leadsly.Models.ViewModels;
-using Leadsly.Models.ViewModels.Cloud;
-using Leadsly.Models;
+﻿using Leadsly.Application.Model.ViewModels;
+using Leadsly.Application.Model.ViewModels.Cloud;
+using Leadsly.Application.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;

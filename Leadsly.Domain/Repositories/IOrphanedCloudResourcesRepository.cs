@@ -1,4 +1,4 @@
-﻿using Leadsly.Models.Entities;
+﻿using Leadsly.Application.Model.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;

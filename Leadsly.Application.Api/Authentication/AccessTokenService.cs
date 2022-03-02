@@ -1,4 +1,4 @@
-﻿using Leadsly.Models.ViewModels;
+﻿using Leadsly.Application.Model.ViewModels;
 using Leadsly.Domain.Models;
 using JWT;
 using JWT.Algorithms;
@@ -13,7 +13,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Leadsly.Domain;
-using Leadsly.Models.Entities;
+using Leadsly.Application.Model.Entities;
 using Leadsly.Application.Api.Authentication.Jwt;
 using Leadsly.Api.Exceptions;
 

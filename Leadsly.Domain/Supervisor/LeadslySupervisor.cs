@@ -1,25 +1,22 @@
-﻿using Leadsly.Models;
-using Leadsly.Models.Entities;
+﻿using Leadsly.Application.Model;
+using Leadsly.Application.Model.Entities;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Leadsly.Domain.Converters;
-using Leadsly.Models.ViewModels.Cloud;
+using Leadsly.Application.Model.ViewModels.Cloud;
 using Microsoft.Extensions.Caching.Memory;
-using Leadsly.Models.Requests;
-using NewWebDriverRequest = Leadsly.Models.Requests.NewWebDriverRequest;
-using Leadsly.Models.ViewModels.Response;
-using Leadsly.Models.Responses.Hal;
-using Leadsly.Models.ViewModels;
-using Leadsly.Models.ViewModels.Response.Hal;
+using Leadsly.Application.Model.Requests;
+using NewWebDriverRequest = Leadsly.Application.Model.Requests.NewWebDriverRequest;
+using Leadsly.Application.Model.ViewModels.Response;
+using Leadsly.Application.Model.Responses.Hal;
+using Leadsly.Application.Model.ViewModels;
 
 namespace Leadsly.Domain.Supervisor
 {
     public partial class Supervisor : ISupervisor
-    {
-        private readonly int WebDriverId_TimeToEvictionInMin_Cache = 3;
-        
+    {        
         public async Task<HalOperationResultViewModel<T>> LeadslyTwoFactorAuthAsync<T>(TwoFactorAuthRequest request, CancellationToken ct = default)
             where T : IOperationResponseViewModel
         {
@@ -43,22 +40,9 @@ namespace Leadsly.Domain.Supervisor
                 return result;
             }
 
-            string webDriverId = string.Empty;
-            if (_memoryCache.TryGetValue(socialAccount.Id, out webDriverId) == false)
-            {
-                _logger.LogError($"Webdriver id does not exist in cache. This means that either previous request to create web driver failed, or this request came in after expiration time of web driver id value, which is set to {WebDriverId_TimeToEvictionInMin_Cache} mins");
-                result.Failures.Add(new()
-                {
-                    Code = Codes.CACHE_ITEM_NOT_FOUND,
-                    Reason = "WebDriverId was not found inside the cache",
-                    Detail = "Tried getting WebDriverId from cache using social account id"
-                });
-                return result;
-            }
-
-            return await EnterTwofactorAuthCodeAsync<T>(socialAccount.SocialAccountCloudResource, request, webDriverId, ct);        
+            return await EnterTwofactorAuthCodeAsync<T>(socialAccount.SocialAccountCloudResource, request, ct);        
         }
-        private async Task<HalOperationResultViewModel<T>> EnterTwofactorAuthCodeAsync<T>(SocialAccountCloudResource resource, TwoFactorAuthRequest request, string webDriverId, CancellationToken ct = default)
+        private async Task<HalOperationResultViewModel<T>> EnterTwofactorAuthCodeAsync<T>(SocialAccountCloudResource resource, TwoFactorAuthRequest request, CancellationToken ct = default)
             where T : IOperationResponseViewModel
         {
             HalOperationResultViewModel<T> result = new()
@@ -66,7 +50,7 @@ namespace Leadsly.Domain.Supervisor
                 Succeeded = false
             };
 
-            HalOperationResult<IEnterTwoFactorAuthCodeResponse> halResult = await _leadslyHalProvider.EnterTwoFactorAuthAsync<IEnterTwoFactorAuthCodeResponse>(resource, request, webDriverId, ct);
+            HalOperationResult<IEnterTwoFactorAuthCodeResponse> halResult = await _leadslyHalProvider.EnterTwoFactorAuthAsync<IEnterTwoFactorAuthCodeResponse>(resource, request, ct);
 
             if(halResult.Succeeded == false)
             {
@@ -101,46 +85,8 @@ namespace Leadsly.Domain.Supervisor
                 return result;
             }
 
-            string webDriverId = string.Empty;
-            if (_memoryCache.TryGetValue(socialAccount.Id, out webDriverId) == false)
-            {
-                _logger.LogError($"Webdriver id does not exist in cache. This means that either previous request to create web driver failed, or this request came in after expiration time of web driver id value, which is set to {WebDriverId_TimeToEvictionInMin_Cache} mins");
-                result.Failures.Add(new()
-                {
-                    Code = Codes.CACHE_ITEM_NOT_FOUND,
-                    Reason = "WebDriverId was not found inside the cache",
-                    Detail = "Tried getting WebDriverId from cache using social account id"
-                });
-                return result;
-            }
-
-            return await AuthenticateUserAsync<T>(socialAccount.SocialAccountCloudResource, request, webDriverId, ct);
+            return await AuthenticateUserAsync<T>(socialAccount.SocialAccountCloudResource, request, "", ct);
             
-        }
-        public async Task<HalOperationResultViewModel<T>> LeadslyRequestNewWebDriverAsync<T>(NewWebDriverRequest request, CancellationToken ct = default)
-            where T : IOperationResponseViewModel
-        {
-            HalOperationResultViewModel<T> result = new()
-            {
-                Succeeded = false                
-            };
-
-            SocialAccountDTO socialAccountDTO = request.GetSocialAccountData();
-
-            SocialAccount socialAccount = await _userProvider.GetRegisteredSocialAccountAsync(socialAccountDTO, ct);
-
-            if (socialAccount == null)
-            {
-                result.Failures.Add(new()
-                {
-                    Code = Codes.NOT_FOUND,
-                    Detail = "No social account found with the given email and user id",
-                    Reason = "No social account found"
-                });
-                return result;
-            }
-
-            return await RequestNewWebDriverAsync<T>(socialAccount, ct);
         }
         public async Task<SetupAccountResultViewModel> LeadslyAccountSetupAsync(SetupAccountViewModel setup, CancellationToken ct = default)
         {
@@ -182,7 +128,7 @@ namespace Leadsly.Domain.Supervisor
                 Succeeded = false
             };
 
-            HalOperationResult<IConnectAccountResponse> halResult = await _leadslyHalProvider.ConnectUserAccountAsync<IConnectAccountResponse>(resource, request, webDriverId, ct);
+            HalOperationResult<IConnectAccountResponse> halResult = await _leadslyHalProvider.ConnectUserAccountAsync<IConnectAccountResponse>(resource, request, ct);
 
             if (halResult.Succeeded == false)
             {
@@ -194,6 +140,33 @@ namespace Leadsly.Domain.Supervisor
             result.Succeeded = true;
             return result;
         }
+        [Obsolete("This method is not longer used. We are not creating new chrome instances per campaign, we're using new tabs instead")]
+        public async Task<HalOperationResultViewModel<T>> LeadslyRequestNewWebDriverAsync<T>(NewWebDriverRequest request, CancellationToken ct = default)
+            where T : IOperationResponseViewModel
+        {
+            HalOperationResultViewModel<T> result = new()
+            {
+                Succeeded = false
+            };
+
+            SocialAccountDTO socialAccountDTO = request.GetSocialAccountData();
+
+            SocialAccount socialAccount = await _userProvider.GetRegisteredSocialAccountAsync(socialAccountDTO, ct);
+
+            if (socialAccount == null)
+            {
+                result.Failures.Add(new()
+                {
+                    Code = Codes.NOT_FOUND,
+                    Detail = "No social account found with the given email and user id",
+                    Reason = "No social account found"
+                });
+                return result;
+            }
+
+            return await RequestNewWebDriverAsync<T>(socialAccount, ct);
+        }
+        [Obsolete("This method is not longer used. We are not creating new chrome instances per campaign, we're using new tabs instead")]
         private async Task<HalOperationResultViewModel<T>> RequestNewWebDriverAsync<T>(SocialAccount socialAccount, CancellationToken ct = default)
             where T : IOperationResponseViewModel
         {
@@ -224,10 +197,9 @@ namespace Leadsly.Domain.Supervisor
             }
 
             result.Value = (T)WebDriverConverter.Convert(halResult.Value);
-            _memoryCache.Set(socialAccount.Id, ((INewWebDriverResponseViewModel)result.Value).WebDriverId, TimeSpan.FromMinutes(WebDriverId_TimeToEvictionInMin_Cache));
             result.Succeeded = true;
             return result;
-        }        
+        }           
         /// <summary>
         /// This methods, handles the set up of user's env in aws.
         /// </summary>

@@ -1,7 +1,7 @@
 ﻿using Leadsly.Domain.Converters;
 using Leadsly.Domain.Repositories;
-using Leadsly.Models;
-using Leadsly.Models.Entities;
+using Leadsly.Application.Model;
+using Leadsly.Application.Model.Entities;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;

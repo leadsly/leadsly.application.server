@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Leadsly.Models.Entities;
+using Leadsly.Application.Model.Entities;
 
 namespace Leadsly.Domain
 {

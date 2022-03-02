@@ -1,4 +1,4 @@
-﻿using Leadsly.Models.Aws.Route53;
+﻿using Leadsly.Application.Model.Aws.Route53;
 using System;
 using System.Collections.Generic;
 using System.Linq;
