@@ -15,8 +15,7 @@ namespace Leadsly.Domain.Supervisor
             ILeadslyHalProvider leadslyHalProvider,
             ISocialAccountRepository socialAccountRepository,
             IMemoryCache memoryCache,
-            IUserProvider userProvider,
-
+            IUserProvider userProvider,            
             ILogger<Supervisor> logger)
         {
             _userManager = userManager;
@@ -31,6 +30,7 @@ namespace Leadsly.Domain.Supervisor
         }
 
         private readonly LeadslyUserManager _userManager;
+        
         private readonly ILeadslyHalProvider _leadslyHalProvider;
         private readonly IUserProvider _userProvider;
         private readonly ISocialAccountRepository _socialAccountRepository;

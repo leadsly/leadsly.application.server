@@ -12,6 +12,7 @@ using NewWebDriverRequest = Leadsly.Application.Model.Requests.NewWebDriverReque
 using Leadsly.Application.Model.ViewModels.Response;
 using Leadsly.Application.Model.Responses.Hal;
 using Leadsly.Application.Model.ViewModels;
+using Leadsly.Application.Model.ViewModels.Response.Hal;
 
 namespace Leadsly.Domain.Supervisor
 {
@@ -20,10 +21,7 @@ namespace Leadsly.Domain.Supervisor
         public async Task<HalOperationResultViewModel<T>> LeadslyTwoFactorAuthAsync<T>(TwoFactorAuthRequest request, CancellationToken ct = default)
             where T : IOperationResponseViewModel
         {
-            HalOperationResultViewModel<T> result = new()
-            {
-                Succeeded = false
-            };
+            HalOperationResultViewModel<T> result = new();
 
             SocialAccountDTO socialAccountDTO = request.GetSocialAccountData();
 
@@ -31,7 +29,7 @@ namespace Leadsly.Domain.Supervisor
 
             if (socialAccount == null)
             {
-                result.Failures.Add(new()
+                result.OperationResults.Failures.Add(new()
                 {
                     Code = Codes.NOT_FOUND,
                     Detail = "No social account found with the given email and user id",
@@ -45,30 +43,24 @@ namespace Leadsly.Domain.Supervisor
         private async Task<HalOperationResultViewModel<T>> EnterTwofactorAuthCodeAsync<T>(SocialAccountCloudResource resource, TwoFactorAuthRequest request, CancellationToken ct = default)
             where T : IOperationResponseViewModel
         {
-            HalOperationResultViewModel<T> result = new()
-            {
-                Succeeded = false
-            };
+            HalOperationResultViewModel<T> result = new();
 
             HalOperationResult<IEnterTwoFactorAuthCodeResponse> halResult = await _leadslyHalProvider.EnterTwoFactorAuthAsync<IEnterTwoFactorAuthCodeResponse>(resource, request, ct);
+            result = HalOperationConverter.Convert<T>(halResult);
 
-            if(halResult.Succeeded == false)
+            if (halResult.Succeeded == false)
             {
-                result.Failures = FailureConverter.ConvertList(halResult.Failures);
                 return result;
             }
 
             result.Value = (T)ConnectAccountConverter.Convert(halResult.Value);
-            result.Succeeded = true;
+            // result.Succeeded = true;
             return result;
         }
         public async Task<HalOperationResultViewModel<T>> LeadslyAuthenticateUserAsync<T>(ConnectAccountRequest request, CancellationToken ct = default)
             where T : IOperationResponseViewModel
         {
-            HalOperationResultViewModel<T> result = new()
-            {
-                Succeeded = false
-            };
+            HalOperationResultViewModel<T> result = new();
 
             SocialAccountDTO socialAccountDTO = request.GetSocialAccountData();
 
@@ -76,7 +68,7 @@ namespace Leadsly.Domain.Supervisor
 
             if (socialAccount == null)
             {
-                result.Failures.Add(new()
+                result.OperationResults.Failures.Add(new()
                 {
                     Code = Codes.NOT_FOUND,
                     Detail = "No social account found with the given email and user id",
@@ -123,32 +115,25 @@ namespace Leadsly.Domain.Supervisor
         private async Task<HalOperationResultViewModel<T>> AuthenticateUserAsync<T>(SocialAccountCloudResource resource, ConnectAccountRequest request, string webDriverId, CancellationToken ct = default)
             where T : IOperationResponseViewModel
         {
-            HalOperationResultViewModel<T> result = new()
-            {
-                Succeeded = false
-            };
+            HalOperationResultViewModel<T> result = new();
 
             HalOperationResult<IConnectAccountResponse> halResult = await _leadslyHalProvider.ConnectUserAccountAsync<IConnectAccountResponse>(resource, request, ct);
+            result = HalOperationConverter.Convert<T>(halResult);
 
             if (halResult.Succeeded == false)
-            {
-                result.Failures = FailureConverter.ConvertList(halResult.Failures);
-                result.ProblemDetails = halResult.ProblemDetails;
+            {   
                 return result;
             }
 
             result.Value = (T)ConnectAccountConverter.Convert(halResult.Value);
-            result.Succeeded = true;
+            // result.OperationResults.Succeeded = true;
             return result;
         }
         [Obsolete("This method is not longer used. We are not creating new chrome instances per campaign, we're using new tabs instead")]
         public async Task<HalOperationResultViewModel<T>> LeadslyRequestNewWebDriverAsync<T>(NewWebDriverRequest request, CancellationToken ct = default)
             where T : IOperationResponseViewModel
         {
-            HalOperationResultViewModel<T> result = new()
-            {
-                Succeeded = false
-            };
+            HalOperationResultViewModel<T> result = new();
 
             SocialAccountDTO socialAccountDTO = request.GetSocialAccountData();
 
@@ -156,7 +141,7 @@ namespace Leadsly.Domain.Supervisor
 
             if (socialAccount == null)
             {
-                result.Failures.Add(new()
+                result.OperationResults.Failures.Add(new()
                 {
                     Code = Codes.NOT_FOUND,
                     Detail = "No social account found with the given email and user id",
@@ -171,15 +156,12 @@ namespace Leadsly.Domain.Supervisor
         private async Task<HalOperationResultViewModel<T>> RequestNewWebDriverAsync<T>(SocialAccount socialAccount, CancellationToken ct = default)
             where T : IOperationResponseViewModel
         {
-            HalOperationResultViewModel<T> result = new()
-            {
-                Succeeded = false
-            };
+            HalOperationResultViewModel<T> result = new();
 
             if (socialAccount.SocialAccountCloudResource == null)
             {
                 _logger.LogError("Social account cloud resource information is missing. Cannot continue without it. It was not retrieved from the database");
-                result.Failures.Add(new()
+                result.OperationResults.Failures.Add(new()
                 {
                     Code = Codes.CONFIGURATION_DATA_MISSING,
                     Reason = "Social account cloud resource data missing",
@@ -190,15 +172,15 @@ namespace Leadsly.Domain.Supervisor
             }
 
             HalOperationResult<INewWebDriverResponse> halResult = await _leadslyHalProvider.RequestNewWebDriverInstanceAsync<INewWebDriverResponse>(socialAccount.SocialAccountCloudResource, ct);
+            result = HalOperationConverter.Convert<T>(halResult);
 
             if (halResult.Succeeded == false)
             {
-                result.Failures = FailureConverter.ConvertList(halResult.Failures);
                 return result;
             }
 
             result.Value = (T)WebDriverConverter.Convert(halResult.Value);
-            result.Succeeded = true;
+            //result.Succeeded = true;
             return result;
         }           
         /// <summary>

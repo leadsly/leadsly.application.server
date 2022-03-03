@@ -40,6 +40,7 @@ using Amazon.Route53;
 using Amazon.RDS.Util;
 using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
 using System.Collections.Generic;
+using Leadsly.Domain.Deserializers;
 
 namespace Leadsly.Application.Api.Configurations
 {
@@ -91,6 +92,10 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<IAwsServiceDiscoveryService, AwsServiceDiscoveryService>();
             services.AddScoped<IAwsRoute53Service, AwsRoute53Service>();
             services.AddScoped<ILeadslyHalApiService, LeadslyHalApiService>();
+
+            services.AddScoped<IDeserializerProvider, DeserializerProvider>();
+            services.AddScoped<IConnectAccountResponseDeserializer, ConnectAccountResponseDeserializer>();
+            services.AddScoped<IEnterTwoFactorAuthCodeResponseDeserializer, EnterTwoFactorAuthCodeResponseDeserializer>();
             
             return services;
         }

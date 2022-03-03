@@ -64,9 +64,9 @@ namespace Leadsly.Application.Api.Controllers
 
             HalOperationResultViewModel<INewWebDriverResponseViewModel> result = await _supervisor.LeadslyRequestNewWebDriverAsync<INewWebDriverResponseViewModel>(request, ct);
 
-            if (result.Succeeded == false)
+            if (result.OperationResults.Succeeded == false)
             {
-                return BadRequest_LeadslyCreateWebDriver(result.Failures);
+                return BadRequest_LeadslyCreateWebDriver(result.OperationResults.Failures);
             }
 
             return Ok(result.Value);
@@ -81,17 +81,17 @@ namespace Leadsly.Application.Api.Controllers
             HalOperationResultViewModel<IConnectAccountResponseViewModel> result = await _supervisor.LeadslyAuthenticateUserAsync<IConnectAccountResponseViewModel>(request, ct);
 
             // problem details from hal
-            if (result.ProblemDetails != null)
+            if (result.OperationResults.ProblemDetails != null)
             {
-                return ProblemDetailsResult(result.ProblemDetails);
+                return ProblemDetailsResult(result.OperationResults.ProblemDetails);
             }
 
-            if (result.Succeeded == false)
+            if (result.OperationResults.Succeeded == false)
             {   
-                return BadRequest_LeadslyAuthenticationError(result.Failures);
+                return BadRequest_LeadslyAuthenticationError(result.OperationResults.Failures);
             }
 
-            return Ok(result.Value);
+            return Ok(result);
         }
 
         [HttpPost("connect/2fa")]
@@ -102,9 +102,9 @@ namespace Leadsly.Application.Api.Controllers
 
             HalOperationResultViewModel<IEnterTwoFactorAuthCodeResponseViewModel> result = await _supervisor.LeadslyTwoFactorAuthAsync<IEnterTwoFactorAuthCodeResponseViewModel>(request, ct);
 
-            if (result.Succeeded == false)
+            if (result.OperationResults.Succeeded == false)
             {
-                return BadRequest_LeadslyTwoFactorAuthError(result.Failures);
+                return BadRequest_LeadslyTwoFactorAuthError(result.OperationResults.Failures);
             }
 
             return Ok(result.Value);

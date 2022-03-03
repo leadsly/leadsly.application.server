@@ -28,15 +28,17 @@ namespace Leadsly.Domain.Providers
 {
     public class LeadslyHalProvider : ILeadslyHalProvider
     {
-        public LeadslyHalProvider(ILeadslyHalApiService leadslyHalApiService, ICloudPlatformRepository cloudPlatformRepository, ILogger<LeadslyHalProvider> logger)
+        public LeadslyHalProvider(ILeadslyHalApiService leadslyHalApiService, ICloudPlatformRepository cloudPlatformRepository, IDeserializerProvider deserializerProvider, ILogger<LeadslyHalProvider> logger)
         {
             _leadslyHalApiService = leadslyHalApiService;
             _cloudPlatformRepository = cloudPlatformRepository;
+            _deserializerProvider = deserializerProvider;
             _logger = logger;
         }
 
         private readonly ICloudPlatformRepository _cloudPlatformRepository;
         private readonly ILeadslyHalApiService _leadslyHalApiService;
+        private readonly IDeserializerProvider _deserializerProvider;
         private readonly ILogger<LeadslyHalProvider> _logger;
         private readonly string RequestNewWebDriverUrl = "api/webdriver";
         private readonly string AuthenticateUserSocialAccount = "api/authentication";
@@ -95,7 +97,7 @@ namespace Leadsly.Domain.Providers
                 response?.Headers.TryGetValues(CustomHeaderKeys.Origin, out values);
                 result.Failures.Add(new()
                 {
-                    Code = Codes.HAL_INTERNAL_SERVER_ERRPR,
+                    Code = Codes.HAL_INTERNAL_SERVER_ERROR,
                     Reason = response?.StatusCode == System.Net.HttpStatusCode.InternalServerError ? await response.Content.ReadAsStringAsync() : "Response to get new webdriver is null",
                     Detail = $"Failed to send new web driver request to hal {values?.FirstOrDefault()}",
                 });                
@@ -204,7 +206,7 @@ namespace Leadsly.Domain.Providers
                 response?.Headers.TryGetValues(CustomHeaderKeys.Origin, out values);
                 result.Failures.Add(new()
                 {
-                    Code = Codes.HAL_INTERNAL_SERVER_ERRPR,
+                    Code = Codes.HAL_INTERNAL_SERVER_ERROR,
                     Reason = response?.StatusCode == System.Net.HttpStatusCode.InternalServerError ? await response.Content.ReadAsStringAsync() : "Response to authenticate user's social account is null",
                     Detail = $"Failed to send authentication request to hal {values?.FirstOrDefault()}",
                 });
@@ -216,7 +218,7 @@ namespace Leadsly.Domain.Providers
                 return await HandleFailedHalResponseAsync<T>(response);
             }
 
-            result = await DeserializeConnectAccountResponse<T>(response);
+            result = await _deserializerProvider.DeserializeConnectAccountResponseAsync<T>(response);
 
             // check if deserialization succeeded
             if(result.Succeeded == false)
@@ -252,38 +254,6 @@ namespace Leadsly.Domain.Providers
                 _logger.LogError(ex, "Failed to deserialize problem details response");
             }
 
-            return result;
-        }
-
-        private async Task<HalOperationResult<T>> DeserializeConnectAccountResponse<T>(HttpResponseMessage response)
-            where T : IOperationResponse
-        {
-            HalOperationResult<T> result = new()
-            {
-                Succeeded = false
-            };
-
-            try
-            {
-                _logger.LogInformation("Attempting to deserialize response.");
-                string content = await response.Content.ReadAsStringAsync();
-                IConnectAccountResponse resp = JsonConvert.DeserializeObject<ConnectAccountResponse>(content);
-                _logger.LogInformation("Successfully deserialized response into an object");
-                result.Value = (T)resp;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to deserialize response from hal");
-                result.Failures.Add(new()
-                {
-                    Code = Codes.DESERIALIZATION_ERROR,
-                    Reason = "Failed to deserialize response",
-                    Detail = "Failed to deserialize response content into an object"
-                });
-                return result;
-            }
-
-            result.Succeeded = true;
             return result;
         }
 
@@ -342,7 +312,7 @@ namespace Leadsly.Domain.Providers
                 response?.Headers.TryGetValues(CustomHeaderKeys.Origin, out values);
                 result.Failures.Add(new()
                 {
-                    Code = Codes.HAL_INTERNAL_SERVER_ERRPR,
+                    Code = Codes.HAL_INTERNAL_SERVER_ERROR,
                     Reason = response?.StatusCode == System.Net.HttpStatusCode.InternalServerError ? await response.Content.ReadAsStringAsync() : "Response to enter user's two factor auth code null",
                     Detail = $"Failed to send two factor auth code request to hal {values?.FirstOrDefault()}",
                 });
@@ -354,7 +324,7 @@ namespace Leadsly.Domain.Providers
                 return await HandleFailedHalResponseAsync<T>(response);
             }
 
-            result = await DeserializeEnterTwoFactorAuthCodeResponse<T>(response);
+            result = await _deserializerProvider.DeserializeEnterTwoFactorAuthCodeResponseAsync<T>(response);
             if(result.Succeeded == false)
             {
                 return result;
@@ -364,36 +334,6 @@ namespace Leadsly.Domain.Providers
             return result;
         }
 
-        private async Task<HalOperationResult<T>> DeserializeEnterTwoFactorAuthCodeResponse<T>(HttpResponseMessage response)
-            where T : IOperationResponse
-        {
-            HalOperationResult<T> result = new()
-            {
-                Succeeded = false
-            };
-
-            try
-            {
-                _logger.LogInformation("Attempting to deserialize response.");
-                string content = await response.Content.ReadAsStringAsync();
-                IEnterTwoFactorAuthCodeResponse resp = JsonConvert.DeserializeObject<EnterTwoFactorAuthCodeResponse>(content);
-                _logger.LogInformation("Successfully deserialized response into an object");
-                result.Value = (T)resp;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to deserialize response from hal");
-                result.Failures.Add(new()
-                {
-                    Code = Codes.DESERIALIZATION_ERROR,
-                    Reason = "Failed to deserialize response",
-                    Detail = "Failed to deserialize response content into an object"
-                });
-                return result;
-            }
-
-            result.Succeeded = true;
-            return result;
-        }
+        
     }
 }
