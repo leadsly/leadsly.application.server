@@ -90,7 +90,8 @@ namespace Leadsly.Domain.Services
                     Username = authRequest.Username,
                     Password = authRequest.Password,
                     ConnectAuthUrl = authRequest.ConnectAuthUrl,
-                    BrowserPurpose = authRequest.BrowserPurpose
+                    BrowserPurpose = authRequest.BrowserPurpose,
+                    AttemptNumber = authRequest.AttemptNumber
                 })
             };
 
@@ -120,7 +121,9 @@ namespace Leadsly.Domain.Services
                 Content = JsonContent.Create(new
                 {
                     WindowHandleId = enterTwoFactorAuthRequest.WindowHandleId,
-                    Code = enterTwoFactorAuthRequest.Code
+                    Code = enterTwoFactorAuthRequest.Code,
+                    BrowserPurpose = enterTwoFactorAuthRequest.BrowserPurpose,
+                    AttemptNumber = enterTwoFactorAuthRequest.AttemptNumber
                 })
             };
 

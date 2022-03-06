@@ -24,10 +24,12 @@ namespace Leadsly.Domain.Converters
                     Failures = FailureConverter.ConvertList(result.Failures),
                     ProblemDetails = result.ProblemDetails,
                     Succeeded = result.Succeeded,
-                    WebDriverError = result.Value?.WebDriverError ?? false,
+                    WebDriverError = result.WebDriverError,
                     WindowHandleId = result.Value?.WindowHandleId,
-                    WindowTabClosed = result.Value?.WindowTabClosed ?? false,
-                    HalId = result.Value?.HalId
+                    TabClosed = result.Value?.TabClosed ?? false,
+                    HalId = result.Value?.HalId,
+                    BrowserClosed = result.Value?.BrowserClosed ?? false,
+                    ShouldOperationBeRetried = result.ShouldOperationBeRetried
                 }                
             };
         }
@@ -42,10 +44,11 @@ namespace Leadsly.Domain.Converters
                     Failures = FailureConverter.ConvertList(result.Failures),
                     ProblemDetails = result.ProblemDetails,
                     Succeeded = result.Succeeded,
-                    WebDriverError = result.Value?.WebDriverError ?? false,
+                    WebDriverError = result.WebDriverError,
                     WindowHandleId = result.Value?.WindowHandleId,
-                    WindowTabClosed = result.Value?.WindowTabClosed ?? false,
-                    HalId = result.Value.HalId
+                    TabClosed = result.Value?.TabClosed ?? false,
+                    HalId = result.Value.HalId,
+                    ShouldOperationBeRetried = result.ShouldOperationBeRetried
                 }
             };
         }
@@ -60,10 +63,11 @@ namespace Leadsly.Domain.Converters
                     Failures = FailureConverter.ConvertList(result.Failures),
                     ProblemDetails = result.ProblemDetails,
                     Succeeded = result.Succeeded,
-                    WebDriverError = result.Value?.WebDriverError ?? false,
+                    WebDriverError = result.WebDriverError,
                     WindowHandleId = result.Value?.WindowHandleId,
-                    WindowTabClosed = result.Value?.WindowTabClosed ?? false,
-                    HalId = result.Value?.HalId
+                    TabClosed = result.Value?.TabClosed ?? false,
+                    HalId = result.Value?.HalId,
+                    ShouldOperationBeRetried = result.ShouldOperationBeRetried
                 }
             };
         }

@@ -182,6 +182,7 @@ namespace Leadsly.Domain.Providers
                 Password = connect.Password,                
                 Username = connect.Username,
                 BrowserPurpose = connect.BrowserPurpose,
+                AttemptNumber = connect.AttemptNumber,
                 ConnectAuthUrl = connect.SocialAccountType == SocialAccountType.LinkedIn ? "https://www.LinkedIn.com" : throw new NotImplementedException("Url for non linkedin accounts has not been yet determined")
             };
 
@@ -288,7 +289,9 @@ namespace Leadsly.Domain.Providers
                 NamespaceName = configuration.ServiceDiscoveryConfig.Name,
                 ServiceDiscoveryName = resource.CloudMapServiceDiscoveryService.Name,
                 Code = twoFactorAuth.Code,
-                WindowHandleId = twoFactorAuth.WindowHandleId
+                WindowHandleId = twoFactorAuth.WindowHandleId,
+                BrowserPurpose = twoFactorAuth.BrowserPurpose,
+                AttemptNumber = twoFactorAuth.AttemptNumber
             };
 
             return await TwoFactorAuthCodeAsync<T>(request, ct);

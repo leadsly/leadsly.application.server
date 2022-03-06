@@ -14,8 +14,9 @@ namespace Leadsly.Domain.Converters
         {
             return new EnterTwoFactorAuthCodeResponseViewModel
             {
-                DidUnexpectedErrorOccur = response.DidUnexpectedErrorOccur,
-                InvalidOrExpiredCode = response.InvalidOrExpiredCode                
+                UnexpectedErrorOccured = response.UnexpectedErrorOccured,
+                InvalidOrExpiredCode = response.InvalidOrExpiredCode,
+                Failures = FailureConverter.ConvertList(response.Failures)
             };
         }
 
@@ -25,7 +26,8 @@ namespace Leadsly.Domain.Converters
             {
                 TwoFactorAuthRequired = response.TwoFactorAuthRequired,
                 TwoFactorAuthType = response.TwoFactorAuthType,
-                UnexpectedErrorOccured = response.UnexpectedErrorOccured                
+                UnexpectedErrorOccured = response.UnexpectedErrorOccured,
+                Failures = FailureConverter.ConvertList(response.Failures)
             };
         }
 
