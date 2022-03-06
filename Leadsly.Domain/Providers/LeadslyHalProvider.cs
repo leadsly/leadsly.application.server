@@ -179,8 +179,9 @@ namespace Leadsly.Domain.Providers
                 NamespaceName = configuration.ServiceDiscoveryConfig.Name,
                 ServiceDiscoveryName = resource.CloudMapServiceDiscoveryService.Name,
                 RequestUrl = AuthenticateUserSocialAccount,
-                Password = connect.Password,
+                Password = connect.Password,                
                 Username = connect.Username,
+                BrowserPurpose = connect.BrowserPurpose,
                 ConnectAuthUrl = connect.SocialAccountType == SocialAccountType.LinkedIn ? "https://www.LinkedIn.com" : throw new NotImplementedException("Url for non linkedin accounts has not been yet determined")
             };
 

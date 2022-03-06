@@ -126,7 +126,6 @@ namespace Leadsly.Domain.Supervisor
             }
 
             result.Value = (T)ConnectAccountConverter.Convert(halResult.Value);
-            // result.OperationResults.Succeeded = true;
             return result;
         }
         [Obsolete("This method is not longer used. We are not creating new chrome instances per campaign, we're using new tabs instead")]
