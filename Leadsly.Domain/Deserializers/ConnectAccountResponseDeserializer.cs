@@ -35,9 +35,7 @@ namespace Leadsly.Domain.Deserializers
                 string content = await response.Content.ReadAsStringAsync();
                 IConnectAccountResponse resp = JsonConvert.DeserializeObject<ConnectAccountResponse>(content);
                 response.Headers.TryGetValues(CustomHeaderKeys.Origin, out IEnumerable<string> customOriginHeaders);
-                resp.HalId = customOriginHeaders?.FirstOrDefault();
-                result.ShouldOperationBeRetried = resp.ShouldOperationBeRetried;
-                result.WebDriverError = resp.WebDriverError;
+                resp.OperationInformation.HalId = customOriginHeaders?.FirstOrDefault();
                 _logger.LogInformation("Successfully deserialized response into an object");
                 result.Value = (T)resp;
             }

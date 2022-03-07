@@ -34,7 +34,7 @@ namespace Leadsly.Domain.Deserializers
                 string content = await response.Content.ReadAsStringAsync();
                 IEnterTwoFactorAuthCodeResponse resp = JsonConvert.DeserializeObject<EnterTwoFactorAuthCodeResponse>(content);
                 response.Headers.TryGetValues(CustomHeaderKeys.Origin, out IEnumerable<string> customOriginHeaders);
-                resp.HalId = customOriginHeaders?.FirstOrDefault();
+                resp.OperationInformation.HalId = customOriginHeaders?.FirstOrDefault();
                 _logger.LogInformation("Successfully deserialized response into an object");
                 result.Value = (T)resp;
             }

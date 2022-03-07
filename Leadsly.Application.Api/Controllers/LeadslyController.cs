@@ -107,7 +107,7 @@ namespace Leadsly.Application.Api.Controllers
                 return BadRequest_LeadslyTwoFactorAuthError(result.OperationResults.Failures);
             }
 
-            return Ok(result.Value);
+            return Ok(result);
         }
 
     }

@@ -16,7 +16,7 @@ namespace Leadsly.Domain.Converters
             {
                 UnexpectedErrorOccured = response.UnexpectedErrorOccured,
                 InvalidOrExpiredCode = response.InvalidOrExpiredCode,
-                Failures = FailureConverter.ConvertList(response.Failures)
+                Failures = FailureConverter.ConvertList(response.OperationInformation.Failures)
             };
         }
 
@@ -27,7 +27,7 @@ namespace Leadsly.Domain.Converters
                 TwoFactorAuthRequired = response.TwoFactorAuthRequired,
                 TwoFactorAuthType = response.TwoFactorAuthType,
                 UnexpectedErrorOccured = response.UnexpectedErrorOccured,
-                Failures = FailureConverter.ConvertList(response.Failures)
+                Failures = FailureConverter.ConvertList(response.OperationInformation.Failures)
             };
         }
 

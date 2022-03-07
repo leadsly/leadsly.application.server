@@ -23,7 +23,12 @@ namespace Leadsly.Domain.Supervisor
         {
             HalOperationResultViewModel<T> result = new();
 
-            SocialAccountDTO socialAccountDTO = request.GetSocialAccountData();
+            SocialAccountDTO socialAccountDTO = new()
+            {
+                AccountType = request.SocialAccountType,
+                UserId = request.UserId,
+                Username = request.Username
+            };
 
             SocialAccount socialAccount = await _userProvider.GetRegisteredSocialAccountAsync(socialAccountDTO, ct);
 
@@ -62,7 +67,12 @@ namespace Leadsly.Domain.Supervisor
         {
             HalOperationResultViewModel<T> result = new();
 
-            SocialAccountDTO socialAccountDTO = request.GetSocialAccountData();
+            SocialAccountDTO socialAccountDTO = new()
+            {
+                AccountType = request.SocialAccountType,
+                UserId = request.UserId,
+                Username = request.Username
+            };
 
             SocialAccount socialAccount = await _userProvider.GetRegisteredSocialAccountAsync(socialAccountDTO, ct);
 
@@ -134,7 +144,12 @@ namespace Leadsly.Domain.Supervisor
         {
             HalOperationResultViewModel<T> result = new();
 
-            SocialAccountDTO socialAccountDTO = request.GetSocialAccountData();
+            SocialAccountDTO socialAccountDTO = new()
+            {
+                AccountType = request.SocialAccountType,
+                UserId = request.UserId,
+                Username = request.Username
+            };
 
             SocialAccount socialAccount = await _userProvider.GetRegisteredSocialAccountAsync(socialAccountDTO, ct);
 
