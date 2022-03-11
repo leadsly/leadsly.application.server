@@ -24,5 +24,7 @@ namespace Leadsly.Domain.Supervisor
             where T : IOperationResponseViewModel;
         Task<HalOperationResultViewModel<T>> LeadslyTwoFactorAuthAsync<T>(TwoFactorAuthRequest request, CancellationToken ct = default)
             where T : IOperationResponseViewModel;
+
+        Task ProcessAllCampaignsAsync();
     }
 }

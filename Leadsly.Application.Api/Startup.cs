@@ -11,6 +11,11 @@ using Microsoft.AspNetCore.Http;
 using Leadsly.Domain;
 using Leadsly.Api.Middlewares;
 using Leadsly.Application.Api.Configurations;
+using Hangfire;
+using Leadsly.Domain.OptionsJsonModels;
+using Amazon.RDS.Util;
+using Leadsly.Application.Model;
+using Leadsly.Domain.Supervisor;
 
 namespace Leadsly.Application.Api
 {
@@ -28,16 +33,24 @@ namespace Leadsly.Application.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            PostgresOptions postgresOptions = new();
+            Configuration.GetSection(nameof(PostgresOptions)).Bind(postgresOptions);
+            string authToken = RDSAuthTokenGenerator.GenerateAuthToken(postgresOptions.Host, postgresOptions.Port, postgresOptions.UserId);
+            string defaultConnection = $"Host={postgresOptions.Host};User Id={postgresOptions.UserId};Password={authToken};Database={postgresOptions.Database}";
+
             services.AddControllers()
                     .AddJsonOptionsConfiguration();
 
-            services.AddConnectionProviders(Configuration, Environment)
+            services.AddConnectionProviders(Configuration, Environment, defaultConnection)
                     .AddJsonWebTokenConfiguration(Configuration)
                     .AddAuthorizationConfiguration()
                     .AddCorsConfiguration(Configuration)
                     .AddApiBehaviorOptionsConfiguration()
                     .AddSupervisorConfiguration()
-                    .AddLeadslyServices(Configuration)
+                    .AddLeadslyProviders()
+                    .AddLeadslyServices()
+                    .AddLeadslyDependencies(Configuration)
+                    .AddHangfireConfig(defaultConnection)
                     .AddIdentityConfiguration(Configuration)
                     .AddHttpContextAccessor()
                     .AddEmailServiceConfiguration()
@@ -78,12 +91,20 @@ namespace Leadsly.Application.Api
 
             app.UseSerilogRequestLogging();
 
+            app.UseHangfireDashboard();
+
             app.SeedDatabase();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
+
+            //*************************** Daily Jobs ***************************
+            ////////////////////////////////////////////////////////////////////
+
+            // RecurringJob.AddOrUpdate<ISupervisor>("activeCampaigns", (x) => x.ProcessAllCampaignsAsync(), Cron.Daily(6, 40));
+            var jobId = BackgroundJob.Enqueue<ISupervisor>((x) => x.ProcessAllCampaignsAsync());
         }
     }
 }

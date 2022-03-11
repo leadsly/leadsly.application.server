@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Leadsly.Application.Model.Entities;
 using Leadsly.Infrastructure.Configurations;
+using Leadsly.Application.Model.Entities.Campaigns;
 
 namespace Leadsly.Infrastructure
 {

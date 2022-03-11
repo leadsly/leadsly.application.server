@@ -41,11 +41,32 @@ using Amazon.RDS.Util;
 using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
 using System.Collections.Generic;
 using Leadsly.Domain.Deserializers;
+using Hangfire;
+using Hangfire.PostgreSql;
 
 namespace Leadsly.Application.Api.Configurations
 {
     public static class ConfigureServices
     {
+        public static IServiceCollection AddConnectionProviders(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env, string defaultConnection)
+        {
+            Log.Information("Configuring default connection string and database context.");
+
+            services.AddDbContext<DatabaseContext>(options =>
+            {
+                options.UseNpgsql(defaultConnection);
+                if (env.IsDevelopment())
+                {
+                    Log.Information("Enabling SQL sensitive data logging.");
+                    options.EnableSensitiveDataLogging(env.IsDevelopment());
+                }
+            }, ServiceLifetime.Scoped);
+
+            services.AddSingleton(new DbInfo(defaultConnection));
+
+            return services;
+        }
+
         public static IServiceCollection AddSupervisorConfiguration(this IServiceCollection services)
         {
             Log.Information("Registering supervisor services.");
@@ -64,13 +85,27 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ICloudPlatformRepository, CloudPlatformRepository>();
             services.AddScoped<ISocialAccountRepository, SocialAccountRepository>();
             services.AddScoped<IOrphanedCloudResourcesRepository, OrphanedCloudResourcesRepository>();
+            services.AddScoped<ICampaignRepository, CampaignRepository>();
 
             return services;
         }
 
-        public static IServiceCollection AddLeadslyServices(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddHangfireConfig(this IServiceCollection services, string defaultConnection)
         {
-            Log.Information("Registering leadsly services.");
+            Log.Information("Registering hangfire services.");
+            
+            services.AddHangfire(config =>
+            {
+                config.UsePostgreSqlStorage(defaultConnection);
+                config.UseRecommendedSerializerSettings();                
+            }).AddHangfireServer();
+
+            return services;
+        }
+
+        public static IServiceCollection AddLeadslyDependencies(this IServiceCollection services, IConfiguration configuration)
+        {
+            Log.Information("Registering leadsly dependencies.");
 
             //LeadslyBotApiOptions options = new LeadslyBotApiOptions();
             //configuration.GetSection(nameof(LeadslyBotApiOptions)).Bind(options);
@@ -84,19 +119,33 @@ namespace Leadsly.Application.Api.Configurations
 
             services.AddScoped(typeof(AmazonECSClient));
             services.AddScoped(typeof(AmazonServiceDiscoveryClient));
-            services.AddScoped(typeof(AmazonRoute53Client));
-            services.AddScoped<ICloudPlatformProvider, CloudPlatformProvider>();            
+            services.AddScoped(typeof(AmazonRoute53Client));            
+            services.AddScoped<IConnectAccountResponseDeserializer, ConnectAccountResponseDeserializer>();
+            services.AddScoped<IEnterTwoFactorAuthCodeResponseDeserializer, EnterTwoFactorAuthCodeResponseDeserializer>();
+            
+            return services;
+        }
+        public static IServiceCollection AddLeadslyProviders(this IServiceCollection services)
+        {
+            Log.Information("Registering leadsly providers.");
+
+            services.AddScoped<IDeserializerProvider, DeserializerProvider>();
+            services.AddScoped<ICloudPlatformProvider, CloudPlatformProvider>();
             services.AddScoped<IUserProvider, UserProvider>();
             services.AddScoped<ILeadslyHalProvider, LeadslyHalProvider>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddLeadslyServices(this IServiceCollection services)
+        {
+            Log.Information("Registering leadsly services.");
+
             services.AddScoped<IAwsElasticContainerService, AwsElasticContainerService>();
             services.AddScoped<IAwsServiceDiscoveryService, AwsServiceDiscoveryService>();
             services.AddScoped<IAwsRoute53Service, AwsRoute53Service>();
             services.AddScoped<ILeadslyHalApiService, LeadslyHalApiService>();
 
-            services.AddScoped<IDeserializerProvider, DeserializerProvider>();
-            services.AddScoped<IConnectAccountResponseDeserializer, ConnectAccountResponseDeserializer>();
-            services.AddScoped<IEnterTwoFactorAuthCodeResponseDeserializer, EnterTwoFactorAuthCodeResponseDeserializer>();
-            
             return services;
         }
 
@@ -156,31 +205,7 @@ namespace Leadsly.Application.Api.Configurations
 
             return services;
         }
-
-        public static IServiceCollection AddConnectionProviders(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env)
-        {
-            Log.Information("Configuring default connection string and database context.");
-
-            PostgresOptions postgresOptions = new PostgresOptions();
-            configuration.GetSection(nameof(PostgresOptions)).Bind(postgresOptions);
-            string authToken = RDSAuthTokenGenerator.GenerateAuthToken(postgresOptions.Host, postgresOptions.Port, postgresOptions.UserId);
-            string defaultConnection = $"Host={postgresOptions.Host};User Id={postgresOptions.UserId};Password={authToken};Database={postgresOptions.Database}";
-
-            services.AddDbContext<DatabaseContext>(options =>
-            {
-                options.UseNpgsql(defaultConnection);
-                if (env.IsDevelopment())
-                {
-                    Log.Information("Enabling SQL sensitive data logging.");
-                    options.EnableSensitiveDataLogging(env.IsDevelopment());
-                }
-            }, ServiceLifetime.Scoped);
-
-            services.AddSingleton(new DbInfo(defaultConnection));
-
-            return services;
-        }
-
+        
         public static IServiceCollection AddIdentityConfiguration(this IServiceCollection services, IConfiguration configuration)
         {
             Log.Information("Adding identity services.");

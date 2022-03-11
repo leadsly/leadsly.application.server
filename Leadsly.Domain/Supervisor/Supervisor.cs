@@ -15,6 +15,7 @@ namespace Leadsly.Domain.Supervisor
             ILeadslyHalProvider leadslyHalProvider,
             ISocialAccountRepository socialAccountRepository,
             IMemoryCache memoryCache,
+            ICampaignRepository campaignRepository,
             IUserProvider userProvider,            
             ILogger<Supervisor> logger)
         {
@@ -25,13 +26,15 @@ namespace Leadsly.Domain.Supervisor
             _leadslyHalProvider = leadslyHalProvider;
             _socialAccountRepository = socialAccountRepository;
             _memoryCache = memoryCache;
-            _userProvider = userProvider;            
+            _userProvider = userProvider;
+            _campaignRepository = campaignRepository;
             _logger = logger;            
         }
 
         private readonly LeadslyUserManager _userManager;
         
         private readonly ILeadslyHalProvider _leadslyHalProvider;
+        private readonly ICampaignRepository _campaignRepository;
         private readonly IUserProvider _userProvider;
         private readonly ISocialAccountRepository _socialAccountRepository;
         private readonly ICloudPlatformProvider _cloudPlatformProvider;
