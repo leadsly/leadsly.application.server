@@ -76,6 +76,15 @@ namespace Leadsly.Application.Api.Configurations
             return services;
         }
 
+        public static IServiceCollection AddRabbitMQConfiguration(this IServiceCollection services, IConfiguration configuration)
+        {
+            Log.Information("Registering rabbit mq services configuration.");
+
+            services.Configure<RabbitMQConfigOptions>(options => configuration.GetSection(nameof(RabbitMQConfigOptions)).Bind(options));
+
+            return services;
+        }
+
         public static IServiceCollection AddRepositories(this IServiceCollection services)
         {
             Log.Information("Registering repository services.");
@@ -86,6 +95,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ISocialAccountRepository, SocialAccountRepository>();
             services.AddScoped<IOrphanedCloudResourcesRepository, OrphanedCloudResourcesRepository>();
             services.AddScoped<ICampaignRepository, CampaignRepository>();
+            services.AddScoped<IRabbitMQRepository, RabbitMQRepository>();
 
             return services;
         }
