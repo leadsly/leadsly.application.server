@@ -92,7 +92,7 @@ namespace Leadsly.Application.Api
 
             app.UseSerilogRequestLogging();
 
-            app.UseHangfireDashboard();
+            app.UseHangfireDashboard("/hangfire-leadsly-server");
 
             app.SeedDatabase();
 

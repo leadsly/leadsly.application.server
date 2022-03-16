@@ -1,5 +1,8 @@
-﻿using Leadsly.Application.Model.Entities.Campaigns;
+﻿using Leadsly.Application.Model.Campaigns;
+using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Application.Model.RabbitMQ;
+using Leadsly.Application.Model.WebDriver;
+using Newtonsoft.Json;
 using RabbitMQ.Client;
 using System;
 using System.Collections.Generic;
@@ -51,7 +54,14 @@ namespace Leadsly.Domain.Supervisor
                             routingKey = routingKey.Replace("{purpose}", "follow-up-messages");
                             channel.QueueBind($"{halId}.follow.up.message", exchangeName, routingKey, null);
 
-                            string message = "Hello World!";
+                            FollowUpMessagesBody messageBody = new()
+                            {
+                                ChromeProfileName = Guid.NewGuid().ToString(),
+                                PageUrl = "https://linkedin.com/messaging"                             
+                                
+                            };
+                            
+                            string message = JsonConvert.SerializeObject(messageBody);
                             var body = Encoding.UTF8.GetBytes(message);
                             // enqueue all phases
                             Publish(channel, exchangeName, routingKey, body);
@@ -67,7 +77,10 @@ namespace Leadsly.Domain.Supervisor
 
         private void Publish(IModel channel, string exchange, string routingKey, byte[] body)
         {
-            channel.BasicPublish(exchange: exchange, routingKey: routingKey, basicProperties: null, body: body);
+            IBasicProperties basicProperties = channel.CreateBasicProperties();
+            basicProperties.MessageId = Guid.NewGuid().ToString();
+
+            channel.BasicPublish(exchange: exchange, routingKey: routingKey, basicProperties: basicProperties, body: body);
         }
     }
 }

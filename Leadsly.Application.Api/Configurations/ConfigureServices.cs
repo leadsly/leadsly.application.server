@@ -103,7 +103,9 @@ namespace Leadsly.Application.Api.Configurations
         public static IServiceCollection AddHangfireConfig(this IServiceCollection services, string defaultConnection)
         {
             Log.Information("Registering hangfire services.");
-            
+
+            GlobalJobFilters.Filters.Add(new AutomaticRetryAttribute { Attempts = 0 });
+
             services.AddHangfire(config =>
             {
                 config.UsePostgreSqlStorage(defaultConnection);
