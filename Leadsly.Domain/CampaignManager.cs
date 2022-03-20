@@ -15,36 +15,36 @@ namespace Leadsly.Domain
 {
     public class CampaignManager : ICampaignManager
     {
-        public CampaignManager(ILogger<CampaignManager> logger, IRabbitMQRepository rabbitMQRepository, ICampaignRepository campaignRepository)
+        public CampaignManager(ILogger<CampaignManager> logger)
         {
             _logger = logger;
-            _rabbitMQRepository = rabbitMQRepository;
-            _campaignRepository = campaignRepository;
         }
 
         private readonly ILogger<CampaignManager> _logger;
-        private readonly IRabbitMQRepository _rabbitMQRepository;
-        private readonly ICampaignRepository _campaignRepository;
 
-        public async Task ProcessAllActiveCampaignsAsync()
+        public void ProcessAllActiveCampaigns()
         {
-            List<Campaign> activeCampaigns = await _campaignRepository.GetAllActiveAsync();
+            TriggerProspectListsPhase();
 
-            RabbitMQOptions options = _rabbitMQRepository.GetRabbitMQConfigOptions();
+            TriggerConstantCampaignPhaseMessages();
 
-            string prospectListJob = TriggerProspectLists(activeCampaigns);
-
-
+            TriggerConnectionWithdrawPhase();
         }
 
-        private string TriggerProspectLists(List<Campaign> activeCampaigns)
+        private static void TriggerConstantCampaignPhaseMessages()
         {
-            List<string> prospectPhaseIds = new();
-
-            return BackgroundJob.Enqueue<ICampaignPhaseProducerFacade>(x => x.PublishProspectListMessagesPhase(prospectPhaseIds));
+            BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishConstantCampaignPhaseMessagesAsync());
         }
 
+        private static void TriggerProspectListsPhase()
+        {
+            BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishProspectListPhaseMessagesAsync());
+        }
 
-        
+        private static void TriggerConnectionWithdrawPhase()
+        {
+            BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishConnectionWithdrawPhaseMessages());
+        }
+
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Leadsly.Application.Model.Entities;
 using Leadsly.Infrastructure.Configurations;
 using Leadsly.Application.Model.Entities.Campaigns;
+using Leadsly.Application.Model.Entities.Campaigns.Phases;
 
 namespace Leadsly.Infrastructure
 {
@@ -27,7 +28,11 @@ namespace Leadsly.Infrastructure
         public DbSet<OrphanedCloudResource> OrphanedCloudResources { get; set; }
         public DbSet<Organization> Organizations { get; set; }
         public DbSet<Campaign> Campaigns { get; set; }
-        
+        public DbSet<ProspectListPhase> ProspectListPhases { get; set; }
+        public DbSet<ConnectionWithdrawPhase> ConnectionWithdrawPhases { get; set; }
+        public DbSet<SendConnectionRequestPhase> SendConnectionRequestPhases { get; set; }
+        public DbSet<SendEmailInvitePhase> SendEmailInvitePhases { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

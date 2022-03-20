@@ -31,7 +31,7 @@ namespace Leadsly.Domain.Providers
 {
     public class LeadslyHalProvider : ILeadslyHalProvider
     {
-        public LeadslyHalProvider(ILeadslyHalApiService leadslyHalApiService, ICloudPlatformRepository cloudPlatformRepository, IDeserializerFacade deserializerFacade, ILogger<LeadslyHalProvider> logger)
+        public LeadslyHalProvider(ILeadslyHalApiService leadslyHalApiService, ICloudPlatformRepository cloudPlatformRepository, ISerializerFacade deserializerFacade, ILogger<LeadslyHalProvider> logger)
         {
             _leadslyHalApiService = leadslyHalApiService;
             _cloudPlatformRepository = cloudPlatformRepository;
@@ -41,7 +41,7 @@ namespace Leadsly.Domain.Providers
 
         private readonly ICloudPlatformRepository _cloudPlatformRepository;
         private readonly ILeadslyHalApiService _leadslyHalApiService;
-        private readonly IDeserializerFacade _deserializerFacade;
+        private readonly ISerializerFacade _deserializerFacade;
         private readonly ILogger<LeadslyHalProvider> _logger;
         private readonly string RequestNewWebDriverUrl = "api/webdriver";
         private readonly string AuthenticateUserSocialAccount = "api/authentication";

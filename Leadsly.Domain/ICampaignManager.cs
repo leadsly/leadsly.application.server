@@ -8,6 +8,6 @@ namespace Leadsly.Domain
 {
     public interface ICampaignManager
     {
-        Task ProcessAllActiveCampaignsAsync();
+        void ProcessAllActiveCampaigns();
     }
 }

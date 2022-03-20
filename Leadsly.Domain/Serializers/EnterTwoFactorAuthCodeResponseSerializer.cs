@@ -1,6 +1,7 @@
 ﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Responses;
 using Leadsly.Application.Model.Responses.Hal;
+using Leadsly.Domain.Serializers.Interfaces;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -10,16 +11,16 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.Deserializers
+namespace Leadsly.Domain.Serializers
 {
-    public class EnterTwoFactorAuthCodeResponseDeserializer : IEnterTwoFactorAuthCodeResponseDeserializer
+    public class EnterTwoFactorAuthCodeResponseSerializer : IEnterTwoFactorAuthCodeResponseSerializer
     {
-        public EnterTwoFactorAuthCodeResponseDeserializer(ILogger<EnterTwoFactorAuthCodeResponseDeserializer> logger)
+        public EnterTwoFactorAuthCodeResponseSerializer(ILogger<EnterTwoFactorAuthCodeResponseSerializer> logger)
         {
             _logger = logger;
         }
 
-        private readonly ILogger<EnterTwoFactorAuthCodeResponseDeserializer> _logger;
+        private readonly ILogger<EnterTwoFactorAuthCodeResponseSerializer> _logger;
         public async Task<HalOperationResult<T>> DeserializeAsync<T>(HttpResponseMessage response)
             where T : IOperationResponse
         {

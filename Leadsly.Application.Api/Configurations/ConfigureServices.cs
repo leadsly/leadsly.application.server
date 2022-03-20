@@ -37,13 +37,14 @@ using Leadsly.Domain.OptionsJsonModels;
 using Leadsly.Application.Domain.OptionsJsonModels;
 using Amazon.ServiceDiscovery;
 using Amazon.Route53;
-using Leadsly.Domain.Deserializers;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Leadsly.Domain.Services.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Facades;
 using Leadsly.Domain.Facades.Interfaces;
+using Leadsly.Domain.Serializers.Interfaces;
+using Leadsly.Domain.Serializers;
 
 namespace Leadsly.Application.Api.Configurations
 {
@@ -133,8 +134,9 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped(typeof(AmazonECSClient));
             services.AddScoped(typeof(AmazonServiceDiscoveryClient));
             services.AddScoped(typeof(AmazonRoute53Client));            
-            services.AddScoped<IConnectAccountResponseDeserializer, ConnectAccountResponseDeserializer>();
-            services.AddScoped<IEnterTwoFactorAuthCodeResponseDeserializer, EnterTwoFactorAuthCodeResponseDeserializer>();
+            services.AddScoped<IConnectAccountResponseSerializer, ConnectAccountResponseSerializer>();
+            services.AddScoped<IEnterTwoFactorAuthCodeResponseSerializer, EnterTwoFactorAuthCodeResponseSerializer>();
+            services.AddScoped<ICampaignPhaseSerializer, CampaignPhaseSerializer>();
             
             return services;
         }
@@ -145,6 +147,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ICloudPlatformProvider, CloudPlatformProvider>();
             services.AddScoped<IUserProvider, UserProvider>();
             services.AddScoped<ILeadslyHalProvider, LeadslyHalProvider>();
+            services.AddScoped<ICampaignPhaseProvider, CampaignPhaseProvider>();
 
             return services;
         }
@@ -153,8 +156,8 @@ namespace Leadsly.Application.Api.Configurations
         {
             Log.Information("Registering facades services.");
 
-            services.AddScoped<IDeserializerFacade, DeserializerFacade>();
-
+            services.AddScoped<ISerializerFacade, SerializerFacade>();
+            
             return services;
         }
 
@@ -168,6 +171,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ILeadslyHalApiService, LeadslyHalApiService>();
             services.AddSingleton<IProducingService, ProducingService>();
             services.AddSingleton<ICampaignManager, CampaignManager>();
+            services.AddSingleton<ICampaignPhaseProducer, CampaignPhaseProducer>();
 
             return services;
         }

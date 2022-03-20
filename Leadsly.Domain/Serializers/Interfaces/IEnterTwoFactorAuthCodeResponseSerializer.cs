@@ -7,11 +7,11 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.Deserializers
+namespace Leadsly.Domain.Serializers.Interfaces
 {
-    public interface IConnectAccountResponseDeserializer
+    public interface IEnterTwoFactorAuthCodeResponseSerializer
     {
         Task<HalOperationResult<T>> DeserializeAsync<T>(HttpResponseMessage response)
             where T : IOperationResponse;
     }
-}
+}   
