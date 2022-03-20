@@ -2,6 +2,7 @@
 using Amazon.ServiceDiscovery.Model;
 using Leadsly.Application.Model.Aws;
 using Leadsly.Application.Model.Aws.ServiceDiscovery;
+using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;

@@ -3,6 +3,8 @@ using Leadsly.Domain.Services;
 using Leadsly.Domain.Providers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Caching.Memory;
+using Leadsly.Domain.Services.Interfaces;
+using Leadsly.Domain.Providers.Interfaces;
 
 namespace Leadsly.Domain.Supervisor
 {

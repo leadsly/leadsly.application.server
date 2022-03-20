@@ -1,6 +1,7 @@
 ﻿using Amazon.Route53;
 using Amazon.Route53.Model;
 using Leadsly.Application.Model.Aws.Route53;
+using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;

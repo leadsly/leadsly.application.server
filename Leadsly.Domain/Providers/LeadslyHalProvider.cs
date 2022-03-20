@@ -23,22 +23,25 @@ using Microsoft.AspNetCore.Mvc;
 using Leadsly.Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
 using System.Net.Http.Formatting;
+using Leadsly.Domain.Services.Interfaces;
+using Leadsly.Domain.Providers.Interfaces;
+using Leadsly.Domain.Facades.Interfaces;
 
 namespace Leadsly.Domain.Providers
 {
     public class LeadslyHalProvider : ILeadslyHalProvider
     {
-        public LeadslyHalProvider(ILeadslyHalApiService leadslyHalApiService, ICloudPlatformRepository cloudPlatformRepository, IDeserializerProvider deserializerProvider, ILogger<LeadslyHalProvider> logger)
+        public LeadslyHalProvider(ILeadslyHalApiService leadslyHalApiService, ICloudPlatformRepository cloudPlatformRepository, IDeserializerFacade deserializerFacade, ILogger<LeadslyHalProvider> logger)
         {
             _leadslyHalApiService = leadslyHalApiService;
             _cloudPlatformRepository = cloudPlatformRepository;
-            _deserializerProvider = deserializerProvider;
+            _deserializerFacade = deserializerFacade;
             _logger = logger;
         }
 
         private readonly ICloudPlatformRepository _cloudPlatformRepository;
         private readonly ILeadslyHalApiService _leadslyHalApiService;
-        private readonly IDeserializerProvider _deserializerProvider;
+        private readonly IDeserializerFacade _deserializerFacade;
         private readonly ILogger<LeadslyHalProvider> _logger;
         private readonly string RequestNewWebDriverUrl = "api/webdriver";
         private readonly string AuthenticateUserSocialAccount = "api/authentication";
@@ -220,7 +223,7 @@ namespace Leadsly.Domain.Providers
                 return await HandleFailedHalResponseAsync<T>(response);
             }
 
-            result = await _deserializerProvider.DeserializeConnectAccountResponseAsync<T>(response);
+            result = await _deserializerFacade.DeserializeConnectAccountResponseAsync<T>(response);
 
             // check if deserialization succeeded
             if(result.Succeeded == false)
@@ -328,7 +331,7 @@ namespace Leadsly.Domain.Providers
                 return await HandleFailedHalResponseAsync<T>(response);
             }
 
-            result = await _deserializerProvider.DeserializeEnterTwoFactorAuthCodeResponseAsync<T>(response);
+            result = await _deserializerFacade.DeserializeEnterTwoFactorAuthCodeResponseAsync<T>(response);
             if(result.Succeeded == false)
             {
                 return result;

@@ -48,6 +48,7 @@ namespace Leadsly.Application.Api
                     .AddApiBehaviorOptionsConfiguration()
                     .AddSupervisorConfiguration()
                     .AddLeadslyProviders()
+                    .AddFacades()
                     .AddLeadslyServices()
                     .AddLeadslyDependencies(Configuration)
                     .AddHangfireConfig(defaultConnection)
@@ -99,13 +100,7 @@ namespace Leadsly.Application.Api
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-            });
-
-            //*************************** Daily Jobs ***************************
-            ////////////////////////////////////////////////////////////////////
-
-            // RecurringJob.AddOrUpdate<ISupervisor>("activeCampaigns", (x) => x.ProcessAllCampaignsAsync(), Cron.Daily(6, 40));
-            var jobId = BackgroundJob.Enqueue<ISupervisor>((x) => x.ProcessAllCampaignsAsync());
+            });            
         }
     }
 }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Amazon.ECS.Model;
 using Leadsly.Application.Model.Aws.ElasticContainerService;
 using System.Linq;
+using Leadsly.Domain.Services.Interfaces;
 
 namespace Leadsly.Domain.Services
 {

@@ -1,6 +1,8 @@
 ﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Responses;
 using Leadsly.Domain.Deserializers;
+using Leadsly.Domain.Facades.Interfaces;
+using Leadsly.Domain.Providers.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -9,18 +11,18 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.Providers
+namespace Leadsly.Domain.Facades
 {
-    public class DeserializerProvider : IDeserializerProvider
+    public class DeserializerFacade : IDeserializerFacade
     {
-        public DeserializerProvider(ILogger<DeserializerProvider> logger, IConnectAccountResponseDeserializer connectAccountResponseDeserializer, IEnterTwoFactorAuthCodeResponseDeserializer enterTwoFactorAuthCodeResponseDeserializer)
+        public DeserializerFacade(ILogger<DeserializerFacade> logger, IConnectAccountResponseDeserializer connectAccountResponseDeserializer, IEnterTwoFactorAuthCodeResponseDeserializer enterTwoFactorAuthCodeResponseDeserializer)
         {
             _logger = logger;
             _connectAccountResponseDeserializer = connectAccountResponseDeserializer;
             _enterTwoFactorAuthCodeResponseDeserializer = enterTwoFactorAuthCodeResponseDeserializer;
         }
 
-        private readonly ILogger<DeserializerProvider> _logger;
+        private readonly ILogger<DeserializerFacade> _logger;
         private readonly IConnectAccountResponseDeserializer _connectAccountResponseDeserializer;
         private readonly IEnterTwoFactorAuthCodeResponseDeserializer _enterTwoFactorAuthCodeResponseDeserializer;
 

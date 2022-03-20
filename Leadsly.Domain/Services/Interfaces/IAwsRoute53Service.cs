@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.Services
+namespace Leadsly.Domain.Services.Interfaces
 {
     public interface IAwsRoute53Service
     {

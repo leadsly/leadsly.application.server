@@ -3,7 +3,7 @@ using Leadsly.Application.Model.Aws.ElasticContainerService;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.Services
+namespace Leadsly.Domain.Services.Interfaces
 {
     public interface IAwsElasticContainerService
     {

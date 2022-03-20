@@ -7,9 +7,9 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.Providers
+namespace Leadsly.Domain.Facades.Interfaces
 {
-    public interface IDeserializerProvider
+    public interface IDeserializerFacade
     {
         Task<HalOperationResult<T>> DeserializeConnectAccountResponseAsync<T>(HttpResponseMessage response)
             where T : IOperationResponse;

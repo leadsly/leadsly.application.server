@@ -18,6 +18,8 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Leadsly.Domain.Services.Interfaces;
+using Leadsly.Domain.Providers.Interfaces;
 
 namespace Leadsly.Domain.Providers
 {

@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Leadsly.Application.Model.Requests.Hal;
 
-namespace Leadsly.Domain.Services
+namespace Leadsly.Domain.Services.Interfaces
 {
     public interface ILeadslyHalApiService
     {        

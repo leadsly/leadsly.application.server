@@ -37,12 +37,13 @@ using Leadsly.Domain.OptionsJsonModels;
 using Leadsly.Application.Domain.OptionsJsonModels;
 using Amazon.ServiceDiscovery;
 using Amazon.Route53;
-using Amazon.RDS.Util;
-using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
-using System.Collections.Generic;
 using Leadsly.Domain.Deserializers;
 using Hangfire;
 using Hangfire.PostgreSql;
+using Leadsly.Domain.Services.Interfaces;
+using Leadsly.Domain.Providers.Interfaces;
+using Leadsly.Domain.Facades;
+using Leadsly.Domain.Facades.Interfaces;
 
 namespace Leadsly.Application.Api.Configurations
 {
@@ -141,10 +142,18 @@ namespace Leadsly.Application.Api.Configurations
         {
             Log.Information("Registering leadsly providers.");
 
-            services.AddScoped<IDeserializerProvider, DeserializerProvider>();
             services.AddScoped<ICloudPlatformProvider, CloudPlatformProvider>();
             services.AddScoped<IUserProvider, UserProvider>();
             services.AddScoped<ILeadslyHalProvider, LeadslyHalProvider>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddFacades(this IServiceCollection services)
+        {
+            Log.Information("Registering facades services.");
+
+            services.AddScoped<IDeserializerFacade, DeserializerFacade>();
 
             return services;
         }
@@ -157,6 +166,8 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<IAwsServiceDiscoveryService, AwsServiceDiscoveryService>();
             services.AddScoped<IAwsRoute53Service, AwsRoute53Service>();
             services.AddScoped<ILeadslyHalApiService, LeadslyHalApiService>();
+            services.AddSingleton<IProducingService, ProducingService>();
+            services.AddSingleton<ICampaignManager, CampaignManager>();
 
             return services;
         }

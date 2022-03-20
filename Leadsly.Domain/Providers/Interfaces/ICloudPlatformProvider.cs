@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.Providers
+namespace Leadsly.Domain.Providers.Interfaces
 {
     public interface ICloudPlatformProvider
     {

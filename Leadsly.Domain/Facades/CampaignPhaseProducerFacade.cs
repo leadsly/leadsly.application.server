@@ -7,8 +7,11 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Services
 {
-    public class RabbitMQClient : IRabbitMQClient
+    public class CampaignPhaseProducerFacade : ICampaignPhaseProducerFacade
     {
-
+        public void ProduceProspectLists(List<string> phaseIds)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
