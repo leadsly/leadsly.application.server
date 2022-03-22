@@ -1,4 +1,5 @@
 ﻿using Leadsly.Application.Model.Responses.Hal;
+using Leadsly.Application.Model.Responses.Hal.Interfaces;
 using Leadsly.Application.Model.ViewModels.Response.Hal;
 using System;
 using System.Collections.Generic;

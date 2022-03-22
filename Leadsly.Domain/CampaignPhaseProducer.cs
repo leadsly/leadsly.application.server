@@ -1,4 +1,5 @@
-﻿using Leadsly.Application.Model.Campaigns;
+﻿using Leadsly.Application.Model;
+using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Application.Model.RabbitMQ;
 using Leadsly.Domain.Facades.Interfaces;
@@ -144,6 +145,7 @@ namespace Leadsly.Domain
                 ICampaignPhaseProvider campaignProvider = scope.ServiceProvider.GetRequiredService<ICampaignPhaseProvider>();
                 // get all halIds that have active campaigns
                 List<string> halIdsWithActiveCampaigns = await campaignProvider.HalIdsWithActiveCampaignsAsync();
+                halIdsWithActiveCampaigns = new List<string> { Environment.GetEnvironmentVariable("HAL_ID", EnvironmentVariableTarget.User) };
 
                 IRabbitMQRepository rabbitMQRepository = scope.ServiceProvider.GetRequiredService<IRabbitMQRepository>();
                 RabbitMQOptions options = rabbitMQRepository.GetRabbitMQConfigOptions();
@@ -153,31 +155,31 @@ namespace Leadsly.Domain
                 string queueName = options.QueueConfigOptions.Name;
                 string routingKey = options.RoutingKey;
 
-                ConnectionFactory factory = ConfigureConnectionFactor(options, "prospect.lists");
-                var connection = factory.CreateConnection();
-                Connections.Add(connection);
-                var channel = connection.CreateModel();
-                Channels.Add(channel);
-
                 ISerializerFacade serializerFacade = scope.ServiceProvider.GetRequiredService<ISerializerFacade>();
-                ProcessConstantCampaignPhase(channel, halIdsWithActiveCampaigns,  exchangeName, exchangeType, queueName, routingKey, serializerFacade);
+                ProcessConstantCampaignPhase(options, halIdsWithActiveCampaigns,  exchangeName, exchangeType, queueName, routingKey, serializerFacade);
             }
         }
 
-        private void ProcessConstantCampaignPhase(IModel channel, List<string> halIds, string exchangeName, string exchangeType, string queueName, string routingKey, ISerializerFacade serializerFacade)
-        {
-            channel.ExchangeDeclare(exchangeName, exchangeType);
-
+        private void ProcessConstantCampaignPhase(RabbitMQOptions options, List<string> halIds, string exchangeName, string exchangeType, string queueName, string routingKey, ISerializerFacade serializerFacade)
+        {            
             foreach (string halId in halIds)
             {
-                PublishScanProspectsForRepliesPhaseMessages(channel, halId, exchangeName, exchangeType, queueName, routingKey, serializerFacade);
+                PublishScanProspectsForRepliesPhaseMessages(options, halId, exchangeName, exchangeType, queueName, routingKey, serializerFacade);
 
-                PublishMonitorNewAcceptedConnectionsPhaseMessages(channel, halId, exchangeName, exchangeType, queueName, routingKey, serializerFacade);
+                PublishMonitorNewAcceptedConnectionsPhaseMessages(options, halId, exchangeName, exchangeType, queueName, routingKey, serializerFacade);
             }
         }
 
-        private void PublishScanProspectsForRepliesPhaseMessages(IModel channel, string halId, string exchangeName, string exchangeType, string queueName, string routingKey, ISerializerFacade serializerFacade)
+        private void PublishScanProspectsForRepliesPhaseMessages(RabbitMQOptions options, string halId, string exchangeName, string exchangeType, string queueName, string routingKey, ISerializerFacade serializerFacade)
         {
+            ConnectionFactory factory = ConfigureConnectionFactor(options, "scan.prospects.for.replies");
+            var connection = factory.CreateConnection();
+            Connections.Add(connection);
+            var channel = connection.CreateModel();
+            Channels.Add(channel);
+
+            channel.ExchangeDeclare(exchangeName, exchangeType);
+
             string name = queueName.Replace("{halId}", halId);
             channel.QueueDeclare(queue: name, durable: false, exclusive: false, autoDelete: false, arguments: null);
 
@@ -209,13 +211,22 @@ namespace Leadsly.Domain
             channel.BasicPublish(exchange: exchangeName, routingKey: routingKey, basicProperties: basicProperties, body: body);
         }
 
-        private void PublishMonitorNewAcceptedConnectionsPhaseMessages(IModel channel, string halId, string exchangeName, string exchangeType, string queueName, string routingKey, ISerializerFacade serializerFacade)
+        private void PublishMonitorNewAcceptedConnectionsPhaseMessages(RabbitMQOptions options, string halId, string exchangeName, string exchangeType, string queueName, string routingKey, ISerializerFacade serializerFacade)
         {
+            ConnectionFactory factory = ConfigureConnectionFactor(options, "monitor.new.connections");
+            var connection = factory.CreateConnection();
+            Connections.Add(connection);
+            var channel = connection.CreateModel();
+            Channels.Add(channel);
+
+            channel.ExchangeDeclare(exchangeName, exchangeType);
+
             string name = queueName.Replace("{halId}", halId);
+            name = name.Replace("{queueName}", RabbitMQConstants.MonitorNewAcceptedConnections.QueueName);
             channel.QueueDeclare(queue: name, durable: false, exclusive: false, autoDelete: false, arguments: null);
 
             routingKey = routingKey.Replace("{halId}", halId);
-            routingKey = routingKey.Replace("{purpose}", "monitor-new-accepted-connections");
+            routingKey = routingKey.Replace("{purpose}", RabbitMQConstants.MonitorNewAcceptedConnections.RoutingKey);
 
             channel.QueueBind(name, exchangeName, routingKey, null);
 

@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Services
 {
-    public class ProductingHostedService : IHostedService
+    public class ProducingHostedService : IHostedService
     {
-        public ProductingHostedService(IProducingService productingService)
+        public ProducingHostedService(IProducingService productingService)
         {
             _productinService = productingService;
         }

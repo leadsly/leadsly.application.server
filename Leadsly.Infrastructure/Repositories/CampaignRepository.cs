@@ -1,4 +1,5 @@
 ﻿using Leadsly.Application.Model.Entities.Campaigns;
+using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -25,6 +26,11 @@ namespace Leadsly.Infrastructure.Repositories
         public async Task<List<Campaign>> GetAllActiveAsync(CancellationToken ct = default)
         {
             return await _dbContext.Campaigns.Where(c => c.Active == true).ToListAsync();
+        }
+
+        public Task<List<ProspectListPhase>> GetAllActivePropspectListPhasesAsync(CancellationToken ct = default)
+        {
+            throw new NotImplementedException();
         }
     }
 }

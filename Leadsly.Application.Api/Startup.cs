@@ -16,6 +16,7 @@ using Leadsly.Domain.OptionsJsonModels;
 using Amazon.RDS.Util;
 using Leadsly.Application.Model;
 using Leadsly.Domain.Supervisor;
+using Leadsly.Domain.Services;
 
 namespace Leadsly.Application.Api
 {
@@ -59,7 +60,8 @@ namespace Leadsly.Application.Api
                     .AddRabbitMQConfiguration(Configuration)
                     .AddServices(Configuration)
                     .AddRemoveNull204FormatterConfigration()
-                    .AddMemoryCache();
+                    .AddMemoryCache()
+                    .AddHostedService<ProducingHostedService>();
 
             services.Configure<MvcOptions>(ApiDefaults.Configure);
         }

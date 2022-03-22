@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Leadsly.Application.Model.Requests.Hal;
 using Leadsly.Domain.Services.Interfaces;
+using Leadsly.Application.Model.Requests.Hal.Interfaces;
 
 namespace Leadsly.Domain.Services
 {

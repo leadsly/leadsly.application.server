@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Leadsly.Application.Model.Requests.Hal;
+using Leadsly.Application.Model.Requests.Hal.Interfaces;
 
 namespace Leadsly.Domain.Services.Interfaces
 {

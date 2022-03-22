@@ -26,6 +26,8 @@ using System.Net.Http.Formatting;
 using Leadsly.Domain.Services.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Facades.Interfaces;
+using Leadsly.Application.Model.Responses.Hal.Interfaces;
+using Leadsly.Application.Model.Requests.Hal.Interfaces;
 
 namespace Leadsly.Domain.Providers
 {
