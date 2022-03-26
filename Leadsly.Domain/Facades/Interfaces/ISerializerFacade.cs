@@ -24,5 +24,7 @@ namespace Leadsly.Domain.Facades.Interfaces
         byte[] SerializeScanProspectsForReplies(ScanProspectsForRepliesBody content);
 
         byte[] SerializeMonitorForNewAcceptedConnections(MonitorForNewAcceptedConnectionsBody content);
+
+        byte[] SerializeSendConnections(SendConnectionsBody content);
     }
 }

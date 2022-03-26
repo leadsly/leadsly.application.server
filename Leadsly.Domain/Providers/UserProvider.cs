@@ -124,7 +124,7 @@ namespace Leadsly.Domain.Providers
                 EcsService = ecsService,
                 CloudMapServiceDiscoveryService = newServiceDiscovery,
                 EcsTaskDefinition = newEcsTaskDefinition,
-                HalsUniqueName = newSocialAccountSetup.Value.HalsUniqueName
+                HalId = newSocialAccountSetup.Value.HalId
             };
 
             SocialAccount newSocialAccount = new()
@@ -174,6 +174,11 @@ namespace Leadsly.Domain.Providers
             newCloudMapServiceDiscovery = await _cloudPlatformRepository.AddServiceDiscoveryAsync(newCloudMapServiceDiscovery, ct);
 
             return newCloudMapServiceDiscovery;
+        }
+
+        public async Task<ApplicationUser> GetUserByIdAsync(string userId, CancellationToken ct = default)
+        {
+            return await _userRepository.GetByIdAsync(userId);
         }
     }
 }

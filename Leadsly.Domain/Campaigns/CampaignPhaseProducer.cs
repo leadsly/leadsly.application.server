@@ -13,9 +13,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain
+namespace Leadsly.Domain.Campaigns
 {
     public class CampaignPhaseProducer : ICampaignPhaseProducer
     {
@@ -73,11 +74,77 @@ namespace Leadsly.Domain
             };
         }
 
+        public async Task PublishProspectListPhaseMessagesAsync(string prospectListPhaseId)
+        {
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                ICampaignProvider campaignProvider = scope.ServiceProvider.GetRequiredService<ICampaignProvider>();
+
+                ProspectListBody messageBody = await campaignProvider.CreateProspectListBodyAsync(prospectListPhaseId);
+
+                IRabbitMQRepository rabbitMQRepository = scope.ServiceProvider.GetRequiredService<IRabbitMQRepository>();
+                RabbitMQOptions options = rabbitMQRepository.GetRabbitMQConfigOptions();
+
+                string exchangeName = options.ExchangeOptions.Name;
+                string exchangeType = options.ExchangeOptions.ExchangeType;
+                string queueName = options.QueueConfigOptions.Name;
+                string routingKey = options.RoutingKey;
+
+                ConnectionFactory factory = ConfigureConnectionFactor(options, RabbitMQConstants.ProspectList.QueueName);
+                var connection = factory.CreateConnection();
+                Connections.Add(connection);
+                var channel = connection.CreateModel();
+                Channels.Add(channel);
+
+                ISerializerFacade serializerFacade = scope.ServiceProvider.GetRequiredService<ISerializerFacade>();
+                byte[] body = serializerFacade.SerializeProspectList(messageBody);
+
+                ProcessProspectListPhases(body, options, messageBody.HalId, exchangeName, exchangeType, queueName, routingKey);
+            }
+        }
+
+        private void ProcessProspectListPhases(byte[] body, RabbitMQOptions options, string halId, string exchangeName, string exchangeType, string queueName, string routingKey)
+        {
+            ConnectionFactory factory = ConfigureConnectionFactor(options, RabbitMQConstants.ProspectList.QueueName);
+            var connection = factory.CreateConnection();
+            Connections.Add(connection);
+            var channel = connection.CreateModel();
+            Channels.Add(channel);
+
+            channel.ExchangeDeclare(exchangeName, exchangeType);
+
+            string name = queueName.Replace("{halId}", halId);
+            name = name.Replace("{queueName}", RabbitMQConstants.ProspectList.QueueName);
+            channel.QueueDeclare(queue: name, durable: false, exclusive: false, autoDelete: false, arguments: null);
+
+            routingKey = routingKey.Replace("{halId}", halId);
+            routingKey = routingKey.Replace("{purpose}", RabbitMQConstants.ProspectList.RoutingKey);
+
+            channel.QueueBind(name, exchangeName, routingKey, null);
+
+            channel.BasicAcks += (sender, ea) =>
+            {
+                // emitted when consumer does basic acknowledge
+
+
+            };
+            channel.BasicNacks += (sender, ea) =>
+            {
+                // emitted when consumer does basic negative acknowledge
+            };
+
+            IBasicProperties basicProperties = channel.CreateBasicProperties();
+            basicProperties.MessageId = Guid.NewGuid().ToString();
+
+            channel.BasicPublish(exchange: exchangeName, routingKey: routingKey, basicProperties: basicProperties, body: body);
+        }
+
+
         public async Task PublishProspectListPhaseMessagesAsync()
         {
             using (var scope = _serviceProvider.CreateScope())
             {
-                ICampaignPhaseProvider campaignProvider = scope.ServiceProvider.GetRequiredService<ICampaignPhaseProvider>();
+                ICampaignProvider campaignProvider = scope.ServiceProvider.GetRequiredService<ICampaignProvider>();
                 HalsProspectListPhasesPayload payload = await campaignProvider.GetActiveProspectListPhasesAsync();
 
                 IRabbitMQRepository rabbitMQRepository = scope.ServiceProvider.GetRequiredService<IRabbitMQRepository>();
@@ -88,7 +155,7 @@ namespace Leadsly.Domain
                 string queueName = options.QueueConfigOptions.Name;
                 string routingKey = options.RoutingKey;
 
-                ConnectionFactory factory = ConfigureConnectionFactor(options, "prospect.lists");
+                ConnectionFactory factory = ConfigureConnectionFactor(options, RabbitMQConstants.ProspectList.QueueName);
                 var connection = factory.CreateConnection();
                 Connections.Add(connection);
                 var channel = connection.CreateModel();
@@ -98,7 +165,7 @@ namespace Leadsly.Domain
                 ProcessProspectListPhases(channel, payload, exchangeName, exchangeType, queueName, routingKey, serializerFacade);
             }
         }
-
+        
         private void ProcessProspectListPhases(IModel channel, HalsProspectListPhasesPayload payload, string exchangeName, string exchangeType, string queueName, string routingKey, ISerializerFacade serializerFacade)
         {
             channel.ExchangeDeclare(exchangeName, exchangeType);
@@ -109,7 +176,7 @@ namespace Leadsly.Domain
                 channel.QueueDeclare(queue: name, durable: false, exclusive: false, autoDelete: false, arguments: null);
 
                 routingKey = routingKey.Replace("{halId}", halId);
-                routingKey = routingKey.Replace("{purpose}", "prospect-list");
+                routingKey = routingKey.Replace("{purpose}", RabbitMQConstants.ProspectList.RoutingKey);
 
                 channel.QueueBind(name, exchangeName, routingKey, null);
 
@@ -118,7 +185,7 @@ namespace Leadsly.Domain
                     // emitted when consumer does basic acknowledge
 
                     // from here we have to trigger send connections phase
-                    PublishSendConnectionsToProspectsPhaseMessages();
+                    // PublishSendConnectionsToProspectsPhaseMessages();
                 };
                 channel.BasicNacks += (sender, ea) =>
                 {
@@ -142,7 +209,7 @@ namespace Leadsly.Domain
         {
             using (var scope = _serviceProvider.CreateScope())
             {
-                ICampaignPhaseProvider campaignProvider = scope.ServiceProvider.GetRequiredService<ICampaignPhaseProvider>();
+                ICampaignProvider campaignProvider = scope.ServiceProvider.GetRequiredService<ICampaignProvider>();
                 // get all halIds that have active campaigns
                 List<string> halIdsWithActiveCampaigns = await campaignProvider.HalIdsWithActiveCampaignsAsync();
                 halIdsWithActiveCampaigns = new List<string> { Environment.GetEnvironmentVariable("HAL_ID", EnvironmentVariableTarget.User) };
@@ -253,25 +320,68 @@ namespace Leadsly.Domain
             channel.BasicPublish(exchange: exchangeName, routingKey: routingKey, basicProperties: basicProperties, body: body);
         }
 
-        private void PublishSendConnectionsToProspectsPhaseMessages()
+        private void PublishSendConnectionsToProspectsPhaseMessages(byte[] body, RabbitMQOptions options, string halId, string exchangeName, string exchangeType, string queueName, string routingKey)
         {
-            // check if warm up options is checked
+            ConnectionFactory factory = ConfigureConnectionFactor(options, RabbitMQConstants.SendConnections.QueueName);
+            var connection = factory.CreateConnection();
+            Connections.Add(connection);
+            var channel = connection.CreateModel();
+            Channels.Add(channel);
 
-            // figure out number of connections we can send out for this campaign a day
+            channel.ExchangeDeclare(exchangeName, exchangeType);
 
-            // determine the cadance at which the connections will be sent out (between 7:00am - 10:00pm) this would be every hour, three or custom perhaps?
+            string name = queueName.Replace("{halId}", halId);
+            name = name.Replace("{queueName}", RabbitMQConstants.SendConnections.QueueName);
+            channel.QueueDeclare(queue: name, durable: false, exclusive: false, autoDelete: false, arguments: null);
 
-            // check where send connections left off at
+            routingKey = routingKey.Replace("{halId}", halId);
+            routingKey = routingKey.Replace("{purpose}", RabbitMQConstants.SendConnections.RoutingKey);
 
-            // get a starting point, and ending point of the connections to send and the page the connection is on
+            channel.QueueBind(name, exchangeName, routingKey, null);
 
+            channel.BasicAcks += (sender, ea) =>
+            {
+                // emitted when consumer does basic acknowledge
 
-            throw new NotImplementedException();
+            };
+            channel.BasicNacks += (sender, ea) =>
+            {
+                // emitted when consumer does basic negative acknowledge
+            };
+
+            IBasicProperties basicProperties = channel.CreateBasicProperties();
+            basicProperties.MessageId = Guid.NewGuid().ToString();
+
+            channel.BasicPublish(exchange: exchangeName, routingKey: routingKey, basicProperties: basicProperties, body: body);
+        }
+
+        public async Task PublishSendConnectionsPhaseMessageAsync(string campaignId)
+        {
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                ICampaignProvider campaignProvider = _serviceProvider.GetRequiredService<ICampaignProvider>();
+
+                SendConnectionsBody messageBody = await campaignProvider.CreateSendConnectionsBodyAsync(campaignId);                
+                
+                IRabbitMQRepository rabbitMQRepository = scope.ServiceProvider.GetRequiredService<IRabbitMQRepository>();
+                RabbitMQOptions options = rabbitMQRepository.GetRabbitMQConfigOptions();
+
+                string exchangeName = options.ExchangeOptions.Name;
+                string exchangeType = options.ExchangeOptions.ExchangeType;
+                string queueName = options.QueueConfigOptions.Name;
+                string routingKey = options.RoutingKey;
+
+                ISerializerFacade serializerFacade = scope.ServiceProvider.GetRequiredService<ISerializerFacade>();
+                byte[] message = serializerFacade.SerializeSendConnections(messageBody);
+
+                PublishSendConnectionsToProspectsPhaseMessages(message, options, messageBody.HalId, exchangeName, exchangeType, queueName, routingKey);
+            }
         }
 
         public void PublishConnectionWithdrawPhaseMessages()
         {
             throw new NotImplementedException();
         }
+        
     }
 }

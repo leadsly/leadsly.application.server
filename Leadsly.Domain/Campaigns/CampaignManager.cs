@@ -11,7 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain
+namespace Leadsly.Domain.Campaigns
 {
     public class CampaignManager : ICampaignManager
     {
@@ -24,12 +24,13 @@ namespace Leadsly.Domain
 
         public void ProcessAllActiveCampaigns()
         {
-            TriggerProspectListsPhase();
+            //TriggerProspectListsPhase();
 
-            TriggerConstantCampaignPhaseMessages();
+            //TriggerConstantCampaignPhaseMessages();
 
-            TriggerConnectionWithdrawPhase();
+            //TriggerConnectionWithdrawPhase();
         }
+
 
         private static void TriggerConstantCampaignPhaseMessages()
         {
@@ -46,5 +47,14 @@ namespace Leadsly.Domain
             BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishConnectionWithdrawPhaseMessages());
         }
 
+        public void TriggerProspectListPhase(string prospectListPhaseId)
+        {
+            BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishProspectListPhaseMessagesAsync(prospectListPhaseId));
+        }
+
+        public void TriggerSendConnectionsPhase(string campaignId)
+        {
+            BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishSendConnectionsPhaseMessageAsync(campaignId));
+        }
     }
 }

@@ -33,17 +33,19 @@ namespace Leadsly.Domain.Providers
 {
     public class LeadslyHalProvider : ILeadslyHalProvider
     {
-        public LeadslyHalProvider(ILeadslyHalApiService leadslyHalApiService, ICloudPlatformRepository cloudPlatformRepository, ISerializerFacade deserializerFacade, ILogger<LeadslyHalProvider> logger)
+        public LeadslyHalProvider(ILeadslyHalApiService leadslyHalApiService, ICloudPlatformRepository cloudPlatformRepository, ISerializerFacade serializerFacade, IHalRepository halRepository, ILogger<LeadslyHalProvider> logger)
         {
             _leadslyHalApiService = leadslyHalApiService;
             _cloudPlatformRepository = cloudPlatformRepository;
-            _deserializerFacade = deserializerFacade;
+            _serializerFacade = serializerFacade;
             _logger = logger;
+            _halRepository = halRepository;
         }
 
         private readonly ICloudPlatformRepository _cloudPlatformRepository;
         private readonly ILeadslyHalApiService _leadslyHalApiService;
-        private readonly ISerializerFacade _deserializerFacade;
+        private readonly ISerializerFacade _serializerFacade;
+        private readonly IHalRepository _halRepository;
         private readonly ILogger<LeadslyHalProvider> _logger;
         private readonly string RequestNewWebDriverUrl = "api/webdriver";
         private readonly string AuthenticateUserSocialAccount = "api/authentication";
@@ -225,7 +227,7 @@ namespace Leadsly.Domain.Providers
                 return await HandleFailedHalResponseAsync<T>(response);
             }
 
-            result = await _deserializerFacade.DeserializeConnectAccountResponseAsync<T>(response);
+            result = await _serializerFacade.DeserializeConnectAccountResponseAsync<T>(response);
 
             // check if deserialization succeeded
             if(result.Succeeded == false)
@@ -333,7 +335,7 @@ namespace Leadsly.Domain.Providers
                 return await HandleFailedHalResponseAsync<T>(response);
             }
 
-            result = await _deserializerFacade.DeserializeEnterTwoFactorAuthCodeResponseAsync<T>(response);
+            result = await _serializerFacade.DeserializeEnterTwoFactorAuthCodeResponseAsync<T>(response);
             if(result.Succeeded == false)
             {
                 return result;
@@ -343,6 +345,9 @@ namespace Leadsly.Domain.Providers
             return result;
         }
 
-        
+        public async Task<HalUnit> GetHalDetailsByConnectedAccountUsernameAsync(string connectedAccountUsername, CancellationToken ct = default)
+        {
+            return await _halRepository.GetHalDetailsByConnectedAccountUsernameAsync(connectedAccountUsername, ct);
+        }
     }
 }

@@ -9,5 +9,9 @@ namespace Leadsly.Domain
     public interface ICampaignManager
     {
         void ProcessAllActiveCampaigns();
+
+        void TriggerProspectListPhase(string prospectListPhaseId);
+
+        void TriggerSendConnectionsPhase(string campaignId);
     }
 }

@@ -45,6 +45,7 @@ using Leadsly.Domain.Facades;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Serializers.Interfaces;
 using Leadsly.Domain.Serializers;
+using Leadsly.Domain.Campaigns;
 
 namespace Leadsly.Application.Api.Configurations
 {
@@ -61,6 +62,7 @@ namespace Leadsly.Application.Api.Configurations
                 {
                     Log.Information("Enabling SQL sensitive data logging.");
                     options.EnableSensitiveDataLogging(env.IsDevelopment());
+                    options.EnableDetailedErrors(env.IsDevelopment());                    
                 }
             }, ServiceLifetime.Scoped);
 
@@ -98,6 +100,8 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<IOrphanedCloudResourcesRepository, OrphanedCloudResourcesRepository>();
             services.AddScoped<ICampaignRepository, CampaignRepository>();
             services.AddScoped<IRabbitMQRepository, RabbitMQRepository>();
+            services.AddScoped<IProspectListRepository, ProspectListRepository>();
+            services.AddScoped<IHalRepository, HalRepository>();
 
             return services;
         }
@@ -111,7 +115,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddHangfire(config =>
             {
                 config.UsePostgreSqlStorage(defaultConnection);
-                config.UseRecommendedSerializerSettings();                
+                config.UseRecommendedSerializerSettings();
             }).AddHangfireServer();
 
             return services;
@@ -140,19 +144,20 @@ namespace Leadsly.Application.Api.Configurations
             
             return services;
         }
-        public static IServiceCollection AddLeadslyProviders(this IServiceCollection services)
+        public static IServiceCollection AddProvidersConfiguration(this IServiceCollection services)
         {
             Log.Information("Registering leadsly providers.");
 
             services.AddScoped<ICloudPlatformProvider, CloudPlatformProvider>();
             services.AddScoped<IUserProvider, UserProvider>();
             services.AddScoped<ILeadslyHalProvider, LeadslyHalProvider>();
-            services.AddScoped<ICampaignPhaseProvider, CampaignPhaseProvider>();
+            services.AddScoped<IMonitorNewConnectionsProvider, MonitorNewConnectionsProvider>();
+            services.AddScoped<ICampaignProvider, CampaignProvider>();
 
             return services;
         }
 
-        public static IServiceCollection AddFacades(this IServiceCollection services)
+        public static IServiceCollection AddFacadesConfiguration(this IServiceCollection services)
         {
             Log.Information("Registering facades services.");
 
@@ -161,7 +166,7 @@ namespace Leadsly.Application.Api.Configurations
             return services;
         }
 
-        public static IServiceCollection AddLeadslyServices(this IServiceCollection services)
+        public static IServiceCollection AddServicesConfiguration(this IServiceCollection services)
         {
             Log.Information("Registering leadsly services.");
 
@@ -170,6 +175,8 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<IAwsRoute53Service, AwsRoute53Service>();
             services.AddScoped<ILeadslyHalApiService, LeadslyHalApiService>();
             services.AddSingleton<IProducingService, ProducingService>();
+            services.AddScoped<ICampaignService, CampaignService>();
+            
             services.AddSingleton<ICampaignManager, CampaignManager>();
             services.AddSingleton<ICampaignPhaseProducer, CampaignPhaseProducer>();
 

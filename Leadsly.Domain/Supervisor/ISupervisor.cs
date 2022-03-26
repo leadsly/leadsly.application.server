@@ -24,5 +24,12 @@ namespace Leadsly.Domain.Supervisor
             where T : IOperationResponseViewModel;
         Task<HalOperationResultViewModel<T>> LeadslyTwoFactorAuthAsync<T>(TwoFactorAuthRequest request, CancellationToken ct = default)
             where T : IOperationResponseViewModel;
+
+        Task<HalOperationResult<T>> ProcessNewMyNetworkConnectionsAsync<T>(MyNetworkNewConnectionsRequest request, CancellationToken ct = default)
+            where T : IOperationResponse;
+
+        Task<HalOperationResultViewModel<T>> CreateCampaignAsync<T>(CreateCampaignRequest request, string userId, CancellationToken ct = default)
+            where T : IOperationResponseViewModel;
+        
     }
 }

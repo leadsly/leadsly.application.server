@@ -37,7 +37,7 @@ namespace Leadsly.Application.Api
             PostgresOptions postgresOptions = new();
             Configuration.GetSection(nameof(PostgresOptions)).Bind(postgresOptions);
             string authToken = RDSAuthTokenGenerator.GenerateAuthToken(postgresOptions.Host, postgresOptions.Port, postgresOptions.UserId);
-            string defaultConnection = $"Host={postgresOptions.Host};User Id={postgresOptions.UserId};Password={authToken};Database={postgresOptions.Database}";
+            string defaultConnection = $"Host={postgresOptions.Host};User Id={postgresOptions.UserId};Password={authToken};Database={postgresOptions.Database};Include Error Detail=true";
 
             services.AddControllers()
                     .AddJsonOptionsConfiguration();
@@ -48,9 +48,9 @@ namespace Leadsly.Application.Api
                     .AddCorsConfiguration(Configuration)
                     .AddApiBehaviorOptionsConfiguration()
                     .AddSupervisorConfiguration()
-                    .AddLeadslyProviders()
-                    .AddFacades()
-                    .AddLeadslyServices()
+                    .AddProvidersConfiguration()
+                    .AddFacadesConfiguration()
+                    .AddServicesConfiguration()
                     .AddLeadslyDependencies(Configuration)
                     .AddHangfireConfig(defaultConnection)
                     .AddIdentityConfiguration(Configuration)

@@ -134,7 +134,7 @@ namespace Leadsly.Domain.Providers
             }
 
             // in the very slim chance that this ip address is pointing to a recycled ip address that is running a different version of hal lets check the container names
-            if(healthCheckResponse.Value.HalsUniqueName != socialAccount.SocialAccountCloudResource.HalsUniqueName)
+            if(healthCheckResponse.Value.HalId != socialAccount.SocialAccountCloudResource.HalId)
             {
                 _logger.LogWarning("Rare edge case occured. Hal's health check successfully responded but the name of hal running in the container is different then what user has registered to their name. Requring DNS to get fresh private ip address.");
                 result = await PerformHalsHealthCheckWithPrivateIpAsync(configuration.ServiceDiscoveryConfig, socialAccount.SocialAccountCloudResource.CloudMapServiceDiscoveryService, ct);
@@ -227,13 +227,13 @@ namespace Leadsly.Domain.Providers
         {
             string taskDefinition = $"{Guid.NewGuid()}-task-def";
             string containerName = $"hal-{Guid.NewGuid()}-container";
-            string halsUniqueName = $"{Guid.NewGuid()}-id";
+            string halId = $"{Guid.NewGuid()}-id";
             SocialAccountCloudResourceDTO userSetup = default;
             try
             {
                 userSetup = new()
                 {
-                    HalsUniqueName = halsUniqueName,
+                    HalId = halId,
                     EcsTaskDefinition = new()
                     {
                         // name of the hal container
@@ -246,7 +246,7 @@ namespace Leadsly.Domain.Providers
                             Name = taskDefinition,
                             EnviornmentVariables = new()
                             {
-                                new KeyValuePair<string, string>(Enum.GetName(DockerEnvironmentVariables.HAL_ID), halsUniqueName)
+                                new KeyValuePair<string, string>(Enum.GetName(DockerEnvironmentVariables.HAL_ID), halId)
                             }                            
                         }).ToList(),
                         ExecutionRoleArn = configuration.EcsTaskDefinitionConfig.ExecutionRoleArn,

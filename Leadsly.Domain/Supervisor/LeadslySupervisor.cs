@@ -286,9 +286,59 @@ namespace Leadsly.Domain.Supervisor
                 return result;
             }
 
+            // perhaps add the addition of hal unit here ?
+            // hal unit is used to store information pertaining to the container
+            // for example monitor for new connections phase should only be run once per container, not per campaign
+            result = await SaveHalsDetailsAsync(saveNewSocialAccountResult, socialAccountDTO.UserId, ct);
+            if (result.Succeeded == false)
+            {
+                await _cloudPlatformProvider.RollbackCloudResourcesAsync(cloudResourceSetupResult, socialAccountDTO.UserId, ct);
+                return result;
+            }
+
             result.Succeeded = true;
             return result;     
         }
+
+        private async Task<LeadslySetupResultDTO> SaveHalsDetailsAsync(NewSocialAccountSetupResult newSocialAccountSetupResult, string userId, CancellationToken ct = default)
+        {
+            LeadslySetupResultDTO result = new();
+
+            ApplicationUser applicationUser = await _userProvider.GetUserByIdAsync(userId, ct);
+            if(applicationUser == null)
+            {
+                result.Failures.Add(new()
+                {
+                    Code = Codes.NOT_FOUND,
+                    Reason = "Failed to find requested resources in the database",
+                    Detail = $"Could not find user with id {userId} in the database"
+                });
+                return result;
+            }
+
+            HalUnit halDetails = new()
+            {
+                HalId = newSocialAccountSetupResult.SocialAccount.SocialAccountCloudResource.HalId,
+                SocialAccount = newSocialAccountSetupResult.SocialAccount,
+                ApplicationUser = applicationUser                
+            };
+
+            halDetails = await _halRepository.AddHalDetailsAsync(halDetails, ct);
+            if(halDetails == null)
+            {
+                result.Failures.Add(new()
+                {
+                    Code = Codes.DATABASE_OPERATION_ERROR,
+                    Reason = "Failed to add hal details to the database",
+                    Detail = "Something went wrong when adding hal details to the database. Please check logs"
+                });
+                return result;
+            }
+
+            result.Succeeded = true;
+            return result;
+        }
+
         private async Task<NewSocialAccountSetupResult> SaveNewSocialAccountAsync(NewSocialAccountSetupResult newSocialAccountSetup, CancellationToken ct = default)
         {
             NewSocialAccountSetupResult result = new()
@@ -312,6 +362,7 @@ namespace Leadsly.Domain.Supervisor
                 return result;
             }
 
+            result.SocialAccount = newSocialAndResourcesResult.Value;
             result.Succeeded = true;
             return result;
         }        

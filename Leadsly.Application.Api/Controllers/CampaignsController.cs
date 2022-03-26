@@ -12,6 +12,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Leadsly.Application.Model.Requests;
+using Leadsly.Application.Model.ViewModels.Response;
+using Microsoft.AspNetCore.Authorization;
+using Leadsly.Application.Model.ViewModels.Response.Hal;
+using System.Security.Claims;
 
 namespace Leadsly.Application.Api.Controllers
 {
@@ -417,8 +422,8 @@ namespace Leadsly.Application.Api.Controllers
         };
         public CampaignsController(ILogger<CampaignsController> logger, ISupervisor supervisor)
         {
-            logger = _logger;
-            supervisor = _supervisor;
+            _logger = logger;
+            _supervisor = supervisor;
         }
 
         private readonly ISupervisor _supervisor;
@@ -474,6 +479,14 @@ namespace Leadsly.Application.Api.Controllers
         //    }
         //}
 
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> Create(CreateCampaignRequest request, CancellationToken ct = default)
+        {
+            string userId = "7cbb6f5c-7ee1-48de-95c3-1de948deb66c"; // User.FindFirst(ClaimTypes.NameIdentifier)?.Value; ;            
+            var a = await _supervisor.CreateCampaignAsync<ConnectResponseViewModel>(request, userId, ct);
+            return Ok();
+        }
 
         [HttpPost("{id}/clone")]
         public IActionResult CloneCampaign([FromBody] CloneCampaignViewModel cloneCampaign, CancellationToken ct = default)

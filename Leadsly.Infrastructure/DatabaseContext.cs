@@ -29,10 +29,19 @@ namespace Leadsly.Infrastructure
         public DbSet<Organization> Organizations { get; set; }
         public DbSet<Campaign> Campaigns { get; set; }
         public DbSet<ProspectListPhase> ProspectListPhases { get; set; }
+        public DbSet<MonitorForNewConnectionsPhase> MonitorForNewConnectionsPhases { get; set; }
+        public DbSet<FollowUpMessagesPhase> FollowUpMessagesPhases { get; set; }
+        public DbSet<ScanProspectsForRepliesPhase> ScanProspectsForRepliesPhase { get; set; }
         public DbSet<ConnectionWithdrawPhase> ConnectionWithdrawPhases { get; set; }
         public DbSet<SendConnectionRequestPhase> SendConnectionRequestPhases { get; set; }
-        public DbSet<SendEmailInvitePhase> SendEmailInvitePhases { get; set; }
-
+        public DbSet<SendEmailInvitePhase> SendEmailInvitePhases { get; set; }        
+        public DbSet<PrimaryProspectList> PrimaryProspectLists { get; set; }
+        public DbSet<CampaignProspectList> CampaignProspectLists { get; set; }
+        public DbSet<PrimaryProspect> PrimaryProspects { get; set; }
+        public DbSet<CampaignProspect> CampaignProspects { get; set; }
+        public DbSet<HalUnit> HalUnits { get; set; }
+        public DbSet<SearchUrl> SearchUrls { get; set; }
+        public DbSet<SentConnectionsStatus> SentConnectionsStatus { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

@@ -15,5 +15,7 @@ namespace Leadsly.Domain.Serializers.Interfaces
         byte[] SerializeMonitorForNewAcceptedConnections(MonitorForNewAcceptedConnectionsBody content);
 
         byte[] SerializeScanProspectsForReplies(ScanProspectsForRepliesBody content);
+
+        byte[] SerializeSendConnections(SendConnectionsBody content);
     }
 }
