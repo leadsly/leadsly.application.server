@@ -108,5 +108,39 @@ namespace Leadsly.Infrastructure.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public async Task<string> GetChromeProfileNameByCampaignPhaseTypeAsync(PhaseType campaignType, CancellationToken ct = default)
+        {
+            ChromeProfileName profile = default;
+            try
+            {
+                profile = await _dbContext.ChromeProfileNames.Where(p => p.CampaignPhaseType == campaignType).SingleAsync(ct);
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            if(profile == null)
+            {
+                return null;
+            }
+
+            return profile.Profile;
+        }
+
+        public async Task<ChromeProfileName> CreateChromeProfileNameAsync(ChromeProfileName chromeProfileName, CancellationToken ct = default)
+        {
+            try
+            {
+                _dbContext.ChromeProfileNames.Add(chromeProfileName);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return chromeProfileName;
+        }
     }
 }

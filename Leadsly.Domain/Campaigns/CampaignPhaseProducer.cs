@@ -90,12 +90,6 @@ namespace Leadsly.Domain.Campaigns
                 string queueName = options.QueueConfigOptions.Name;
                 string routingKey = options.RoutingKey;
 
-                ConnectionFactory factory = ConfigureConnectionFactor(options, RabbitMQConstants.ProspectList.QueueName);
-                var connection = factory.CreateConnection();
-                Connections.Add(connection);
-                var channel = connection.CreateModel();
-                Channels.Add(channel);
-
                 ISerializerFacade serializerFacade = scope.ServiceProvider.GetRequiredService<ISerializerFacade>();
                 byte[] body = serializerFacade.SerializeProspectList(messageBody);
 

@@ -42,6 +42,7 @@ namespace Leadsly.Infrastructure
         public DbSet<HalUnit> HalUnits { get; set; }
         public DbSet<SearchUrl> SearchUrls { get; set; }
         public DbSet<SentConnectionsStatus> SentConnectionsStatus { get; set; }
+        public DbSet<ChromeProfileName> ChromeProfileNames { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

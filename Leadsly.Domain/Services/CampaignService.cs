@@ -51,14 +51,10 @@ namespace Leadsly.Domain.Services
                 {
                     campaignProspects.Add(new()
                     {
-                        FirstName = primaryProspect.FirstName,
-                        Name = primaryProspect.Name,
-                        AddedByCampaignId = primaryProspect.AddedByCampaignId,
-                        AddedTimestamp = primaryProspect.AddedTimestamp,
-                        LastName = primaryProspect.LastName,
+                        Name = primaryProspect.Name,                        
+                        AddedTimestamp = primaryProspect.AddedTimestamp,                        
                         ProfileUrl = primaryProspect.ProfileUrl,
                         PrimaryProspectListId = primaryProspect.PrimaryProspectListId,
-
                         ConnectionSent = false,
                         ConnectionSentTimestamp = 0,
                         FollowUpMessageSent = false,

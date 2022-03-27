@@ -44,10 +44,24 @@ namespace Leadsly.Domain.Providers
         public async Task<ProspectListBody> CreateProspectListBodyAsync(string prospectListPhaseId, CancellationToken ct = default)
         {
             ProspectListPhase prospectListPhase = await _campaignRepository.GetProspectListPhaseByIdAsync(prospectListPhaseId, ct);
+            string chromeProfileName = await _campaignRepository.GetChromeProfileNameByCampaignPhaseTypeAsync(PhaseType.ProspectList, ct);
+            if(chromeProfileName == null)
+            {
+                // create the new chrome profile name and save it
+                ChromeProfileName profileName = new()
+                {
+                    CampaignPhaseType = PhaseType.ProspectList,
+                    Profile = Guid.NewGuid().ToString()
+                };
+                await _campaignRepository.CreateChromeProfileNameAsync(profileName, ct);
+                chromeProfileName = profileName.Profile;
+            }
+
             ProspectListBody prospectListBody = new()
             {
                 SearchUrls = prospectListPhase.SearchUrls,
-                HalId = prospectListPhase.Campaign.HalId
+                HalId = prospectListPhase.Campaign.HalId,
+                ChromeProfile = chromeProfileName                
             };
 
             return prospectListBody;
@@ -68,9 +82,22 @@ namespace Leadsly.Domain.Providers
                 };
             });
 
+            string chromeProfileName = await _campaignRepository.GetChromeProfileNameByCampaignPhaseTypeAsync(PhaseType.SendConnectionRequests, ct);
+            if (chromeProfileName == null)
+            {
+                // create the new chrome profile name and save it
+                ChromeProfileName profileName = new()
+                {
+                    CampaignPhaseType = PhaseType.SendConnectionRequests,
+                    Profile = Guid.NewGuid().ToString()
+                };
+                await _campaignRepository.CreateChromeProfileNameAsync(profileName, ct);
+                chromeProfileName = profileName.Profile;
+            }
+
             SendConnectionsBody sendConnectionsBody = new()
             {
-                ChromeProfileName = "",
+                ChromeProfileName = chromeProfileName,
                 DailyLimit = dailyConnectionCount,
                 HalId = campaign.HalId,
                 PageUrl = sentConnectionsStatus.LastVisistedPageUrl.Url,
