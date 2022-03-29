@@ -83,7 +83,7 @@ namespace Leadsly.Infrastructure.Repositories
 
             try
             {
-                propsectListPhase = await _dbContext.ProspectListPhases.Where(p => p.Id == prospectListId).Include(p => p.Campaign).SingleAsync(ct);
+                propsectListPhase = await _dbContext.ProspectListPhases.Where(p => p.Id == prospectListId).Include(p => p.Campaign).ThenInclude(c => c.CampaignProspectList).SingleAsync(ct);
 
             }
             catch(Exception ex)
@@ -141,6 +141,37 @@ namespace Leadsly.Infrastructure.Repositories
 
             }
             return chromeProfileName;
+        }
+
+        public async Task<PrimaryProspectList> GetPrimaryProspectListByIdAsync(string primaryProspectListId, CancellationToken ct = default)
+        {
+            PrimaryProspectList primaryProspectList = default;
+            try
+            {
+                primaryProspectList = await _dbContext.PrimaryProspectLists.FindAsync(primaryProspectListId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve primary prospect list by id");
+            }
+
+            return primaryProspectList;
+        }
+
+        public async Task<IEnumerable<PrimaryProspect>> CreatePrimaryProspectsAsync(IEnumerable<PrimaryProspect> primaryProspectList, CancellationToken ct = default)
+        {
+            try
+            {
+                await _dbContext.PrimaryProspects.AddRangeAsync(primaryProspectList);
+                await _dbContext.SaveChangesAsync(ct);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to add prospects");
+            }
+
+            return primaryProspectList;
         }
     }
 }

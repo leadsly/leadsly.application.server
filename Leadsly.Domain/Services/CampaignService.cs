@@ -76,9 +76,10 @@ namespace Leadsly.Domain.Services
             CampaignProspectList newCampaignProspectList = new()
             {
                 CampaignProspects = campaignProspects,
-                SearchUrls = searchUrls,
-                UserId = userId,
-                Name = primaryProspectList.Name,
+                PrimaryProspectList = primaryProspectList,
+                SearchUrls = searchUrls,                
+                // could be used to allow each campaign to modify its own prospect list name
+                ProspectListName = primaryProspectList.Name,
             };
 
             return newCampaignProspectList;

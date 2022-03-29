@@ -21,6 +21,8 @@ namespace Leadsly.Domain.Repositories
         Task<PrimaryProspectList> GetProspectListByProspectListPhaseIdAsync(string prospectListPhaseId, CancellationToken ct = default);
         Task<Campaign> GetCampaignByIdAsync(string campaignId, CancellationToken ct = default);
         Task<ProspectListPhase> GetProspectListPhaseByIdAsync(string prospectListId, CancellationToken ct = default);
+        Task<PrimaryProspectList> GetPrimaryProspectListByIdAsync(string primaryProspectListId, CancellationToken ct = default);
+        Task<IEnumerable<PrimaryProspect>> CreatePrimaryProspectsAsync(IEnumerable<PrimaryProspect> primaryProspectList, CancellationToken ct = default);
         Task<SentConnectionsStatus> CreateProspectListStatus(string campaignId, CancellationToken ct = default);
         Task<SentConnectionsStatus> GetSentConnectionStatusAsync(string campaignId, CancellationToken ct = default);
         Task<IEnumerable<CampaignProspect>> GetCampaignProspectsByIdAsync(string campaignId, CancellationToken ct = default);

@@ -44,7 +44,9 @@ namespace Leadsly.Domain.Providers
         public async Task<ProspectListBody> CreateProspectListBodyAsync(string prospectListPhaseId, CancellationToken ct = default)
         {
             ProspectListPhase prospectListPhase = await _campaignRepository.GetProspectListPhaseByIdAsync(prospectListPhaseId, ct);
-            string chromeProfileName = await _campaignRepository.GetChromeProfileNameByCampaignPhaseTypeAsync(PhaseType.ProspectList, ct);
+            string primaryProspectListId = prospectListPhase.Campaign.CampaignProspectList.PrimaryProspectListId;
+
+            string chromeProfileName = await _campaignRepository.GetChromeProfileNameByCampaignPhaseTypeAsync(PhaseType.ProspectList, ct);            
             if(chromeProfileName == null)
             {
                 // create the new chrome profile name and save it
@@ -61,7 +63,8 @@ namespace Leadsly.Domain.Providers
             {
                 SearchUrls = prospectListPhase.SearchUrls,
                 HalId = prospectListPhase.Campaign.HalId,
-                ChromeProfile = chromeProfileName                
+                ChromeProfile = chromeProfileName,
+                PrimaryProspectListId = primaryProspectListId
             };
 
             return prospectListBody;

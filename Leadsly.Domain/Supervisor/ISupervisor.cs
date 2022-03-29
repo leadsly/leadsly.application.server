@@ -9,6 +9,7 @@ using Leadsly.Application.Model.ViewModels.Response;
 using Leadsly.Application.Model.Responses;
 using Leadsly.Application.Model.ViewModels;
 using System;
+using Leadsly.Application.Model.Requests.FromHal;
 
 namespace Leadsly.Domain.Supervisor
 {
@@ -26,6 +27,9 @@ namespace Leadsly.Domain.Supervisor
             where T : IOperationResponseViewModel;
 
         Task<HalOperationResult<T>> ProcessNewMyNetworkConnectionsAsync<T>(MyNetworkNewConnectionsRequest request, CancellationToken ct = default)
+            where T : IOperationResponse;
+
+        Task<HalOperationResult<T>> ProcessProspectsAsync<T>(ProspectListPhaseCompleteRequest request, CancellationToken ct = default)
             where T : IOperationResponse;
 
         Task<HalOperationResultViewModel<T>> CreateCampaignAsync<T>(CreateCampaignRequest request, string userId, CancellationToken ct = default)

@@ -1,5 +1,7 @@
 ﻿using Leadsly.Application.Model;
+using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Application.Model.Requests;
+using Leadsly.Application.Model.Requests.FromHal;
 using Leadsly.Application.Model.Responses;
 using Leadsly.Application.Model.ViewModels;
 using Leadsly.Application.Model.ViewModels.Response;
@@ -14,6 +16,22 @@ namespace Leadsly.Domain.Supervisor
 {
     partial class Supervisor : ISupervisor
     {
+
+        public async Task<HalOperationResult<T>> ProcessProspectsAsync<T>(ProspectListPhaseCompleteRequest request, CancellationToken ct = default)
+            where T : IOperationResponse
+        {
+            HalOperationResult<T> result = new();
+
+            IEnumerable<PrimaryProspect> prospects = await _campaignRepository.CreatePrimaryProspectsAsync(request.Prospects, ct);
+            if(prospects == null)
+            {
+                return result;
+            }
+
+            result.Succeeded = true;
+            return result;
+        }
+
         public async Task<HalOperationResult<T>> ProcessNewMyNetworkConnectionsAsync<T>(MyNetworkNewConnectionsRequest request, CancellationToken ct = default)
             where T : IOperationResponse
         {

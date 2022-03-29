@@ -36,7 +36,35 @@ namespace Leadsly.Domain.Supervisor
                 ApplicationUserId = userId
             };
 
-            CampaignProspectList campaignProspectList = await CreateCampaignProspectListAsync(request, userId, ct);
+            // check if we're using existing prospect list or not
+            PrimaryProspectList primaryProspectList = default;
+            if (request.CampaignDetails.PrimaryProspectList.Existing == true)
+            {
+                // grab existing prospect list by prospect list name and user id
+                primaryProspectList = await _prospectListRepository.GetPrimaryProspectListByNameAndUserIdAsync(request.CampaignDetails.PrimaryProspectList.Name, userId, ct);
+            }
+            else 
+            {
+                primaryProspectList = new()
+                {
+                    Name = request.CampaignDetails.PrimaryProspectList.Name,
+                    SearchUrls = new List<SearchUrl>(),
+                    UserId = userId
+                };
+
+                foreach (string searchUrl in request.CampaignDetails.PrimaryProspectList.SearchUrls)
+                {
+                    primaryProspectList.SearchUrls.Add(new()
+                    {
+                        PrimaryProspectList = primaryProspectList,
+                        Url = searchUrl
+                    });
+                }
+
+                primaryProspectList = await _prospectListRepository.CreatePrimaryProspectListAsync(primaryProspectList, ct);
+            }
+
+            CampaignProspectList campaignProspectList = _campaignProvider.CreateCampaignProspectList(primaryProspectList, userId);
             newCampaign.CampaignProspectList = campaignProspectList;
 
             foreach (FollowUpMessageViewModel followUpMsg in request.FollowUpMessages)
@@ -69,6 +97,7 @@ namespace Leadsly.Domain.Supervisor
             };
             newCampaignWithPhases.SentConnectionsStatus = sentConnectionsStatus;
 
+            // create new ProspectList if we're not using an existing one
             newCampaignWithPhases = await _campaignRepository.CreateAsync(newCampaignWithPhases, ct);
             if (newCampaignWithPhases == null)
             {
@@ -85,38 +114,6 @@ namespace Leadsly.Domain.Supervisor
 
             result.OperationResults.Succeeded = true;
             return result;
-        }
-
-        private async Task<CampaignProspectList> CreateCampaignProspectListAsync(CreateCampaignRequest request, string userId,  CancellationToken ct = default)
-        {
-            PrimaryProspectList primaryProspectList = default;
-            if (request.CampaignDetails.PrimaryProspectList.Existing == true)
-            {
-                // grab existing prospect list by prospect list name and user id
-                primaryProspectList = await _prospectListRepository.GetPrimaryProspectListByNameAndUserIdAsync(request.CampaignDetails.PrimaryProspectList.Name, userId, ct);
-            }
-            else
-            {
-                primaryProspectList = new()
-                {
-                    Name = request.CampaignDetails.PrimaryProspectList.Name,
-                    SearchUrls = new List<SearchUrl>(),
-                    UserId = userId
-                };
-
-                foreach (string searchUrl in request.CampaignDetails.PrimaryProspectList.SearchUrls)
-                {
-                    primaryProspectList.SearchUrls.Add(new()
-                    {
-                        PrimaryProspectList = primaryProspectList,
-                        Url = searchUrl
-                    });
-                }
-
-                primaryProspectList = await _prospectListRepository.CreatePrimaryProspectListAsync(primaryProspectList, ct);
-            }
-
-            return _campaignProvider.CreateCampaignProspectList(primaryProspectList, userId);
         }
 
         private Campaign CreateCampaignPhases(Campaign newCampaign, bool useExistingProspectList, CancellationToken ct = default)            
