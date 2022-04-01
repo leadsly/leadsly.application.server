@@ -49,7 +49,8 @@ namespace Leadsly.Domain.Supervisor
                 {
                     Name = request.CampaignDetails.PrimaryProspectList.Name,
                     SearchUrls = new List<SearchUrl>(),
-                    UserId = userId
+                    UserId = userId,
+                    CreatedTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
                 };
 
                 foreach (string searchUrl in request.CampaignDetails.PrimaryProspectList.SearchUrls)
@@ -97,6 +98,15 @@ namespace Leadsly.Domain.Supervisor
             };
             newCampaignWithPhases.SentConnectionsStatus = sentConnectionsStatus;
 
+            if(request.CampaignDetails.WarmUp == true)
+            {
+                // create warmup configuration
+                await _campaignService.CreateDailyWarmUpLimitConfigurationAsync(request.CampaignDetails.StartTimestamp, ct);
+            }
+
+            // create send connections stages. For when each campaign will send out its connections
+            newCampaignWithPhases.SendConnectionStages = CreateSendConnectionsStages();
+
             // create new ProspectList if we're not using an existing one
             newCampaignWithPhases = await _campaignRepository.CreateAsync(newCampaignWithPhases, ct);
             if (newCampaignWithPhases == null)
@@ -114,6 +124,43 @@ namespace Leadsly.Domain.Supervisor
 
             result.OperationResults.Succeeded = true;
             return result;
+        }
+
+        private IList<SendConnectionsStage> CreateSendConnectionsStages()
+        {
+            IList<SendConnectionsStage> connectionsStages = new List<SendConnectionsStage>();
+            for (int i = 0; i < 3; i++)
+            {
+                SendConnectionsStage sendConnectionsStage = new();
+                if (i == 0)
+                {
+                    sendConnectionsStage = new SendConnectionsStage
+                    {
+                        StartTime =  "8:00 AM",
+                        Order = i + 1
+                    };
+                }
+                else if(i == 1)
+                {
+                    sendConnectionsStage = new SendConnectionsStage
+                    {
+                        StartTime = "12:00 PM",
+                        Order = i + 1
+                    };
+                }
+                else
+                {
+                    sendConnectionsStage = new SendConnectionsStage
+                    {
+                        StartTime = "5:30PM",
+                        Order = i + 1
+                    };
+                }
+
+                connectionsStages.Add(sendConnectionsStage);
+            }
+
+            return connectionsStages;
         }
 
         private Campaign CreateCampaignPhases(Campaign newCampaign, bool useExistingProspectList, CancellationToken ct = default)            

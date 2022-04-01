@@ -20,10 +20,12 @@ namespace Leadsly.Domain.Campaigns
 {
     public class CampaignPhaseProducer : ICampaignPhaseProducer
     {
-        public CampaignPhaseProducer(ILogger<CampaignPhaseProducer> logger, IServiceProvider serviceProvider)
+        public CampaignPhaseProducer(ILogger<CampaignPhaseProducer> logger, IServiceProvider serviceProvider, ICampaignManager campaignManager)
         {
             _logger = logger;
+
             _serviceProvider = serviceProvider;
+            _campaignManager = campaignManager;
         }
 
         ~CampaignPhaseProducer()
@@ -61,6 +63,7 @@ namespace Leadsly.Domain.Campaigns
 
         private readonly ILogger<CampaignPhaseProducer> _logger;
         private readonly IServiceProvider _serviceProvider;
+        private readonly ICampaignManager _campaignManager;
 
         private ConnectionFactory ConfigureConnectionFactor(RabbitMQOptions options, string clientProviderName)
         {
@@ -74,13 +77,13 @@ namespace Leadsly.Domain.Campaigns
             };
         }
 
-        public async Task PublishProspectListPhaseMessagesAsync(string prospectListPhaseId)
+        public async Task PublishProspectListPhaseMessagesAsync(string prospectListPhaseId, string userId)
         {
             using (var scope = _serviceProvider.CreateScope())
             {
                 ICampaignProvider campaignProvider = scope.ServiceProvider.GetRequiredService<ICampaignProvider>();
 
-                ProspectListBody messageBody = await campaignProvider.CreateProspectListBodyAsync(prospectListPhaseId);
+                ProspectListBody messageBody = await campaignProvider.CreateProspectListBodyAsync(prospectListPhaseId, userId);
 
                 IRabbitMQRepository rabbitMQRepository = scope.ServiceProvider.GetRequiredService<IRabbitMQRepository>();
                 RabbitMQOptions options = rabbitMQRepository.GetRabbitMQConfigOptions();
@@ -90,15 +93,17 @@ namespace Leadsly.Domain.Campaigns
                 string queueName = options.QueueConfigOptions.Name;
                 string routingKey = options.RoutingKey;
 
-                ISerializerFacade serializerFacade = scope.ServiceProvider.GetRequiredService<ISerializerFacade>();
-                byte[] body = serializerFacade.SerializeProspectList(messageBody);
+                ISerializerFacade serializerFacade = scope.ServiceProvider.GetRequiredService<ISerializerFacade>();                
 
-                ProcessProspectListPhases(body, options, messageBody.HalId, exchangeName, exchangeType, queueName, routingKey);
+                ProcessProspectListPhases(messageBody, serializerFacade, options, messageBody.HalId, exchangeName, exchangeType, queueName, routingKey, userId);
             }
         }
 
-        private void ProcessProspectListPhases(byte[] body, RabbitMQOptions options, string halId, string exchangeName, string exchangeType, string queueName, string routingKey)
+        private void ProcessProspectListPhases(ProspectListBody messageBody, ISerializerFacade serializer, RabbitMQOptions options, string halId, string exchangeName, string exchangeType, string queueName, string routingKey, string userId)
         {
+            byte[] body = serializer.SerializeProspectList(messageBody);
+            string campaignId = messageBody.CampaignId;
+
             ConnectionFactory factory = ConfigureConnectionFactor(options, RabbitMQConstants.ProspectList.QueueName);
             var connection = factory.CreateConnection();
             Connections.Add(connection);
@@ -118,9 +123,8 @@ namespace Leadsly.Domain.Campaigns
 
             channel.BasicAcks += (sender, ea) =>
             {
-                // emitted when consumer does basic acknowledge
-
-
+                // emitted when consumer does basic acknowledge                
+                _campaignManager.TriggerSendConnectionsPhase(campaignId, userId);
             };
             channel.BasicNacks += (sender, ea) =>
             {
@@ -313,6 +317,29 @@ namespace Leadsly.Domain.Campaigns
 
             channel.BasicPublish(exchange: exchangeName, routingKey: routingKey, basicProperties: basicProperties, body: body);
         }
+                
+        public async Task PublishSendConnectionsPhaseMessageAsync(string campaignId, string userId)
+        {
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                ICampaignProvider campaignProvider = _serviceProvider.GetRequiredService<ICampaignProvider>();
+
+                SendConnectionsBody messageBody = await campaignProvider.CreateSendConnectionsBodyAsync(campaignId, userId);                
+                
+                IRabbitMQRepository rabbitMQRepository = scope.ServiceProvider.GetRequiredService<IRabbitMQRepository>();
+                RabbitMQOptions options = rabbitMQRepository.GetRabbitMQConfigOptions();
+
+                string exchangeName = options.ExchangeOptions.Name;
+                string exchangeType = options.ExchangeOptions.ExchangeType;
+                string queueName = options.QueueConfigOptions.Name;
+                string routingKey = options.RoutingKey;
+
+                ISerializerFacade serializerFacade = scope.ServiceProvider.GetRequiredService<ISerializerFacade>();
+                byte[] message = serializerFacade.SerializeSendConnections(messageBody);
+
+                PublishSendConnectionsToProspectsPhaseMessages(message, options, messageBody.HalId, exchangeName, exchangeType, queueName, routingKey);
+            }
+        }
 
         private void PublishSendConnectionsToProspectsPhaseMessages(byte[] body, RabbitMQOptions options, string halId, string exchangeName, string exchangeType, string queueName, string routingKey)
         {
@@ -347,29 +374,6 @@ namespace Leadsly.Domain.Campaigns
             basicProperties.MessageId = Guid.NewGuid().ToString();
 
             channel.BasicPublish(exchange: exchangeName, routingKey: routingKey, basicProperties: basicProperties, body: body);
-        }
-
-        public async Task PublishSendConnectionsPhaseMessageAsync(string campaignId)
-        {
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                ICampaignProvider campaignProvider = _serviceProvider.GetRequiredService<ICampaignProvider>();
-
-                SendConnectionsBody messageBody = await campaignProvider.CreateSendConnectionsBodyAsync(campaignId);                
-                
-                IRabbitMQRepository rabbitMQRepository = scope.ServiceProvider.GetRequiredService<IRabbitMQRepository>();
-                RabbitMQOptions options = rabbitMQRepository.GetRabbitMQConfigOptions();
-
-                string exchangeName = options.ExchangeOptions.Name;
-                string exchangeType = options.ExchangeOptions.ExchangeType;
-                string queueName = options.QueueConfigOptions.Name;
-                string routingKey = options.RoutingKey;
-
-                ISerializerFacade serializerFacade = scope.ServiceProvider.GetRequiredService<ISerializerFacade>();
-                byte[] message = serializerFacade.SerializeSendConnections(messageBody);
-
-                PublishSendConnectionsToProspectsPhaseMessages(message, options, messageBody.HalId, exchangeName, exchangeType, queueName, routingKey);
-            }
         }
 
         public void PublishConnectionWithdrawPhaseMessages()

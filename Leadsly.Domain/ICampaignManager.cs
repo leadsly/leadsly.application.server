@@ -10,8 +10,8 @@ namespace Leadsly.Domain
     {
         void ProcessAllActiveCampaigns();
 
-        void TriggerProspectListPhase(string prospectListPhaseId);
+        void TriggerProspectListPhase(string prospectListPhaseId, string userId);
 
-        void TriggerSendConnectionsPhase(string campaignId);
+        void TriggerSendConnectionsPhase(string campaignId, string userId);
     }
 }

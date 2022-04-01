@@ -10,10 +10,10 @@ namespace Leadsly.Domain
     public interface ICampaignPhaseProducer
     {
         Task PublishProspectListPhaseMessagesAsync();
-        Task PublishProspectListPhaseMessagesAsync(string prospectListPhaseId);
+        Task PublishProspectListPhaseMessagesAsync(string prospectListPhaseId, string userId);
         Task PublishConstantCampaignPhaseMessagesAsync();
         void PublishConnectionWithdrawPhaseMessages();
 
-        Task PublishSendConnectionsPhaseMessageAsync(string campaignId);
+        Task PublishSendConnectionsPhaseMessageAsync(string campaignId, string userId);
     }
 }

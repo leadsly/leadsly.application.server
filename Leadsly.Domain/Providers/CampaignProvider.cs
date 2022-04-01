@@ -1,9 +1,12 @@
-﻿using Leadsly.Application.Model.Campaigns;
+﻿using Leadsly.Application.Model;
+using Leadsly.Application.Model.Campaigns;
+using Leadsly.Application.Model.Entities;
 using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -16,35 +19,40 @@ namespace Leadsly.Domain.Providers
 {
     public class CampaignProvider : ICampaignProvider
     {
-        public CampaignProvider(ILogger<CampaignProvider> logger, ICampaignService campaignService, ICampaignManager campaignManager, ICampaignRepository campaignRepository)
+        public CampaignProvider(ILogger<CampaignProvider> logger, IMemoryCache memoryCache, ICampaignService campaignService, ICampaignManager campaignManager, ICampaignRepository campaignRepository, ICloudPlatformRepository cloudPlatformRepository)
         {
             _campaignService = campaignService;
             _logger = logger;
+            _memoryCache = memoryCache;
             _campaignManager = campaignManager;
             _campaignRepository = campaignRepository;
+            _cloudPlatformRepository = cloudPlatformRepository;
         }
 
         private readonly ILogger<CampaignProvider> _logger;
+        private readonly IMemoryCache _memoryCache;
         private readonly ICampaignManager _campaignManager;
         private readonly ICampaignRepository _campaignRepository;
+        private readonly ICloudPlatformRepository _cloudPlatformRepository;
         private readonly ICampaignService _campaignService;
         public void ProcessNewCampaign(Campaign campaign)
         {
             // if prospect list phase does not exists, this means were running new prospect list
             if(campaign.ProspectListPhase == null)
             {                
-                _campaignManager.TriggerSendConnectionsPhase(campaign.Id);
+                _campaignManager.TriggerSendConnectionsPhase(campaign.Id, campaign.ApplicationUserId);
             }
             else
             {
-                _campaignManager.TriggerProspectListPhase(campaign.ProspectListPhase.Id);
+                _campaignManager.TriggerProspectListPhase(campaign.ProspectListPhase.Id, campaign.ApplicationUserId);
             }
         }
 
-        public async Task<ProspectListBody> CreateProspectListBodyAsync(string prospectListPhaseId, CancellationToken ct = default)
+        public async Task<ProspectListBody> CreateProspectListBodyAsync(string prospectListPhaseId, string userId, CancellationToken ct = default)
         {
-            ProspectListPhase prospectListPhase = await _campaignRepository.GetProspectListPhaseByIdAsync(prospectListPhaseId, ct);
+            ProspectListPhase prospectListPhase = await _campaignRepository.GetProspectListPhaseByPhaseIdAsync(prospectListPhaseId, ct);
             string primaryProspectListId = prospectListPhase.Campaign.CampaignProspectList.PrimaryProspectListId;
+            string campaignId = prospectListPhase.CampaignId;
 
             string chromeProfileName = await _campaignRepository.GetChromeProfileNameByCampaignPhaseTypeAsync(PhaseType.ProspectList, ct);            
             if(chromeProfileName == null)
@@ -59,31 +67,37 @@ namespace Leadsly.Domain.Providers
                 chromeProfileName = profileName.Profile;
             }
 
+            if (_memoryCache.TryGetValue(CacheKeys.CloudPlatformConfigurationOptions, out CloudPlatformConfiguration config) == false)
+            {
+                config = _cloudPlatformRepository.GetCloudPlatformConfiguration();
+            }
+
             ProspectListBody prospectListBody = new()
             {
                 SearchUrls = prospectListPhase.SearchUrls,
                 HalId = prospectListPhase.Campaign.HalId,
                 ChromeProfile = chromeProfileName,
-                PrimaryProspectListId = primaryProspectListId
+                PrimaryProspectListId = primaryProspectListId,
+                UserId = userId,
+                CampaignId = campaignId,
+                NamespaceName = config.ServiceDiscoveryConfig.Name,
+                ServiceDiscoveryName = config.ApiServiceDiscoveryName
             };
 
             return prospectListBody;
         }
 
-        public async Task<SendConnectionsBody> CreateSendConnectionsBodyAsync(string campaignId, CancellationToken ct = default)
+        public async Task<SendConnectionsBody> CreateSendConnectionsBodyAsync(string campaignId, string userId, CancellationToken ct = default)
         {
             Campaign campaign = await _campaignRepository.GetCampaignByIdAsync(campaignId, ct);
-            int dailyConnectionCount = await _campaignService.SetDailyLimitAsync(campaign, ct);
-            SentConnectionsStatus sentConnectionsStatus = await _campaignRepository.GetSentConnectionStatusAsync(campaignId, ct);
-            IEnumerable<CampaignProspect> campaignProspects = await _campaignRepository.GetCampaignProspectsByIdAsync(campaignId, ct);
-            IEnumerable<CampaignProspectBody> notConnectedProspects = campaignProspects.Where(c => c.ConnectionSent == false).Select(c =>
+            int dailyConnectionsLimit = campaign.DailyInvites;
+            if(campaign.IsWarmUpEnabled == true)
             {
-                return new CampaignProspectBody()
-                {
-                    Name = c.Name,
-                    ProfileUrl = c.ProfileUrl
-                };
-            });
+                CampaignWarmUp campaignWarmUp = await _campaignRepository.GetCampaignWarmUpByIdAsync(campaignId, ct);
+                dailyConnectionsLimit = campaignWarmUp.DailyLimit;
+            }
+            SentConnectionsStatus sentConnectionsStatus = await _campaignRepository.GetSentConnectionStatusAsync(campaignId, ct);
+            IList<SendConnectionsStage> sendConnectionsStages = await _campaignRepository.GetSendConnectionStagesByIdAsync(campaignId, ct);            
 
             string chromeProfileName = await _campaignRepository.GetChromeProfileNameByCampaignPhaseTypeAsync(PhaseType.SendConnectionRequests, ct);
             if (chromeProfileName == null)
@@ -98,17 +112,47 @@ namespace Leadsly.Domain.Providers
                 chromeProfileName = profileName.Profile;
             }
 
+            if (_memoryCache.TryGetValue(CacheKeys.CloudPlatformConfigurationOptions, out CloudPlatformConfiguration config) == false)
+            {
+                config = _cloudPlatformRepository.GetCloudPlatformConfiguration();
+            }
+
             SendConnectionsBody sendConnectionsBody = new()
             {
                 ChromeProfileName = chromeProfileName,
-                DailyLimit = dailyConnectionCount,
+                DailyLimit = dailyConnectionsLimit,
                 HalId = campaign.HalId,
+                UserId = userId,
                 PageUrl = sentConnectionsStatus.LastVisistedPageUrl.Url,
                 LastProspectHitListPosition = sentConnectionsStatus.LastProspectHitListPosition,
-                NextPageUrl = sentConnectionsStatus.NextPageUrl.Url,
-                StartDateTimestamp = campaign.StartTimestamp,
-                Prospects = notConnectedProspects
+                StartDateTimestamp = campaign.StartTimestamp,       
+                CampaignId = campaignId,                
+                SendConnectionsStages = new List<SendConnectionsStageBody>(),
+                NamespaceName = config.ServiceDiscoveryConfig.Name,
+                ServiceDiscoveryName = config.ApiServiceDiscoveryName
             };
+
+            decimal totalInvites = dailyConnectionsLimit;
+            int divider = sendConnectionsStages.Count;
+            List<int> stagesConnectionsLimit = new();
+            while (divider > 0)
+            {
+                decimal stageLimits = Math.Round(totalInvites / divider, 0);                
+                stagesConnectionsLimit.Add(Convert.ToInt32(stageLimits));
+                divider--;
+            }
+
+            for (int i = 0; i < sendConnectionsStages.Count; i++)
+            {
+                SendConnectionsStageBody sendConnectionsStageBody = new()
+                {
+                    ConnectionsLimit = stagesConnectionsLimit[i],
+                    StartTime = sendConnectionsStages[i].StartTime,
+                    Order = sendConnectionsStages[i].Order
+                };
+
+                sendConnectionsBody.SendConnectionsStages.Add(sendConnectionsStageBody);
+            }
 
             return sendConnectionsBody;
         }

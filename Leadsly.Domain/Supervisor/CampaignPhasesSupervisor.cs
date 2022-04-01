@@ -1,5 +1,6 @@
 ﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Entities.Campaigns;
+using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Application.Model.Requests;
 using Leadsly.Application.Model.Requests.FromHal;
 using Leadsly.Application.Model.Responses;
@@ -22,8 +23,54 @@ namespace Leadsly.Domain.Supervisor
         {
             HalOperationResult<T> result = new();
 
-            IEnumerable<PrimaryProspect> prospects = await _campaignRepository.CreatePrimaryProspectsAsync(request.Prospects, ct);
+            IList<CampaignProspect> campaignProspects = new List<CampaignProspect>();
+            IList<PrimaryProspect> prospects = new List<PrimaryProspect>();
+            foreach (PrimaryProspectRequest primaryProspectRequest in request.Prospects)
+            {
+                PrimaryProspect primaryProspect = new()
+                {
+                    AddedTimestamp = primaryProspectRequest.AddedTimestamp,
+                    Name = primaryProspectRequest.Name,
+                    Area = primaryProspectRequest.Area,
+                    EmploymentInfo = primaryProspectRequest.EmploymentInfo,
+                    PrimaryProspectListId = primaryProspectRequest.PrimaryProspectListId,
+                    ProfileUrl = primaryProspectRequest.ProfileUrl,
+                    SearchResultAvatarUrl = primaryProspectRequest.SearchResultAvatarUrl
+                };
+                prospects.Add(primaryProspect);
+
+                //CampaignProspect campaignProspect = new()
+                //{
+                //    ConnectionSent = false,
+                //    FollowUpMessageSent = false,
+                //    PrimaryProspect = primaryProspect,
+                //    CampaignId = request.CampaignId
+                //};
+                //campaignProspects.Add(campaignProspect);
+            }
+
+            prospects = await _campaignRepository.CreatePrimaryProspectsAsync(prospects, ct);
             if(prospects == null)
+            {
+                return result;
+            }
+
+            //campaignProspects = await _campaignRepository.CreateCampaignProspectsAsync(campaignProspects, ct);
+            //if(campaignProspects == null)
+            //{
+            //    return result;
+            //}
+
+            ProspectListPhase campaignProspectListPhase = await _campaignRepository.GetProspectListPhaseByIdAsync(request.CampaignId, ct);
+            if(campaignProspectListPhase == null)
+            {
+                return result;
+            }
+
+            campaignProspectListPhase.Completed = true;
+            // mark campaign's prospect list phase as completed
+            campaignProspectListPhase = await _campaignRepository.UpdateCampaignProspectListPhaseAsync(campaignProspectListPhase, ct);
+            if(campaignProspectListPhase == null)
             {
                 return result;
             }

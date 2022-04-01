@@ -16,9 +16,9 @@ namespace Leadsly.Domain.Providers.Interfaces
         Task<HalsProspectListPhasesPayload> GetActiveProspectListPhasesAsync(CancellationToken ct = default);
         Task<List<string>> HalIdsWithActiveCampaignsAsync(CancellationToken ct = default);
 
-        Task<SendConnectionsBody> CreateSendConnectionsBodyAsync(string campaignId, CancellationToken ct = default);
+        Task<SendConnectionsBody> CreateSendConnectionsBodyAsync(string campaignId, string userId, CancellationToken ct = default);
 
-        Task<ProspectListBody> CreateProspectListBodyAsync(string propsectListId, CancellationToken ct = default);
+        Task<ProspectListBody> CreateProspectListBodyAsync(string propsectListId, string userId, CancellationToken ct = default);
 
         CampaignProspectList CreateCampaignProspectList(PrimaryProspectList primaryProspectList, string userId);
     }

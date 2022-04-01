@@ -1,4 +1,5 @@
 ﻿using Leadsly.Api;
+using Leadsly.Application.Model;
 using Leadsly.Application.Model.Requests.FromHal;
 using Leadsly.Application.Model.Responses;
 using Leadsly.Domain.Supervisor;
@@ -24,7 +25,12 @@ namespace Leadsly.Application.Api.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> ProspectList(ProspectListPhaseCompleteRequest request, CancellationToken ct = default)
         {
-            var a  = await _supervisor.ProcessProspectsAsync<IOperationResponse>(request, ct);
+            HalOperationResult<IOperationResponse> result = await _supervisor.ProcessProspectsAsync<IOperationResponse>(request, ct);
+
+            if(result.Succeeded == false)
+            {
+                return BadRequest_ProspectListPhase(result.Failures);
+            }
 
             return Ok();
         }

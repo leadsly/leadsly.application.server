@@ -83,6 +83,24 @@ namespace Leadsly.Api
         }
 
         /// <summary>
+        /// Bad request when there is an issue creating a new user.
+        /// </summary>        
+        /// <returns></returns>
+        protected ObjectResult BadRequest_ProspectListPhase(List<Failure> errors)
+        {
+            Dictionary<string, string[]> errorsDictionary = errors.ToDictionary(x => Enum.GetName(x.Code ?? Codes.ERROR), x => new[] { x.Reason, x.Detail });
+
+            return ProblemDetailsResult(new ValidationProblemDetails(errorsDictionary)
+            {
+                Type = ProblemDetailsTypes.BadRequestType,
+                Status = StatusCodes.Status400BadRequest,
+                Title = ReasonPhrases.GetReasonPhrase(400),
+                Detail = ProblemDetailsDescriptions.ProspectListPhaseError,
+                Instance = this.HttpContext.Request.Path.Value
+            });
+        }
+
+        /// <summary>
         /// Bad request when server fails to generate token. This can be either change email token, or change password token, or email confirmation token etc.
         /// </summary>        
         /// <returns></returns>

@@ -10,7 +10,7 @@ namespace Leadsly.Domain.Services.Interfaces
 {
     public interface ICampaignService
     {
-        Task<int> SetDailyLimitAsync(Campaign campaign, CancellationToken ct = default);
+        Task<int> CreateDailyWarmUpLimitConfigurationAsync(long startDateTimestamp, CancellationToken ct = default);
 
         CampaignProspectList GenerateCampaignProspectList(PrimaryProspectList primaryProspectList, string userId);
     }

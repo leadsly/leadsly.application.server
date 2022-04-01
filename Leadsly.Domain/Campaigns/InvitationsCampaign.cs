@@ -32,7 +32,7 @@ namespace Leadsly.Domain.Campaigns
                 ProspectListPhase prospectListPhase = new()
                 {
                     Campaign = campaign,
-                    CompletionPercentage = 0,
+                    Completed = false,
                     PhaseType = PhaseType.ProspectList,
                     SearchUrls = campaign.CampaignProspectList.SearchUrls.Select(url => url.Url).ToList()
                 };

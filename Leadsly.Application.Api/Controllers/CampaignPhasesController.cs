@@ -1,10 +1,14 @@
 ﻿using Leadsly.Api;
+using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns.MonitorForNewProspects;
 using Leadsly.Application.Model.Requests;
+using Leadsly.Application.Model.Requests.FromHal;
+using Leadsly.Application.Model.Responses;
 using Leadsly.Domain.Supervisor;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Leadsly.Application.Api.Controllers
@@ -29,6 +33,16 @@ namespace Leadsly.Application.Api.Controllers
         [Route("new-my-network-connections")]
         public async Task<IActionResult> ProcessNewMyNetWorkConnections([FromBody] MyNetworkNewConnectionsRequest newConnectionProspects)
         {
+            return Ok();
+        }
+
+        [HttpPost]
+        [Route("trigger-send-connection-requests")]
+        public IActionResult TriggerSendConnectionRequests([FromBody] TriggerSendConnectionsRequest request)
+        {
+            HalOperationResult<IOperationResponse> result = _supervisor.TriggerSendConnectionsPhase<IOperationResponse>(request);
+
+
             return Ok();
         }
     }

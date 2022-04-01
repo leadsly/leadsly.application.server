@@ -14,6 +14,7 @@ namespace Leadsly.Domain.OptionsJsonModels
     public class AwsOptions
     {
         public string Region { get; set; }
+        public string ApiServiceDiscoveryName { get; set; }
         public EcsServiceConfigOptions EcsServiceConfigOptions { get; set; }
         public EcsTaskConfigOptions EcsTaskConfigOptions { get; set; }
         public EcsTaskDefinitionOptions EcsTaskDefinitionConfigOptions { get; set; }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Leadsly.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Leadsly.Infrastructure.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20220331172000_UpdateSchema3")]
+    partial class UpdateSchema3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -180,46 +182,6 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("Campaigns");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.CampaignProspect", b =>
-                {
-                    b.Property<string>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CampaignId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CampaignProspectListId")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("ConnectionSent")
-                        .HasColumnType("boolean");
-
-                    b.Property<long>("ConnectionSentTimestamp")
-                        .HasColumnType("bigint");
-
-                    b.Property<bool>("FollowUpMessageSent")
-                        .HasColumnType("boolean");
-
-                    b.Property<long>("LastFollowUpMessageSentTimestamp")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("PrimaryProspectId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CampaignId");
-
-                    b.HasIndex("CampaignProspectListId");
-
-                    b.HasIndex("PrimaryProspectId");
-
-                    b.ToTable("CampaignProspects");
-                });
-
             modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.CampaignProspectList", b =>
                 {
                     b.Property<string>("Id")
@@ -239,29 +201,6 @@ namespace Leadsly.Infrastructure.Migrations
                     b.HasIndex("PrimaryProspectListId");
 
                     b.ToTable("CampaignProspectLists");
-                });
-
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.CampaignWarmUp", b =>
-                {
-                    b.Property<string>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CampaignId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("DailyLimit")
-                        .HasColumnType("integer");
-
-                    b.Property<long>("StartDateTimestamp")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CampaignId");
-
-                    b.ToTable("CampaignWarmUps");
                 });
 
             modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.FollowUpMessage", b =>
@@ -392,11 +331,11 @@ namespace Leadsly.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<bool>("Completed")
-                        .HasColumnType("boolean");
-
                     b.Property<long>("CompletedTimestamp")
                         .HasColumnType("bigint");
+
+                    b.Property<int>("CompletionPercentage")
+                        .HasColumnType("integer");
 
                     b.Property<int>("PhaseType")
                         .HasColumnType("integer");
@@ -564,30 +503,6 @@ namespace Leadsly.Infrastructure.Migrations
                     b.HasIndex("PrimaryProspectListId");
 
                     b.ToTable("SearchUrls");
-                });
-
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.SendConnectionsStage", b =>
-                {
-                    b.Property<string>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CampaignId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("NumOfConnections")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("StartTime")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CampaignId");
-
-                    b.ToTable("SendConnectionsStages");
                 });
 
             modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.SentConnectionsStatus", b =>
@@ -1043,6 +958,30 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("UserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.CampaignProspect", b =>
+                {
+                    b.HasBaseType("Leadsly.Application.Model.Entities.Campaigns.PrimaryProspect");
+
+                    b.Property<string>("CampaignProspectListId")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("ConnectionSent")
+                        .HasColumnType("boolean");
+
+                    b.Property<long>("ConnectionSentTimestamp")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("FollowUpMessageSent")
+                        .HasColumnType("boolean");
+
+                    b.Property<long>("LastFollowUpMessageSentTimestamp")
+                        .HasColumnType("bigint");
+
+                    b.HasIndex("CampaignProspectListId");
+
+                    b.ToTable("CampaignProspects");
+                });
+
             modelBuilder.Entity("ApplicationUserOrganization", b =>
                 {
                     b.HasOne("Leadsly.Application.Model.Entities.ApplicationUser", null)
@@ -1086,29 +1025,6 @@ namespace Leadsly.Infrastructure.Migrations
                     b.Navigation("CampaignProspectList");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.CampaignProspect", b =>
-                {
-                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.Campaign", "Campaign")
-                        .WithMany()
-                        .HasForeignKey("CampaignId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.CampaignProspectList", null)
-                        .WithMany("CampaignProspects")
-                        .HasForeignKey("CampaignProspectListId");
-
-                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.PrimaryProspect", "PrimaryProspect")
-                        .WithMany()
-                        .HasForeignKey("PrimaryProspectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Campaign");
-
-                    b.Navigation("PrimaryProspect");
-                });
-
             modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.CampaignProspectList", b =>
                 {
                     b.HasOne("Leadsly.Application.Model.Entities.Campaigns.PrimaryProspectList", "PrimaryProspectList")
@@ -1118,17 +1034,6 @@ namespace Leadsly.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("PrimaryProspectList");
-                });
-
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.CampaignWarmUp", b =>
-                {
-                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.Campaign", "Campaign")
-                        .WithMany()
-                        .HasForeignKey("CampaignId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Campaign");
                 });
 
             modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.FollowUpMessage", b =>
@@ -1262,17 +1167,6 @@ namespace Leadsly.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("PrimaryProspectList");
-                });
-
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.SendConnectionsStage", b =>
-                {
-                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.Campaign", "Campaign")
-                        .WithMany("SendConnectionStages")
-                        .HasForeignKey("CampaignId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Campaign");
                 });
 
             modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.SentConnectionsStatus", b =>
@@ -1441,6 +1335,19 @@ namespace Leadsly.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.CampaignProspect", b =>
+                {
+                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.CampaignProspectList", null)
+                        .WithMany("CampaignProspects")
+                        .HasForeignKey("CampaignProspectListId");
+
+                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.PrimaryProspect", null)
+                        .WithOne()
+                        .HasForeignKey("Leadsly.Application.Model.Entities.Campaigns.CampaignProspect", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Leadsly.Application.Model.Entities.ApplicationUser", b =>
                 {
                     b.Navigation("Campaigns");
@@ -1470,8 +1377,6 @@ namespace Leadsly.Infrastructure.Migrations
 
                     b.Navigation("SendConnectionRequestPhase")
                         .IsRequired();
-
-                    b.Navigation("SendConnectionStages");
 
                     b.Navigation("SendEmailInvitePhase")
                         .IsRequired();

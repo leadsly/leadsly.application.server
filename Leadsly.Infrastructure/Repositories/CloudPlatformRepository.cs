@@ -47,6 +47,7 @@ namespace Leadsly.Infrastructure.Repositories
             CloudPlatformConfiguration config = new()
             {
                 Region = _cloudPlatformConfigurationOptions.AwsOptions.Region,
+                ApiServiceDiscoveryName = _cloudPlatformConfigurationOptions.AwsOptions.ApiServiceDiscoveryName,
                 EcsServiceConfig = new()
                 {
                     AssignPublicIp = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.AssignPublicIp,

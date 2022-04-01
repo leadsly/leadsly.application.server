@@ -57,9 +57,18 @@ namespace Leadsly.Infrastructure.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<CampaignWarmUp> CreateCampaignWarmUpAsync(CampaignWarmUp warmUp, CancellationToken ct = default)
+        public async Task<CampaignWarmUp> CreateCampaignWarmUpAsync(CampaignWarmUp warmUp, CancellationToken ct = default)
         {
-            throw new NotImplementedException();
+            try
+            {
+                _dbContext.CampaignWarmUps.Add(warmUp);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to add campaign warm up object");
+            }
+            return warmUp;
         }
 
         public Task<ProspectListPhase> GetProspectListPhaseByCampaignIdAsync(string campaignId, CancellationToken ct = default)
@@ -67,46 +76,69 @@ namespace Leadsly.Infrastructure.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<PrimaryProspectList> GetProspectListByProspectListPhaseIdAsync(string prospectListPhaseId, CancellationToken ct = default)
+        public Task<PrimaryProspectList> GetProspectListByPhaseIdAsync(string prospectListPhaseId, CancellationToken ct = default)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Campaign> GetCampaignByIdAsync(string campaignId, CancellationToken ct = default)
+        public async Task<Campaign> GetCampaignByIdAsync(string campaignId, CancellationToken ct = default)
         {
-            throw new NotImplementedException();
+            Campaign campaign = default;
+            try
+            {
+                campaign = await _dbContext.Campaigns.Where(c => c.Id == campaignId).SingleAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve campaign by id");
+            }
+
+            return campaign;
         }
 
-        public async Task<ProspectListPhase> GetProspectListPhaseByIdAsync(string prospectListId, CancellationToken ct = default)
+        public async Task<ProspectListPhase> GetProspectListPhaseByPhaseIdAsync(string prospectListPhaseId, CancellationToken ct = default)
         {
             ProspectListPhase propsectListPhase = default;
 
             try
             {
-                propsectListPhase = await _dbContext.ProspectListPhases.Where(p => p.Id == prospectListId).Include(p => p.Campaign).ThenInclude(c => c.CampaignProspectList).SingleAsync(ct);
+                propsectListPhase = await _dbContext.ProspectListPhases.Where(p => p.Id == prospectListPhaseId).Include(p => p.Campaign).ThenInclude(c => c.CampaignProspectList).SingleAsync(ct);
 
             }
             catch(Exception ex)
             {
-
+                _logger.LogError(ex, "Failed to retrieve prospect list phase by its id");
             }
 
             return propsectListPhase;
         }
 
-        public Task<SentConnectionsStatus> CreateProspectListStatus(string campaignId, CancellationToken ct = default)
+        public async Task<SentConnectionsStatus> GetSentConnectionStatusAsync(string campaignId, CancellationToken ct = default)
         {
-            throw new NotImplementedException();
+            SentConnectionsStatus sentConnectionsStatus = default;
+            try
+            {
+                sentConnectionsStatus = await _dbContext.SentConnectionsStatus.Where(s => s.CampaignId == campaignId).SingleAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve 'SentConnectionsStatus' for the given campaign");
+            }
+            return sentConnectionsStatus;
         }
 
-        public Task<SentConnectionsStatus> GetSentConnectionStatusAsync(string campaignId, CancellationToken ct = default)
+        public async Task<IList<CampaignProspect>> GetCampaignProspectsByIdAsync(string campaignId, CancellationToken ct = default)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<CampaignProspect>> GetCampaignProspectsByIdAsync(string campaignId, CancellationToken ct = default)
-        {
-            throw new NotImplementedException();
+            IList<CampaignProspect> campaignProspects = default;
+            try
+            {
+                campaignProspects = await _dbContext.CampaignProspects.Where(c => c.CampaignId == campaignId).ToListAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get campaign prospects by campaign id");
+            }
+            return campaignProspects;
         }
 
         public async Task<string> GetChromeProfileNameByCampaignPhaseTypeAsync(PhaseType campaignType, CancellationToken ct = default)
@@ -118,15 +150,10 @@ namespace Leadsly.Infrastructure.Repositories
             }
             catch (Exception ex)
             {
-
+                _logger.LogError(ex, "Failed to retrieve 'ChromeProfileName' by the given campaign phase type");
             }
 
-            if(profile == null)
-            {
-                return null;
-            }
-
-            return profile.Profile;
+            return profile?.Profile;
         }
 
         public async Task<ChromeProfileName> CreateChromeProfileNameAsync(ChromeProfileName chromeProfileName, CancellationToken ct = default)
@@ -138,7 +165,7 @@ namespace Leadsly.Infrastructure.Repositories
             }
             catch (Exception ex)
             {
-
+                _logger.LogError(ex, "Failed to add 'ChromeProfileName' to the database");
             }
             return chromeProfileName;
         }
@@ -158,7 +185,7 @@ namespace Leadsly.Infrastructure.Repositories
             return primaryProspectList;
         }
 
-        public async Task<IEnumerable<PrimaryProspect>> CreatePrimaryProspectsAsync(IEnumerable<PrimaryProspect> primaryProspectList, CancellationToken ct = default)
+        public async Task<IList<PrimaryProspect>> CreatePrimaryProspectsAsync(IList<PrimaryProspect> primaryProspectList, CancellationToken ct = default)
         {
             try
             {
@@ -172,6 +199,84 @@ namespace Leadsly.Infrastructure.Repositories
             }
 
             return primaryProspectList;
+        }
+
+        public async Task<IList<CampaignProspect>> CreatePrimaryProspectsAsync(IList<CampaignProspect> campaignProspectList, CancellationToken ct = default)
+        {
+            try
+            {
+                await _dbContext.CampaignProspects.AddRangeAsync(campaignProspectList);
+                await _dbContext.SaveChangesAsync(ct);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to add campaign prospects");
+            }
+
+            return campaignProspectList;
+        }
+
+        public async Task<ProspectListPhase> UpdateCampaignProspectListPhaseAsync(ProspectListPhase prospectListPhase, CancellationToken ct = default)
+        {
+            try
+            {
+                _dbContext.ProspectListPhases.Update(prospectListPhase);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to update prospect list phase");
+            }
+            return prospectListPhase;
+        }
+
+        public async Task<ProspectListPhase> GetProspectListPhaseByIdAsync(string campaignId, CancellationToken ct = default)
+        {
+            ProspectListPhase prospectListPhase = default;
+            try
+            {
+                prospectListPhase = await _dbContext.ProspectListPhases.Where(p => p.CampaignId == campaignId).SingleAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get prospect list phase by its id");
+            }
+            return prospectListPhase;
+        }
+
+        public Task<IList<CampaignProspect>> CreateCampaignProspectsAsync(IList<CampaignProspect> campaignProspects, CancellationToken ct = default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<CampaignWarmUp> GetCampaignWarmUpByIdAsync(string campaignId, CancellationToken ct = default)
+        {
+            CampaignWarmUp campaignWarmUp = default;
+            try
+            {
+                campaignWarmUp = await _dbContext.CampaignWarmUps.Where(w => w.CampaignId == campaignId).SingleAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve campaign warm up by campaign id");
+            }
+            return campaignWarmUp;
+        }
+
+        public async Task<IList<SendConnectionsStage>> GetSendConnectionStagesByIdAsync(string campaignId, CancellationToken ct = default)
+        {
+            IList<SendConnectionsStage> sendConnectionsStages = default;
+            try
+            {
+                sendConnectionsStages = await _dbContext.SendConnectionsStages.Where(s => s.CampaignId == campaignId).ToListAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve campaign 'SendConnectionStages' by campaign id");
+            }
+
+            return sendConnectionsStages;
         }
     }
 }
