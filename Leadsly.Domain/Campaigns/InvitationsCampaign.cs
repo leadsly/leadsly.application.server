@@ -20,13 +20,6 @@ namespace Leadsly.Domain.Campaigns
             };
             campaign.SendConnectionRequestPhase = sendConnectionsPhase;
 
-            ConnectionWithdrawPhase connectionWithdrawPhase = new()
-            {
-                Campaign = campaign,
-                PhaseType = PhaseType.ConnectionWithdraw
-            };
-            campaign.ConnectionWithdrawPhase = connectionWithdrawPhase;
-
             if(existingProspectList == false)
             {
                 ProspectListPhase prospectListPhase = new()

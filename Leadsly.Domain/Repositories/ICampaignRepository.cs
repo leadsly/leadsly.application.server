@@ -38,12 +38,31 @@ namespace Leadsly.Domain.Repositories
 
         #endregion
 
+        #region MonitorForNewConnectionsPhase
+
+        Task<MonitorForNewConnectionsPhase> CreateMonitorForNewConnectionsPhase(MonitorForNewConnectionsPhase phase, CancellationToken ct = default);
+
+        #endregion
+
+        #region ScanProspectsForReplies
+
+        Task<ScanProspectsForRepliesPhase> CreateScanProspectsForRepliesPhase(ScanProspectsForRepliesPhase phase, CancellationToken ct = default);
+
+        #endregion
+
+        #region ConnectionWithdraw
+
+        Task<ConnectionWithdrawPhase> CreateConnectionWithdrawPhase(ConnectionWithdrawPhase phase, CancellationToken ct = default);
+
+        #endregion
+
         #region Prospects
 
         Task<PrimaryProspectList> GetPrimaryProspectListByIdAsync(string primaryProspectListId, CancellationToken ct = default);
         Task<IList<PrimaryProspect>> CreatePrimaryProspectsAsync(IList<PrimaryProspect> primaryProspectList, CancellationToken ct = default);
         Task<IList<CampaignProspect>> CreateCampaignProspectsAsync(IList<CampaignProspect> campaignProspects, CancellationToken ct = default);
         Task<IList<CampaignProspect>> GetCampaignProspectsByIdAsync(string campaignId, CancellationToken ct = default);
+        Task<IList<CampaignProspect>> UpdateCampaignProspectsAsync(IList<CampaignProspect> campaignProspects, CancellationToken ct = default);
 
         #endregion
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Leadsly.Application.Model.RabbitMQ;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,7 +14,7 @@ namespace Leadsly.Domain
         Task PublishProspectListPhaseMessagesAsync(string prospectListPhaseId, string userId);
         Task PublishConstantCampaignPhaseMessagesAsync();
         void PublishConnectionWithdrawPhaseMessages();
-
+        void PublishSendConnectionsToProspectsPhaseMessages(byte[] body, string halId);
         Task PublishSendConnectionsPhaseMessageAsync(string campaignId, string userId);
     }
 }

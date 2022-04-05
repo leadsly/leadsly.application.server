@@ -33,26 +33,12 @@ namespace Leadsly.Domain.Campaigns
             };
             campaign.SendConnectionRequestPhase = sendConnectionRequestPhase;
 
-            ScanProspectsForRepliesPhase scanProspectsForRepliesPhase = new()
-            {
-                Campaign = campaign,                
-                PhaseType = PhaseType.ScanForReplies
-            };
-            campaign.ScanProspectsForRepliesPhase = scanProspectsForRepliesPhase;
-
             FollowUpMessagesPhase followUpMessagePhase = new()
             {
                 Campaign = campaign,
                 PhaseType = PhaseType.FollwUpMessages
             };
             campaign.FollowUpMessagePhase = followUpMessagePhase;
-
-            ConnectionWithdrawPhase connectionWithdrawPhase = new()
-            {
-                Campaign = campaign,
-                PhaseType = PhaseType.ConnectionWithdraw
-            };
-            campaign.ConnectionWithdrawPhase = connectionWithdrawPhase;
 
             return campaign;
         }

@@ -24,7 +24,7 @@ namespace Leadsly.Infrastructure.Repositories
 
         private async Task<bool> SocialAccountExistsAsync(string id, CancellationToken ct = default)
         {
-            return await _dbContext.SocialAccounts.AnyAsync(s => s.Id == id, ct);
+            return await _dbContext.SocialAccounts.AnyAsync(s => s.SocialAccountId == id, ct);
         }            
 
         public async Task<SocialAccount> AddSocialAccountAsync(SocialAccount newSocialAccount, CancellationToken ct = default)

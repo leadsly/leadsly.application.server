@@ -86,7 +86,7 @@ namespace Leadsly.Infrastructure.Repositories
             Campaign campaign = default;
             try
             {
-                campaign = await _dbContext.Campaigns.Where(c => c.Id == campaignId).SingleAsync(ct);
+                campaign = await _dbContext.Campaigns.Where(c => c.CampaignId == campaignId).SingleAsync(ct);
             }
             catch (Exception ex)
             {
@@ -102,7 +102,7 @@ namespace Leadsly.Infrastructure.Repositories
 
             try
             {
-                propsectListPhase = await _dbContext.ProspectListPhases.Where(p => p.Id == prospectListPhaseId).Include(p => p.Campaign).ThenInclude(c => c.CampaignProspectList).SingleAsync(ct);
+                propsectListPhase = await _dbContext.ProspectListPhases.Where(p => p.ProspectListPhaseId == prospectListPhaseId).Include(p => p.Campaign).ThenInclude(c => c.CampaignProspectList).SingleAsync(ct);
 
             }
             catch(Exception ex)
@@ -118,7 +118,7 @@ namespace Leadsly.Infrastructure.Repositories
             SentConnectionsStatus sentConnectionsStatus = default;
             try
             {
-                sentConnectionsStatus = await _dbContext.SentConnectionsStatus.Where(s => s.CampaignId == campaignId).SingleAsync(ct);
+                sentConnectionsStatus = await _dbContext.SentConnectionsStatus.Where(s => s.CampaignId == campaignId).Include(s => s.LastVisistedPageUrl).SingleAsync(ct);
             }
             catch (Exception ex)
             {
@@ -132,7 +132,7 @@ namespace Leadsly.Infrastructure.Repositories
             IList<CampaignProspect> campaignProspects = default;
             try
             {
-                campaignProspects = await _dbContext.CampaignProspects.Where(c => c.CampaignId == campaignId).ToListAsync(ct);
+                campaignProspects = await _dbContext.CampaignProspects.Where(c => c.CampaignId == campaignId).Include(p => p.PrimaryProspect).ToListAsync(ct);
             }
             catch (Exception ex)
             {
@@ -245,9 +245,20 @@ namespace Leadsly.Infrastructure.Repositories
             return prospectListPhase;
         }
 
-        public Task<IList<CampaignProspect>> CreateCampaignProspectsAsync(IList<CampaignProspect> campaignProspects, CancellationToken ct = default)
+        public async Task<IList<CampaignProspect>> CreateCampaignProspectsAsync(IList<CampaignProspect> campaignProspects, CancellationToken ct = default)
         {
-            throw new NotImplementedException();
+            try
+            {
+                await _dbContext.CampaignProspects.AddRangeAsync(campaignProspects);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create campaign prospects");
+                campaignProspects = null;
+            }
+
+            return campaignProspects;
         }
 
         public async Task<CampaignWarmUp> GetCampaignWarmUpByIdAsync(string campaignId, CancellationToken ct = default)
@@ -277,6 +288,67 @@ namespace Leadsly.Infrastructure.Repositories
             }
 
             return sendConnectionsStages;
+        }
+
+        public async Task<IList<CampaignProspect>> UpdateCampaignProspectsAsync(IList<CampaignProspect> campaignProspects, CancellationToken ct = default)
+        {
+            try
+            {
+                _dbContext.CampaignProspects.UpdateRange(campaignProspects);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to update campaign prospects");
+                campaignProspects = null;
+            }
+
+            return campaignProspects;
+        }
+
+        public async Task<MonitorForNewConnectionsPhase> CreateMonitorForNewConnectionsPhase(MonitorForNewConnectionsPhase phase, CancellationToken ct = default)
+        {
+            try
+            {
+                _dbContext.MonitorForNewConnectionsPhases.Add(phase);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create monitor for new connections phase");
+                phase = null;
+            }
+            return phase;
+        }
+
+        public async Task<ScanProspectsForRepliesPhase> CreateScanProspectsForRepliesPhase(ScanProspectsForRepliesPhase phase, CancellationToken ct = default)
+        {
+            try
+            {
+                _dbContext.ScanProspectsForRepliesPhase.Add(phase);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create scan prospects for replies");
+                phase = null;
+            }
+            return phase;
+        }
+
+        public async Task<ConnectionWithdrawPhase> CreateConnectionWithdrawPhase(ConnectionWithdrawPhase phase, CancellationToken ct = default)
+        {
+            try
+            {
+                _dbContext.ConnectionWithdrawPhases.Add(phase);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create connection withdraw phase");
+                phase = null;
+            }
+            return phase;
         }
     }
 }

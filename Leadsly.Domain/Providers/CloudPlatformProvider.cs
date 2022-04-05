@@ -1094,7 +1094,7 @@ namespace Leadsly.Domain.Providers
                 OrphanedCloudResource orphanedResource = new()
                 {
                     FriendlyName = "Service Discovery Service",
-                    ResourceId = serviceDiscovery.Id,
+                    ResourceId = serviceDiscovery.ServiceDiscoveryId,
                     Arn = serviceDiscovery.Arn,
                     UserId = userId
                 };

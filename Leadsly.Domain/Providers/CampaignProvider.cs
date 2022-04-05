@@ -37,14 +37,18 @@ namespace Leadsly.Domain.Providers
         private readonly ICampaignService _campaignService;
         public void ProcessNewCampaign(Campaign campaign)
         {
+            // ensure ScanForProspectReplies, ConnectionWithdraw and MonitorForNewProspects phases are running on hal
+            // always trigger them here
+
+
             // if prospect list phase does not exists, this means were running new prospect list
             if(campaign.ProspectListPhase == null)
             {                
-                _campaignManager.TriggerSendConnectionsPhase(campaign.Id, campaign.ApplicationUserId);
+                _campaignManager.TriggerSendConnectionsPhase(campaign.CampaignId, campaign.ApplicationUserId);
             }
             else
             {
-                _campaignManager.TriggerProspectListPhase(campaign.ProspectListPhase.Id, campaign.ApplicationUserId);
+                _campaignManager.TriggerProspectListPhase(campaign.ProspectListPhase.ProspectListPhaseId, campaign.ApplicationUserId);
             }
         }
 
@@ -96,8 +100,7 @@ namespace Leadsly.Domain.Providers
                 CampaignWarmUp campaignWarmUp = await _campaignRepository.GetCampaignWarmUpByIdAsync(campaignId, ct);
                 dailyConnectionsLimit = campaignWarmUp.DailyLimit;
             }
-            SentConnectionsStatus sentConnectionsStatus = await _campaignRepository.GetSentConnectionStatusAsync(campaignId, ct);
-            IList<SendConnectionsStage> sendConnectionsStages = await _campaignRepository.GetSendConnectionStagesByIdAsync(campaignId, ct);            
+            SentConnectionsStatus sentConnectionsStatus = await _campaignRepository.GetSentConnectionStatusAsync(campaignId, ct);            
 
             string chromeProfileName = await _campaignRepository.GetChromeProfileNameByCampaignPhaseTypeAsync(PhaseType.SendConnectionRequests, ct);
             if (chromeProfileName == null)
@@ -126,18 +129,25 @@ namespace Leadsly.Domain.Providers
                 PageUrl = sentConnectionsStatus.LastVisistedPageUrl.Url,
                 LastProspectHitListPosition = sentConnectionsStatus.LastProspectHitListPosition,
                 StartDateTimestamp = campaign.StartTimestamp,       
-                CampaignId = campaignId,                
-                SendConnectionsStages = new List<SendConnectionsStageBody>(),
+                CampaignId = campaignId,                                
                 NamespaceName = config.ServiceDiscoveryConfig.Name,
                 ServiceDiscoveryName = config.ApiServiceDiscoveryName
             };
+
+            return sendConnectionsBody;
+        }
+
+        public async Task<IList<SendConnectionsStageBody>> GetSendConnectionsStagesAsync(string campaignId, int dailyConnectionsLimit, CancellationToken ct = default)
+        {
+            IList<SendConnectionsStageBody> sendConnectionsStagesBody = new List<SendConnectionsStageBody>();
+            IList<SendConnectionsStage> sendConnectionsStages = await _campaignRepository.GetSendConnectionStagesByIdAsync(campaignId, ct);
 
             decimal totalInvites = dailyConnectionsLimit;
             int divider = sendConnectionsStages.Count;
             List<int> stagesConnectionsLimit = new();
             while (divider > 0)
             {
-                decimal stageLimits = Math.Round(totalInvites / divider, 0);                
+                decimal stageLimits = Math.Round(totalInvites / sendConnectionsStages.Count, 0);
                 stagesConnectionsLimit.Add(Convert.ToInt32(stageLimits));
                 divider--;
             }
@@ -151,10 +161,10 @@ namespace Leadsly.Domain.Providers
                     Order = sendConnectionsStages[i].Order
                 };
 
-                sendConnectionsBody.SendConnectionsStages.Add(sendConnectionsStageBody);
+                sendConnectionsStagesBody.Add(sendConnectionsStageBody);
             }
 
-            return sendConnectionsBody;
+            return sendConnectionsStagesBody;
         }
 
         public CampaignProspectList CreateCampaignProspectList(PrimaryProspectList primaryProspectList, string userId)

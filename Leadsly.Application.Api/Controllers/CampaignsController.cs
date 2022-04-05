@@ -17,6 +17,9 @@ using Leadsly.Application.Model.ViewModels.Response;
 using Microsoft.AspNetCore.Authorization;
 using Leadsly.Application.Model.ViewModels.Response.Hal;
 using System.Security.Claims;
+using Leadsly.Application.Model.Requests.FromHal;
+using Leadsly.Application.Model;
+using Leadsly.Application.Model.Responses;
 
 namespace Leadsly.Application.Api.Controllers
 {
@@ -462,6 +465,15 @@ namespace Leadsly.Application.Api.Controllers
             return new JsonResult(toggleCampaignStatus);
         }
 
+        [HttpPost(":id/prospects")]
+        [AllowAnonymous]
+        public async Task<IActionResult> UpdateContactedCampaignProspects(string campaignId, [FromBody] CampaignProspectListRequest request, CancellationToken ct = default)
+        {
+            HalOperationResult<IOperationResponse> result = await _supervisor.ProcessConnectionRequestSentForCampaignProspectsAsync<IOperationResponse>(request, ct);
+
+            return Ok();
+        }
+
         //[HttpGet("reports/effectiveness")]
         //public IActionResult CampaignEffectivenessReports([FromQuery] List<string> ids, [FromQuery] long filterCriteria = 0L, [FromQuery] long startDate = 0L, [FromQuery] long endDate = 0L)
         //{
@@ -483,7 +495,7 @@ namespace Leadsly.Application.Api.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Create(CreateCampaignRequest request, CancellationToken ct = default)
         {
-            string userId = "53bf77bc-f26a-49e5-bb17-576c54a4ddbd"; // User.FindFirst(ClaimTypes.NameIdentifier)?.Value; ;            
+            string userId = "ea435588-489f-444c-8f9d-01a4988750b9"; // User.FindFirst(ClaimTypes.NameIdentifier)?.Value; ;            
             var a = await _supervisor.CreateCampaignAsync<ConnectResponseViewModel>(request, userId, ct);
             return Ok();
         }

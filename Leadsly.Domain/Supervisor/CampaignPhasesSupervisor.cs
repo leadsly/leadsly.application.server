@@ -39,30 +39,32 @@ namespace Leadsly.Domain.Supervisor
                 };
                 prospects.Add(primaryProspect);
 
-                //CampaignProspect campaignProspect = new()
-                //{
-                //    ConnectionSent = false,
-                //    FollowUpMessageSent = false,
-                //    PrimaryProspect = primaryProspect,
-                //    CampaignId = request.CampaignId
-                //};
-                //campaignProspects.Add(campaignProspect);
+                CampaignProspect campaignProspect = new()
+                {
+                    PrimaryProspect = primaryProspect,
+                    CampaignId = request.CampaignId,
+                    ConnectionSent = false,
+                    ConnectionSentTimestamp = 0,
+                    FollowUpMessageSent = false,
+                    LastFollowUpMessageSentTimestamp = 0
+                };
+                campaignProspects.Add(campaignProspect);
             }
 
             prospects = await _campaignRepository.CreatePrimaryProspectsAsync(prospects, ct);
-            if(prospects == null)
+            if (prospects == null)
             {
                 return result;
             }
 
-            //campaignProspects = await _campaignRepository.CreateCampaignProspectsAsync(campaignProspects, ct);
-            //if(campaignProspects == null)
-            //{
-            //    return result;
-            //}
+            campaignProspects = await _campaignRepository.CreateCampaignProspectsAsync(campaignProspects, ct);
+            if(campaignProspects == null)
+            {
+                return result;
+            }
 
             ProspectListPhase campaignProspectListPhase = await _campaignRepository.GetProspectListPhaseByIdAsync(request.CampaignId, ct);
-            if(campaignProspectListPhase == null)
+            if (campaignProspectListPhase == null)
             {
                 return result;
             }
@@ -70,7 +72,7 @@ namespace Leadsly.Domain.Supervisor
             campaignProspectListPhase.Completed = true;
             // mark campaign's prospect list phase as completed
             campaignProspectListPhase = await _campaignRepository.UpdateCampaignProspectListPhaseAsync(campaignProspectListPhase, ct);
-            if(campaignProspectListPhase == null)
+            if (campaignProspectListPhase == null)
             {
                 return result;
             }
@@ -79,8 +81,48 @@ namespace Leadsly.Domain.Supervisor
             return result;
         }
 
-        public async Task<HalOperationResult<T>> ProcessNewMyNetworkConnectionsAsync<T>(MyNetworkNewConnectionsRequest request, CancellationToken ct = default)
+        public HalOperationResult<T> TriggerSendConnectionsPhase<T>(TriggerSendConnectionsRequest request, CancellationToken ct = default)
             where T : IOperationResponse
+        {
+            HalOperationResult<T> result = new();
+
+            _campaignManager.TriggerSendConnectionsPhase(request.CampaignId, request.UserId);
+
+            result.Succeeded = true;
+            return result;
+        }
+
+        public async Task<HalOperationResult<T>> ProcessConnectionRequestSentForCampaignProspectsAsync<T>(CampaignProspectListRequest request, CancellationToken ct = default)
+            where T : IOperationResponse
+        {
+            HalOperationResult<T> result = new();
+
+            IList<CampaignProspect> campaignProspects = await _campaignRepository.GetCampaignProspectsByIdAsync(request.CampaignId);
+            IList<CampaignProspect> contactedProspects = new List<CampaignProspect>();
+            foreach (CampaignProspectRequest campaignRequest in request.CampaignProspects)
+            {
+                CampaignProspect contactedProspect = campaignProspects.FirstOrDefault(c => c.PrimaryProspect.ProfileUrl == campaignRequest.ProfileUrl);
+                if(contactedProspect != null)
+                {
+                    contactedProspect.ConnectionSent = true;
+                    contactedProspect.ConnectionSentTimestamp = campaignRequest.ConnectionSentTimestamp;
+
+                    contactedProspects.Add(contactedProspect);
+                }                
+            }
+
+            contactedProspects = await _campaignRepository.UpdateCampaignProspectsAsync(contactedProspects, ct);
+            if(contactedProspects == null)
+            {
+                return result;
+            }
+
+            result.Succeeded = true;
+            return result;
+        }        
+
+        public async Task<HalOperationResult<T>> ProcessNewMyNetworkConnectionsAsync<T>(MyNetworkNewConnectionsRequest request, CancellationToken ct = default)
+        where T : IOperationResponse
         {
             HalOperationResult<T> result = new();
 
@@ -97,7 +139,7 @@ namespace Leadsly.Domain.Supervisor
             // send send the follow up message message to hal to 
             // result = await _campaignPhaseFacade.ProcessNewNetworkConnectionsAsync<T>(request.NewConnectionProspects, request.HalId, ct);
 
-            if(result.Succeeded == false)
+            if (result.Succeeded == false)
             {
                 return result;
             }

@@ -167,6 +167,7 @@ namespace Leadsly.Domain.Supervisor
 
             return await RequestNewWebDriverAsync<T>(socialAccount, ct);
         }
+
         [Obsolete("This method is not longer used. We are not creating new chrome instances per campaign, we're using new tabs instead")]
         private async Task<HalOperationResultViewModel<T>> RequestNewWebDriverAsync<T>(SocialAccount socialAccount, CancellationToken ct = default)
             where T : IOperationResponseViewModel

@@ -29,17 +29,17 @@ namespace Leadsly.Infrastructure.Repositories
 
         private async Task<bool> EcsServiceExists(string id, CancellationToken ct = default)
         {
-            return await _dbContext.EcsServices.AnyAsync(ser => ser.Id == id, ct);
+            return await _dbContext.EcsServices.AnyAsync(ser => ser.EcsServiceId == id, ct);
         }
 
         private async Task<bool> EcsTaskDefinitionExists(string id, CancellationToken ct = default)
         {
-            return await _dbContext.EcsTaskDefinitions.AnyAsync(def => def.Id == id, ct);
+            return await _dbContext.EcsTaskDefinitions.AnyAsync(def => def.EcsTaskDefinitionId == id, ct);
         }
 
         private async Task<bool> ServiceDiscoveryServiceExists(string id, CancellationToken ct = default)
         {
-            return await _dbContext.CloudMapServiceDiscoveryServices.AnyAsync(def => def.Id == id, ct);
+            return await _dbContext.CloudMapServiceDiscoveryServices.AnyAsync(def => def.CloudMapServiceDiscoveryServiceId == id, ct);
         }
 
         public CloudPlatformConfiguration GetCloudPlatformConfiguration()

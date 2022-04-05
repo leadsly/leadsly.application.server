@@ -152,7 +152,7 @@ namespace Leadsly.Domain.Supervisor
                 {
                     sendConnectionsStage = new SendConnectionsStage
                     {
-                        StartTime = "5:30PM",
+                        StartTime = "5:00PM",
                         Order = i + 1
                     };
                 }

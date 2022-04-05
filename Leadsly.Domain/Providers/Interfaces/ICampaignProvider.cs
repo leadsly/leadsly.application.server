@@ -18,6 +18,8 @@ namespace Leadsly.Domain.Providers.Interfaces
 
         Task<SendConnectionsBody> CreateSendConnectionsBodyAsync(string campaignId, string userId, CancellationToken ct = default);
 
+        Task<IList<SendConnectionsStageBody>> GetSendConnectionsStagesAsync(string campaignId, int dailyConnectionsLimit, CancellationToken ct = default);
+
         Task<ProspectListBody> CreateProspectListBodyAsync(string propsectListId, string userId, CancellationToken ct = default);
 
         CampaignProspectList CreateCampaignProspectList(PrimaryProspectList primaryProspectList, string userId);

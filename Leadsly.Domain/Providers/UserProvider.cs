@@ -10,24 +10,26 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Leadsly.Domain.Providers.Interfaces;
+using Leadsly.Application.Model.Entities.Campaigns.Phases;
 
 namespace Leadsly.Domain.Providers
 {
     public class UserProvider : IUserProvider
     {
-        public UserProvider(ILogger<UserProvider> logger, ICloudPlatformRepository cloudPlatformRepository, IUserRepository userRepository, ISocialAccountRepository socialAccountRepository)
+        public UserProvider(ILogger<UserProvider> logger, ICloudPlatformRepository cloudPlatformRepository, IUserRepository userRepository, ISocialAccountRepository socialAccountRepository, ICampaignRepository campaignRepository)
         {
             _userRepository = userRepository;
             _logger = logger;
             _cloudPlatformRepository = cloudPlatformRepository;
             _socialAccountRepository = socialAccountRepository;
-
+            _campaignRepository = campaignRepository;
         }
 
         private readonly ILogger<UserProvider> _logger;
         private readonly IUserRepository _userRepository;
         private readonly ICloudPlatformRepository _cloudPlatformRepository;
         private readonly ISocialAccountRepository _socialAccountRepository;
+        private readonly ICampaignRepository _campaignRepository;
 
         public async Task<SocialAccount> GetRegisteredSocialAccountAsync(SocialAccountDTO socialAccountDTO, CancellationToken ct = default)
         {
@@ -45,7 +47,7 @@ namespace Leadsly.Domain.Providers
         {            
             bool removeSocialAccountResourcesDelete = await RemoveSocialAccountResourcesAsync(socialAccount.SocialAccountCloudResource, ct);
 
-            bool removeSocialAccountDelete = await RemoveSocialAccountAsync(socialAccount.Id, ct);
+            bool removeSocialAccountDelete = await RemoveSocialAccountAsync(socialAccount.SocialAccountId, ct);
 
             return removeSocialAccountResourcesDelete && removeSocialAccountDelete;
         }
@@ -59,11 +61,11 @@ namespace Leadsly.Domain.Providers
 
         private async Task<bool> RemoveSocialAccountResourcesAsync(SocialAccountCloudResource resources, CancellationToken ct = default)
         {            
-            bool ecsTaskDefinitionDelete = await _cloudPlatformRepository.RemoveEcsTaskDefinitionAsync(resources.EcsTaskDefinition.Id, ct);
+            bool ecsTaskDefinitionDelete = await _cloudPlatformRepository.RemoveEcsTaskDefinitionAsync(resources.EcsTaskDefinition.EcsTaskDefinitionId, ct);
 
-            bool serviceDiscoveryDelete = await _cloudPlatformRepository.RemoveCloudMapServiceDiscoveryServiceAsync(resources.CloudMapServiceDiscoveryService.Id, ct);
+            bool serviceDiscoveryDelete = await _cloudPlatformRepository.RemoveCloudMapServiceDiscoveryServiceAsync(resources.CloudMapServiceDiscoveryService.CloudMapServiceDiscoveryServiceId, ct);
 
-            bool ecsServiceDelete = await _cloudPlatformRepository.RemoveEcsServiceAsync(resources.EcsService.Id, ct);
+            bool ecsServiceDelete = await _cloudPlatformRepository.RemoveEcsServiceAsync(resources.EcsService.EcsServiceId, ct);
 
             return ecsServiceDelete && ecsTaskDefinitionDelete && serviceDiscoveryDelete;
         }
@@ -144,6 +146,42 @@ namespace Leadsly.Domain.Providers
                     Detail = "Something went wrong adding user's social account to the database",
                     Reason = "Failed to add user's social account to the database",
                 });
+                return result;
+            }
+
+            ScanProspectsForRepliesPhase scanForProspectRepliesPhase = new()
+            {
+                SocialAccount = newSocialAccount,
+                PhaseType = PhaseType.ScanForReplies
+            };
+
+            scanForProspectRepliesPhase = await _campaignRepository.CreateScanProspectsForRepliesPhase(scanForProspectRepliesPhase, ct);
+            if(scanForProspectRepliesPhase == null)
+            {
+                return result;
+            }
+
+            MonitorForNewConnectionsPhase monitorForNewConnectionsPhase = new()
+            {
+                SocialAccount = newSocialAccount,
+                PhaseType = PhaseType.MonitorNewConnections
+            };
+
+            monitorForNewConnectionsPhase = await _campaignRepository.CreateMonitorForNewConnectionsPhase(monitorForNewConnectionsPhase, ct);
+            if (monitorForNewConnectionsPhase == null)
+            {
+                return result;
+            }
+
+            ConnectionWithdrawPhase connectionWithdrawPhase = new()
+            {
+                PhaseType = PhaseType.ConnectionWithdraw,
+                SocialAccount = newSocialAccount
+            };
+
+            connectionWithdrawPhase = await _campaignRepository.CreateConnectionWithdrawPhase(connectionWithdrawPhase, ct);
+            if (connectionWithdrawPhase == null)
+            {
                 return result;
             }
 

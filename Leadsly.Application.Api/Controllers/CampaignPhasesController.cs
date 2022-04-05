@@ -1,12 +1,16 @@
 ﻿using Leadsly.Api;
 using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns.MonitorForNewProspects;
+using Leadsly.Application.Model.LinkedInPages.SearchResultPage;
+using Leadsly.Application.Model.LinkedInPages.SearchResultPage.Interfaces;
 using Leadsly.Application.Model.Requests;
 using Leadsly.Application.Model.Requests.FromHal;
 using Leadsly.Application.Model.Responses;
 using Leadsly.Domain.Supervisor;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,6 +24,7 @@ namespace Leadsly.Application.Api.Controllers
         public CampaignPhasesController(ILogger<CampaignPhasesController> logger, ISupervisor supervisor)
         {
             _logger = logger;
+            _supervisor = supervisor;
         }
 
         private readonly ILogger<CampaignPhasesController> _logger;
@@ -37,11 +42,11 @@ namespace Leadsly.Application.Api.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         [Route("trigger-send-connection-requests")]
         public IActionResult TriggerSendConnectionRequests([FromBody] TriggerSendConnectionsRequest request)
         {
             HalOperationResult<IOperationResponse> result = _supervisor.TriggerSendConnectionsPhase<IOperationResponse>(request);
-
 
             return Ok();
         }

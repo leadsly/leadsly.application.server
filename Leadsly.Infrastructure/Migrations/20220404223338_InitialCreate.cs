@@ -15,45 +15,45 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "ChromeProfileNames",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    ChromeProfileNameId = table.Column<string>(type: "text", nullable: false),
                     Profile = table.Column<string>(type: "text", nullable: false),
                     CampaignPhaseType = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ChromeProfileNames", x => x.Id);
+                    table.PrimaryKey("PK_ChromeProfileNames", x => x.ChromeProfileNameId);
                 });
 
             migrationBuilder.CreateTable(
                 name: "EcsTaskDefinitions",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    EcsTaskDefinitionId = table.Column<string>(type: "text", nullable: false),
                     Family = table.Column<string>(type: "text", nullable: false),
                     ContainerName = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_EcsTaskDefinitions", x => x.Id);
+                    table.PrimaryKey("PK_EcsTaskDefinitions", x => x.EcsTaskDefinitionId);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Organizations",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    OrganizationId = table.Column<string>(type: "text", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Organizations", x => x.Id);
+                    table.PrimaryKey("PK_Organizations", x => x.OrganizationId);
                 });
 
             migrationBuilder.CreateTable(
                 name: "OrphanedCloudResources",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    OrphanedCloudResourceId = table.Column<string>(type: "text", nullable: false),
                     Arn = table.Column<string>(type: "text", nullable: true),
                     FriendlyName = table.Column<string>(type: "text", nullable: true),
                     ResourceId = table.Column<string>(type: "text", nullable: true),
@@ -63,7 +63,7 @@ namespace Leadsly.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_OrphanedCloudResources", x => x.Id);
+                    table.PrimaryKey("PK_OrphanedCloudResources", x => x.OrphanedCloudResourceId);
                 });
 
             migrationBuilder.CreateTable(
@@ -84,12 +84,12 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "StripeCustomers",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    Customer_StripeId = table.Column<string>(type: "text", nullable: false),
                     Customer = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_StripeCustomers", x => x.Id);
+                    table.PrimaryKey("PK_StripeCustomers", x => x.Customer_StripeId);
                 });
 
             migrationBuilder.CreateTable(
@@ -148,7 +148,7 @@ namespace Leadsly.Infrastructure.Migrations
                         name: "FK_Users_StripeCustomers_Customer_StripeId",
                         column: x => x.Customer_StripeId,
                         principalTable: "StripeCustomers",
-                        principalColumn: "Id");
+                        principalColumn: "Customer_StripeId");
                 });
 
             migrationBuilder.CreateTable(
@@ -156,16 +156,16 @@ namespace Leadsly.Infrastructure.Migrations
                 columns: table => new
                 {
                     OrganizationUsersId = table.Column<string>(type: "text", nullable: false),
-                    OrganizationsId = table.Column<string>(type: "text", nullable: false)
+                    OrganizationsOrganizationId = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ApplicationUserOrganization", x => new { x.OrganizationUsersId, x.OrganizationsId });
+                    table.PrimaryKey("PK_ApplicationUserOrganization", x => new { x.OrganizationUsersId, x.OrganizationsOrganizationId });
                     table.ForeignKey(
-                        name: "FK_ApplicationUserOrganization_Organizations_OrganizationsId",
-                        column: x => x.OrganizationsId,
+                        name: "FK_ApplicationUserOrganization_Organizations_OrganizationsOrga~",
+                        column: x => x.OrganizationsOrganizationId,
                         principalTable: "Organizations",
-                        principalColumn: "Id",
+                        principalColumn: "OrganizationId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_ApplicationUserOrganization_Users_OrganizationUsersId",
@@ -179,13 +179,14 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "PrimaryProspectLists",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    PrimaryProspectListId = table.Column<string>(type: "text", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
+                    CreatedTimestamp = table.Column<long>(type: "bigint", nullable: false),
                     UserId = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PrimaryProspectLists", x => x.Id);
+                    table.PrimaryKey("PK_PrimaryProspectLists", x => x.PrimaryProspectListId);
                     table.ForeignKey(
                         name: "FK_PrimaryProspectLists_Users_UserId",
                         column: x => x.UserId,
@@ -198,7 +199,7 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "SocialAccounts",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    SocialAccountId = table.Column<string>(type: "text", nullable: false),
                     UserId = table.Column<string>(type: "text", nullable: false),
                     AccountType = table.Column<int>(type: "integer", nullable: false),
                     Username = table.Column<string>(type: "text", nullable: false),
@@ -207,7 +208,7 @@ namespace Leadsly.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SocialAccounts", x => x.Id);
+                    table.PrimaryKey("PK_SocialAccounts", x => x.SocialAccountId);
                     table.ForeignKey(
                         name: "FK_SocialAccounts_Users_ApplicationUserId",
                         column: x => x.ApplicationUserId,
@@ -310,18 +311,18 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "CampaignProspectLists",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    CampaignProspectListId = table.Column<string>(type: "text", nullable: false),
                     PrimaryProspectListId = table.Column<string>(type: "text", nullable: false),
                     ProspectListName = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CampaignProspectLists", x => x.Id);
+                    table.PrimaryKey("PK_CampaignProspectLists", x => x.CampaignProspectListId);
                     table.ForeignKey(
                         name: "FK_CampaignProspectLists_PrimaryProspectLists_PrimaryProspectL~",
                         column: x => x.PrimaryProspectListId,
                         principalTable: "PrimaryProspectLists",
-                        principalColumn: "Id",
+                        principalColumn: "PrimaryProspectListId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -329,7 +330,7 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "PrimaryProspects",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    PrimaryProspectId = table.Column<string>(type: "text", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     ProfileUrl = table.Column<string>(type: "text", nullable: false),
                     AddedTimestamp = table.Column<long>(type: "bigint", nullable: false),
@@ -340,12 +341,32 @@ namespace Leadsly.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PrimaryProspects", x => x.Id);
+                    table.PrimaryKey("PK_PrimaryProspects", x => x.PrimaryProspectId);
                     table.ForeignKey(
                         name: "FK_PrimaryProspects_PrimaryProspectLists_PrimaryProspectListId",
                         column: x => x.PrimaryProspectListId,
                         principalTable: "PrimaryProspectLists",
-                        principalColumn: "Id",
+                        principalColumn: "PrimaryProspectListId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ConnectionWithdrawPhases",
+                columns: table => new
+                {
+                    ConnectionWithdrawPhaseId = table.Column<string>(type: "text", nullable: false),
+                    PhaseType = table.Column<int>(type: "integer", nullable: false),
+                    PageUrl = table.Column<string>(type: "text", nullable: false),
+                    SocialAccountId = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ConnectionWithdrawPhases", x => x.ConnectionWithdrawPhaseId);
+                    table.ForeignKey(
+                        name: "FK_ConnectionWithdrawPhases_SocialAccounts_SocialAccountId",
+                        column: x => x.SocialAccountId,
+                        principalTable: "SocialAccounts",
+                        principalColumn: "SocialAccountId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -353,19 +374,19 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "HalUnits",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    HalUnitId = table.Column<string>(type: "text", nullable: false),
                     HalId = table.Column<string>(type: "text", nullable: false),
                     SocialAccountId = table.Column<string>(type: "text", nullable: false),
                     ApplicationUserId = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_HalUnits", x => x.Id);
+                    table.PrimaryKey("PK_HalUnits", x => x.HalUnitId);
                     table.ForeignKey(
                         name: "FK_HalUnits_SocialAccounts_SocialAccountId",
                         column: x => x.SocialAccountId,
                         principalTable: "SocialAccounts",
-                        principalColumn: "Id",
+                        principalColumn: "SocialAccountId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_HalUnits_Users_ApplicationUserId",
@@ -376,10 +397,50 @@ namespace Leadsly.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "MonitorForNewConnectionsPhases",
+                columns: table => new
+                {
+                    MonitorForNewConnectionsPhaseId = table.Column<string>(type: "text", nullable: false),
+                    PageUrl = table.Column<string>(type: "text", nullable: false),
+                    PhaseType = table.Column<int>(type: "integer", nullable: false),
+                    SocialAccountId = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MonitorForNewConnectionsPhases", x => x.MonitorForNewConnectionsPhaseId);
+                    table.ForeignKey(
+                        name: "FK_MonitorForNewConnectionsPhases_SocialAccounts_SocialAccount~",
+                        column: x => x.SocialAccountId,
+                        principalTable: "SocialAccounts",
+                        principalColumn: "SocialAccountId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ScanProspectsForRepliesPhase",
+                columns: table => new
+                {
+                    ScanProspectsForRepliesPhaseId = table.Column<string>(type: "text", nullable: false),
+                    PhaseType = table.Column<int>(type: "integer", nullable: false),
+                    PageUrl = table.Column<string>(type: "text", nullable: false),
+                    SocialAccountId = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ScanProspectsForRepliesPhase", x => x.ScanProspectsForRepliesPhaseId);
+                    table.ForeignKey(
+                        name: "FK_ScanProspectsForRepliesPhase_SocialAccounts_SocialAccountId",
+                        column: x => x.SocialAccountId,
+                        principalTable: "SocialAccounts",
+                        principalColumn: "SocialAccountId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Campaigns",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    CampaignId = table.Column<string>(type: "text", nullable: false),
                     ApplicationUserId = table.Column<string>(type: "text", nullable: false),
                     HalId = table.Column<string>(type: "text", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
@@ -394,12 +455,12 @@ namespace Leadsly.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Campaigns", x => x.Id);
+                    table.PrimaryKey("PK_Campaigns", x => x.CampaignId);
                     table.ForeignKey(
                         name: "FK_Campaigns_CampaignProspectLists_CampaignProspectListId",
                         column: x => x.CampaignProspectListId,
                         principalTable: "CampaignProspectLists",
-                        principalColumn: "Id",
+                        principalColumn: "CampaignProspectListId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Campaigns_Users_ApplicationUserId",
@@ -413,24 +474,24 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "SearchUrls",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    SearchUrlId = table.Column<string>(type: "text", nullable: false),
                     Url = table.Column<string>(type: "text", nullable: false),
                     PrimaryProspectListId = table.Column<string>(type: "text", nullable: false),
                     CampaignProspectListId = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SearchUrls", x => x.Id);
+                    table.PrimaryKey("PK_SearchUrls", x => x.SearchUrlId);
                     table.ForeignKey(
                         name: "FK_SearchUrls_CampaignProspectLists_CampaignProspectListId",
                         column: x => x.CampaignProspectListId,
                         principalTable: "CampaignProspectLists",
-                        principalColumn: "Id");
+                        principalColumn: "CampaignProspectListId");
                     table.ForeignKey(
                         name: "FK_SearchUrls_PrimaryProspectLists_PrimaryProspectListId",
                         column: x => x.PrimaryProspectListId,
                         principalTable: "PrimaryProspectLists",
-                        principalColumn: "Id",
+                        principalColumn: "PrimaryProspectListId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -438,7 +499,10 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "CampaignProspects",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    CampaignProspectId = table.Column<string>(type: "text", nullable: false),
+                    PrimaryProspectId = table.Column<string>(type: "text", nullable: false),
+                    Accepted = table.Column<bool>(type: "boolean", nullable: false),
+                    CampaignId = table.Column<string>(type: "text", nullable: false),
                     ConnectionSentTimestamp = table.Column<long>(type: "bigint", nullable: false),
                     LastFollowUpMessageSentTimestamp = table.Column<long>(type: "bigint", nullable: false),
                     ConnectionSent = table.Column<bool>(type: "boolean", nullable: false),
@@ -447,36 +511,43 @@ namespace Leadsly.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CampaignProspects", x => x.Id);
+                    table.PrimaryKey("PK_CampaignProspects", x => x.CampaignProspectId);
                     table.ForeignKey(
                         name: "FK_CampaignProspects_CampaignProspectLists_CampaignProspectLis~",
                         column: x => x.CampaignProspectListId,
                         principalTable: "CampaignProspectLists",
-                        principalColumn: "Id");
+                        principalColumn: "CampaignProspectListId");
                     table.ForeignKey(
-                        name: "FK_CampaignProspects_PrimaryProspects_Id",
-                        column: x => x.Id,
+                        name: "FK_CampaignProspects_Campaigns_CampaignId",
+                        column: x => x.CampaignId,
+                        principalTable: "Campaigns",
+                        principalColumn: "CampaignId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CampaignProspects_PrimaryProspects_PrimaryProspectId",
+                        column: x => x.PrimaryProspectId,
                         principalTable: "PrimaryProspects",
-                        principalColumn: "Id",
+                        principalColumn: "PrimaryProspectId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "ConnectionWithdrawPhases",
+                name: "CampaignWarmUps",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
-                    CampaignId = table.Column<string>(type: "text", nullable: false),
-                    PhaseType = table.Column<int>(type: "integer", nullable: false)
+                    CampaignWarmUpId = table.Column<string>(type: "text", nullable: false),
+                    DailyLimit = table.Column<int>(type: "integer", nullable: false),
+                    StartDateTimestamp = table.Column<long>(type: "bigint", nullable: false),
+                    CampaignId = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ConnectionWithdrawPhases", x => x.Id);
+                    table.PrimaryKey("PK_CampaignWarmUps", x => x.CampaignWarmUpId);
                     table.ForeignKey(
-                        name: "FK_ConnectionWithdrawPhases_Campaigns_CampaignId",
+                        name: "FK_CampaignWarmUps_Campaigns_CampaignId",
                         column: x => x.CampaignId,
                         principalTable: "Campaigns",
-                        principalColumn: "Id",
+                        principalColumn: "CampaignId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -484,7 +555,7 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "FollowUpMessage",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    FollowUpMessageId = table.Column<string>(type: "text", nullable: false),
                     Content = table.Column<string>(type: "text", nullable: false),
                     Order = table.Column<int>(type: "integer", nullable: false),
                     DateTimeDelayTimestamp = table.Column<long>(type: "bigint", nullable: false),
@@ -492,12 +563,12 @@ namespace Leadsly.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_FollowUpMessage", x => x.Id);
+                    table.PrimaryKey("PK_FollowUpMessage", x => x.FollowUpMessageId);
                     table.ForeignKey(
                         name: "FK_FollowUpMessage_Campaigns_CampaignId",
                         column: x => x.CampaignId,
                         principalTable: "Campaigns",
-                        principalColumn: "Id",
+                        principalColumn: "CampaignId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -505,45 +576,18 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "FollowUpMessagesPhases",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    FollowUpMessagesPhaseId = table.Column<string>(type: "text", nullable: false),
                     CampaignId = table.Column<string>(type: "text", nullable: false),
                     PhaseType = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_FollowUpMessagesPhases", x => x.Id);
+                    table.PrimaryKey("PK_FollowUpMessagesPhases", x => x.FollowUpMessagesPhaseId);
                     table.ForeignKey(
                         name: "FK_FollowUpMessagesPhases_Campaigns_CampaignId",
                         column: x => x.CampaignId,
                         principalTable: "Campaigns",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "MonitorForNewConnectionsPhases",
-                columns: table => new
-                {
-                    Id = table.Column<string>(type: "text", nullable: false),
-                    PageUrl = table.Column<string>(type: "text", nullable: false),
-                    ChromeProfileName = table.Column<string>(type: "text", nullable: false),
-                    HalUnitId = table.Column<string>(type: "text", nullable: false),
-                    CampaignId = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_MonitorForNewConnectionsPhases", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_MonitorForNewConnectionsPhases_Campaigns_CampaignId",
-                        column: x => x.CampaignId,
-                        principalTable: "Campaigns",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_MonitorForNewConnectionsPhases_HalUnits_HalUnitId",
-                        column: x => x.HalUnitId,
-                        principalTable: "HalUnits",
-                        principalColumn: "Id",
+                        principalColumn: "CampaignId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -551,40 +595,21 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "ProspectListPhases",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    ProspectListPhaseId = table.Column<string>(type: "text", nullable: false),
                     CampaignId = table.Column<string>(type: "text", nullable: false),
                     PhaseType = table.Column<int>(type: "integer", nullable: false),
                     SearchUrls = table.Column<List<string>>(type: "text[]", nullable: false),
-                    CompletionPercentage = table.Column<int>(type: "integer", nullable: false),
+                    Completed = table.Column<bool>(type: "boolean", nullable: false),
                     CompletedTimestamp = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProspectListPhases", x => x.Id);
+                    table.PrimaryKey("PK_ProspectListPhases", x => x.ProspectListPhaseId);
                     table.ForeignKey(
                         name: "FK_ProspectListPhases_Campaigns_CampaignId",
                         column: x => x.CampaignId,
                         principalTable: "Campaigns",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ScanProspectsForRepliesPhase",
-                columns: table => new
-                {
-                    Id = table.Column<string>(type: "text", nullable: false),
-                    PhaseType = table.Column<int>(type: "integer", nullable: false),
-                    CampaignId = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ScanProspectsForRepliesPhase", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ScanProspectsForRepliesPhase_Campaigns_CampaignId",
-                        column: x => x.CampaignId,
-                        principalTable: "Campaigns",
-                        principalColumn: "Id",
+                        principalColumn: "CampaignId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -592,18 +617,39 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "SendConnectionRequestPhases",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    SendConnectionRequestPhaseId = table.Column<string>(type: "text", nullable: false),
                     CampaignId = table.Column<string>(type: "text", nullable: false),
                     PhaseType = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SendConnectionRequestPhases", x => x.Id);
+                    table.PrimaryKey("PK_SendConnectionRequestPhases", x => x.SendConnectionRequestPhaseId);
                     table.ForeignKey(
                         name: "FK_SendConnectionRequestPhases_Campaigns_CampaignId",
                         column: x => x.CampaignId,
                         principalTable: "Campaigns",
-                        principalColumn: "Id",
+                        principalColumn: "CampaignId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SendConnectionsStages",
+                columns: table => new
+                {
+                    SendConnectionsStageId = table.Column<string>(type: "text", nullable: false),
+                    CampaignId = table.Column<string>(type: "text", nullable: false),
+                    StartTime = table.Column<string>(type: "text", nullable: false),
+                    Order = table.Column<int>(type: "integer", nullable: false),
+                    NumOfConnections = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SendConnectionsStages", x => x.SendConnectionsStageId);
+                    table.ForeignKey(
+                        name: "FK_SendConnectionsStages_Campaigns_CampaignId",
+                        column: x => x.CampaignId,
+                        principalTable: "Campaigns",
+                        principalColumn: "CampaignId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -611,18 +657,18 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "SendEmailInvitePhases",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    SendEmailInvitePhaseId = table.Column<string>(type: "text", nullable: false),
                     CampaignId = table.Column<string>(type: "text", nullable: false),
                     PhaseType = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SendEmailInvitePhases", x => x.Id);
+                    table.PrimaryKey("PK_SendEmailInvitePhases", x => x.SendEmailInvitePhaseId);
                     table.ForeignKey(
                         name: "FK_SendEmailInvitePhases_Campaigns_CampaignId",
                         column: x => x.CampaignId,
                         principalTable: "Campaigns",
-                        principalColumn: "Id",
+                        principalColumn: "CampaignId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -630,9 +676,9 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "SentConnectionsStatus",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
-                    LastVisistedPageUrlId = table.Column<string>(type: "text", nullable: true),
-                    NextPageUrlId = table.Column<string>(type: "text", nullable: true),
+                    SentConnectionsStatusId = table.Column<string>(type: "text", nullable: false),
+                    LastVisistedPageUrlSearchUrlId = table.Column<string>(type: "text", nullable: true),
+                    NextPageUrlSearchUrlId = table.Column<string>(type: "text", nullable: true),
                     LastConnectedPerson = table.Column<string>(type: "text", nullable: true),
                     LastProspectHitListPosition = table.Column<int>(type: "integer", nullable: false),
                     LastActivityTimestamp = table.Column<long>(type: "bigint", nullable: false),
@@ -640,30 +686,30 @@ namespace Leadsly.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SentConnectionsStatus", x => x.Id);
+                    table.PrimaryKey("PK_SentConnectionsStatus", x => x.SentConnectionsStatusId);
                     table.ForeignKey(
                         name: "FK_SentConnectionsStatus_Campaigns_CampaignId",
                         column: x => x.CampaignId,
                         principalTable: "Campaigns",
-                        principalColumn: "Id",
+                        principalColumn: "CampaignId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_SentConnectionsStatus_SearchUrls_LastVisistedPageUrlId",
-                        column: x => x.LastVisistedPageUrlId,
+                        name: "FK_SentConnectionsStatus_SearchUrls_LastVisistedPageUrlSearchU~",
+                        column: x => x.LastVisistedPageUrlSearchUrlId,
                         principalTable: "SearchUrls",
-                        principalColumn: "Id");
+                        principalColumn: "SearchUrlId");
                     table.ForeignKey(
-                        name: "FK_SentConnectionsStatus_SearchUrls_NextPageUrlId",
-                        column: x => x.NextPageUrlId,
+                        name: "FK_SentConnectionsStatus_SearchUrls_NextPageUrlSearchUrlId",
+                        column: x => x.NextPageUrlSearchUrlId,
                         principalTable: "SearchUrls",
-                        principalColumn: "Id");
+                        principalColumn: "SearchUrlId");
                 });
 
             migrationBuilder.CreateTable(
                 name: "CloudMapServiceDiscoveryServices",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    CloudMapServiceDiscoveryServiceId = table.Column<string>(type: "text", nullable: false),
                     ServiceDiscoveryId = table.Column<string>(type: "text", nullable: false),
                     Arn = table.Column<string>(type: "text", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
@@ -673,14 +719,14 @@ namespace Leadsly.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CloudMapServiceDiscoveryServices", x => x.Id);
+                    table.PrimaryKey("PK_CloudMapServiceDiscoveryServices", x => x.CloudMapServiceDiscoveryServiceId);
                 });
 
             migrationBuilder.CreateTable(
                 name: "SocialAccountResources",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    SocialAccountCloudResourceId = table.Column<string>(type: "text", nullable: false),
                     SocialAccountId = table.Column<string>(type: "text", nullable: false),
                     HalId = table.Column<string>(type: "text", nullable: true),
                     EcsTaskDefinitionId = table.Column<string>(type: "text", nullable: false),
@@ -688,24 +734,24 @@ namespace Leadsly.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SocialAccountResources", x => x.Id);
+                    table.PrimaryKey("PK_SocialAccountResources", x => x.SocialAccountCloudResourceId);
                     table.ForeignKey(
                         name: "FK_SocialAccountResources_CloudMapServiceDiscoveryServices_Clo~",
                         column: x => x.CloudMapServiceDiscoveryServiceId,
                         principalTable: "CloudMapServiceDiscoveryServices",
-                        principalColumn: "Id",
+                        principalColumn: "CloudMapServiceDiscoveryServiceId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_SocialAccountResources_EcsTaskDefinitions_EcsTaskDefinition~",
                         column: x => x.EcsTaskDefinitionId,
                         principalTable: "EcsTaskDefinitions",
-                        principalColumn: "Id",
+                        principalColumn: "EcsTaskDefinitionId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_SocialAccountResources_SocialAccounts_SocialAccountId",
                         column: x => x.SocialAccountId,
                         principalTable: "SocialAccounts",
-                        principalColumn: "Id",
+                        principalColumn: "SocialAccountId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -713,7 +759,7 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "EcsServices",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    EcsServiceId = table.Column<string>(type: "text", nullable: false),
                     SocialAccountCloudResourceId = table.Column<string>(type: "text", nullable: true),
                     UserId = table.Column<string>(type: "text", nullable: false),
                     ServiceName = table.Column<string>(type: "text", nullable: false),
@@ -728,37 +774,37 @@ namespace Leadsly.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_EcsServices", x => x.Id);
+                    table.PrimaryKey("PK_EcsServices", x => x.EcsServiceId);
                     table.ForeignKey(
                         name: "FK_EcsServices_SocialAccountResources_SocialAccountCloudResour~",
                         column: x => x.SocialAccountCloudResourceId,
                         principalTable: "SocialAccountResources",
-                        principalColumn: "Id");
+                        principalColumn: "SocialAccountCloudResourceId");
                 });
 
             migrationBuilder.CreateTable(
                 name: "EcsServiceRegistries",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    EcsServiceRegistryId = table.Column<string>(type: "text", nullable: false),
                     EcsServiceId = table.Column<string>(type: "text", nullable: false),
                     RegistryArn = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_EcsServiceRegistries", x => x.Id);
+                    table.PrimaryKey("PK_EcsServiceRegistries", x => x.EcsServiceRegistryId);
                     table.ForeignKey(
                         name: "FK_EcsServiceRegistries_EcsServices_EcsServiceId",
                         column: x => x.EcsServiceId,
                         principalTable: "EcsServices",
-                        principalColumn: "Id",
+                        principalColumn: "EcsServiceId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_ApplicationUserOrganization_OrganizationsId",
+                name: "IX_ApplicationUserOrganization_OrganizationsOrganizationId",
                 table: "ApplicationUserOrganization",
-                column: "OrganizationsId");
+                column: "OrganizationsOrganizationId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_CampaignProspectLists_PrimaryProspectListId",
@@ -766,9 +812,19 @@ namespace Leadsly.Infrastructure.Migrations
                 column: "PrimaryProspectListId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_CampaignProspects_CampaignId",
+                table: "CampaignProspects",
+                column: "CampaignId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_CampaignProspects_CampaignProspectListId",
                 table: "CampaignProspects",
                 column: "CampaignProspectListId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CampaignProspects_PrimaryProspectId",
+                table: "CampaignProspects",
+                column: "PrimaryProspectId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Campaigns_ApplicationUserId",
@@ -781,15 +837,20 @@ namespace Leadsly.Infrastructure.Migrations
                 column: "CampaignProspectListId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_CampaignWarmUps_CampaignId",
+                table: "CampaignWarmUps",
+                column: "CampaignId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_CloudMapServiceDiscoveryServices_EcsServiceId",
                 table: "CloudMapServiceDiscoveryServices",
                 column: "EcsServiceId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_ConnectionWithdrawPhases_CampaignId",
+                name: "IX_ConnectionWithdrawPhases_SocialAccountId",
                 table: "ConnectionWithdrawPhases",
-                column: "CampaignId",
+                column: "SocialAccountId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -826,14 +887,10 @@ namespace Leadsly.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_MonitorForNewConnectionsPhases_CampaignId",
+                name: "IX_MonitorForNewConnectionsPhases_SocialAccountId",
                 table: "MonitorForNewConnectionsPhases",
-                column: "CampaignId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_MonitorForNewConnectionsPhases_HalUnitId",
-                table: "MonitorForNewConnectionsPhases",
-                column: "HalUnitId");
+                column: "SocialAccountId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_PrimaryProspectLists_UserId",
@@ -863,9 +920,9 @@ namespace Leadsly.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_ScanProspectsForRepliesPhase_CampaignId",
+                name: "IX_ScanProspectsForRepliesPhase_SocialAccountId",
                 table: "ScanProspectsForRepliesPhase",
-                column: "CampaignId",
+                column: "SocialAccountId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -885,6 +942,11 @@ namespace Leadsly.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_SendConnectionsStages_CampaignId",
+                table: "SendConnectionsStages",
+                column: "CampaignId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_SendEmailInvitePhases_CampaignId",
                 table: "SendEmailInvitePhases",
                 column: "CampaignId",
@@ -897,14 +959,14 @@ namespace Leadsly.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_SentConnectionsStatus_LastVisistedPageUrlId",
+                name: "IX_SentConnectionsStatus_LastVisistedPageUrlSearchUrlId",
                 table: "SentConnectionsStatus",
-                column: "LastVisistedPageUrlId");
+                column: "LastVisistedPageUrlSearchUrlId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SentConnectionsStatus_NextPageUrlId",
+                name: "IX_SentConnectionsStatus_NextPageUrlSearchUrlId",
                 table: "SentConnectionsStatus",
-                column: "NextPageUrlId");
+                column: "NextPageUrlSearchUrlId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SocialAccountResources_CloudMapServiceDiscoveryServiceId",
@@ -968,7 +1030,7 @@ namespace Leadsly.Infrastructure.Migrations
                 table: "CloudMapServiceDiscoveryServices",
                 column: "EcsServiceId",
                 principalTable: "EcsServices",
-                principalColumn: "Id",
+                principalColumn: "EcsServiceId",
                 onDelete: ReferentialAction.Cascade);
         }
 
@@ -993,6 +1055,9 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "CampaignProspects");
 
             migrationBuilder.DropTable(
+                name: "CampaignWarmUps");
+
+            migrationBuilder.DropTable(
                 name: "ChromeProfileNames");
 
             migrationBuilder.DropTable(
@@ -1006,6 +1071,9 @@ namespace Leadsly.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "FollowUpMessagesPhases");
+
+            migrationBuilder.DropTable(
+                name: "HalUnits");
 
             migrationBuilder.DropTable(
                 name: "MonitorForNewConnectionsPhases");
@@ -1024,6 +1092,9 @@ namespace Leadsly.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "SendConnectionRequestPhases");
+
+            migrationBuilder.DropTable(
+                name: "SendConnectionsStages");
 
             migrationBuilder.DropTable(
                 name: "SendEmailInvitePhases");
@@ -1048,9 +1119,6 @@ namespace Leadsly.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "PrimaryProspects");
-
-            migrationBuilder.DropTable(
-                name: "HalUnits");
 
             migrationBuilder.DropTable(
                 name: "Campaigns");
