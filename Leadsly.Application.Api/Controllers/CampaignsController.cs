@@ -20,6 +20,8 @@ using System.Security.Claims;
 using Leadsly.Application.Model.Requests.FromHal;
 using Leadsly.Application.Model;
 using Leadsly.Application.Model.Responses;
+using Leadsly.Application.Model.Campaigns.Interfaces;
+using Leadsly.Application.Model.ViewModels;
 
 namespace Leadsly.Application.Api.Controllers
 {
@@ -465,11 +467,42 @@ namespace Leadsly.Application.Api.Controllers
             return new JsonResult(toggleCampaignStatus);
         }
 
-        [HttpPost(":id/prospects")]
+        [HttpPost("{id}/prospects")]
         [AllowAnonymous]
-        public async Task<IActionResult> UpdateContactedCampaignProspects(string campaignId, [FromBody] CampaignProspectListRequest request, CancellationToken ct = default)
+        public async Task<IActionResult> UpdateContactedCampaignProspects(string id, [FromBody] CampaignProspectListRequest request, CancellationToken ct = default)
         {
             HalOperationResult<IOperationResponse> result = await _supervisor.ProcessConnectionRequestSentForCampaignProspectsAsync<IOperationResponse>(request, ct);
+
+            if(result.Succeeded == false)
+            {
+                return BadRequest_UpdateContactedCampaignProspects(result.Failures);
+            }
+
+            return Ok();
+        }
+
+        [HttpGet("{id}/sent-connections-url-statuses")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetSentConnectionsUrlStatusesAsync(string id, CancellationToken ct = default)
+        {
+            HalOperationResult<IGetSentConnectionsUrlStatusPayload> result = await _supervisor.GetSentConnectionsUrlStatusesAsync<IGetSentConnectionsUrlStatusPayload>(id, ct);
+            if(result.Succeeded == false)
+            {
+                return BadRequest_GettingSentConnectionsUrlStatuses(result.Failures);
+            }
+
+            return Ok(result.Value);
+        }
+
+        [HttpPatch("{id}/sent-connections-url-statuses")]
+        [AllowAnonymous]
+        public async Task<IActionResult> UpdateSentConnectionsUrlStatusesAsync(string id, [FromBody] UpdateSentConnectionsUrlStatusRequest request, CancellationToken ct = default)
+        {
+            HalOperationResult<IOperationResponse> result = await _supervisor.UpdateSentConnectionsUrlStatusesAsync<IOperationResponse>(id, request, ct);
+            if (result.Succeeded == false)
+            {
+                return BadRequest_UpdatingSentConnectionsUrlStatuses(result.Failures);
+            }
 
             return Ok();
         }
@@ -495,9 +528,14 @@ namespace Leadsly.Application.Api.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Create(CreateCampaignRequest request, CancellationToken ct = default)
         {
-            string userId = "ea435588-489f-444c-8f9d-01a4988750b9"; // User.FindFirst(ClaimTypes.NameIdentifier)?.Value; ;            
-            var a = await _supervisor.CreateCampaignAsync<ConnectResponseViewModel>(request, userId, ct);
-            return Ok();
+            string userId = "9f2a51f8-4e9c-4522-b184-0a9cbf70d220"; // User.FindFirst(ClaimTypes.NameIdentifier)?.Value; ;            
+            HalOperationResultViewModel<IOperationResponseViewModel> result = await _supervisor.CreateCampaignAsync<IOperationResponseViewModel>(request, userId, ct);
+            if(result.OperationResults.Succeeded == false)
+            {
+                return BadRequest_CreateCampaign(result.OperationResults.Failures);
+            }
+
+            return Ok(result.Value);
         }
 
         [HttpPost("{id}/clone")]

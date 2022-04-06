@@ -335,6 +335,82 @@ namespace Leadsly.Api
         }
 
         /// <summary>
+        /// Bad request when an error occurs creating new campaign.
+        /// </summary>
+        /// <param name="errors"></param>
+        /// <returns></returns>
+        protected ObjectResult BadRequest_CreateCampaign(List<FailureViewModel> errors)
+        {
+            Dictionary<string, string[]> errorsDictionary = errors.ToDictionary(x => Enum.GetName(x.Code ?? Codes.ERROR), x => new[] { x.Reason ?? "Error occured", x.Detail ?? "Operation failed to successfully complete" });
+
+            return ProblemDetailsResult(new ValidationProblemDetails(errorsDictionary)
+            {
+                Type = ProblemDetailsTypes.BadRequest,
+                Status = StatusCodes.Status400BadRequest,
+                Title = ReasonPhrases.GetReasonPhrase(400),
+                Detail = ProblemDetailsDescriptions.CreateCampaignError,
+                Instance = this.HttpContext.Request.Path.Value
+            });
+        }
+
+        /// <summary>
+        /// Bad request when an error occurs updating campaign's prospects after sending out connection requests.
+        /// </summary>
+        /// <param name="errors"></param>
+        /// <returns></returns>
+        protected ObjectResult BadRequest_UpdateContactedCampaignProspects(List<Failure> errors)
+        {
+            Dictionary<string, string[]> errorsDictionary = errors.ToDictionary(x => Enum.GetName(x.Code ?? Codes.ERROR), x => new[] { x.Reason ?? "Error occured", x.Detail ?? "Operation failed to successfully complete" });
+
+            return ProblemDetailsResult(new ValidationProblemDetails(errorsDictionary)
+            {
+                Type = ProblemDetailsTypes.BadRequest,
+                Status = StatusCodes.Status400BadRequest,
+                Title = ReasonPhrases.GetReasonPhrase(400),
+                Detail = ProblemDetailsDescriptions.UpdateContactedCampaignProspects,
+                Instance = this.HttpContext.Request.Path.Value
+            });
+        }
+
+        /// <summary>
+        /// Bad request when an error occurs getting campaign search url status.
+        /// </summary>
+        /// <param name="errors"></param>
+        /// <returns></returns>
+        protected ObjectResult BadRequest_GettingSentConnectionsUrlStatuses(List<Failure> errors)
+        {
+            Dictionary<string, string[]> errorsDictionary = errors.ToDictionary(x => Enum.GetName(x.Code ?? Codes.ERROR), x => new[] { x.Reason ?? "Error occured", x.Detail ?? "Operation failed to successfully complete" });
+
+            return ProblemDetailsResult(new ValidationProblemDetails(errorsDictionary)
+            {
+                Type = ProblemDetailsTypes.BadRequest,
+                Status = StatusCodes.Status400BadRequest,
+                Title = ReasonPhrases.GetReasonPhrase(400),
+                Detail = ProblemDetailsDescriptions.SentConnectionsUrlStatuses,
+                Instance = this.HttpContext.Request.Path.Value
+            });
+        }
+
+        /// <summary>
+        /// Bad request when an error occurs updating campaign's sent connections url statuses.
+        /// </summary>
+        /// <param name="errors"></param>
+        /// <returns></returns>
+        protected ObjectResult BadRequest_UpdatingSentConnectionsUrlStatuses(List<Failure> errors)
+        {
+            Dictionary<string, string[]> errorsDictionary = errors.ToDictionary(x => Enum.GetName(x.Code ?? Codes.ERROR), x => new[] { x.Reason ?? "Error occured", x.Detail ?? "Operation failed to successfully complete" });
+
+            return ProblemDetailsResult(new ValidationProblemDetails(errorsDictionary)
+            {
+                Type = ProblemDetailsTypes.BadRequest,
+                Status = StatusCodes.Status400BadRequest,
+                Title = ReasonPhrases.GetReasonPhrase(400),
+                Detail = ProblemDetailsDescriptions.UpdatingSentConnectionsUrlStatuses,
+                Instance = this.HttpContext.Request.Path.Value
+            });
+        }
+
+        /// <summary>
         /// Bad request when an error occurs trying to authenticate user's social account
         /// </summary>
         /// <param name="errors"></param>

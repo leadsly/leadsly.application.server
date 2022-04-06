@@ -50,6 +50,10 @@
         public const string CampaignNotFound = "Campaign not found.";
         public const string LeadslySetup = "Failed to setup leadsly cloud resources";
         public const string WebDriverCreationError = "Failed to create web driver";
+        public const string CreateCampaignError = "Failed to create new campaign";
+        public const string UpdateContactedCampaignProspects = "Failed to update contacted campaign prospects";
+        public const string SentConnectionsUrlStatuses = "Getting sent connections url statuses";
+        public const string UpdatingSentConnectionsUrlStatuses = "Updating sent connections url statuses";
         public const string LeadslySocialAccountAuthenticationError = "Failed to authenticate user's social account";
         public const string LeadslyTwoFactorAuthError = "Failed to perform two factor authentication for user's social account";
         public const string ProspectListPhaseError = "Error occured executing Prospect List phase";

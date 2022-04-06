@@ -673,36 +673,26 @@ namespace Leadsly.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "SentConnectionsStatus",
+                name: "SentConnectionsStatuses",
                 columns: table => new
                 {
-                    SentConnectionsStatusId = table.Column<string>(type: "text", nullable: false),
-                    LastVisistedPageUrlSearchUrlId = table.Column<string>(type: "text", nullable: true),
-                    NextPageUrlSearchUrlId = table.Column<string>(type: "text", nullable: true),
-                    LastConnectedPerson = table.Column<string>(type: "text", nullable: true),
-                    LastProspectHitListPosition = table.Column<int>(type: "integer", nullable: false),
+                    SentConnectionsSearchUrlStatusId = table.Column<string>(type: "text", nullable: false),
+                    FinishedCrawling = table.Column<bool>(type: "boolean", nullable: false),
+                    StartedCrawling = table.Column<bool>(type: "boolean", nullable: false),
+                    OriginalUrl = table.Column<string>(type: "text", nullable: false),
+                    CurrentUrl = table.Column<string>(type: "text", nullable: false),
                     LastActivityTimestamp = table.Column<long>(type: "bigint", nullable: false),
                     CampaignId = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SentConnectionsStatus", x => x.SentConnectionsStatusId);
+                    table.PrimaryKey("PK_SentConnectionsStatuses", x => x.SentConnectionsSearchUrlStatusId);
                     table.ForeignKey(
-                        name: "FK_SentConnectionsStatus_Campaigns_CampaignId",
+                        name: "FK_SentConnectionsStatuses_Campaigns_CampaignId",
                         column: x => x.CampaignId,
                         principalTable: "Campaigns",
                         principalColumn: "CampaignId",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_SentConnectionsStatus_SearchUrls_LastVisistedPageUrlSearchU~",
-                        column: x => x.LastVisistedPageUrlSearchUrlId,
-                        principalTable: "SearchUrls",
-                        principalColumn: "SearchUrlId");
-                    table.ForeignKey(
-                        name: "FK_SentConnectionsStatus_SearchUrls_NextPageUrlSearchUrlId",
-                        column: x => x.NextPageUrlSearchUrlId,
-                        principalTable: "SearchUrls",
-                        principalColumn: "SearchUrlId");
                 });
 
             migrationBuilder.CreateTable(
@@ -953,20 +943,9 @@ namespace Leadsly.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_SentConnectionsStatus_CampaignId",
-                table: "SentConnectionsStatus",
-                column: "CampaignId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_SentConnectionsStatus_LastVisistedPageUrlSearchUrlId",
-                table: "SentConnectionsStatus",
-                column: "LastVisistedPageUrlSearchUrlId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_SentConnectionsStatus_NextPageUrlSearchUrlId",
-                table: "SentConnectionsStatus",
-                column: "NextPageUrlSearchUrlId");
+                name: "IX_SentConnectionsStatuses_CampaignId",
+                table: "SentConnectionsStatuses",
+                column: "CampaignId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SocialAccountResources_CloudMapServiceDiscoveryServiceId",
@@ -1091,6 +1070,9 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "ScanProspectsForRepliesPhase");
 
             migrationBuilder.DropTable(
+                name: "SearchUrls");
+
+            migrationBuilder.DropTable(
                 name: "SendConnectionRequestPhases");
 
             migrationBuilder.DropTable(
@@ -1100,7 +1082,7 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "SendEmailInvitePhases");
 
             migrationBuilder.DropTable(
-                name: "SentConnectionsStatus");
+                name: "SentConnectionsStatuses");
 
             migrationBuilder.DropTable(
                 name: "UserClaims");
@@ -1122,9 +1104,6 @@ namespace Leadsly.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Campaigns");
-
-            migrationBuilder.DropTable(
-                name: "SearchUrls");
 
             migrationBuilder.DropTable(
                 name: "Roles");

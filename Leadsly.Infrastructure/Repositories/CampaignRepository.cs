@@ -113,12 +113,41 @@ namespace Leadsly.Infrastructure.Repositories
             return propsectListPhase;
         }
 
-        public async Task<SentConnectionsStatus> GetSentConnectionStatusAsync(string campaignId, CancellationToken ct = default)
+        public async Task<SentConnectionsSearchUrlStatus> UpdateSentConnectionsStatusAsync(SentConnectionsSearchUrlStatus updatedSearchUrlStatus, CancellationToken ct = default)
         {
-            SentConnectionsStatus sentConnectionsStatus = default;
             try
             {
-                sentConnectionsStatus = await _dbContext.SentConnectionsStatus.Where(s => s.CampaignId == campaignId).Include(s => s.LastVisistedPageUrl).SingleAsync(ct);
+                _dbContext.SentConnectionsStatuses.Update(updatedSearchUrlStatus);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to update sent connections status");
+                updatedSearchUrlStatus = null;
+            }
+            return updatedSearchUrlStatus;
+        }
+        
+        public async Task<IList<SentConnectionsSearchUrlStatus>> GetSentConnectionStatusesAsync(string campaignId, CancellationToken ct = default)
+        {
+            IList<SentConnectionsSearchUrlStatus> sentConnectionSearchUrlStatuses = default;
+            try
+            {
+                sentConnectionSearchUrlStatuses = await _dbContext.SentConnectionsStatuses.Where(status => status.CampaignId == campaignId).ToListAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve 'SentConnectionsStatus' list for the given campaign");                
+            }
+            return sentConnectionSearchUrlStatuses;
+        }
+
+        public async Task<SentConnectionsSearchUrlStatus> GetSentConnectionStatusAsync(string campaignId, CancellationToken ct = default)
+        {
+            SentConnectionsSearchUrlStatus sentConnectionsStatus = default;
+            try
+            {
+                sentConnectionsStatus = await _dbContext.SentConnectionsStatuses.Where(s => s.CampaignId == campaignId).SingleAsync(ct);
             }
             catch (Exception ex)
             {

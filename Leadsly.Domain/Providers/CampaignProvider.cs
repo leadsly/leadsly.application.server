@@ -100,7 +100,7 @@ namespace Leadsly.Domain.Providers
                 CampaignWarmUp campaignWarmUp = await _campaignRepository.GetCampaignWarmUpByIdAsync(campaignId, ct);
                 dailyConnectionsLimit = campaignWarmUp.DailyLimit;
             }
-            SentConnectionsStatus sentConnectionsStatus = await _campaignRepository.GetSentConnectionStatusAsync(campaignId, ct);            
+            SentConnectionsSearchUrlStatus sentConnectionsStatus = await _campaignRepository.GetSentConnectionStatusAsync(campaignId, ct);            
 
             string chromeProfileName = await _campaignRepository.GetChromeProfileNameByCampaignPhaseTypeAsync(PhaseType.SendConnectionRequests, ct);
             if (chromeProfileName == null)
@@ -126,8 +126,6 @@ namespace Leadsly.Domain.Providers
                 DailyLimit = dailyConnectionsLimit,
                 HalId = campaign.HalId,
                 UserId = userId,
-                PageUrl = sentConnectionsStatus.LastVisistedPageUrl.Url,
-                LastProspectHitListPosition = sentConnectionsStatus.LastProspectHitListPosition,
                 StartDateTimestamp = campaign.StartTimestamp,       
                 CampaignId = campaignId,                                
                 NamespaceName = config.ServiceDiscoveryConfig.Name,

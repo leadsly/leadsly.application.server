@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Leadsly.Infrastructure.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20220404223338_InitialCreate")]
+    [Migration("20220406190933_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -600,9 +600,9 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("SendConnectionsStages");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.SentConnectionsStatus", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.SentConnectionsSearchUrlStatus", b =>
                 {
-                    b.Property<string>("SentConnectionsStatusId")
+                    b.Property<string>("SentConnectionsSearchUrlStatusId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
@@ -610,31 +610,28 @@ namespace Leadsly.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("CurrentUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("FinishedCrawling")
+                        .HasColumnType("boolean");
+
                     b.Property<long>("LastActivityTimestamp")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("LastConnectedPerson")
+                    b.Property<string>("OriginalUrl")
+                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("LastProspectHitListPosition")
-                        .HasColumnType("integer");
+                    b.Property<bool>("StartedCrawling")
+                        .HasColumnType("boolean");
 
-                    b.Property<string>("LastVisistedPageUrlSearchUrlId")
-                        .HasColumnType("text");
+                    b.HasKey("SentConnectionsSearchUrlStatusId");
 
-                    b.Property<string>("NextPageUrlSearchUrlId")
-                        .HasColumnType("text");
+                    b.HasIndex("CampaignId");
 
-                    b.HasKey("SentConnectionsStatusId");
-
-                    b.HasIndex("CampaignId")
-                        .IsUnique();
-
-                    b.HasIndex("LastVisistedPageUrlSearchUrlId");
-
-                    b.HasIndex("NextPageUrlSearchUrlId");
-
-                    b.ToTable("SentConnectionsStatus");
+                    b.ToTable("SentConnectionsStatuses");
                 });
 
             modelBuilder.Entity("Leadsly.Application.Model.Entities.CloudMapServiceDiscoveryService", b =>
@@ -1277,27 +1274,15 @@ namespace Leadsly.Infrastructure.Migrations
                     b.Navigation("Campaign");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.SentConnectionsStatus", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.SentConnectionsSearchUrlStatus", b =>
                 {
                     b.HasOne("Leadsly.Application.Model.Entities.Campaigns.Campaign", "Campaign")
-                        .WithOne("SentConnectionsStatus")
-                        .HasForeignKey("Leadsly.Application.Model.Entities.Campaigns.SentConnectionsStatus", "CampaignId")
+                        .WithMany("SentConnectionsStatuses")
+                        .HasForeignKey("CampaignId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.SearchUrl", "LastVisistedPageUrl")
-                        .WithMany()
-                        .HasForeignKey("LastVisistedPageUrlSearchUrlId");
-
-                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.SearchUrl", "NextPageUrl")
-                        .WithMany()
-                        .HasForeignKey("NextPageUrlSearchUrlId");
-
                     b.Navigation("Campaign");
-
-                    b.Navigation("LastVisistedPageUrl");
-
-                    b.Navigation("NextPageUrl");
                 });
 
             modelBuilder.Entity("Leadsly.Application.Model.Entities.CloudMapServiceDiscoveryService", b =>
@@ -1472,8 +1457,7 @@ namespace Leadsly.Infrastructure.Migrations
                     b.Navigation("SendEmailInvitePhase")
                         .IsRequired();
 
-                    b.Navigation("SentConnectionsStatus")
-                        .IsRequired();
+                    b.Navigation("SentConnectionsStatuses");
                 });
 
             modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.CampaignProspectList", b =>

@@ -66,7 +66,9 @@ namespace Leadsly.Domain.Repositories
 
         #endregion
 
-        Task<SentConnectionsStatus> GetSentConnectionStatusAsync(string campaignId, CancellationToken ct = default);        
+        Task<SentConnectionsSearchUrlStatus> UpdateSentConnectionsStatusAsync(SentConnectionsSearchUrlStatus updatedSearchUrlStatus, CancellationToken ct = default);
+        Task<IList<SentConnectionsSearchUrlStatus>> GetSentConnectionStatusesAsync(string campaignId, CancellationToken ct = default);
+        Task<SentConnectionsSearchUrlStatus> GetSentConnectionStatusAsync(string campaignId, CancellationToken ct = default);        
         Task<string> GetChromeProfileNameByCampaignPhaseTypeAsync(PhaseType campaignType, CancellationToken ct = default);
         Task<ChromeProfileName> CreateChromeProfileNameAsync(ChromeProfileName chromeProfileName, CancellationToken ct = default);
     }

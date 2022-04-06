@@ -1,8 +1,11 @@
 ﻿using Leadsly.Application.Model;
+using Leadsly.Application.Model.Campaigns;
+using Leadsly.Application.Model.Campaigns.Interfaces;
 using Leadsly.Application.Model.Entities;
 using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Application.Model.Requests;
+using Leadsly.Application.Model.Requests.FromHal;
 using Leadsly.Application.Model.Responses;
 using Leadsly.Application.Model.ViewModels;
 using Leadsly.Application.Model.ViewModels.Campaigns;
@@ -18,7 +21,75 @@ using System.Threading.Tasks;
 namespace Leadsly.Domain.Supervisor
 {
     public partial class Supervisor : ISupervisor
-    {
+    {        
+        public async Task<HalOperationResult<T>> UpdateSentConnectionsUrlStatusesAsync<T>(string campaignId, UpdateSentConnectionsUrlStatusRequest request, CancellationToken ct = default)
+            where T : IOperationResponse
+        {
+            HalOperationResult<T> result = new();
+
+            IList<SentConnectionsSearchUrlStatus> sentConnectionsSearchurlStatuses = await _campaignRepository.GetSentConnectionStatusesAsync(campaignId, ct);
+            foreach (SentConnectionsUrlStatusRequest payload in request.SentConnectionsUrlStatuses)
+            {
+                SentConnectionsSearchUrlStatus update = sentConnectionsSearchurlStatuses.Where(s => s.SentConnectionsSearchUrlStatusId == payload.SentConnectionsUrlStatusId).FirstOrDefault();
+                if (update == null)
+                {
+                    continue;
+                }
+                update.LastActivityTimestamp = payload.LastActivityTimestamp;
+                update.FinishedCrawling = payload.FinishedCrawling;
+                update.StartedCrawling = payload.StartedCrawling;
+                update.CurrentUrl = payload.CurrentUrl;
+                update.WindowHandleId = payload.WindowHandleId;
+
+                update = await _campaignRepository.UpdateSentConnectionsStatusAsync(update, ct);
+                if (update == null)
+                {
+                    return result;
+                }
+            }
+
+            result.Succeeded = true;
+            return result;
+        }
+
+        public async Task<HalOperationResult<T>> GetSentConnectionsUrlStatusesAsync<T>(string campaignId, CancellationToken ct = default)
+            where T : IOperationResponse
+        {
+            HalOperationResult<T> result = new();
+
+            IList<SentConnectionsSearchUrlStatus> sentConnectionsSearchUrlStatuses = await _campaignRepository.GetSentConnectionStatusesAsync(campaignId, ct);
+            if(sentConnectionsSearchUrlStatuses == null)
+            {
+                return result;
+            }
+
+            IList<SentConnectionsUrlStatusRequest> sentConnectionsSearchUrlStatusesPayload = sentConnectionsSearchUrlStatuses
+                                                                                                .Where(s => s.FinishedCrawling == false)
+                                                                                                .Select(s =>
+                                                                                                {
+                                                                                                    return new SentConnectionsUrlStatusRequest
+                                                                                                    {
+                                                                                                        SentConnectionsUrlStatusId = s.SentConnectionsSearchUrlStatusId,
+                                                                                                        CurrentUrl = s.CurrentUrl,
+                                                                                                        LastActivityTimestamp = s.LastActivityTimestamp,
+                                                                                                        OriginalUrl = s.OriginalUrl,
+                                                                                                        WindowHandleId = s.WindowHandleId,
+                                                                                                        StartedCrawling = s.StartedCrawling,
+                                                                                                        FinishedCrawling = s.FinishedCrawling
+                                                                                                    };
+                                                                                                })
+                                                                                                .ToList();
+
+            IGetSentConnectionsUrlStatusPayload payload = new GetSentConnectionsUrlStatusPayload
+            {
+                SentConnectionsUrlStatuses = sentConnectionsSearchUrlStatusesPayload
+            };
+
+            result.Value = (T)payload;
+            result.Succeeded = true;
+            return result;
+        }
+
         public async Task<HalOperationResultViewModel<T>> CreateCampaignAsync<T>(CreateCampaignRequest request, string userId, CancellationToken ct = default)
             where T : IOperationResponseViewModel
         {
@@ -87,16 +158,23 @@ namespace Leadsly.Domain.Supervisor
 
             Campaign newCampaignWithPhases = CreateCampaignPhases(newCampaign, request.CampaignDetails.PrimaryProspectList.Existing, ct);
 
-            SearchUrl firstSearchUrl = newCampaign.CampaignProspectList.SearchUrls.FirstOrDefault();
-            SearchUrl nextSearchUrl = newCampaign.CampaignProspectList.SearchUrls.Skip(1).Take(1).FirstOrDefault();
-            SentConnectionsStatus sentConnectionsStatus = new()
+            IList<SentConnectionsSearchUrlStatus> sentConnectionsSearchUrlStatuses = new List<SentConnectionsSearchUrlStatus>();
+            IList<string> searchUrls = request.CampaignDetails.PrimaryProspectList.Existing ? primaryProspectList.SearchUrls.Select(s => s.Url).ToList() : request.CampaignDetails.PrimaryProspectList.SearchUrls;
+            foreach (string searchUrl in searchUrls)
             {
-                Campaign = newCampaignWithPhases,
-                LastVisistedPageUrl = firstSearchUrl,
-                NextPageUrl = nextSearchUrl,
-                LastProspectHitListPosition = 0
-            };
-            newCampaignWithPhases.SentConnectionsStatus = sentConnectionsStatus;
+                SentConnectionsSearchUrlStatus sentConnectionsSearchUrlStatus = new()
+                {
+                    Campaign = newCampaignWithPhases,
+                    CurrentUrl = searchUrl,
+                    FinishedCrawling = false,
+                    StartedCrawling = false,
+                    OriginalUrl = searchUrl,
+                    WindowHandleId = string.Empty,
+                    LastActivityTimestamp = 0
+                };
+                sentConnectionsSearchUrlStatuses.Add(sentConnectionsSearchUrlStatus);
+            }
+            newCampaignWithPhases.SentConnectionsStatuses = sentConnectionsSearchUrlStatuses;
 
             if(request.CampaignDetails.WarmUp == true)
             {

@@ -41,7 +41,7 @@ namespace Leadsly.Infrastructure
         public DbSet<CampaignProspect> CampaignProspects { get; set; }
         public DbSet<HalUnit> HalUnits { get; set; }
         public DbSet<SearchUrl> SearchUrls { get; set; }
-        public DbSet<SentConnectionsStatus> SentConnectionsStatus { get; set; }
+        public DbSet<SentConnectionsSearchUrlStatus> SentConnectionsStatuses { get; set; }
         public DbSet<ChromeProfileName> ChromeProfileNames { get; set; }
         public DbSet<CampaignWarmUp> CampaignWarmUps { get; set; }
         public DbSet<SendConnectionsStage> SendConnectionsStages { get; set; }
