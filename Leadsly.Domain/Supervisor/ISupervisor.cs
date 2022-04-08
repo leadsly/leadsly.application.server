@@ -10,12 +10,17 @@ using Leadsly.Application.Model.Responses;
 using Leadsly.Application.Model.ViewModels;
 using System;
 using Leadsly.Application.Model.Requests.FromHal;
+using Leadsly.Application.Model.Entities.Campaigns;
+using Leadsly.Application.Model.ViewModels.Campaigns;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace Leadsly.Domain.Supervisor
 {
     public interface ISupervisor
     {
         Task<Customer_Stripe> AddCustomerAsync_Stripe(Customer_Stripe stripeCustomerViewModel);
+        Task<CampaignViewModel> PatchUpdateCampaignAsync(string campaignId, JsonPatchDocument<Campaign> campaignUpdate, CancellationToken ct = default);
         Task<SetupAccountResultViewModel> LeadslyAccountSetupAsync(SetupAccountViewModel setup, CancellationToken ct = default);
 
         [Obsolete("This method is not longer used. We are not creating new chrome instances per campaign, we're using new tabs instead")]

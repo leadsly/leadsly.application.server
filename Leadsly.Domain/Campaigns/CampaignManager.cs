@@ -29,6 +29,13 @@ namespace Leadsly.Domain.Campaigns
             //TriggerConstantCampaignPhaseMessages();
 
             //TriggerConnectionWithdrawPhase();
+
+            TriggerMonitorForNewConnectionsPhase();
+        }
+
+        private static void TriggerMonitorForNewConnectionsPhase()
+        {
+            BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishMonitorForNewConnectionsPhaseMessageAsync());
         }
 
         private static void TriggerConstantCampaignPhaseMessages()

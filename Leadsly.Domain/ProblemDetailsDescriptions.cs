@@ -38,6 +38,7 @@
         public const string FailedToSendChangeEmailLink = "Failed to send change email link.";
         public const string FailedToUpdatePassword = "Failed to update password.";
         public const string FailedToUpdateEmail = "Failed to update e-mail.";
+        public const string FailedToUpdateResource = "Failed to update resource.";
         public const string FailedToConfirmUsersEmail = "Failed to confirm user's e-mail.";
         public const string FailedToGenerateToken = "Failed to generate token.";
         public const string TokenNotFound = "Token was not found in the request.";

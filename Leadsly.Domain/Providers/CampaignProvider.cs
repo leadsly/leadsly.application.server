@@ -91,6 +91,45 @@ namespace Leadsly.Domain.Providers
             return prospectListBody;
         }
 
+        public async Task<MonitorForNewAcceptedConnectionsBody> CreateMonitorForNewAcceptedConnectionsBodyAsync(string userId, string halId, CancellationToken ct = default)
+        {
+            IList<MonitorForNewConnectionsPhase> monitorForNewConnectionsPhases = await _campaignRepository.GetAllMonitorForNewConnectionsPhasesByUserId(userId, ct);
+            // we only care about the first phase
+            MonitorForNewConnectionsPhase monitorForNewConnectionsPhase = monitorForNewConnectionsPhases.FirstOrDefault();
+
+            string chromeProfileName = await _campaignRepository.GetChromeProfileNameByCampaignPhaseTypeAsync(PhaseType.MonitorNewConnections, ct);
+            if (chromeProfileName == null)
+            {
+                // create the new chrome profile name and save it
+                ChromeProfileName profileName = new()
+                {
+                    CampaignPhaseType = PhaseType.SendConnectionRequests,
+                    Profile = Guid.NewGuid().ToString()
+                };
+                await _campaignRepository.CreateChromeProfileNameAsync(profileName, ct);
+                chromeProfileName = profileName.Profile;
+            }
+
+            if (_memoryCache.TryGetValue(CacheKeys.CloudPlatformConfigurationOptions, out CloudPlatformConfiguration config) == false)
+            {
+                config = _cloudPlatformRepository.GetCloudPlatformConfiguration();
+            }
+
+            MonitorForNewAcceptedConnectionsBody monitorForNewAcceptedConnectionsBody = new()
+            {
+                ChromeProfileName = chromeProfileName,                
+                HalId = halId,
+                UserId = userId,
+                PageUrl = monitorForNewConnectionsPhase.PageUrl,
+                StartWorkTime = DateTimeOffset.Parse("8:00 AM").ToUnixTimeSeconds(),
+                EndWorkTime = DateTimeOffset.Parse("7:00 PM").ToUnixTimeSeconds(),
+                NamespaceName = config.ServiceDiscoveryConfig.Name,
+                ServiceDiscoveryName = config.ApiServiceDiscoveryName
+            };
+
+            return monitorForNewAcceptedConnectionsBody;
+        }
+
         public async Task<SendConnectionsBody> CreateSendConnectionsBodyAsync(string campaignId, string userId, CancellationToken ct = default)
         {
             Campaign campaign = await _campaignRepository.GetCampaignByIdAsync(campaignId, ct);
@@ -99,8 +138,7 @@ namespace Leadsly.Domain.Providers
             {
                 CampaignWarmUp campaignWarmUp = await _campaignRepository.GetCampaignWarmUpByIdAsync(campaignId, ct);
                 dailyConnectionsLimit = campaignWarmUp.DailyLimit;
-            }
-            SentConnectionsSearchUrlStatus sentConnectionsStatus = await _campaignRepository.GetSentConnectionStatusAsync(campaignId, ct);            
+            }                  
 
             string chromeProfileName = await _campaignRepository.GetChromeProfileNameByCampaignPhaseTypeAsync(PhaseType.SendConnectionRequests, ct);
             if (chromeProfileName == null)
@@ -203,5 +241,11 @@ namespace Leadsly.Domain.Providers
 
             return halIds;
         }
+
+        public async Task<List<Campaign>> GetActiveCampaignsAsync(CancellationToken ct = default)
+        {
+            return await _campaignRepository.GetAllActiveAsync(ct);
+        }
+        
     }
 }

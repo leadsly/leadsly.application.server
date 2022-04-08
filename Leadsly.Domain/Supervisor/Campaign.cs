@@ -11,6 +11,9 @@ using Leadsly.Application.Model.ViewModels;
 using Leadsly.Application.Model.ViewModels.Campaigns;
 using Leadsly.Application.Model.ViewModels.Response;
 using Leadsly.Domain.Campaigns;
+using Leadsly.Domain.Converters;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +24,24 @@ using System.Threading.Tasks;
 namespace Leadsly.Domain.Supervisor
 {
     public partial class Supervisor : ISupervisor
-    {        
+    {
+        public async Task<CampaignViewModel> PatchUpdateCampaignAsync(string campaignId, JsonPatchDocument<Campaign> patchDoc, CancellationToken ct = default)
+        {
+            Campaign campaignToUpdate = await _campaignRepository.GetCampaignByIdAsync(campaignId, ct);
+
+            patchDoc.ApplyTo(campaignToUpdate);
+
+            campaignToUpdate = await _campaignRepository.UpdateAsync(campaignToUpdate, ct);
+            if(campaignToUpdate == null)
+            {
+                return null;
+            }
+
+            CampaignViewModel campaignViewModel = CampaignConverter.Convert(campaignToUpdate);
+
+            return campaignViewModel;
+        }
+
         public async Task<HalOperationResult<T>> UpdateSentConnectionsUrlStatusesAsync<T>(string campaignId, UpdateSentConnectionsUrlStatusRequest request, CancellationToken ct = default)
             where T : IOperationResponse
         {

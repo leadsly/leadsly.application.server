@@ -350,6 +350,21 @@ namespace Leadsly.Infrastructure.Repositories
             return phase;
         }
 
+        public async Task<IList<MonitorForNewConnectionsPhase>> GetAllMonitorForNewConnectionsPhasesByUserId(string userId, CancellationToken ct = default)
+        {
+            IList<MonitorForNewConnectionsPhase> monitorForNewConnectionsPhases = null;
+            try
+            {
+                monitorForNewConnectionsPhases = await _dbContext.MonitorForNewConnectionsPhases.Include("SocialAccount").Where(p => p.SocialAccount.UserId == userId).ToListAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create monitor for new connections phase");
+                monitorForNewConnectionsPhases = null;
+            }
+            return monitorForNewConnectionsPhases;
+        }
+        
         public async Task<ScanProspectsForRepliesPhase> CreateScanProspectsForRepliesPhase(ScanProspectsForRepliesPhase phase, CancellationToken ct = default)
         {
             try
@@ -378,6 +393,21 @@ namespace Leadsly.Infrastructure.Repositories
                 phase = null;
             }
             return phase;
+        }
+
+        public async Task<Campaign> UpdateAsync(Campaign updatedCampaign, CancellationToken ct = default)
+        {
+            try
+            {
+                _dbContext.Campaigns.Update(updatedCampaign);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to update campaign");
+                updatedCampaign = null;
+            }
+            return updatedCampaign;
         }
     }
 }

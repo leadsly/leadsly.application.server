@@ -13,6 +13,7 @@ namespace Leadsly.Domain
         Task PublishProspectListPhaseMessagesAsync();
         Task PublishProspectListPhaseMessagesAsync(string prospectListPhaseId, string userId);
         Task PublishConstantCampaignPhaseMessagesAsync();
+        Task PublishMonitorForNewConnectionsPhaseMessageAsync();
         void PublishConnectionWithdrawPhaseMessages();
         void PublishSendConnectionsToProspectsPhaseMessages(byte[] body, string halId);
         Task PublishSendConnectionsPhaseMessageAsync(string campaignId, string userId);

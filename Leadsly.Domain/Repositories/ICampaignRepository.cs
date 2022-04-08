@@ -14,6 +14,7 @@ namespace Leadsly.Domain.Repositories
         #region Campaign
 
         Task<Campaign> CreateAsync(Campaign newCampaign, CancellationToken ct = default);
+        Task<Campaign> UpdateAsync(Campaign updatedCampaign, CancellationToken ct = default);
         Task<Campaign> GetCampaignByIdAsync(string campaignId, CancellationToken ct = default);
 
         Task<List<Campaign>> GetAllActiveAsync(CancellationToken ct = default);
@@ -40,6 +41,7 @@ namespace Leadsly.Domain.Repositories
 
         #region MonitorForNewConnectionsPhase
 
+        Task<List<MonitorForNewConnectionsPhase>> GetAllMonitorForNewConnectionsPhasesByUserId(string userId, CancellationToken ct = default);
         Task<MonitorForNewConnectionsPhase> CreateMonitorForNewConnectionsPhase(MonitorForNewConnectionsPhase phase, CancellationToken ct = default);
 
         #endregion

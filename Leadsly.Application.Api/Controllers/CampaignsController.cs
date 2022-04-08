@@ -22,6 +22,8 @@ using Leadsly.Application.Model;
 using Leadsly.Application.Model.Responses;
 using Leadsly.Application.Model.Campaigns.Interfaces;
 using Leadsly.Application.Model.ViewModels;
+using Microsoft.AspNetCore.JsonPatch;
+using Leadsly.Application.Model.Entities.Campaigns;
 
 namespace Leadsly.Application.Api.Controllers
 {
@@ -458,13 +460,27 @@ namespace Leadsly.Application.Api.Controllers
             return new JsonResult(updateCampaign);
         }
 
-        [HttpPatch]
-        public IActionResult ToggleActiveCampaign([FromBody] ToggleCampaignViewModel toggleCampaign, CancellationToken ct = default)
-        {
-            CampaignViewModel toggleCampaignStatus = Campaigns.Find((c) => c.Id == toggleCampaign.Id);
-            toggleCampaignStatus.Active = !toggleCampaignStatus.Active;
+        //[HttpPatch]
+        //public IActionResult ToggleActiveCampaign([FromBody] ToggleCampaignViewModel toggleCampaign, CancellationToken ct = default)
+        //{
+        //    CampaignViewModel toggleCampaignStatus = Campaigns.Find((c) => c.Id == toggleCampaign.Id);
+        //    toggleCampaignStatus.Active = !toggleCampaignStatus.Active;
 
-            return new JsonResult(toggleCampaignStatus);
+        //    return new JsonResult(toggleCampaignStatus);
+        //}
+
+        [HttpPatch("{id}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> UpdateCampaign(string id, [FromBody] JsonPatchDocument<Campaign> patchDoc, CancellationToken ct = default)
+        {
+            CampaignViewModel patchedCampaign = await _supervisor.PatchUpdateCampaignAsync(id, patchDoc, ct);
+
+            if(patchedCampaign == null)
+            {
+                return BadRequest_FailedToUpdateResource();
+            }
+
+            return Ok(patchedCampaign);
         }
 
         [HttpPost("{id}/prospects")]

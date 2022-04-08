@@ -79,6 +79,61 @@ namespace Leadsly.Domain.Campaigns
             };
         }
 
+        public async Task PublishMonitorForNewConnectionsPhaseMessageAsync()
+        {
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                ICampaignProvider campaignProvider = scope.ServiceProvider.GetRequiredService<ICampaignProvider>();
+                
+                List<Campaign> activeCampaigns = await campaignProvider.GetActiveCampaignsAsync();                
+
+                RabbitMQOptions options = default;
+                if (_memoryCache.TryGetValue(CacheKeys.RabbitMQConfigOptions, out options) == false)
+                {
+                    IRabbitMQRepository rabbitMQRepository = scope.ServiceProvider.GetRequiredService<IRabbitMQRepository>();
+                    options = rabbitMQRepository.GetRabbitMQConfigOptions();
+
+                    _memoryCache.Set(CacheKeys.RabbitMQConfigOptions, options);
+                }
+
+                ISerializerFacade serializerFacade = scope.ServiceProvider.GetRequiredService<ISerializerFacade>();
+                // for each hal with active campaigns trigger MonitorForNewProspectsPhase
+                foreach (Campaign activeCampaign in activeCampaigns)
+                {
+                    MonitorForNewAcceptedConnectionsBody messageBody = await campaignProvider.CreateMonitorForNewAcceptedConnectionsBodyAsync(activeCampaign.HalId, activeCampaign.ApplicationUserId);
+
+                    ProcessMonitorForNewConnectionsPhase(messageBody, serializerFacade, options);
+                }
+            }
+        }
+
+        private void ProcessMonitorForNewConnectionsPhase(MonitorForNewAcceptedConnectionsBody messageBody, ISerializerFacade serializer, RabbitMQOptions options)
+        {
+            byte[] body = serializer.SerializeMonitorForNewAcceptedConnections(messageBody);
+
+            ConnectionFactory factory = ConfigureConnectionFactor(options, RabbitMQConstants.MonitorNewAcceptedConnections.QueueName);
+            var connection = factory.CreateConnection();
+            Connections.Add(connection);
+            var channel = connection.CreateModel();
+            Channels.Add(channel);
+
+            channel.ExchangeDeclare(options.ExchangeOptions.Name, options.ExchangeOptions.ExchangeType);
+
+            string name = options.QueueConfigOptions.Name.Replace("{halId}", messageBody.HalId);
+            name = name.Replace("{queueName}", RabbitMQConstants.MonitorNewAcceptedConnections.QueueName);
+            channel.QueueDeclare(queue: name, durable: false, exclusive: false, autoDelete: false, arguments: null);
+
+            string routingKey = options.RoutingKey.Replace("{halId}", messageBody.HalId);
+            routingKey = routingKey.Replace("{purpose}", RabbitMQConstants.MonitorNewAcceptedConnections.RoutingKey);
+
+            channel.QueueBind(name, options.ExchangeOptions.Name, routingKey, null);
+
+            IBasicProperties basicProperties = channel.CreateBasicProperties();
+            basicProperties.MessageId = Guid.NewGuid().ToString();
+
+            channel.BasicPublish(exchange: options.ExchangeOptions.Name, routingKey: routingKey, basicProperties: basicProperties, body: body);
+        }
+
         public async Task PublishProspectListPhaseMessagesAsync(string prospectListPhaseId, string userId)
         {
             using (var scope = _serviceProvider.CreateScope())
@@ -104,7 +159,6 @@ namespace Leadsly.Domain.Campaigns
         private void ProcessProspectListPhases(ProspectListBody messageBody, ISerializerFacade serializer, RabbitMQOptions options, string halId, string exchangeName, string exchangeType, string queueName, string routingKey, string userId)
         {
             byte[] body = serializer.SerializeProspectList(messageBody);
-            string campaignId = messageBody.CampaignId;
 
             ConnectionFactory factory = ConfigureConnectionFactor(options, RabbitMQConstants.NetworkingConnections.QueueName);
             var connection = factory.CreateConnection();
@@ -395,6 +449,5 @@ namespace Leadsly.Domain.Campaigns
         {
             throw new NotImplementedException();
         }
-        
     }
 }

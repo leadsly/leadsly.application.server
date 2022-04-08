@@ -245,6 +245,22 @@ namespace Leadsly.Api
         }
 
         /// <summary>
+        /// Bad request when server fails to perform patch update.
+        /// </summary>        
+        /// <returns></returns>
+        protected ObjectResult BadRequest_FailedToUpdateResource()
+        {
+            return ProblemDetailsResult(new ProblemDetails
+            {
+                Type = ProblemDetailsTypes.BadRequestType,
+                Status = StatusCodes.Status400BadRequest,
+                Title = ReasonPhrases.GetReasonPhrase(400),
+                Detail = ProblemDetailsDescriptions.FailedToUpdateResource,
+                Instance = this.HttpContext.Request.Path.Value
+            });
+        }
+
+        /// <summary>
         /// Bad request when there is an issue confirming user's email.
         /// </summary>        
         /// <returns></returns>
