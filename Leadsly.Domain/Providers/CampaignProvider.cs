@@ -91,11 +91,9 @@ namespace Leadsly.Domain.Providers
             return prospectListBody;
         }
 
-        public async Task<MonitorForNewAcceptedConnectionsBody> CreateMonitorForNewAcceptedConnectionsBodyAsync(string userId, string halId, CancellationToken ct = default)
+        public async Task<MonitorForNewAcceptedConnectionsBody> CreateMonitorForNewAcceptedConnectionsBodyAsync(string halId, string userId, string socialAccountId, CancellationToken ct = default)
         {
-            IList<MonitorForNewConnectionsPhase> monitorForNewConnectionsPhases = await _campaignRepository.GetAllMonitorForNewConnectionsPhasesByUserId(userId, ct);
-            // we only care about the first phase
-            MonitorForNewConnectionsPhase monitorForNewConnectionsPhase = monitorForNewConnectionsPhases.FirstOrDefault();
+            MonitorForNewConnectionsPhase monitorForNewConnectionsPhase = await _campaignRepository.GetMonitorForNewConnectionsPhaseBySocialAccountIdAsync(socialAccountId, ct);            
 
             string chromeProfileName = await _campaignRepository.GetChromeProfileNameByCampaignPhaseTypeAsync(PhaseType.MonitorNewConnections, ct);
             if (chromeProfileName == null)
@@ -103,7 +101,7 @@ namespace Leadsly.Domain.Providers
                 // create the new chrome profile name and save it
                 ChromeProfileName profileName = new()
                 {
-                    CampaignPhaseType = PhaseType.SendConnectionRequests,
+                    CampaignPhaseType = PhaseType.MonitorNewConnections,
                     Profile = Guid.NewGuid().ToString()
                 };
                 await _campaignRepository.CreateChromeProfileNameAsync(profileName, ct);
@@ -120,9 +118,10 @@ namespace Leadsly.Domain.Providers
                 ChromeProfileName = chromeProfileName,                
                 HalId = halId,
                 UserId = userId,
+                TimeZoneId = "Eastern Standard Time",
                 PageUrl = monitorForNewConnectionsPhase.PageUrl,
-                StartWorkTime = DateTimeOffset.Parse("8:00 AM").ToUnixTimeSeconds(),
-                EndWorkTime = DateTimeOffset.Parse("7:00 PM").ToUnixTimeSeconds(),
+                StartWorkTime = new DateTimeOffset(new DateTimeWithZone(DateTime.Parse("7:00 AM"), TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time")).LocalTime).ToUnixTimeSeconds(), // DateTimeOffset.Parse("8:00 AM").ToUnixTimeSeconds(),
+                EndWorkTime = new DateTimeOffset(new DateTimeWithZone(DateTime.Parse("7:00 PM"), TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time")).LocalTime).ToUnixTimeSeconds(), // DateTimeOffset.Parse("7:00 PM").ToUnixTimeSeconds(),
                 NamespaceName = config.ServiceDiscoveryConfig.Name,
                 ServiceDiscoveryName = config.ApiServiceDiscoveryName
             };
@@ -164,6 +163,7 @@ namespace Leadsly.Domain.Providers
                 DailyLimit = dailyConnectionsLimit,
                 HalId = campaign.HalId,
                 UserId = userId,
+                TimeZoneId = "Eastern Standard Time",
                 StartDateTimestamp = campaign.StartTimestamp,       
                 CampaignId = campaignId,                                
                 NamespaceName = config.ServiceDiscoveryConfig.Name,

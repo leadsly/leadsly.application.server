@@ -43,6 +43,7 @@ namespace Leadsly.Domain.Supervisor
                 {
                     PrimaryProspect = primaryProspect,
                     CampaignId = request.CampaignId,
+                    ProfileUrl = primaryProspectRequest.ProfileUrl,
                     ConnectionSent = false,
                     ConnectionSentTimestamp = 0,
                     FollowUpMessageSent = false,
@@ -92,6 +93,58 @@ namespace Leadsly.Domain.Supervisor
             return result;
         }
 
+        public async Task<HalOperationResult<T>> ProcessNewlyAcceptedProspectsAsync<T>(NewProspectsConnectionsAcceptedRequest request, CancellationToken ct = default)
+            where T : IOperationResponse
+        {
+            HalOperationResult<T> result = new();
+
+            IList<Campaign> usersActiveCampaigns = await _campaignRepository.GetAllActiveByUserIdAsync(request.ApplicationUserId, ct);
+
+            HashSet<string> campaignProspectListIds = new();
+            List<CampaignProspect> activeCampaignProspects = new List<CampaignProspect>();
+            foreach (Campaign campaign in usersActiveCampaigns)
+            {
+                // for each active campaign grab the corresponding primary prospect list id
+                string campaignProspectListId = campaign.CampaignProspectList.CampaignProspectListId;
+
+                // if the dictionary contains an entry for this primary prospect list just move on
+                if (campaignProspectListIds.Contains(campaignProspectListId))
+                    continue;
+
+                // get the primary prospect list by its id
+                CampaignProspectList campaignProspectList = await _campaignRepository.GetCampaignProspectListByCampaignProspectListIdAsync(campaignProspectListId);
+                
+                if(campaignProspectList != null)
+                {
+                    activeCampaignProspects.AddRange(campaignProspectList.CampaignProspects);
+
+                    // try and add that primary prospect list to the dictionary
+                    campaignProspectListIds.Add(campaignProspectListId);
+                }                
+            }
+
+            IList<CampaignProspect> updatedCampaignProspects = new List<CampaignProspect>();
+            foreach (NewProspectConnectionRequest newProspectConnectionRequest in request.NewAcceptedProspectsConnections)
+            {
+                // is the newly connected prospect part of any of the user's campaigns?
+                CampaignProspect campaignProspect = activeCampaignProspects.FirstOrDefault(p => p.ProfileUrl.Contains(newProspectConnectionRequest.ProfileUrl));
+                if (campaignProspect != null)
+                {
+                    campaignProspect.Accepted = true;
+                    campaignProspect.AcceptedTimestamp = newProspectConnectionRequest.AcceptedTimestamp;
+                    updatedCampaignProspects.Add(campaignProspect);
+                }
+            }
+
+            if(updatedCampaignProspects.Count > 0)
+            {
+                await _campaignRepository.UpdateCampaignProspectsAsync(updatedCampaignProspects, ct);
+            }
+
+            result.Succeeded = true;
+            return result;
+        }
+
         public async Task<HalOperationResult<T>> ProcessConnectionRequestSentForCampaignProspectsAsync<T>(CampaignProspectListRequest request, CancellationToken ct = default)
             where T : IOperationResponse
         {
@@ -121,31 +174,5 @@ namespace Leadsly.Domain.Supervisor
             return result;
         }        
 
-        public async Task<HalOperationResult<T>> ProcessNewMyNetworkConnectionsAsync<T>(MyNetworkNewConnectionsRequest request, CancellationToken ct = default)
-        where T : IOperationResponse
-        {
-            HalOperationResult<T> result = new();
-
-            // grab each new connection and determine which campaign it came from            
-
-            // to do this we have to get all active campaigns for the given hal machine
-
-            // then check each campaigns prospect list and see if this individual exists there
-
-            // if user exists there grab the first follow up message
-
-            // parse replace any tokens (name)
-
-            // send send the follow up message message to hal to 
-            // result = await _campaignPhaseFacade.ProcessNewNetworkConnectionsAsync<T>(request.NewConnectionProspects, request.HalId, ct);
-
-            if (result.Succeeded == false)
-            {
-                return result;
-            }
-
-            return result;
-            // if succeeded queue up follow up messages
-        }
     }
 }

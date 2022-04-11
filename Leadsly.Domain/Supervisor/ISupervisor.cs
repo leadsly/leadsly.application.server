@@ -31,9 +31,6 @@ namespace Leadsly.Domain.Supervisor
         Task<HalOperationResultViewModel<T>> LeadslyTwoFactorAuthAsync<T>(TwoFactorAuthRequest request, CancellationToken ct = default)
             where T : IOperationResponseViewModel;
 
-        Task<HalOperationResult<T>> ProcessNewMyNetworkConnectionsAsync<T>(MyNetworkNewConnectionsRequest request, CancellationToken ct = default)
-            where T : IOperationResponse;
-
         Task<HalOperationResult<T>> ProcessProspectsAsync<T>(ProspectListPhaseCompleteRequest request, CancellationToken ct = default)
             where T : IOperationResponse;
 
@@ -41,6 +38,9 @@ namespace Leadsly.Domain.Supervisor
             where T : IOperationResponse;
 
         HalOperationResult<T> TriggerSendConnectionsPhase<T>(TriggerSendConnectionsRequest request, CancellationToken ct = default)
+            where T : IOperationResponse;
+
+        Task<HalOperationResult<T>> ProcessNewlyAcceptedProspectsAsync<T>(NewProspectsConnectionsAcceptedRequest request, CancellationToken ct = default)
             where T : IOperationResponse;
 
         Task<HalOperationResultViewModel<T>> CreateCampaignAsync<T>(CreateCampaignRequest request, string userId, CancellationToken ct = default)

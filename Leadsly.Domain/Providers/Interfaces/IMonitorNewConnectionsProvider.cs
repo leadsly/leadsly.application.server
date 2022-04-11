@@ -12,7 +12,5 @@ namespace Leadsly.Domain.Providers.Interfaces
 {
     public interface IMonitorNewConnectionsProvider
     {
-        public Task<HalOperationResult<T>> ProcessNewConnectionsAsync<T>(List<NewConnectionProspect> newConnectionProspects, string halId, CancellationToken ct = default)
-            where T : IOperationResponse;
     }
 }

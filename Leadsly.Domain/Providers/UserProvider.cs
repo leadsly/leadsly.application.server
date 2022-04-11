@@ -155,7 +155,7 @@ namespace Leadsly.Domain.Providers
                 PhaseType = PhaseType.ScanForReplies
             };
 
-            scanForProspectRepliesPhase = await _campaignRepository.CreateScanProspectsForRepliesPhase(scanForProspectRepliesPhase, ct);
+            scanForProspectRepliesPhase = await _campaignRepository.CreateScanProspectsForRepliesPhaseAsync(scanForProspectRepliesPhase, ct);
             if(scanForProspectRepliesPhase == null)
             {
                 return result;
@@ -167,7 +167,7 @@ namespace Leadsly.Domain.Providers
                 PhaseType = PhaseType.MonitorNewConnections
             };
 
-            monitorForNewConnectionsPhase = await _campaignRepository.CreateMonitorForNewConnectionsPhase(monitorForNewConnectionsPhase, ct);
+            monitorForNewConnectionsPhase = await _campaignRepository.CreateMonitorForNewConnectionsPhaseAsync(monitorForNewConnectionsPhase, ct);
             if (monitorForNewConnectionsPhase == null)
             {
                 return result;
@@ -179,7 +179,7 @@ namespace Leadsly.Domain.Providers
                 SocialAccount = newSocialAccount
             };
 
-            connectionWithdrawPhase = await _campaignRepository.CreateConnectionWithdrawPhase(connectionWithdrawPhase, ct);
+            connectionWithdrawPhase = await _campaignRepository.CreateConnectionWithdrawPhaseAsync(connectionWithdrawPhase, ct);
             if (connectionWithdrawPhase == null)
             {
                 return result;
@@ -217,6 +217,11 @@ namespace Leadsly.Domain.Providers
         public async Task<ApplicationUser> GetUserByIdAsync(string userId, CancellationToken ct = default)
         {
             return await _userRepository.GetByIdAsync(userId);
+        }
+
+        public async Task<IList<SocialAccount>> GetAllSocialAccounts(CancellationToken ct = default)
+        {
+            return await _userRepository.GetAllSocialAccountsAsync(ct);
         }
     }
 }

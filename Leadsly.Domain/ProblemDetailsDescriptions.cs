@@ -49,6 +49,7 @@
         public const string FailedToSendEmail = "Failed to send email.";
         public const string FailedToDeserialize = "Failed to deserialize object.";
         public const string CampaignNotFound = "Campaign not found.";
+        public const string CampaignPhaseProcessing = "Failed to process campaign phase.";
         public const string LeadslySetup = "Failed to setup leadsly cloud resources";
         public const string WebDriverCreationError = "Failed to create web driver";
         public const string CreateCampaignError = "Failed to create new campaign";

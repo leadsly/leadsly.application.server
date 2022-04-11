@@ -818,5 +818,21 @@ namespace Leadsly.Api
             });
         }
 
+        /// <summary>
+        /// When server fails to process campaign phase.
+        /// </summary>
+        /// <returns></returns>
+        protected ObjectResult BadRequest_FailedToProcessCampaignPhase()
+        {
+            return ProblemDetailsResult(new ProblemDetails
+            {
+                Type = ProblemDetailsTypes.BadRequest,
+                Status = StatusCodes.Status400BadRequest,
+                Title = ReasonPhrases.GetReasonPhrase(400),
+                Detail = ProblemDetailsDescriptions.CampaignPhaseProcessing,
+                Instance = this.HttpContext.Request.Path.Value
+            });
+        }
+
     }
 }

@@ -34,12 +34,12 @@ namespace Leadsly.Application.Api.Controllers
         /// This is for processing newly accepted connections on my network page
         /// </summary>
         /// <returns></returns>
-        [HttpPost]
-        [Route("new-my-network-connections")]
-        public async Task<IActionResult> ProcessNewMyNetWorkConnections([FromBody] MyNetworkNewConnectionsRequest newConnectionProspects)
-        {
-            return Ok();
-        }
+        //[HttpPost]
+        //[Route("new-my-network-connections")]
+        //public async Task<IActionResult> ProcessNewMyNetWorkConnections([FromBody] MyNetworkNewConnectionsRequest newConnectionProspects)
+        //{
+        //    return Ok();
+        //}
 
         [HttpPost]
         [AllowAnonymous]
@@ -47,6 +47,26 @@ namespace Leadsly.Application.Api.Controllers
         public IActionResult TriggerSendConnectionRequests([FromBody] TriggerSendConnectionsRequest request)
         {
             HalOperationResult<IOperationResponse> result = _supervisor.TriggerSendConnectionsPhase<IOperationResponse>(request);
+
+            if(result.Succeeded == false)
+            {
+                return BadRequest_FailedToProcessCampaignPhase();
+            }
+
+            return Ok();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [Route("process-newly-accepted-prospects")]
+        public async Task<IActionResult> ProcessNewlyAcceptedProspectsAsync([FromBody] NewProspectsConnectionsAcceptedRequest request, CancellationToken ct = default)
+        {
+            HalOperationResult<IOperationResponse> result = await _supervisor.ProcessNewlyAcceptedProspectsAsync<IOperationResponse>(request, ct);
+
+            if (result.Succeeded == false)
+            {
+                return BadRequest_FailedToProcessCampaignPhase();
+            }
 
             return Ok();
         }

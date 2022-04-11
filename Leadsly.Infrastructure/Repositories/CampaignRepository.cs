@@ -204,7 +204,7 @@ namespace Leadsly.Infrastructure.Repositories
             PrimaryProspectList primaryProspectList = default;
             try
             {
-                primaryProspectList = await _dbContext.PrimaryProspectLists.FindAsync(primaryProspectListId);
+                primaryProspectList = await _dbContext.PrimaryProspectLists.Where(p => p.PrimaryProspectListId == primaryProspectListId).Include(p => p.PrimaryProspects).SingleAsync(ct);
             }
             catch (Exception ex)
             {
@@ -213,6 +213,22 @@ namespace Leadsly.Infrastructure.Repositories
 
             return primaryProspectList;
         }
+
+        public async Task<PrimaryProspect> GetPrimaryProspectByIdAsync(string primaryProspectId, CancellationToken ct = default)
+        {
+            PrimaryProspect primaryProspect = default;
+            try
+            {
+                primaryProspect = await _dbContext.PrimaryProspects.Where(p => p.PrimaryProspectId == primaryProspectId).SingleAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve primary prospect by id");
+            }
+
+            return primaryProspect;
+        }
+        
 
         public async Task<IList<PrimaryProspect>> CreatePrimaryProspectsAsync(IList<PrimaryProspect> primaryProspectList, CancellationToken ct = default)
         {
@@ -335,7 +351,7 @@ namespace Leadsly.Infrastructure.Repositories
             return campaignProspects;
         }
 
-        public async Task<MonitorForNewConnectionsPhase> CreateMonitorForNewConnectionsPhase(MonitorForNewConnectionsPhase phase, CancellationToken ct = default)
+        public async Task<MonitorForNewConnectionsPhase> CreateMonitorForNewConnectionsPhaseAsync(MonitorForNewConnectionsPhase phase, CancellationToken ct = default)
         {
             try
             {
@@ -350,7 +366,7 @@ namespace Leadsly.Infrastructure.Repositories
             return phase;
         }
 
-        public async Task<IList<MonitorForNewConnectionsPhase>> GetAllMonitorForNewConnectionsPhasesByUserId(string userId, CancellationToken ct = default)
+        public async Task<IList<MonitorForNewConnectionsPhase>> GetAllMonitorForNewConnectionsPhasesByUserIdAsync(string userId, CancellationToken ct = default)
         {
             IList<MonitorForNewConnectionsPhase> monitorForNewConnectionsPhases = null;
             try
@@ -364,8 +380,23 @@ namespace Leadsly.Infrastructure.Repositories
             }
             return monitorForNewConnectionsPhases;
         }
-        
-        public async Task<ScanProspectsForRepliesPhase> CreateScanProspectsForRepliesPhase(ScanProspectsForRepliesPhase phase, CancellationToken ct = default)
+
+        public async Task<MonitorForNewConnectionsPhase> GetMonitorForNewConnectionsPhaseBySocialAccountIdAsync(string socialAccountId, CancellationToken ct = default)
+        {
+            MonitorForNewConnectionsPhase monitorForNewConnectionsPhase = null;
+            try
+            {
+                monitorForNewConnectionsPhase = await _dbContext.MonitorForNewConnectionsPhases.Where(p => p.SocialAccountId == socialAccountId).SingleAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve monitofr for new connections phase for this social account id {socialAccountId}", socialAccountId);
+                monitorForNewConnectionsPhase = null;
+            }
+            return monitorForNewConnectionsPhase;
+        }
+
+        public async Task<ScanProspectsForRepliesPhase> CreateScanProspectsForRepliesPhaseAsync(ScanProspectsForRepliesPhase phase, CancellationToken ct = default)
         {
             try
             {
@@ -380,7 +411,7 @@ namespace Leadsly.Infrastructure.Repositories
             return phase;
         }
 
-        public async Task<ConnectionWithdrawPhase> CreateConnectionWithdrawPhase(ConnectionWithdrawPhase phase, CancellationToken ct = default)
+        public async Task<ConnectionWithdrawPhase> CreateConnectionWithdrawPhaseAsync(ConnectionWithdrawPhase phase, CancellationToken ct = default)
         {
             try
             {
@@ -409,5 +440,18 @@ namespace Leadsly.Infrastructure.Repositories
             }
             return updatedCampaign;
         }
+
+        public async Task<IList<Campaign>> GetAllActiveByUserIdAsync(string applicationUserId, CancellationToken ct = default)
+        {
+            return await _dbContext.Campaigns.Where(c => c.Active == true && c.ApplicationUserId == applicationUserId).Include(c => c.CampaignProspectList).ToListAsync(ct);
+        }
+
+        public async Task<CampaignProspectList> GetCampaignProspectListByCampaignProspectListIdAsync(string campaignProspectListId, CancellationToken ct = default)
+        {
+            return await _dbContext.CampaignProspectLists
+                .Where(cpl => cpl.CampaignProspectListId == campaignProspectListId)
+                .Include(cpl => cpl.CampaignProspects)                    
+                .SingleAsync(ct);
+        }        
     }
 }

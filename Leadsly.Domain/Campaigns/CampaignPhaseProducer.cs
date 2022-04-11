@@ -1,6 +1,7 @@
 ﻿using Hangfire;
 using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
+using Leadsly.Application.Model.Entities;
 using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Application.Model.RabbitMQ;
 using Leadsly.Domain.Facades.Interfaces;
@@ -84,8 +85,10 @@ namespace Leadsly.Domain.Campaigns
             using (var scope = _serviceProvider.CreateScope())
             {
                 ICampaignProvider campaignProvider = scope.ServiceProvider.GetRequiredService<ICampaignProvider>();
-                
-                List<Campaign> activeCampaigns = await campaignProvider.GetActiveCampaignsAsync();                
+                IUserProvider userProvider = scope.ServiceProvider.GetRequiredService<IUserProvider>();
+
+                IList<SocialAccount> socialAccounts = await userProvider.GetAllSocialAccounts();
+                IList<SocialAccount> socialAccountsWithActiveCampaigns = socialAccounts.Where(s => s.User.Campaigns.Any(c => c.Active == true)).ToList();
 
                 RabbitMQOptions options = default;
                 if (_memoryCache.TryGetValue(CacheKeys.RabbitMQConfigOptions, out options) == false)
@@ -98,9 +101,9 @@ namespace Leadsly.Domain.Campaigns
 
                 ISerializerFacade serializerFacade = scope.ServiceProvider.GetRequiredService<ISerializerFacade>();
                 // for each hal with active campaigns trigger MonitorForNewProspectsPhase
-                foreach (Campaign activeCampaign in activeCampaigns)
+                foreach (SocialAccount socialAccount in socialAccountsWithActiveCampaigns)
                 {
-                    MonitorForNewAcceptedConnectionsBody messageBody = await campaignProvider.CreateMonitorForNewAcceptedConnectionsBodyAsync(activeCampaign.HalId, activeCampaign.ApplicationUserId);
+                    MonitorForNewAcceptedConnectionsBody messageBody = await campaignProvider.CreateMonitorForNewAcceptedConnectionsBodyAsync(socialAccount.HalDetails.HalId, socialAccount.UserId, socialAccount.SocialAccountId);
 
                     ProcessMonitorForNewConnectionsPhase(messageBody, serializerFacade, options);
                 }

@@ -485,7 +485,7 @@ namespace Leadsly.Application.Api.Controllers
 
         [HttpPost("{id}/prospects")]
         [AllowAnonymous]
-        public async Task<IActionResult> UpdateContactedCampaignProspects(string id, [FromBody] CampaignProspectListRequest request, CancellationToken ct = default)
+        public async Task<IActionResult> UpdateContactedCampaignProspectsAsync(string id, [FromBody] CampaignProspectListRequest request, CancellationToken ct = default)
         {
             HalOperationResult<IOperationResponse> result = await _supervisor.ProcessConnectionRequestSentForCampaignProspectsAsync<IOperationResponse>(request, ct);
 
@@ -496,7 +496,7 @@ namespace Leadsly.Application.Api.Controllers
 
             return Ok();
         }
-
+        
         [HttpGet("{id}/sent-connections-url-statuses")]
         [AllowAnonymous]
         public async Task<IActionResult> GetSentConnectionsUrlStatusesAsync(string id, CancellationToken ct = default)
@@ -551,7 +551,7 @@ namespace Leadsly.Application.Api.Controllers
                 return BadRequest_CreateCampaign(result.OperationResults.Failures);
             }
 
-            return Ok(result.Value);
+            return Ok(result);
         }
 
         [HttpPost("{id}/clone")]

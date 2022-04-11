@@ -68,5 +68,20 @@ namespace Leadsly.Infrastructure.Repositories
 
             return socialAccounts;            
         }
+
+        public async Task<IList<SocialAccount>> GetAllSocialAccountsAsync(CancellationToken ct = default)
+        {
+            IList<SocialAccount> socialAccounts = default;
+            try
+            {
+                socialAccounts = await _dbContext.SocialAccounts.Include(s => s.HalDetails).Include(s => s.User).ThenInclude(u => u.Campaigns).ToListAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get all social accounts");                
+            }
+            return socialAccounts;
+
+        }
     }
 }
