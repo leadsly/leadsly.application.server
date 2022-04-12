@@ -324,7 +324,7 @@ namespace Leadsly.Domain.Supervisor
                 ApplicationUser = applicationUser                
             };
 
-            halDetails = await _halRepository.AddHalDetailsAsync(halDetails, ct);
+            halDetails = await _halRepository.CreateAsync(halDetails, ct);
             if(halDetails == null)
             {
                 result.Failures.Add(new()

@@ -16,20 +16,34 @@ namespace Leadsly.Domain.Providers
 {
     public class UserProvider : IUserProvider
     {
-        public UserProvider(ILogger<UserProvider> logger, ICloudPlatformRepository cloudPlatformRepository, IUserRepository userRepository, ISocialAccountRepository socialAccountRepository, ICampaignRepository campaignRepository)
+        public UserProvider(
+            ILogger<UserProvider> logger, 
+            ICloudPlatformRepository cloudPlatformRepository, 
+            IUserRepository userRepository, 
+            IScanProspectsForRepliesPhaseRepository scanProspectsForRepliesPhaseRepository,
+            ISocialAccountRepository socialAccountRepository, 
+            IConnectionWithdrawPhaseRepository connectionWithdrawPhaseRepository,
+            IMonitorForNewConnectionsPhaseRepository monitorForNewConnectionsPhaseRepository,
+            ICampaignRepository campaignRepository)
         {
             _userRepository = userRepository;
             _logger = logger;
+            _scanProspectsForRepliesPhaseRepository = scanProspectsForRepliesPhaseRepository;
+            _connectionWithdrawPhaseRepository = connectionWithdrawPhaseRepository;
             _cloudPlatformRepository = cloudPlatformRepository;
+            _monitorForNewConnectionsPhaseRepository = monitorForNewConnectionsPhaseRepository;
             _socialAccountRepository = socialAccountRepository;
             _campaignRepository = campaignRepository;
         }
 
         private readonly ILogger<UserProvider> _logger;
         private readonly IUserRepository _userRepository;
+        private readonly IScanProspectsForRepliesPhaseRepository _scanProspectsForRepliesPhaseRepository;
+        private readonly IConnectionWithdrawPhaseRepository _connectionWithdrawPhaseRepository;
         private readonly ICloudPlatformRepository _cloudPlatformRepository;
         private readonly ISocialAccountRepository _socialAccountRepository;
         private readonly ICampaignRepository _campaignRepository;
+        private readonly IMonitorForNewConnectionsPhaseRepository _monitorForNewConnectionsPhaseRepository;
 
         public async Task<SocialAccount> GetRegisteredSocialAccountAsync(SocialAccountDTO socialAccountDTO, CancellationToken ct = default)
         {
@@ -155,7 +169,7 @@ namespace Leadsly.Domain.Providers
                 PhaseType = PhaseType.ScanForReplies
             };
 
-            scanForProspectRepliesPhase = await _campaignRepository.CreateScanProspectsForRepliesPhaseAsync(scanForProspectRepliesPhase, ct);
+            scanForProspectRepliesPhase = await _scanProspectsForRepliesPhaseRepository.CreateAsync(scanForProspectRepliesPhase, ct);
             if(scanForProspectRepliesPhase == null)
             {
                 return result;
@@ -167,7 +181,7 @@ namespace Leadsly.Domain.Providers
                 PhaseType = PhaseType.MonitorNewConnections
             };
 
-            monitorForNewConnectionsPhase = await _campaignRepository.CreateMonitorForNewConnectionsPhaseAsync(monitorForNewConnectionsPhase, ct);
+            monitorForNewConnectionsPhase = await _monitorForNewConnectionsPhaseRepository.CreateAsync(monitorForNewConnectionsPhase, ct);
             if (monitorForNewConnectionsPhase == null)
             {
                 return result;
@@ -179,7 +193,7 @@ namespace Leadsly.Domain.Providers
                 SocialAccount = newSocialAccount
             };
 
-            connectionWithdrawPhase = await _campaignRepository.CreateConnectionWithdrawPhaseAsync(connectionWithdrawPhase, ct);
+            connectionWithdrawPhase = await _connectionWithdrawPhaseRepository.CreateAsync(connectionWithdrawPhase, ct);
             if (connectionWithdrawPhase == null)
             {
                 return result;

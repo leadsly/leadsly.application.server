@@ -47,7 +47,7 @@ namespace Leadsly.Domain.Supervisor
         {
             HalOperationResult<T> result = new();
 
-            IList<SentConnectionsSearchUrlStatus> sentConnectionsSearchurlStatuses = await _campaignRepository.GetSentConnectionStatusesAsync(campaignId, ct);
+            IList<SentConnectionsSearchUrlStatus> sentConnectionsSearchurlStatuses = await _sendConnectionsPhaseRepository.GetAllSentConnectionsStatusesAsync(campaignId, ct);
             foreach (SentConnectionsUrlStatusRequest payload in request.SentConnectionsUrlStatuses)
             {
                 SentConnectionsSearchUrlStatus update = sentConnectionsSearchurlStatuses.Where(s => s.SentConnectionsSearchUrlStatusId == payload.SentConnectionsUrlStatusId).FirstOrDefault();
@@ -61,7 +61,7 @@ namespace Leadsly.Domain.Supervisor
                 update.CurrentUrl = payload.CurrentUrl;
                 update.WindowHandleId = payload.WindowHandleId;
 
-                update = await _campaignRepository.UpdateSentConnectionsStatusAsync(update, ct);
+                update = await _sendConnectionsPhaseRepository.UpdateSentConnectionsStatusAsync(update, ct);
                 if (update == null)
                 {
                     return result;
@@ -77,7 +77,7 @@ namespace Leadsly.Domain.Supervisor
         {
             HalOperationResult<T> result = new();
 
-            IList<SentConnectionsSearchUrlStatus> sentConnectionsSearchUrlStatuses = await _campaignRepository.GetSentConnectionStatusesAsync(campaignId, ct);
+            IList<SentConnectionsSearchUrlStatus> sentConnectionsSearchUrlStatuses = await _sendConnectionsPhaseRepository.GetAllSentConnectionsStatusesAsync(campaignId, ct);
             if(sentConnectionsSearchUrlStatuses == null)
             {
                 return result;
@@ -131,8 +131,8 @@ namespace Leadsly.Domain.Supervisor
             PrimaryProspectList primaryProspectList = default;
             if (request.CampaignDetails.PrimaryProspectList.Existing == true)
             {
-                // grab existing prospect list by prospect list name and user id
-                primaryProspectList = await _prospectListRepository.GetPrimaryProspectListByNameAndUserIdAsync(request.CampaignDetails.PrimaryProspectList.Name, userId, ct);
+                // grab existing primary prospect list by prospect list name and user id
+                primaryProspectList = await _primaryProspectRepository.GetListByNameAndUserIdAsync(request.CampaignDetails.PrimaryProspectList.Name, userId, ct);
             }
             else 
             {
@@ -141,7 +141,7 @@ namespace Leadsly.Domain.Supervisor
                     Name = request.CampaignDetails.PrimaryProspectList.Name,
                     SearchUrls = new List<SearchUrl>(),
                     UserId = userId,
-                    CreatedTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+                    CreatedTimestamp = new DateTimeOffset(new DateTimeWithZone(DateTime.Now, TimeZoneInfo.FindSystemTimeZoneById(request.TimeZoneId)).LocalTime).ToUnixTimeSeconds()
                 };
 
                 foreach (string searchUrl in request.CampaignDetails.PrimaryProspectList.SearchUrls)
@@ -153,7 +153,7 @@ namespace Leadsly.Domain.Supervisor
                     });
                 }
 
-                primaryProspectList = await _prospectListRepository.CreatePrimaryProspectListAsync(primaryProspectList, ct);
+                primaryProspectList = await _primaryProspectRepository.CreateListAsync(primaryProspectList, ct);
             }
 
             CampaignProspectList campaignProspectList = _campaignProvider.CreateCampaignProspectList(primaryProspectList, userId);

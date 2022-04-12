@@ -47,7 +47,9 @@ namespace Leadsly.Domain.Services
                         ConnectionSent = false,
                         ConnectionSentTimestamp = 0,
                         FollowUpMessageSent = false,
-                        LastFollowUpMessageSentTimestamp = 0
+                        LastFollowUpMessageSentTimestamp = 0,
+                        ProfileUrl = primaryProspect.ProfileUrl,
+                        Name = primaryProspect.Name
                     });
                 }
             }            

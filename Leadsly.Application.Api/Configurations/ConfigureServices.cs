@@ -99,9 +99,16 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ISocialAccountRepository, SocialAccountRepository>();
             services.AddScoped<IOrphanedCloudResourcesRepository, OrphanedCloudResourcesRepository>();
             services.AddScoped<ICampaignRepository, CampaignRepository>();
-            services.AddScoped<IRabbitMQRepository, RabbitMQRepository>();
-            services.AddScoped<IProspectListRepository, ProspectListRepository>();
+            services.AddScoped<IRabbitMQRepository, RabbitMQRepository>();            
             services.AddScoped<IHalRepository, HalRepository>();
+            services.AddScoped<IProspectListPhaseRepository, ProspectListPhaseRepository>();
+            services.AddScoped<IMonitorForNewConnectionsPhaseRepository, MonitorForNewConnectionsPhaseRepository>();
+            services.AddScoped<IScanProspectsForRepliesPhaseRepository, ScanProspectsForRepliesPhaseRepository>();
+            services.AddScoped<IConnectionWithdrawPhaseRepository, ConnectionWithdrawPhaseRepository>();
+            services.AddScoped<IPrimaryProspectRepository, PrimaryProspectRepository>();
+            services.AddScoped<ICampaignProspectRepository, CampaignProspectRepository>();
+            services.AddScoped<ISendConnectionsPhaseRepository, SendConnectionsPhaseRepository>();
+            services.AddScoped<IFollowUpMessagePhaseRepository, FollowUpMessagePhaseRepository>();
 
             return services;
         }
@@ -153,6 +160,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ILeadslyHalProvider, LeadslyHalProvider>();
             services.AddScoped<IMonitorNewConnectionsProvider, MonitorNewConnectionsProvider>();
             services.AddScoped<ICampaignProvider, CampaignProvider>();
+            services.AddScoped<IRabbitMQProvider, RabbitMQProvider>();
 
             return services;
         }
@@ -162,6 +170,7 @@ namespace Leadsly.Application.Api.Configurations
             Log.Information("Registering facades services.");
 
             services.AddScoped<ISerializerFacade, SerializerFacade>();
+            services.AddScoped<ICampaignRepositoryFacade, CampaignRepositoryFacade>();
             
             return services;
         }

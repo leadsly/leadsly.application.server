@@ -347,7 +347,7 @@ namespace Leadsly.Domain.Providers
 
         public async Task<HalUnit> GetHalDetailsByConnectedAccountUsernameAsync(string connectedAccountUsername, CancellationToken ct = default)
         {
-            return await _halRepository.GetHalDetailsByConnectedAccountUsernameAsync(connectedAccountUsername, ct);
+            return await _halRepository.GetBySocialAccountUsernameAsync(connectedAccountUsername, ct);
         }
     }
 }
