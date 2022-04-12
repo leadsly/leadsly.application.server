@@ -3,6 +3,7 @@ using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.Entities;
 using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Application.Model.Entities.Campaigns.Phases;
+using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
@@ -19,24 +20,29 @@ namespace Leadsly.Domain.Providers
 {
     public class CampaignProvider : ICampaignProvider
     {
-        public CampaignProvider(ILogger<CampaignProvider> logger, IMemoryCache memoryCache, ICampaignService campaignService, ICampaignManager campaignManager, ICampaignRepository campaignRepository, ICloudPlatformRepository cloudPlatformRepository, IProspectListPhaseRepository prospectListPhaseRepository)
+        public CampaignProvider(
+            ILogger<CampaignProvider> logger, 
+            IMemoryCache memoryCache, 
+            ICampaignService campaignService, 
+            ICampaignManager campaignManager, 
+            ICampaignRepositoryFacade campaignRepositoryFacade,
+            ICloudPlatformRepository cloudPlatformRepository       
+            )
         {
             _campaignService = campaignService;
             _logger = logger;
             _memoryCache = memoryCache;
             _campaignManager = campaignManager;
-            _campaignRepository = campaignRepository;
-            _cloudPlatformRepository = cloudPlatformRepository;
-            _prospectListPhaseRepository = prospectListPhaseRepository;
+            _campaignRepositoryFacade = campaignRepositoryFacade;
+            _cloudPlatformRepository = cloudPlatformRepository;            
         }
 
         private readonly ILogger<CampaignProvider> _logger;
         private readonly IMemoryCache _memoryCache;
         private readonly ICampaignManager _campaignManager;
-        private readonly ICampaignRepository _campaignRepository;
+        private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;        
         private readonly ICloudPlatformRepository _cloudPlatformRepository;
-        private readonly ICampaignService _campaignService;
-        private readonly IProspectListPhaseRepository _prospectListPhaseRepository;
+        private readonly ICampaignService _campaignService;        
 
         public void ProcessNewCampaign(Campaign campaign)
         {
@@ -64,7 +70,7 @@ namespace Leadsly.Domain.Providers
 
         public async Task<HalsProspectListPhasesPayload> GetActiveProspectListPhasesAsync(CancellationToken ct = default)
         {
-            IList<ProspectListPhase> prospectListPhases = await _prospectListPhaseRepository.GetAllActiveAsync(ct);
+            IList<ProspectListPhase> prospectListPhases = await _campaignRepositoryFacade.GetAllActiveProspectListPhasesAsync(ct);
 
             IEnumerable<string> halIds = prospectListPhases.Select(phase => phase.Campaign.HalId).Distinct();
 
@@ -85,13 +91,23 @@ namespace Leadsly.Domain.Providers
             return halsPhases;
         }
 
-        public async Task<List<string>> HalIdsWithActiveCampaignsAsync(CancellationToken ct = default)
+        public async Task<List<string>> GetHalIdsWithActiveCampaignsAsync(CancellationToken ct = default)
         {
-            List<Campaign> activeCampaigns = await _campaignRepository.GetAllActiveAsync(ct);
+            IList<Campaign> activeCampaigns = await _campaignRepositoryFacade.GetAllActiveCampaignsAsync(ct);
 
             List<string> halIds = activeCampaigns.Select(c => c.HalId).ToList();
 
             return halIds;
-        }        
+        }
+
+        public async Task<int> CreateDailyWarmUpLimitConfigurationAsync(long startDateTimestamp, CancellationToken ct = default)
+        {
+            return await _campaignService.CreateDailyWarmUpLimitConfigurationAsync(startDateTimestamp, ct);
+        }
+
+        public void TriggerSendConnectionsPhase(string campaignId, string userId)
+        {
+            _campaignManager.TriggerSendConnectionsPhase(campaignId, userId);
+        }
     }
 }

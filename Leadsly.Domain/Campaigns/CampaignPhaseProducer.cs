@@ -393,7 +393,7 @@ namespace Leadsly.Domain.Campaigns
             {
                 ICampaignProvider campaignProvider = scope.ServiceProvider.GetRequiredService<ICampaignProvider>();
                 // get all halIds that have active campaigns
-                List<string> halIdsWithActiveCampaigns = await campaignProvider.HalIdsWithActiveCampaignsAsync();
+                List<string> halIdsWithActiveCampaigns = await campaignProvider.GetHalIdsWithActiveCampaignsAsync();
                 halIdsWithActiveCampaigns = new List<string> { Environment.GetEnvironmentVariable("HAL_ID", EnvironmentVariableTarget.User) };
 
                 IRabbitMQRepository rabbitMQRepository = scope.ServiceProvider.GetRequiredService<IRabbitMQRepository>();

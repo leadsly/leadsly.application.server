@@ -51,19 +51,19 @@ namespace Leadsly.Domain.Supervisor
                 campaignProspects.Add(campaignProspect);
             }
 
-            prospects = await _primaryProspectRepository.CreateAllAsync(prospects, ct);
+            prospects = await _campaignRepositoryFacade.CreateAllPrimaryProspectsAsync(prospects, ct);
             if (prospects == null)
             {
                 return result;
             }
 
-            campaignProspects = await _campaignProspectRepository.CreateAllAsync(campaignProspects, ct);
+            campaignProspects = await _campaignRepositoryFacade.CreateAllCampaignProspectsAsync(campaignProspects, ct);
             if(campaignProspects == null)
             {
                 return result;
             }
 
-            ProspectListPhase campaignProspectListPhase = await _prospectListPhaseRepository.GetByCampaignIdAsync(request.CampaignId, ct);
+            ProspectListPhase campaignProspectListPhase = await _campaignRepositoryFacade.GetProspectListPhaseByCampaignIdAsync(request.CampaignId, ct);
             if (campaignProspectListPhase == null)
             {
                 return result;
@@ -72,7 +72,7 @@ namespace Leadsly.Domain.Supervisor
             campaignProspectListPhase.Completed = true;
 
             // mark campaign's prospect list phase as completed
-            campaignProspectListPhase = await _prospectListPhaseRepository.UpdateAsync(campaignProspectListPhase, ct);
+            campaignProspectListPhase = await _campaignRepositoryFacade.UpdateProspectListPhaseAsync(campaignProspectListPhase, ct);
             if (campaignProspectListPhase == null)
             {
                 return result;
@@ -87,7 +87,7 @@ namespace Leadsly.Domain.Supervisor
         {
             HalOperationResult<T> result = new();
 
-            _campaignManager.TriggerSendConnectionsPhase(request.CampaignId, request.UserId);
+            _campaignProvider.TriggerSendConnectionsPhase(request.CampaignId, request.UserId);
 
             result.Succeeded = true;
             return result;
@@ -98,7 +98,7 @@ namespace Leadsly.Domain.Supervisor
         {
             HalOperationResult<T> result = new();
 
-            IList<Campaign> usersActiveCampaigns = await _campaignRepository.GetAllActiveByUserIdAsync(request.ApplicationUserId, ct);
+            IList<Campaign> usersActiveCampaigns = await _campaignRepositoryFacade.GetAllActiveCampaignsByUserIdAsync(request.ApplicationUserId, ct);
 
             HashSet<string> campaignProspectListIds = new();
             List<CampaignProspect> activeCampaignProspects = new List<CampaignProspect>();
@@ -112,7 +112,7 @@ namespace Leadsly.Domain.Supervisor
                     continue;
 
                 // get the primary prospect list by its id
-                CampaignProspectList campaignProspectList = await _campaignProspectRepository.GetListByListIdAsync(campaignProspectListId);
+                CampaignProspectList campaignProspectList = await _campaignRepositoryFacade.GetCampaignProspectListByListIdAsync(campaignProspectListId);
                 
                 if(campaignProspectList != null)
                 {
@@ -138,7 +138,7 @@ namespace Leadsly.Domain.Supervisor
 
             if(updatedCampaignProspects.Count > 0)
             {
-                await _campaignProspectRepository.UpdateAllAsync(updatedCampaignProspects, ct);
+                await _campaignRepositoryFacade.UpdateAllCampaignProspectsAsync(updatedCampaignProspects, ct);
             }
 
             result.Succeeded = true;
@@ -150,7 +150,7 @@ namespace Leadsly.Domain.Supervisor
         {
             HalOperationResult<T> result = new();
 
-            IList<CampaignProspect> campaignProspects = await _campaignProspectRepository.GetAllByCampaignIdAsync(request.CampaignId);
+            IList<CampaignProspect> campaignProspects = await _campaignRepositoryFacade.GetAllCampaignProspectsByCampaignIdAsync(request.CampaignId);
             IList<CampaignProspect> contactedProspects = new List<CampaignProspect>();
             foreach (CampaignProspectRequest campaignRequest in request.CampaignProspects)
             {
@@ -164,7 +164,7 @@ namespace Leadsly.Domain.Supervisor
                 }                
             }
 
-            contactedProspects = await _campaignProspectRepository.UpdateAllAsync(contactedProspects, ct);
+            contactedProspects = await _campaignRepositoryFacade.UpdateAllCampaignProspectsAsync(contactedProspects, ct);
             if(contactedProspects == null)
             {
                 return result;

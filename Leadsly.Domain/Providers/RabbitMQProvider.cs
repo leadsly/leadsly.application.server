@@ -161,7 +161,7 @@ namespace Leadsly.Domain.Providers
         public async Task<SendConnectionsBody> CreateSendConnectionsBodyAsync(string campaignId, string userId, CancellationToken ct = default)
         {
             _logger.LogInformation("Creating send connections body message for rabbit mq message broker.");
-            Campaign campaign = await _campaignRepository.GetCampaignByIdAsync(campaignId, ct);
+            Campaign campaign = await _campaignRepository.GetByIdAsync(campaignId, ct);
             int dailyConnectionsLimit = campaign.DailyInvites;
             _logger.LogDebug("Daily connection request limit is {dailyConnectionsLimit}", dailyConnectionsLimit);
             if (campaign.IsWarmUpEnabled == true)

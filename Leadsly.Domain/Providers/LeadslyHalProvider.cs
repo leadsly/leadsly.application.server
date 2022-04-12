@@ -33,7 +33,12 @@ namespace Leadsly.Domain.Providers
 {
     public class LeadslyHalProvider : ILeadslyHalProvider
     {
-        public LeadslyHalProvider(ILeadslyHalApiService leadslyHalApiService, ICloudPlatformRepository cloudPlatformRepository, ISerializerFacade serializerFacade, IHalRepository halRepository, ILogger<LeadslyHalProvider> logger)
+        public LeadslyHalProvider(
+            ILeadslyHalApiService leadslyHalApiService, 
+            ICloudPlatformRepository cloudPlatformRepository, 
+            ISerializerFacade serializerFacade, 
+            IHalRepository halRepository, 
+            ILogger<LeadslyHalProvider> logger)
         {
             _leadslyHalApiService = leadslyHalApiService;
             _cloudPlatformRepository = cloudPlatformRepository;

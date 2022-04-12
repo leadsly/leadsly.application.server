@@ -27,11 +27,11 @@ namespace Leadsly.Domain.Supervisor
     {
         public async Task<CampaignViewModel> PatchUpdateCampaignAsync(string campaignId, JsonPatchDocument<Campaign> patchDoc, CancellationToken ct = default)
         {
-            Campaign campaignToUpdate = await _campaignRepository.GetCampaignByIdAsync(campaignId, ct);
+            Campaign campaignToUpdate = await _campaignRepositoryFacade.GetCampaignByIdAsync(campaignId, ct);
 
             patchDoc.ApplyTo(campaignToUpdate);
 
-            campaignToUpdate = await _campaignRepository.UpdateAsync(campaignToUpdate, ct);
+            campaignToUpdate = await _campaignRepositoryFacade.UpdateCampaignAsync(campaignToUpdate, ct);
             if(campaignToUpdate == null)
             {
                 return null;
@@ -47,7 +47,7 @@ namespace Leadsly.Domain.Supervisor
         {
             HalOperationResult<T> result = new();
 
-            IList<SentConnectionsSearchUrlStatus> sentConnectionsSearchurlStatuses = await _sendConnectionsPhaseRepository.GetAllSentConnectionsStatusesAsync(campaignId, ct);
+            IList<SentConnectionsSearchUrlStatus> sentConnectionsSearchurlStatuses = await _campaignRepositoryFacade.GetAllSentConnectionsStatusesAsync(campaignId, ct);
             foreach (SentConnectionsUrlStatusRequest payload in request.SentConnectionsUrlStatuses)
             {
                 SentConnectionsSearchUrlStatus update = sentConnectionsSearchurlStatuses.Where(s => s.SentConnectionsSearchUrlStatusId == payload.SentConnectionsUrlStatusId).FirstOrDefault();
@@ -61,7 +61,7 @@ namespace Leadsly.Domain.Supervisor
                 update.CurrentUrl = payload.CurrentUrl;
                 update.WindowHandleId = payload.WindowHandleId;
 
-                update = await _sendConnectionsPhaseRepository.UpdateSentConnectionsStatusAsync(update, ct);
+                update = await _campaignRepositoryFacade.UpdateSentConnectionsStatusAsync(update, ct);
                 if (update == null)
                 {
                     return result;
@@ -77,7 +77,7 @@ namespace Leadsly.Domain.Supervisor
         {
             HalOperationResult<T> result = new();
 
-            IList<SentConnectionsSearchUrlStatus> sentConnectionsSearchUrlStatuses = await _sendConnectionsPhaseRepository.GetAllSentConnectionsStatusesAsync(campaignId, ct);
+            IList<SentConnectionsSearchUrlStatus> sentConnectionsSearchUrlStatuses = await _campaignRepositoryFacade.GetAllSentConnectionsStatusesAsync(campaignId, ct);
             if(sentConnectionsSearchUrlStatuses == null)
             {
                 return result;
@@ -132,7 +132,7 @@ namespace Leadsly.Domain.Supervisor
             if (request.CampaignDetails.PrimaryProspectList.Existing == true)
             {
                 // grab existing primary prospect list by prospect list name and user id
-                primaryProspectList = await _primaryProspectRepository.GetListByNameAndUserIdAsync(request.CampaignDetails.PrimaryProspectList.Name, userId, ct);
+                primaryProspectList = await _campaignRepositoryFacade.GetPrimaryProspectListByNameAndUserIdAsync(request.CampaignDetails.PrimaryProspectList.Name, userId, ct);
             }
             else 
             {
@@ -153,7 +153,7 @@ namespace Leadsly.Domain.Supervisor
                     });
                 }
 
-                primaryProspectList = await _primaryProspectRepository.CreateListAsync(primaryProspectList, ct);
+                primaryProspectList = await _campaignRepositoryFacade.CreatePrimaryProspectListAsync(primaryProspectList, ct);
             }
 
             CampaignProspectList campaignProspectList = _campaignProvider.CreateCampaignProspectList(primaryProspectList, userId);
@@ -199,14 +199,14 @@ namespace Leadsly.Domain.Supervisor
             if(request.CampaignDetails.WarmUp == true)
             {
                 // create warmup configuration
-                await _campaignService.CreateDailyWarmUpLimitConfigurationAsync(request.CampaignDetails.StartTimestamp, ct);
+                await _campaignProvider.CreateDailyWarmUpLimitConfigurationAsync(request.CampaignDetails.StartTimestamp, ct);
             }
 
             // create send connections stages. For when each campaign will send out its connections
             newCampaignWithPhases.SendConnectionStages = CreateSendConnectionsStages();
 
             // create new ProspectList if we're not using an existing one
-            newCampaignWithPhases = await _campaignRepository.CreateAsync(newCampaignWithPhases, ct);
+            newCampaignWithPhases = await _campaignRepositoryFacade.CreateCampaignAsync(newCampaignWithPhases, ct);
             if (newCampaignWithPhases == null)
             {
                 result.OperationResults.Failures.Add(new()
