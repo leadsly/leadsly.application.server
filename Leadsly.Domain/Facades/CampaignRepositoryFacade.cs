@@ -22,11 +22,13 @@ namespace Leadsly.Domain.Facades
             IPrimaryProspectRepository primaryProspectRepository,
             IProspectListPhaseRepository prospectListPhaseRepository,
             IScanProspectsForRepliesPhaseRepository scanProspectsForRepliesPhaseRepository,
-            ISendConnectionsPhaseRepository sendConnectionsPhaseRepository
+            ISendConnectionsPhaseRepository sendConnectionsPhaseRepository,
+            IFollowUpMessageRepository followUpMessageRepository
             )
         {
             _campaignProspectRepository = campaignProspectRepository;
             _campaignRepository = campaignRepository;
+            _followUpMessageRepository = followUpMessageRepository;
             _connectionWithdrawPhaseRepository = connectionWithdrawPhaseRepository;
             _followUpMessagePhaseRepository = followUpMessagePhaseRepository;
             _monitorForNewConnectionsPhaseRepository = monitorForNewConnectionsPhaseRepository;
@@ -37,6 +39,7 @@ namespace Leadsly.Domain.Facades
         }
 
         private readonly ICampaignProspectRepository _campaignProspectRepository;
+        private readonly IFollowUpMessageRepository _followUpMessageRepository;
         private readonly ICampaignRepository _campaignRepository;
         private readonly IConnectionWithdrawPhaseRepository _connectionWithdrawPhaseRepository;
         private readonly IFollowUpMessagePhaseRepository _followUpMessagePhaseRepository;
@@ -184,6 +187,26 @@ namespace Leadsly.Domain.Facades
         public async Task<SentConnectionsSearchUrlStatus> UpdateSentConnectionsStatusAsync(SentConnectionsSearchUrlStatus updatedSearchUrlStatus, CancellationToken ct = default)
         {
             return await _sendConnectionsPhaseRepository.UpdateSentConnectionsStatusAsync(updatedSearchUrlStatus, ct);
+        }
+
+        public async Task<IList<FollowUpMessage>> GetFollowUpMessagesByCampaignIdAsync(string campaignId, CancellationToken ct = default)
+        {
+            return await _followUpMessageRepository.GetAllByCampaignIdAsync(campaignId, ct);
+        }
+
+        public async Task<CampaignProspectFollowUpMessage> CreateFollowUpMessageAsync(CampaignProspectFollowUpMessage message, CancellationToken ct = default)
+        {
+            return await _followUpMessageRepository.CreateAsync(message, ct);
+        }
+
+        public async Task<CampaignProspectFollowUpMessage> GetCampaignProspectFollowUpMessageByIdAsync(string campaignProspectFollowUpMessageId, CancellationToken ct = default)
+        {
+            return await _followUpMessageRepository.GetCampaignProspectFollowUpMessageByIdAsync(campaignProspectFollowUpMessageId, ct);
+        }
+
+        public async Task<FollowUpMessagePhase> GetFollowUpMessagePhaseByCampaignIdAsync(string campaignId, CancellationToken ct = default)
+        {
+            return await _followUpMessagePhaseRepository.GetByCampaignIdAsync(campaignId, ct);
         }
     }
 }

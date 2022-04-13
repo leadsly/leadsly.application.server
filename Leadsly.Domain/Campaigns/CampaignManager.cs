@@ -30,7 +30,14 @@ namespace Leadsly.Domain.Campaigns
 
             //TriggerConnectionWithdrawPhase();
 
-            TriggerMonitorForNewConnectionsPhase();
+            // TriggerMonitorForNewConnectionsPhase();
+
+            TriggerFollowUpMessagePhaseForUncontactedProspects();
+        }
+        
+        private static void TriggerFollowUpMessagePhaseForUncontactedProspects()
+        {
+            BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishFollowUpMessagePhaseMessagesAsync());
         }
 
         private static void TriggerMonitorForNewConnectionsPhase()
@@ -61,6 +68,18 @@ namespace Leadsly.Domain.Campaigns
         public void TriggerSendConnectionsPhase(string campaignId, string userId)
         {
             BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishSendConnectionsPhaseMessageAsync(campaignId, userId));
+        }
+
+        public void TriggerFollowUpMessagePhase(string campaignProspectFollowUpMessageId, string campaignId, DateTimeOffset scheduleTime = default)
+        {
+            if(scheduleTime == default)
+            {
+                BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishFollowUpMessagePhaseMessageAsync(campaignProspectFollowUpMessageId, campaignId));
+            }
+            else
+            {
+                BackgroundJob.Schedule<ICampaignPhaseProducer>(x => x.PublishFollowUpMessagePhaseMessageAsync(campaignProspectFollowUpMessageId, campaignId), scheduleTime);
+            }
         }
     }
 }

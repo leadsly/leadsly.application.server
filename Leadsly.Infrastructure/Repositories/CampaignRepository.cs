@@ -29,7 +29,7 @@ namespace Leadsly.Infrastructure.Repositories
             IList<Campaign> campaigns = default;
             try
             {
-                campaigns = await _dbContext.Campaigns.Where(c => c.Active == true).ToListAsync();
+                campaigns = await _dbContext.Campaigns.Where(c => c.Active == true).Include(c => c.CampaignProspectList).ToListAsync();
                 _logger.LogDebug("Successfully retrieved all active campaigns");
             }
             catch (Exception ex)

@@ -141,7 +141,7 @@ namespace Leadsly.Domain.Supervisor
                     Name = request.CampaignDetails.PrimaryProspectList.Name,
                     SearchUrls = new List<SearchUrl>(),
                     UserId = userId,
-                    CreatedTimestamp = new DateTimeOffset(new DateTimeWithZone(DateTime.Now, TimeZoneInfo.FindSystemTimeZoneById(request.TimeZoneId)).LocalTime).ToUnixTimeSeconds()
+                    CreatedTimestamp = await _timestampService.CreateNowTimestampAsync(request.HalId, ct)
                 };
 
                 foreach (string searchUrl in request.CampaignDetails.PrimaryProspectList.SearchUrls)
@@ -166,7 +166,11 @@ namespace Leadsly.Domain.Supervisor
                     Campaign = newCampaign,
                     Content = followUpMsg.Content,
                     Order = followUpMsg.Order,
-                    DateTimeDelayTimestamp = followUpMsg.DateTimeDelayTimestamp
+                    Delay = new()
+                    {
+                        Unit = followUpMsg.Delay.Unit,
+                        Value = followUpMsg.Delay.Value
+                    }
                 };
 
                 newCampaign.FollowUpMessages.Add(followUpMessage);

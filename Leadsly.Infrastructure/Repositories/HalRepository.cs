@@ -101,5 +101,23 @@ namespace Leadsly.Infrastructure.Repositories
 
             return profile;
         }
+
+        public async Task<HalUnit> GetByHalIdAsync(string halId, CancellationToken ct = default)
+        {
+            _logger.LogInformation("Retrieving HalUnit by hal id {halId}", halId);
+            HalUnit halUnit = default;
+            try
+            {
+                halUnit = await _dbContext.HalUnits.Where(h => h.HalId == halId).SingleAsync(ct);                
+                _logger.LogDebug("Successfully found HalUnit by hal id {halId}", halId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve HalUnit by hal id {halId}. Returning an explicit null", halId);
+                return null;
+            }
+
+            return halUnit;
+        }
     }
 }

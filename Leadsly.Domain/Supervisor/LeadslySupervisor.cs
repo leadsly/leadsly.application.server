@@ -111,7 +111,7 @@ namespace Leadsly.Domain.Supervisor
             // if null social account hasn't been registered before for this user
             if (socialAccount == null)
             {
-                result = LeadslySetupConverter.Convert(await SetupCloudResourcesForNewSocialAccountAsync(socialAccountDTO, ct));
+                result = LeadslySetupConverter.Convert(await SetupCloudResourcesForNewSocialAccountAsync(socialAccountDTO, setup.TimeZoneId, ct));
                 result.NewUser = true;
             }
             // social account has been registered before check the ecs service task status and get connection info
@@ -254,7 +254,7 @@ namespace Leadsly.Domain.Supervisor
                 _logger.LogError("Failed to remove users social account and the associated cloud resources. Manual intervention may be required to remove the resource.");
             }
         }
-        private async Task<LeadslySetupResultDTO> SetupCloudResourcesForNewSocialAccountAsync(SocialAccountDTO socialAccountDTO, CancellationToken ct = default)
+        private async Task<LeadslySetupResultDTO> SetupCloudResourcesForNewSocialAccountAsync(SocialAccountDTO socialAccountDTO, string timeZoneId, CancellationToken ct = default)
         {
             LeadslySetupResultDTO result = new()
             {
@@ -290,7 +290,7 @@ namespace Leadsly.Domain.Supervisor
             // perhaps add the addition of hal unit here ?
             // hal unit is used to store information pertaining to the container
             // for example monitor for new connections phase should only be run once per container, not per campaign
-            result = await SaveHalsDetailsAsync(saveNewSocialAccountResult, socialAccountDTO.UserId, ct);
+            result = await SaveHalsDetailsAsync(saveNewSocialAccountResult, socialAccountDTO.UserId, timeZoneId, ct);
             if (result.Succeeded == false)
             {
                 await _cloudPlatformProvider.RollbackCloudResourcesAsync(cloudResourceSetupResult, socialAccountDTO.UserId, ct);
@@ -301,7 +301,7 @@ namespace Leadsly.Domain.Supervisor
             return result;     
         }
 
-        private async Task<LeadslySetupResultDTO> SaveHalsDetailsAsync(NewSocialAccountSetupResult newSocialAccountSetupResult, string userId, CancellationToken ct = default)
+        private async Task<LeadslySetupResultDTO> SaveHalsDetailsAsync(NewSocialAccountSetupResult newSocialAccountSetupResult, string userId, string timeZoneId, CancellationToken ct = default)
         {
             LeadslySetupResultDTO result = new();
 
@@ -320,6 +320,7 @@ namespace Leadsly.Domain.Supervisor
             HalUnit halDetails = new()
             {
                 HalId = newSocialAccountSetupResult.SocialAccount.SocialAccountCloudResource.HalId,
+                TimeZoneId = timeZoneId,
                 SocialAccount = newSocialAccountSetupResult.SocialAccount,
                 ApplicationUser = applicationUser                
             };

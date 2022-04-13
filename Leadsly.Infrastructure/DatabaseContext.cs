@@ -30,7 +30,9 @@ namespace Leadsly.Infrastructure
         public DbSet<Campaign> Campaigns { get; set; }
         public DbSet<ProspectListPhase> ProspectListPhases { get; set; }
         public DbSet<MonitorForNewConnectionsPhase> MonitorForNewConnectionsPhases { get; set; }
-        public DbSet<FollowUpMessagesPhase> FollowUpMessagesPhases { get; set; }
+        public DbSet<FollowUpMessagePhase> FollowUpMessagesPhases { get; set; }
+        public DbSet<FollowUpMessage> FollowUpMessages { get; set; }
+        public DbSet<CampaignProspectFollowUpMessage> CampaignProspectFollowUpMessages { get; set; }
         public DbSet<ScanProspectsForRepliesPhase> ScanProspectsForRepliesPhase { get; set; }
         public DbSet<ConnectionWithdrawPhase> ConnectionWithdrawPhases { get; set; }
         public DbSet<SendConnectionRequestPhase> SendConnectionRequestPhases { get; set; }

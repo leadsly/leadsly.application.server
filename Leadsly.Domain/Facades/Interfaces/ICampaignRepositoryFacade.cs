@@ -33,7 +33,13 @@ namespace Leadsly.Domain.Facades.Interfaces
         #endregion
 
         #region FollowUpMessagePhase
+        Task<FollowUpMessagePhase> GetFollowUpMessagePhaseByCampaignIdAsync(string campaignId, CancellationToken ct = default);
+        #endregion
 
+        #region FollowUpMessages
+        Task<IList<FollowUpMessage>> GetFollowUpMessagesByCampaignIdAsync(string campaignId, CancellationToken ct = default);
+        Task<CampaignProspectFollowUpMessage> CreateFollowUpMessageAsync(CampaignProspectFollowUpMessage message, CancellationToken ct = default);
+        Task<CampaignProspectFollowUpMessage> GetCampaignProspectFollowUpMessageByIdAsync(string campaignProspectFollowUpMessageId, CancellationToken ct = default);
         #endregion
 
         #region MonitorForNewConnectionsPhase

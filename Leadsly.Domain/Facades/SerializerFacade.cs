@@ -43,24 +43,29 @@ namespace Leadsly.Domain.Facades
             return await _enterTwoFactorAuthCodeResponseDeserializer.DeserializeAsync<T>(response);
         }
 
-        public byte[] SerializeProspectList(ProspectListBody content)
+        public byte[] Serialize(ProspectListBody content)
         {
-            return _campaignPhaseSerializer.SerializeProspectList(content);
+            return _campaignPhaseSerializer.Serialize(content);
         }
 
-        public byte[] SerializeScanProspectsForReplies(ScanProspectsForRepliesBody content)
+        public byte[] Serialize(ScanProspectsForRepliesBody content)
         {
-            return _campaignPhaseSerializer.SerializeScanProspectsForReplies(content);
+            return _campaignPhaseSerializer.Serialize(content);
         }
 
-        public byte[] SerializeMonitorForNewAcceptedConnections(MonitorForNewAcceptedConnectionsBody content)
+        public byte[] Serialize(MonitorForNewAcceptedConnectionsBody content)
         {
-            return _campaignPhaseSerializer.SerializeMonitorForNewAcceptedConnections(content);
+            return _campaignPhaseSerializer.Serialize(content);
         }
 
-        public byte[] SerializeSendConnections(SendConnectionsBody content)
+        public byte[] Serialize(SendConnectionsBody content)
         {
-            return _campaignPhaseSerializer.SerializeSendConnections(content);
+            return _campaignPhaseSerializer.Serialize(content);
+        }
+
+        public byte[] Serialize(FollowUpMessageBody content)
+        {
+            return _campaignPhaseSerializer.Serialize(content);
         }
     }
 }

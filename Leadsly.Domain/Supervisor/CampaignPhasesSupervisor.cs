@@ -1,8 +1,12 @@
 ﻿using Leadsly.Application.Model;
+using Leadsly.Application.Model.Campaigns;
+using Leadsly.Application.Model.Campaigns.Interfaces;
 using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Application.Model.Requests;
 using Leadsly.Application.Model.Requests.FromHal;
+using Leadsly.Application.Model.Requests.Hal;
+using Leadsly.Application.Model.Requests.Hal.Interfaces;
 using Leadsly.Application.Model.Responses;
 using Leadsly.Application.Model.ViewModels;
 using Leadsly.Application.Model.ViewModels.Response;
@@ -139,6 +143,8 @@ namespace Leadsly.Domain.Supervisor
             if(updatedCampaignProspects.Count > 0)
             {
                 await _campaignRepositoryFacade.UpdateAllCampaignProspectsAsync(updatedCampaignProspects, ct);
+
+                await _campaignProvider.SendFollowUpMessagesAsync(updatedCampaignProspects, ct);
             }
 
             result.Succeeded = true;

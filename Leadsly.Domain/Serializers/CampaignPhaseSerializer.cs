@@ -12,25 +12,31 @@ namespace Leadsly.Domain.Serializers
 {
     public class CampaignPhaseSerializer : ICampaignPhaseSerializer
     {
-        public byte[] SerializeMonitorForNewAcceptedConnections(MonitorForNewAcceptedConnectionsBody content)
+        public byte[] Serialize(FollowUpMessageBody content)
         {
             string message = JsonConvert.SerializeObject(content);
             return Encoding.UTF8.GetBytes(message);
         }
 
-        public byte[] SerializeProspectList(ProspectListBody content)
+        public byte[] Serialize(MonitorForNewAcceptedConnectionsBody content)
         {
             string message = JsonConvert.SerializeObject(content);
             return Encoding.UTF8.GetBytes(message);
         }
 
-        public byte[] SerializeScanProspectsForReplies(ScanProspectsForRepliesBody content)
+        public byte[] Serialize(ProspectListBody content)
         {
             string message = JsonConvert.SerializeObject(content);
             return Encoding.UTF8.GetBytes(message);
         }
 
-        public byte[] SerializeSendConnections(SendConnectionsBody content)
+        public byte[] Serialize(ScanProspectsForRepliesBody content)
+        {
+            string message = JsonConvert.SerializeObject(content);
+            return Encoding.UTF8.GetBytes(message);
+        }
+
+        public byte[] Serialize(SendConnectionsBody content)
         {
             string message = JsonConvert.SerializeObject(content);
             return Encoding.UTF8.GetBytes(message);

@@ -1,5 +1,7 @@
-﻿using Leadsly.Application.Model.Campaigns;
+﻿using Leadsly.Application.Model;
+using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.Entities.Campaigns;
+using Leadsly.Application.Model.Responses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,5 +19,6 @@ namespace Leadsly.Domain.Providers.Interfaces
         CampaignProspectList CreateCampaignProspectList(PrimaryProspectList primaryProspectList, string userId);
         Task<int> CreateDailyWarmUpLimitConfigurationAsync(long startDateTimestamp, CancellationToken ct = default);
         void TriggerSendConnectionsPhase(string campaignId, string userId);
+        Task SendFollowUpMessagesAsync(IList<CampaignProspect> campaignProspects, CancellationToken ct = default);
     }
 }

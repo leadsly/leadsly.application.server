@@ -109,6 +109,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ICampaignProspectRepository, CampaignProspectRepository>();
             services.AddScoped<ISendConnectionsPhaseRepository, SendConnectionsPhaseRepository>();
             services.AddScoped<IFollowUpMessagePhaseRepository, FollowUpMessagePhaseRepository>();
+            services.AddScoped<IFollowUpMessageRepository, FollowUpMessageRepository>();
 
             return services;
         }
@@ -185,6 +186,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ILeadslyHalApiService, LeadslyHalApiService>();
             services.AddSingleton<IProducingService, ProducingService>();
             services.AddScoped<ICampaignService, CampaignService>();
+            services.AddScoped<ITimestampService, TimestampService>();
             
             services.AddSingleton<ICampaignManager, CampaignManager>();
             services.AddSingleton<ICampaignPhaseProducer, CampaignPhaseProducer>();

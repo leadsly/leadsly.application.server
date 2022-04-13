@@ -24,5 +24,7 @@ namespace Leadsly.Domain.Repositories
         public Task<ChromeProfile> CreateChromeProfileAsync(ChromeProfile chromeProfile, CancellationToken ct = default);
 
         public Task<ChromeProfile> GetChromeProfileAsync(PhaseType campaignType, CancellationToken ct = default);
+
+        public Task<HalUnit> GetByHalIdAsync(string halId, CancellationToken ct = default);        
     }
 }

@@ -33,10 +33,10 @@ namespace Leadsly.Domain.Campaigns
             };
             campaign.SendConnectionRequestPhase = sendConnectionRequestPhase;
 
-            FollowUpMessagesPhase followUpMessagePhase = new()
+            FollowUpMessagePhase followUpMessagePhase = new()
             {
                 Campaign = campaign,
-                PhaseType = PhaseType.FollwUpMessages
+                PhaseType = PhaseType.FollwUpMessage
             };
             campaign.FollowUpMessagePhase = followUpMessagePhase;
 

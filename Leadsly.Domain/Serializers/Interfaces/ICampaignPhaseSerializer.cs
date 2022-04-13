@@ -10,12 +10,14 @@ namespace Leadsly.Domain.Serializers.Interfaces
 {
     public interface ICampaignPhaseSerializer
     {
-        byte[] SerializeProspectList(ProspectListBody content);
+        byte[] Serialize(ProspectListBody content);
 
-        byte[] SerializeMonitorForNewAcceptedConnections(MonitorForNewAcceptedConnectionsBody content);
+        byte[] Serialize(MonitorForNewAcceptedConnectionsBody content);
 
-        byte[] SerializeScanProspectsForReplies(ScanProspectsForRepliesBody content);
+        byte[] Serialize(ScanProspectsForRepliesBody content);
 
-        byte[] SerializeSendConnections(SendConnectionsBody content);
+        byte[] Serialize(SendConnectionsBody content);
+
+        byte[] Serialize(FollowUpMessageBody content);
     }
 }
