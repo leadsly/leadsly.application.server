@@ -221,6 +221,7 @@ namespace Leadsly.Domain.Providers
                 Content = followUpMessage.Content,
                 UserId = followUpMessagePhase.Campaign.ApplicationUserId,
                 NamespaceName = config.ServiceDiscoveryConfig.Name,
+                ChromeProfileName = chromeProfileName,
                 ServiceDiscoveryName = config.ApiServiceDiscoveryName,
                 PageUrl = followUpMessagePhase.PageUrl,
                 ProspectName = followUpMessage.CampaignProspect.Name,
