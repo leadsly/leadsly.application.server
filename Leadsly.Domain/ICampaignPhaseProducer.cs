@@ -31,5 +31,7 @@ namespace Leadsly.Domain
         /// </summary>
         /// <returns></returns>
         Task PublishFollowUpMessagePhaseMessagesAsync();
+
+        Task PublishScanProspectsForRepliesFromOffHoursAsync();
     }
 }

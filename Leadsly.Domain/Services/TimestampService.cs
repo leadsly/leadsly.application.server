@@ -38,7 +38,33 @@ namespace Leadsly.Domain.Services
             return timeStamp;
         }
 
-        public async Task<long> CreateStartWorkDayTimestampAsync(string halId, CancellationToken ct = default)
+        public async Task<DateTimeOffset> CreateNowDatetimeOffsetAsync(string halId, CancellationToken ct = default)
+        {
+            HalUnit halUnit = await GetHalUnitByHalIdAsync(halId, ct);
+
+            TimeZoneInfo timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById(halUnit.TimeZoneId);
+
+            DateTime localDateTime = new DateTimeWithZone(DateTime.Now, timeZoneInfo).LocalTime;
+
+            DateTimeOffset localDateTimeOffset = new DateTimeOffset(localDateTime);
+
+            return localDateTimeOffset;
+        }
+
+        public async Task<DateTimeOffset> CreateDatetimeOffsetAsync(string halId, DateTime date, CancellationToken ct = default)
+        {
+            HalUnit halUnit = await GetHalUnitByHalIdAsync(halId, ct);
+
+            TimeZoneInfo timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById(halUnit.TimeZoneId);
+
+            DateTime localDateTime = new DateTimeWithZone(date, timeZoneInfo).LocalTime;
+
+            DateTimeOffset localDateTimeOffset = new DateTimeOffset(localDateTime);
+
+            return localDateTimeOffset;
+        }
+
+        public async Task<long> GetStartWorkDayTimestampAsync(string halId, CancellationToken ct = default)
         {
             HalUnit halUnit = await GetHalUnitByHalIdAsync(halId, ct);
             if(DateTime.TryParse(halUnit.StartHour, out DateTime startDateTime) == false)
@@ -59,7 +85,7 @@ namespace Leadsly.Domain.Services
             return timestamp;
         }
 
-        public async Task<long> CreateEndWorkDayTimestampAsync(string halId, CancellationToken ct = default)
+        public async Task<long> GetEndWorkDayTimestampAsync(string halId, CancellationToken ct = default)
         {
             HalUnit halUnit = await GetHalUnitByHalIdAsync(halId, ct);            
 
@@ -113,7 +139,7 @@ namespace Leadsly.Domain.Services
             DateTimeOffset endDateTimeOffset = new DateTimeOffset(localDateTime);
 
             return endDateTimeOffset;
-        }
+        }       
 
         private async Task<HalUnit> GetHalUnitByHalIdAsync(string halId, CancellationToken ct = default)
         {

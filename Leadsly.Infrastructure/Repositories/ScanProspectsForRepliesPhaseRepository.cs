@@ -1,5 +1,6 @@
 ﻿using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Domain.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -32,7 +33,24 @@ namespace Leadsly.Infrastructure.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to ScanProspectsForRepliesPhase. Returning an explict null");
+                _logger.LogError(ex, "Failed to create ScanProspectsForRepliesPhase. Returning an explict null");
+                return null;
+            }
+            return phase;
+        }
+
+        public async Task<ScanProspectsForRepliesPhase> GetByIdAsync(string scanProspectsForRepliesPhaseId, CancellationToken ct = default)
+        {
+            _logger.LogInformation("Retrieving ScanProspectsForRepliesPhase by id {scanProspectsForRepliesPhaseId}", scanProspectsForRepliesPhaseId);
+            ScanProspectsForRepliesPhase phase = default;
+            try
+            {
+                phase = await _dbContext.ScanProspectsForRepliesPhase.Where(p => p.ScanProspectsForRepliesPhaseId == scanProspectsForRepliesPhaseId).SingleAsync(ct);                                
+                _logger.LogDebug("Successfully retrieved ScanProspectsForRepliesPhase by id {scanProspectsForRepliesPhaseId}", scanProspectsForRepliesPhaseId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve ScanProspectsForRepliesPhase. Returning an explict null");
                 return null;
             }
             return phase;

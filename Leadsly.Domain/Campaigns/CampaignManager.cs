@@ -15,14 +15,16 @@ namespace Leadsly.Domain.Campaigns
 {
     public class CampaignManager : ICampaignManager
     {
-        public CampaignManager(ILogger<CampaignManager> logger)
+        public CampaignManager(ILogger<CampaignManager> logger, ICampaignPhaseProducer campaignPhaseProducer)
         {
             _logger = logger;
+            _campaignPhaseProducer = campaignPhaseProducer;
         }
 
+        private readonly ICampaignPhaseProducer _campaignPhaseProducer;
         private readonly ILogger<CampaignManager> _logger;
 
-        public void ProcessAllActiveCampaigns()
+        public async Task ProcessAllActiveCampaignsAsync()
         {
             //TriggerProspectListsPhase();
 
@@ -32,12 +34,28 @@ namespace Leadsly.Domain.Campaigns
 
             // TriggerMonitorForNewConnectionsPhase();
 
-            TriggerFollowUpMessagePhaseForUncontactedProspects();
+            await TriggerFollowUpMessagePhaseForUncontactedProspectsAsync();
+
+            await TriggerScanProspectsForRepliesFromOffHoursAsync();
         }
         
+        private static void TriggerScanProspectsForRepliesFromOffHours()
+        {
+            BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishScanProspectsForRepliesFromOffHoursAsync());
+        }
+        private async Task TriggerScanProspectsForRepliesFromOffHoursAsync()
+        {
+            await _campaignPhaseProducer.PublishScanProspectsForRepliesFromOffHoursAsync();
+        }
+
         private static void TriggerFollowUpMessagePhaseForUncontactedProspects()
         {
             BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishFollowUpMessagePhaseMessagesAsync());
+        }
+
+        private async Task TriggerFollowUpMessagePhaseForUncontactedProspectsAsync()
+        {
+            await _campaignPhaseProducer.PublishFollowUpMessagePhaseMessagesAsync();
         }
 
         private static void TriggerMonitorForNewConnectionsPhase()
@@ -70,11 +88,11 @@ namespace Leadsly.Domain.Campaigns
             BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishSendConnectionsPhaseMessageAsync(campaignId, userId));
         }
 
-        public void TriggerFollowUpMessagePhase(string campaignProspectFollowUpMessageId, string campaignId, DateTimeOffset scheduleTime = default)
+        public async Task TriggerFollowUpMessagePhaseAsync(string campaignProspectFollowUpMessageId, string campaignId, DateTimeOffset scheduleTime = default)
         {
             if(scheduleTime == default)
             {
-                BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishFollowUpMessagePhaseMessageAsync(campaignProspectFollowUpMessageId, campaignId));
+                await _campaignPhaseProducer.PublishFollowUpMessagePhaseMessageAsync(campaignProspectFollowUpMessageId, campaignId);
             }
             else
             {

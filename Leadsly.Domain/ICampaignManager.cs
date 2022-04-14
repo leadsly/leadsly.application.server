@@ -8,12 +8,12 @@ namespace Leadsly.Domain
 {
     public interface ICampaignManager
     {
-        void ProcessAllActiveCampaigns();        
+        Task ProcessAllActiveCampaignsAsync();        
 
         void TriggerProspectListPhase(string prospectListPhaseId, string userId);
 
         void TriggerSendConnectionsPhase(string campaignId, string userId);
 
-        void TriggerFollowUpMessagePhase(string campaignProspectFollowUpMessageId, string campaignId, DateTimeOffset scheduleTime = default);
+        Task TriggerFollowUpMessagePhaseAsync(string campaignProspectFollowUpMessageId, string campaignId, DateTimeOffset scheduleTime = default);
     }
 }

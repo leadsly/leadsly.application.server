@@ -119,6 +119,42 @@ namespace Leadsly.Domain.Providers
 
             return prospectListBody;
         }
+
+        public async Task<ScanProspectsForRepliesBody> CreateScanProspectsForRepliesBodyAsync(string scanProspectsForRepliesPhaseId, string halId, string userId, CancellationToken ct = default)
+        {
+            _logger.LogInformation("Creating scanprospects for replies body message for rabbit mq message broker.");
+            ScanProspectsForRepliesPhase scanProspectsForRepliesPhase = await _campaignRepositoryFacade.GetScanProspectsForRepliesPhaseByIdAsync(scanProspectsForRepliesPhaseId, ct);
+
+            ChromeProfile chromeProfile = await _halRepository.GetChromeProfileAsync(PhaseType.ScanForReplies, ct);
+            string chromeProfileName = chromeProfile?.Name;
+            if (chromeProfileName == null)
+            {
+                chromeProfileName = await CreateNewChromeProfileAsync(PhaseType.ScanForReplies, ct);
+            }
+            _logger.LogDebug("The chrome profile used for PhaseType.ScanForReplies is {chromeProfileName}", chromeProfileName);
+
+            CloudPlatformConfiguration config = GetCloudPlatformConfiguration();
+
+            ScanProspectsForRepliesBody scanProspectsForRepliesBody = new()
+            {
+                PageUrl = scanProspectsForRepliesPhase.PageUrl,
+                HalId = halId,
+                ChromeProfileName = chromeProfileName,                
+                UserId = userId,                
+                EndWorkTime = await _timestampService.GetEndWorkDayTimestampAsync(halId),
+                TimeZoneId = "Eastern Standard Time",
+                NamespaceName = config.ServiceDiscoveryConfig.Name,
+                ServiceDiscoveryName = config.ApiServiceDiscoveryName
+            };
+
+            string namespaceName = config.ServiceDiscoveryConfig.Name;
+            string serviceDiscoveryname = config.ApiServiceDiscoveryName;
+            _logger.LogTrace("ProspectListBody object is configured with Namespace Name of {namespaceName}", namespaceName);
+            _logger.LogTrace("ProspectListBody object is configured with Service discovery name of {serviceDiscoveryname}", serviceDiscoveryname);
+
+            return scanProspectsForRepliesBody;
+        }
+
         public async Task<MonitorForNewAcceptedConnectionsBody> CreateMonitorForNewAcceptedConnectionsBodyAsync(string halId, string userId, string socialAccountId, CancellationToken ct = default)
         {
             _logger.LogInformation("Creating monitor for new connections body message for rabbit mq message broker.");
@@ -141,8 +177,8 @@ namespace Leadsly.Domain.Providers
                 UserId = userId,
                 TimeZoneId = "Eastern Standard Time",
                 PageUrl = monitorForNewConnectionsPhase.PageUrl,
-                StartWorkTime = await _timestampService.CreateStartWorkDayTimestampAsync(halId), 
-                EndWorkTime = await _timestampService.CreateEndWorkDayTimestampAsync(halId), 
+                StartWorkTime = await _timestampService.GetStartWorkDayTimestampAsync(halId), 
+                EndWorkTime = await _timestampService.GetEndWorkDayTimestampAsync(halId), 
                 NamespaceName = config.ServiceDiscoveryConfig.Name,
                 ServiceDiscoveryName = config.ApiServiceDiscoveryName
             };
@@ -198,7 +234,6 @@ namespace Leadsly.Domain.Providers
 
             return sendConnectionsBody;
         }
-
         public async Task<FollowUpMessageBody> CreateFollowUpMessageBodyAsync(string campaignProspectFollowUpMessageId, string campaignId, CancellationToken ct = default)
         {
             _logger.LogInformation("Creating follow up message body for rabbit mq message broker.");
@@ -235,7 +270,6 @@ namespace Leadsly.Domain.Providers
 
             return message;
         }
-
         private async Task<string> CreateNewChromeProfileAsync(PhaseType phaseType, CancellationToken ct = default)
         {
             string phaseName = Enum.GetName(phaseType);
@@ -253,7 +287,6 @@ namespace Leadsly.Domain.Providers
 
             return chromeProfileName;
         }
-
         private CloudPlatformConfiguration GetCloudPlatformConfiguration()
         {
             if (_memoryCache.TryGetValue(CacheKeys.CloudPlatformConfigurationOptions, out CloudPlatformConfiguration config) == false)
@@ -265,6 +298,6 @@ namespace Leadsly.Domain.Providers
             }
 
             return config;
-        }
+        }        
     }
 }

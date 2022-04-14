@@ -108,7 +108,15 @@ namespace Leadsly.Infrastructure.Repositories
             HalUnit halUnit = default;
             try
             {
-                halUnit = await _dbContext.HalUnits.Where(h => h.HalId == halId).SingleAsync(ct);                
+                halUnit = await _dbContext.HalUnits.Where(h => h.HalId == halId)
+                                                    .Include(h => h.SocialAccount)
+                                                        .ThenInclude(s => s.ConnectionWithdrawPhase)
+                                                     .Include(h => h.SocialAccount)
+                                                        .ThenInclude(s => s.MonitorForNewProspectsPhase)
+                                                    .Include(h => h.SocialAccount)
+                                                        .ThenInclude(s => s.ScanProspectsForRepliesPhase)
+                                                    .SingleAsync(ct);                
+
                 _logger.LogDebug("Successfully found HalUnit by hal id {halId}", halId);
             }
             catch (Exception ex)

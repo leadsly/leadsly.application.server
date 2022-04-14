@@ -474,6 +474,110 @@ namespace Leadsly.Domain.Campaigns
         #endregion
 
         #region ScanForProspectRepliesPhase
+
+        public async Task PublishScanProspectsForRepliesFromOffHoursAsync()
+        {
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                ICampaignRepositoryFacade campaignRepositoryFacade = scope.ServiceProvider.GetRequiredService<ICampaignRepositoryFacade>();
+                ICampaignProvider campaignProvider = scope.ServiceProvider.GetRequiredService<ICampaignProvider>();
+                IRabbitMQRepository rabbitMQRepository = scope.ServiceProvider.GetRequiredService<IRabbitMQRepository>();
+                IRabbitMQProvider rabbitMQProvider = scope.ServiceProvider.GetRequiredService<IRabbitMQProvider>();
+                IHalRepository halRepository = scope.ServiceProvider.GetRequiredService<IHalRepository>();
+                //ITimestampService timestampService = scope.ServiceProvider.GetRequiredService<ITimestampService>();
+                IList<Campaign> campaigns = await campaignRepositoryFacade.GetAllActiveCampaignsAsync();
+                IList<string> halIds = await campaignProvider.GetHalIdsWithActiveCampaignsAsync();
+
+                //DateTime now = DateTime.Now;
+                //DateTime last24Hours = DateTime.Now.AddHours(-24);
+                //foreach (Campaign activeCampaign in campaigns)
+                //{
+                //    // grab all campaign prospects for each campaign
+                //    IList<CampaignProspect> campaignProspects = await campaignRepositoryFacade.GetAllCampaignProspectsByCampaignIdAsync(activeCampaign.CampaignId);
+                //    // filter the list down to only those campaign prospects who have been contacted and received a message in the last 24 hours
+                //    IList<CampaignProspect> contactedProspects = new List<CampaignProspect>();                    
+                //    foreach (CampaignProspect campaignProspect in campaignProspects)
+                //    {
+                //        if(campaignProspect.Accepted = true && campaignProspect.FollowUpMessageSent == true) 
+                //        {
+                //            DateTimeOffset lastMessageSent = DateTimeOffset.FromUnixTimeSeconds(campaignProspect.LastFollowUpMessageSentTimestamp);
+                //            DateTimeOffset nowLocal = await timestampService.CreateDatetimeOffsetAsync(campaignProspect.Campaign.HalId, now);
+                //            DateTimeOffset last24HoursLocal = await timestampService.CreateDatetimeOffsetAsync(campaignProspect.Campaign.HalId, last24Hours);
+                //            // was last message sent within last 24 hours
+                //            if (lastMessageSent > last24HoursLocal && lastMessageSent <= nowLocal)
+                //            {
+                //                contactedProspects.Add(campaignProspect);
+                //            }
+                //        }                        
+                //    }
+                //}
+
+                RabbitMQOptions options = GetRabbitMQOptions(rabbitMQRepository);
+                ISerializerFacade serializer = scope.ServiceProvider.GetRequiredService<ISerializerFacade>();
+
+                foreach (string halId in halIds)
+                {
+                    HalUnit halUnit = await halRepository.GetByHalIdAsync(halId);
+
+                    string scanProspectsForRepliesPhaseId = halUnit.SocialAccount.ScanProspectsForRepliesPhase.ScanProspectsForRepliesPhaseId;
+                    string userId = halUnit.SocialAccount.UserId;
+
+                    // fire off ScanProspectsForRepliesPhase with the payload of the contacted prospects
+                    ScanProspectsForRepliesBody messageBody = await rabbitMQProvider.CreateScanProspectsForRepliesBodyAsync(scanProspectsForRepliesPhaseId, halId, userId);
+                    ProcessScanProspectsForRepliesPhase(messageBody, serializer, options, RabbitMQConstants.ScanProspectsForReplies.ExecuteOnce);
+                }
+            }
+        }
+
+        private void ProcessScanProspectsForRepliesPhase(ScanProspectsForRepliesBody messageBody, ISerializerFacade serializer, RabbitMQOptions options, string executionType)
+        {
+            string halId = messageBody.HalId;
+            string exchangeName = options.ExchangeOptions.Name;
+            string exchangeType = options.ExchangeOptions.ExchangeType;
+            string userId = messageBody.UserId;
+
+            byte[] body = serializer.Serialize(messageBody);
+
+            ConnectionFactory factory = ConfigureConnectionFactor(options, RabbitMQConstants.ScanProspectsForReplies.QueueName);
+            var connection = factory.CreateConnection();
+            Connections.Add(connection);
+            var channel = connection.CreateModel();
+            Channels.Add(channel);
+
+            channel.ExchangeDeclare(exchangeName, exchangeType);
+
+            string queueName = options.QueueConfigOptions.Name.Replace("{halId}", halId);
+            queueName = queueName.Replace("{queueName}", RabbitMQConstants.ScanProspectsForReplies.QueueName);
+            channel.QueueDeclare(queue: queueName, durable: false, exclusive: false, autoDelete: false, arguments: null);
+
+            string routingKey = options.RoutingKey.Replace("{halId}", halId);
+            routingKey = routingKey.Replace("{purpose}", RabbitMQConstants.ScanProspectsForReplies.RoutingKey);
+
+            channel.QueueBind(queueName, exchangeName, routingKey, null);
+
+            IBasicProperties basicProperties = channel.CreateBasicProperties();
+            basicProperties.MessageId = Guid.NewGuid().ToString();            
+            basicProperties.Headers = new Dictionary<string, object>();
+            basicProperties.Headers.Add(RabbitMQConstants.ScanProspectsForReplies.ExecutionType, executionType);
+
+            _logger.LogInformation("Publishing ScanProspectsForRepliesPhase. " +
+                        "\r\nHal id is: {halId}. " +
+                        "\r\nThe queueName is: {queueName} " +
+                        "\r\nThe routingKey is: {routingKey} " +
+                        "\r\nThe exchangeName is: {exchangeName} " +
+                        "\r\nThe exchangeType is: {exchangeType} " +
+                        "\r\nUser id is: {userId}",
+                        halId,
+                        queueName,
+                        routingKey,
+                        exchangeName,
+                        exchangeType,
+                        userId
+                        );
+
+            channel.BasicPublish(exchange: options.ExchangeOptions.Name, routingKey: routingKey, basicProperties: basicProperties, body: body);
+        }
+
         private void PublishScanProspectsForRepliesPhaseMessages(RabbitMQOptions options, string halId, string exchangeName, string exchangeType, string queueName, string routingKey, ISerializerFacade serializerFacade)
         {
             ConnectionFactory factory = ConfigureConnectionFactor(options, "scan.prospects.for.replies");
@@ -504,27 +608,7 @@ namespace Leadsly.Domain.Campaigns
 
             channel.BasicPublish(exchange: exchangeName, routingKey: routingKey, basicProperties: basicProperties, body: body);
         }
-        #endregion
 
-        #region PublishConnectionWIthdrawnPhase
-        public void PublishConnectionWithdrawPhaseMessages()
-        {
-            throw new NotImplementedException();
-        }
-        #endregion
-
-        private RabbitMQOptions GetRabbitMQOptions(IRabbitMQRepository rabbitMQRepository)
-        {
-            RabbitMQOptions options = default;
-            if (_memoryCache.TryGetValue(CacheKeys.RabbitMQConfigOptions, out options) == false)
-            {
-                options = rabbitMQRepository.GetRabbitMQConfigOptions();
-
-                _memoryCache.Set(CacheKeys.RabbitMQConfigOptions, options, DateTimeOffset.Now.AddMinutes(10));
-            }
-            return options;
-        }                        
-                
         public async Task PublishConstantCampaignPhaseMessagesAsync()
         {
             using (var scope = _serviceProvider.CreateScope())
@@ -543,17 +627,35 @@ namespace Leadsly.Domain.Campaigns
                 string routingKey = options.RoutingKey;
 
                 ISerializerFacade serializerFacade = scope.ServiceProvider.GetRequiredService<ISerializerFacade>();
-                ProcessConstantCampaignPhase(options, halIdsWithActiveCampaigns,  exchangeName, exchangeType, queueName, routingKey, serializerFacade);
+                ProcessConstantCampaignPhase(options, halIdsWithActiveCampaigns, exchangeName, exchangeType, queueName, routingKey, serializerFacade);
             }
         }
 
         private void ProcessConstantCampaignPhase(RabbitMQOptions options, List<string> halIds, string exchangeName, string exchangeType, string queueName, string routingKey, ISerializerFacade serializerFacade)
-        {            
+        {
             foreach (string halId in halIds)
             {
                 PublishScanProspectsForRepliesPhaseMessages(options, halId, exchangeName, exchangeType, queueName, routingKey, serializerFacade);
             }
         }
-        
+        #endregion
+
+        #region ConnectionWithdrawnPhase
+        public void PublishConnectionWithdrawPhaseMessages()
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+        private RabbitMQOptions GetRabbitMQOptions(IRabbitMQRepository rabbitMQRepository)
+        {
+            RabbitMQOptions options = default;
+            if (_memoryCache.TryGetValue(CacheKeys.RabbitMQConfigOptions, out options) == false)
+            {
+                options = rabbitMQRepository.GetRabbitMQConfigOptions();
+
+                _memoryCache.Set(CacheKeys.RabbitMQConfigOptions, options, DateTimeOffset.Now.AddMinutes(10));
+            }
+            return options;
+        }                                
     }
 }

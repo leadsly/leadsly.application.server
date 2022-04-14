@@ -68,6 +68,7 @@ namespace Leadsly.Domain.Facades.Interfaces
 
         #region ScanProspectsForRepliesPhase
         Task<ScanProspectsForRepliesPhase> CreateScanProspectsForRepliesPhaseAsync(ScanProspectsForRepliesPhase phase, CancellationToken ct = default);
+        Task<ScanProspectsForRepliesPhase> GetScanProspectsForRepliesPhaseByIdAsync(string scanProspectsForRepliesPhaseId, CancellationToken ct = default);
         #endregion
 
         #region SendConnectionsPhase

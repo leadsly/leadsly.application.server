@@ -10,8 +10,10 @@ namespace Leadsly.Domain.Services.Interfaces
     public interface ITimestampService
     {
         Task<long> CreateNowTimestampAsync(string halId, CancellationToken ct = default);
-        Task<long> CreateStartWorkDayTimestampAsync(string halId, CancellationToken ct = default);
-        Task<long> CreateEndWorkDayTimestampAsync(string halId, CancellationToken ct = default);
+        Task<DateTimeOffset> CreateNowDatetimeOffsetAsync(string halId, CancellationToken ct = default);
+        Task<DateTimeOffset> CreateDatetimeOffsetAsync(string halId, DateTime date, CancellationToken ct = default);
+        Task<long> GetStartWorkDayTimestampAsync(string halId, CancellationToken ct = default);
+        Task<long> GetEndWorkDayTimestampAsync(string halId, CancellationToken ct = default);
         Task<DateTimeOffset> GetStartWorkDayAsync(string halId, CancellationToken ct = default);
         Task<DateTimeOffset> GetEndWorkDayAsync(string halId, CancellationToken ct = default);
     }

@@ -208,5 +208,10 @@ namespace Leadsly.Domain.Facades
         {
             return await _followUpMessagePhaseRepository.GetByCampaignIdAsync(campaignId, ct);
         }
+
+        public async Task<ScanProspectsForRepliesPhase> GetScanProspectsForRepliesPhaseByIdAsync(string scanProspectsForRepliesPhaseId, CancellationToken ct = default)
+        {
+            return await _scanProspectsForRepliesPhaseRepository.GetByIdAsync(scanProspectsForRepliesPhaseId, ct);
+        }
     }
 }

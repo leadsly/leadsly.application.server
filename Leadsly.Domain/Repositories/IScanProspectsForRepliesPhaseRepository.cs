@@ -11,5 +11,6 @@ namespace Leadsly.Domain.Repositories
     public interface IScanProspectsForRepliesPhaseRepository
     {
         Task<ScanProspectsForRepliesPhase> CreateAsync(ScanProspectsForRepliesPhase phase, CancellationToken ct = default);
+        Task<ScanProspectsForRepliesPhase> GetByIdAsync(string scanProspectsForRepliesPhaseId, CancellationToken ct = default);
     }
 }

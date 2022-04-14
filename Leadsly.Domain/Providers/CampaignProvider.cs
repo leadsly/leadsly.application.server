@@ -172,13 +172,13 @@ namespace Leadsly.Domain.Providers
 
                 if (followUpMessageDateTime < startWorkDayDateTime)
                 {
-                    // schedule right away
-                    _campaignManager.TriggerFollowUpMessagePhase(campaignProspectFollowUpMessage.CampaignProspectFollowUpMessageId, campaignProspect.CampaignId);
+                    // fire right away
+                    await _campaignManager.TriggerFollowUpMessagePhaseAsync(campaignProspectFollowUpMessage.CampaignProspectFollowUpMessageId, campaignProspect.CampaignId);
                 }
                 else if(followUpMessageDateTime > startWorkDayDateTime && followUpMessageDateTime < endWorkDateDateTime)
                 {
                     // schedule with followUpMessageDateTime
-                    _campaignManager.TriggerFollowUpMessagePhase(campaignProspectFollowUpMessage.CampaignProspectFollowUpMessageId, campaignProspect.CampaignId, followUpMessageDateTime);
+                    await _campaignManager.TriggerFollowUpMessagePhaseAsync(campaignProspectFollowUpMessage.CampaignProspectFollowUpMessageId, campaignProspect.CampaignId, followUpMessageDateTime);
                 }
             }
             else
