@@ -120,7 +120,7 @@ namespace Leadsly.Domain.Providers
             return prospectListBody;
         }
 
-        public async Task<ScanProspectsForRepliesBody> CreateScanProspectsForRepliesBodyAsync(string scanProspectsForRepliesPhaseId, string halId, string userId, CancellationToken ct = default)
+        public async Task<ScanProspectsForRepliesBody> CreateScanProspectsForRepliesBodyAsync(string scanProspectsForRepliesPhaseId, string halId, string userId, IList<CampaignProspect> contactedCampaignProspects = default, CancellationToken ct = default)
         {
             _logger.LogInformation("Creating scanprospects for replies body message for rabbit mq message broker.");
             ScanProspectsForRepliesPhase scanProspectsForRepliesPhase = await _campaignRepositoryFacade.GetScanProspectsForRepliesPhaseByIdAsync(scanProspectsForRepliesPhaseId, ct);
@@ -142,10 +142,15 @@ namespace Leadsly.Domain.Providers
                 ChromeProfileName = chromeProfileName,                
                 UserId = userId,                
                 EndWorkTime = await _timestampService.GetEndWorkDayTimestampAsync(halId),
-                TimeZoneId = "Eastern Standard Time",
+                TimeZoneId = "Eastern Standard Time",                
                 NamespaceName = config.ServiceDiscoveryConfig.Name,
                 ServiceDiscoveryName = config.ApiServiceDiscoveryName
             };
+
+            if(contactedCampaignProspects != null)
+            {
+                scanProspectsForRepliesBody.ContactedCampaignProspects = contactedCampaignProspects;
+            }
 
             string namespaceName = config.ServiceDiscoveryConfig.Name;
             string serviceDiscoveryname = config.ApiServiceDiscoveryName;

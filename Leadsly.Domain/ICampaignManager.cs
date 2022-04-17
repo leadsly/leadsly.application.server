@@ -13,6 +13,8 @@ namespace Leadsly.Domain
         void TriggerProspectListPhase(string prospectListPhaseId, string userId);
 
         void TriggerSendConnectionsPhase(string campaignId, string userId);
+        void TriggerScanProspectsForRepliesPhase(string halId, string userId);
+        void TriggerFollowUpMessagesPhase(string halId, string userId);
 
         Task TriggerFollowUpMessagePhaseAsync(string campaignProspectFollowUpMessageId, string campaignId, DateTimeOffset scheduleTime = default);
     }

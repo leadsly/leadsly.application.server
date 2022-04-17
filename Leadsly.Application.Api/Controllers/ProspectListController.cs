@@ -34,5 +34,19 @@ namespace Leadsly.Application.Api.Controllers
 
             return Ok();
         }
+
+        [HttpPost("prospects-replied")]
+        [AllowAnonymous]
+        public async Task<IActionResult> CampaignProspectsReplied(ProspectsRepliedRequest request, CancellationToken ct = default)
+        {
+            HalOperationResult<IOperationResponse> result = await _supervisor.ProcessProspectsRepliedAsync<IOperationResponse>(request, ct);
+
+            if (result.Succeeded == false)
+            {
+                return BadRequest_CampaignProspectsReplied(result.Failures);
+            }
+
+            return Ok();
+        }
     }
 }

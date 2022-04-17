@@ -46,13 +46,25 @@ namespace Leadsly.Application.Api.Controllers
         [Route("trigger-send-connection-requests")]
         public IActionResult TriggerSendConnectionRequests([FromBody] TriggerSendConnectionsRequest request)
         {
-            HalOperationResult<IOperationResponse> result = _supervisor.TriggerSendConnectionsPhase<IOperationResponse>(request);
+            _supervisor.TriggerSendConnectionsPhase(request);
+            return Ok();
+        }
 
-            if(result.Succeeded == false)
-            {
-                return BadRequest_FailedToProcessCampaignPhase();
-            }
+        [HttpPost]
+        [AllowAnonymous]
+        [Route("trigger-scan-prospects-for-replies")]
+        public IActionResult TriggerScanProspectsForReplies([FromBody] TriggerScanProspectsForRepliesRequest request)
+        {
+            _supervisor.TriggerScanProspectsForRepliesPhase(request);
+            return Ok();
+        }
 
+        [HttpPost]
+        [AllowAnonymous]
+        [Route("trigger-follow-up-messages")]
+        public IActionResult TriggerFollowUpMessages([FromBody] TriggerFollowUpMessageRequest request)
+        {
+            _supervisor.TriggerFollowUpMessagesPhase(request);
             return Ok();
         }
 

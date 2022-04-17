@@ -99,6 +99,11 @@ namespace Leadsly.Domain.Facades
             return await _campaignRepository.GetAllActiveByUserIdAsync(applicationUserId, ct);
         }
 
+        public async Task<IList<Campaign>> GetAllActiveCampaignsByHalIdAsync(string halId, CancellationToken ct = default)
+        {
+            return await _campaignRepository.GetAllActiveByUserIdAsync(halId, ct);
+        }
+
         public async Task<IList<ProspectListPhase>> GetAllActiveProspectListPhasesAsync(CancellationToken ct = default)
         {
             return await _prospectListPhaseRepository.GetAllActiveAsync(ct);
@@ -212,6 +217,11 @@ namespace Leadsly.Domain.Facades
         public async Task<ScanProspectsForRepliesPhase> GetScanProspectsForRepliesPhaseByIdAsync(string scanProspectsForRepliesPhaseId, CancellationToken ct = default)
         {
             return await _scanProspectsForRepliesPhaseRepository.GetByIdAsync(scanProspectsForRepliesPhaseId, ct);
+        }
+
+        public async Task<CampaignProspect> GetCampaignProspectByIdAsync(string campaignProspectId, CancellationToken ct = default)
+        {
+            return await _campaignProspectRepository.GetByIdAsync(campaignProspectId, ct);
         }
     }
 }

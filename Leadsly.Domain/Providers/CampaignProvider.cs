@@ -98,6 +98,30 @@ namespace Leadsly.Domain.Providers
             return halsPhases;
         }
 
+        public async Task<HalsProspectListPhasesPayload> GetIncompleteProspectListPhasesAsync(CancellationToken ct = default)
+        {
+            IList<ProspectListPhase> prospectListPhases = await _campaignRepositoryFacade.GetAllActiveProspectListPhasesAsync(ct);
+            IList<ProspectListPhase> incompleteProspectListPhases = prospectListPhases.Where(p => p.Completed == false).ToList();
+
+            IEnumerable<string> halIds = incompleteProspectListPhases.Select(phase => phase.Campaign.HalId).Distinct();
+
+            HalsProspectListPhasesPayload halsPhases = new();
+            foreach (string halId in halIds)
+            {
+                List<ProspectListBody> content = prospectListPhases.Where(p => p.Campaign.HalId == halId).Select(p =>
+                {
+                    return new ProspectListBody
+                    {
+                        SearchUrls = p.SearchUrls
+                    };
+                }).ToList();
+
+                halsPhases.ProspectListPayload.Add(halId, content);
+            }
+
+            return halsPhases;
+        }
+
         public async Task<List<string>> GetHalIdsWithActiveCampaignsAsync(CancellationToken ct = default)
         {
             IList<Campaign> activeCampaigns = await _campaignRepositoryFacade.GetAllActiveCampaignsAsync(ct);
@@ -117,6 +141,16 @@ namespace Leadsly.Domain.Providers
             _campaignManager.TriggerSendConnectionsPhase(campaignId, userId);
         }
 
+        public void TriggerScanProspectsForRepliesPhase(string halId, string userId)
+        {
+            _campaignManager.TriggerScanProspectsForRepliesPhase(halId, userId);
+        }
+
+        public void TriggerFollowUpMessagesPhase(string halId, string userId)
+        {
+            _campaignManager.TriggerFollowUpMessagesPhase(halId, userId);
+        }
+
         public async Task SendFollowUpMessagesAsync(IList<CampaignProspect> campaignProspects, CancellationToken ct = default)
         {
             // grab first follow up messages for the following campaign id
@@ -130,6 +164,7 @@ namespace Leadsly.Domain.Providers
                     if(nextFollowUpMessageOrder == 0)
                     {
                         // this campaign prospect has received all of the follow up messages configured
+                        // check if the last follow up message was sent 14 or more days ago, if yes mark this prospect as complete or fullfilled
                     }
                     else
                     {

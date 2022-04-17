@@ -49,6 +49,7 @@ namespace Leadsly.Infrastructure.Repositories
             {
                 campaignProspects = await _dbContext.CampaignProspects
                     .Where(c => c.CampaignId == campaignId)
+                    .Include(p => p.FollowUpMessage)
                     .Include(p => p.PrimaryProspect)
                     .ToListAsync(ct);
 
@@ -100,6 +101,26 @@ namespace Leadsly.Infrastructure.Repositories
             }
 
             return campaignProspects;
+        }
+
+        public async Task<CampaignProspect> GetByIdAsync(string campaignProspectId, CancellationToken ct = default)
+        {
+            _logger.LogDebug("Retrieving CampaignProspect by id {campaignProspectId}", campaignProspectId);
+            CampaignProspect campaignProspect = default;
+            try
+            {
+                campaignProspect = await _dbContext.CampaignProspects
+                    .Where(c => c.CampaignProspectId == campaignProspectId)                    
+                    .SingleAsync(ct);
+
+                _logger.LogDebug("Successfully retrieved CampaignProspect by id {campaignProspectId}", campaignProspectId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get CampaignProspect by id {campaignProspectId}. Returning an explicit null", campaignProspectId);
+                return null;
+            }
+            return campaignProspect;
         }
     }
 }

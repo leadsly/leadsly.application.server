@@ -153,6 +153,27 @@ namespace Leadsly.Infrastructure.Repositories
                 return null;
             }
             return campaigns;
-        }    
+        }
+
+        public async Task<IList<Campaign>> GetAllActiveByHalIdAsync(string halId, CancellationToken ct = default)
+        {
+            _logger.LogInformation("Retrieving all active campaigns by hal id {halId}", halId);
+            IList<Campaign> campaigns = default;
+            try
+            {
+                campaigns = await _dbContext.Campaigns
+                    .Where(c => c.Active == true && c.HalId == halId)
+                    .Include(c => c.CampaignProspectList)
+                    .ToListAsync(ct);
+
+                _logger.LogDebug("Successfully retrieved all active campaigns by hal id {halId}", halId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve all active campaigns by hal id {halId}. Returning an explicit null", halId);
+                return null;
+            }
+            return campaigns;
+        }
     }
 }

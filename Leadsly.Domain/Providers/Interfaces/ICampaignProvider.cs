@@ -15,10 +15,14 @@ namespace Leadsly.Domain.Providers.Interfaces
     {
         void ProcessNewCampaign(Campaign newCampaign);
         Task<HalsProspectListPhasesPayload> GetActiveProspectListPhasesAsync(CancellationToken ct = default);
+        Task<HalsProspectListPhasesPayload> GetIncompleteProspectListPhasesAsync(CancellationToken ct = default);
         Task<List<string>> GetHalIdsWithActiveCampaignsAsync(CancellationToken ct = default);
         CampaignProspectList CreateCampaignProspectList(PrimaryProspectList primaryProspectList, string userId);
         Task<int> CreateDailyWarmUpLimitConfigurationAsync(long startDateTimestamp, CancellationToken ct = default);
         void TriggerSendConnectionsPhase(string campaignId, string userId);
+
+        void TriggerScanProspectsForRepliesPhase(string halId, string userId);
+        void TriggerFollowUpMessagesPhase(string halId, string userId);
         Task SendFollowUpMessagesAsync(IList<CampaignProspect> campaignProspects, CancellationToken ct = default);
     }
 }

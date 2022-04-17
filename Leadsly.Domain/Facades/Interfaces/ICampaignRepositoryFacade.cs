@@ -16,6 +16,7 @@ namespace Leadsly.Domain.Facades.Interfaces
         Task<Campaign> UpdateCampaignAsync(Campaign updatedCampaign, CancellationToken ct = default);
         Task<Campaign> GetCampaignByIdAsync(string campaignId, CancellationToken ct = default);
         Task<IList<Campaign>> GetAllActiveCampaignsByUserIdAsync(string applicationUserId, CancellationToken ct = default);
+        Task<IList<Campaign>> GetAllActiveCampaignsByHalIdAsync(string halId, CancellationToken ct = default);
         Task<IList<Campaign>> GetAllActiveCampaignsAsync(CancellationToken ct = default);
         Task<CampaignWarmUp> CreateCampaignWarmUpAsync(CampaignWarmUp warmUp, CancellationToken ct = default);
         Task<CampaignWarmUp> GetCampaignWarmUpByIdAsync(string campaignId, CancellationToken ct = default);
@@ -24,6 +25,7 @@ namespace Leadsly.Domain.Facades.Interfaces
         #region CampaignProspect
         Task<IList<CampaignProspect>> CreateAllCampaignProspectsAsync(IList<CampaignProspect> campaignProspects, CancellationToken ct = default);
         Task<IList<CampaignProspect>> GetAllCampaignProspectsByCampaignIdAsync(string campaignId, CancellationToken ct = default);
+        Task<CampaignProspect> GetCampaignProspectByIdAsync(string campaignProspectId, CancellationToken ct = default);
         Task<IList<CampaignProspect>> UpdateAllCampaignProspectsAsync(IList<CampaignProspect> campaignProspects, CancellationToken ct = default);
         Task<CampaignProspectList> GetCampaignProspectListByListIdAsync(string campaignProspectListId, CancellationToken ct = default);
         #endregion

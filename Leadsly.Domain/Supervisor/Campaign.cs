@@ -228,6 +228,32 @@ namespace Leadsly.Domain.Supervisor
             return result;
         }
 
+        public async Task<HalOperationResult<T>> ProcessProspectsRepliedAsync<T>(ProspectsRepliedRequest request, CancellationToken ct = default)
+            where T : IOperationResponse
+        {
+            HalOperationResult<T> result = new();
+
+            IList<CampaignProspect> campaignProspectsToUpdate = new List<CampaignProspect>();
+            foreach (ProspectRepliedRequest prospectReplied in request.ProspectsReplied)
+            {
+                CampaignProspect campaignProspectToUpdate = await _campaignRepositoryFacade.GetCampaignProspectByIdAsync(prospectReplied.CampaignProspectId, ct);
+
+                campaignProspectToUpdate.Replied = true;
+                campaignProspectToUpdate.ResponseMessage = prospectReplied.ResponseMessage;
+                campaignProspectsToUpdate.Add(campaignProspectToUpdate);
+            }
+
+            campaignProspectsToUpdate = await _campaignRepositoryFacade.UpdateAllCampaignProspectsAsync(campaignProspectsToUpdate, ct);
+            if(campaignProspectsToUpdate == null)
+            {
+                return result;
+            }
+
+            result.Succeeded = true;
+            return result;
+        }
+
+
         private IList<SendConnectionsStage> CreateSendConnectionsStages()
         {
             IList<SendConnectionsStage> connectionsStages = new List<SendConnectionsStage>();

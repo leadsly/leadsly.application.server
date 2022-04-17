@@ -86,15 +86,19 @@ namespace Leadsly.Domain.Supervisor
             return result;
         }
 
-        public HalOperationResult<T> TriggerSendConnectionsPhase<T>(TriggerSendConnectionsRequest request, CancellationToken ct = default)
-            where T : IOperationResponse
+        public void TriggerSendConnectionsPhase(TriggerSendConnectionsRequest request, CancellationToken ct = default)
         {
-            HalOperationResult<T> result = new();
+             _campaignProvider.TriggerSendConnectionsPhase(request.CampaignId, request.UserId);
+        }
 
-            _campaignProvider.TriggerSendConnectionsPhase(request.CampaignId, request.UserId);
+        public void TriggerScanProspectsForRepliesPhase(TriggerScanProspectsForRepliesRequest request, CancellationToken ct = default)
+        {
+            _campaignProvider.TriggerScanProspectsForRepliesPhase(request.HalId, request.UserId);
+        }
 
-            result.Succeeded = true;
-            return result;
+        public void TriggerFollowUpMessagesPhase(TriggerFollowUpMessageRequest request, CancellationToken ct = default)            
+        {
+            _campaignProvider.TriggerFollowUpMessagesPhase(request.HalId, request.UserId);
         }
 
         public async Task<HalOperationResult<T>> ProcessNewlyAcceptedProspectsAsync<T>(NewProspectsConnectionsAcceptedRequest request, CancellationToken ct = default)
