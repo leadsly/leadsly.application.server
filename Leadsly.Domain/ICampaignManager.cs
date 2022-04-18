@@ -8,14 +8,12 @@ namespace Leadsly.Domain
 {
     public interface ICampaignManager
     {
-        Task ProcessAllActiveCampaignsAsync();        
-
-        void TriggerProspectListPhase(string prospectListPhaseId, string userId);
-
-        void TriggerSendConnectionsPhase(string campaignId, string userId);
-        void TriggerScanProspectsForRepliesPhase(string halId, string userId);
-        void TriggerFollowUpMessagesPhase(string halId, string userId);
-
+        Task ProcessAllActiveCampaignsAsync();
+        Task TriggerProspectListPhaseAsync(string prospectListPhaseId, string userId);
+        Task TriggerSendConnectionsPhaseAsync(string campaignId, string userId);
+        Task TriggerScanProspectsForRepliesPhaseAsync(string halId, string userId);
+        Task TriggerFollowUpMessagesPhaseAsync(string halId, string userId);
+        Task TriggerMonitorForNewProspectsPhaseAsync(string halId, string userId);        
         Task TriggerFollowUpMessagePhaseAsync(string campaignProspectFollowUpMessageId, string campaignId, DateTimeOffset scheduleTime = default);
     }
 }

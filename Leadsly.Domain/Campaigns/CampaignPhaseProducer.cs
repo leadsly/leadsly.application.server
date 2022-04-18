@@ -81,6 +81,10 @@ namespace Leadsly.Domain.Campaigns
         }
 
         #region MonitorForNewConnectionsPhase
+        /// <summary>
+        /// Triggered once on recurring basis. This phase is triggered once per registered Hal id. This is a passive phase that is supposed to run from the beginning of the work day until the end
+        /// </summary>
+        /// <returns></returns>
         public async Task PublishMonitorForNewConnectionsPhaseMessageAsync()
         {
             using (var scope = _serviceProvider.CreateScope())
@@ -102,6 +106,21 @@ namespace Leadsly.Domain.Campaigns
 
                     ProcessMonitorForNewConnectionsPhase(messageBody, serializerFacade, options);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Triggered once a new campaign is created. The intent is to ensure that this phase is running before we execute a new campaign.
+        /// </summary>
+        /// <param name="halId"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public async Task PublishMonitorForNewConnectionsPhaseMessageAsync(string halId, string userId)
+        {
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                // TODO
             }
         }
 
@@ -476,8 +495,8 @@ namespace Leadsly.Domain.Campaigns
             }
             else
             {
-                // temporary to schedule jobs right away
-                BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishSendConnectionsToProspectsPhaseMessages(message, halId));
+                // temporary to schedule jobs right away                
+                PublishSendConnectionsToProspectsPhaseMessages(message, halId);
             }
 
         }
@@ -542,6 +561,13 @@ namespace Leadsly.Domain.Campaigns
 
         #region ScanForProspectRepliesPhase
 
+        /// <summary>
+        /// Triggered on recurring basis once a day. The purpose of this phase is to perform a deep analysis of the conversation history with any campaign prospect to who meets the following conditions
+        /// Has accepted our connection request, has gotten a follow up message and has NOT yet replied to our message. This ensures that we can campture responses from campaign prospects
+        /// even if leadsly user has communicated with the prospect themselves. Once Hal is finished with this phase, it will send a request to the application server to first trigger 
+        /// FollowUpMessagePhase and then ScanProspectsForRepliesPhase
+        /// </summary>
+        /// <returns></returns>
         public async Task PublishDeepScanProspectsForRepliesAsync()
         {
             using (var scope = _serviceProvider.CreateScope())
@@ -582,6 +608,12 @@ namespace Leadsly.Domain.Campaigns
             }
         }
 
+        /// <summary>
+        /// Triggered by Hal when the DeepScanProspectsForRepliesPhase is completed
+        /// </summary>
+        /// <param name="halId"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
         public async Task PublishScanProspectsForRepliesPhaseAsync(string halId, string userId)
         {
             using (var scope = _serviceProvider.CreateScope())
@@ -652,66 +684,6 @@ namespace Leadsly.Domain.Campaigns
             channel.BasicPublish(exchange: options.ExchangeOptions.Name, routingKey: routingKey, basicProperties: basicProperties, body: body);
         }
 
-        private void PublishScanProspectsForRepliesPhaseMessages(RabbitMQOptions options, string halId, string exchangeName, string exchangeType, string queueName, string routingKey, ISerializerFacade serializerFacade)
-        {
-            ConnectionFactory factory = ConfigureConnectionFactor(options, "scan.prospects.for.replies");
-            var connection = factory.CreateConnection();
-            Connections.Add(connection);
-            var channel = connection.CreateModel();
-            Channels.Add(channel);
-
-            channel.ExchangeDeclare(exchangeName, exchangeType);
-
-            string name = queueName.Replace("{halId}", halId);
-            channel.QueueDeclare(queue: name, durable: false, exclusive: false, autoDelete: false, arguments: null);
-
-            routingKey = routingKey.Replace("{halId}", halId);
-            routingKey = routingKey.Replace("{purpose}", "scan-prospects-for-replies");
-
-            channel.QueueBind(name, exchangeName, routingKey, null);
-
-            IBasicProperties basicProperties = channel.CreateBasicProperties();
-            basicProperties.MessageId = Guid.NewGuid().ToString();
-
-            ScanProspectsForRepliesBody content = new()
-            {
-                HalId = halId
-            };
-
-            byte[] body = serializerFacade.Serialize(content);
-
-            channel.BasicPublish(exchange: exchangeName, routingKey: routingKey, basicProperties: basicProperties, body: body);
-        }
-
-        public async Task PublishConstantCampaignPhaseMessagesAsync()
-        {
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                ICampaignProvider campaignProvider = scope.ServiceProvider.GetRequiredService<ICampaignProvider>();
-                // get all halIds that have active campaigns
-                List<string> halIdsWithActiveCampaigns = await campaignProvider.GetHalIdsWithActiveCampaignsAsync();
-                halIdsWithActiveCampaigns = new List<string> { Environment.GetEnvironmentVariable("HAL_ID", EnvironmentVariableTarget.User) };
-
-                IRabbitMQRepository rabbitMQRepository = scope.ServiceProvider.GetRequiredService<IRabbitMQRepository>();
-                RabbitMQOptions options = rabbitMQRepository.GetRabbitMQConfigOptions();
-
-                string exchangeName = options.ExchangeOptions.Name;
-                string exchangeType = options.ExchangeOptions.ExchangeType;
-                string queueName = options.QueueConfigOptions.Name;
-                string routingKey = options.RoutingKey;
-
-                ISerializerFacade serializerFacade = scope.ServiceProvider.GetRequiredService<ISerializerFacade>();
-                ProcessConstantCampaignPhase(options, halIdsWithActiveCampaigns, exchangeName, exchangeType, queueName, routingKey, serializerFacade);
-            }
-        }
-
-        private void ProcessConstantCampaignPhase(RabbitMQOptions options, List<string> halIds, string exchangeName, string exchangeType, string queueName, string routingKey, ISerializerFacade serializerFacade)
-        {
-            foreach (string halId in halIds)
-            {
-                PublishScanProspectsForRepliesPhaseMessages(options, halId, exchangeName, exchangeType, queueName, routingKey, serializerFacade);
-            }
-        }
         #endregion
 
         #region ConnectionWithdrawnPhase
@@ -730,6 +702,18 @@ namespace Leadsly.Domain.Campaigns
                 _memoryCache.Set(CacheKeys.RabbitMQConfigOptions, options, DateTimeOffset.Now.AddMinutes(10));
             }
             return options;
-        }        
+        }
+
+        private ICommand _command;
+
+        public void SetCommand(ICommand command)
+        {
+            _command = command;
+        }
+
+        public async Task ExecuteAsync()
+        {
+            await _command.ExecuteAsync();
+        }
     }
 }

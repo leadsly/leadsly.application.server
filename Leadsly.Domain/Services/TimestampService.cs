@@ -150,5 +150,14 @@ namespace Leadsly.Domain.Services
             }
             return halUnit;
         }
+
+        public bool TryParseString(string dateTime, out DateTimeOffset dateTimeOffset)
+        {
+            if(DateTimeOffset.TryParse(dateTime, out dateTimeOffset) == true)
+            {
+                return true;
+            }
+            return false;
+        }
     }
 }

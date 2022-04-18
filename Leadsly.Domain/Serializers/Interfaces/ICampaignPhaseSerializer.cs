@@ -19,5 +19,7 @@ namespace Leadsly.Domain.Serializers.Interfaces
         byte[] Serialize(SendConnectionsBody content);
 
         byte[] Serialize(FollowUpMessageBody content);
+
+        byte[] Serialize(PublishMessageBody content);
     }
 }

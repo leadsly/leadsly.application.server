@@ -67,5 +67,10 @@ namespace Leadsly.Domain.Facades
         {
             return _campaignPhaseSerializer.Serialize(content);
         }
+
+        public byte[] Serialize(PublishMessageBody content)
+        {
+            return _campaignPhaseSerializer.Serialize(content);
+        }
     }
 }

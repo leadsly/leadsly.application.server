@@ -187,6 +187,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddSingleton<IProducingService, ProducingService>();
             services.AddScoped<ICampaignService, CampaignService>();
             services.AddScoped<ITimestampService, TimestampService>();
+            services.AddScoped<IHalWorkManager, HalWorkManager>();
             
             services.AddSingleton<ICampaignManager, CampaignManager>();
             services.AddSingleton<ICampaignPhaseProducer, CampaignPhaseProducer>();

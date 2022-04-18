@@ -41,5 +41,11 @@ namespace Leadsly.Domain.Serializers
             string message = JsonConvert.SerializeObject(content);
             return Encoding.UTF8.GetBytes(message);
         }
+
+        public byte[] Serialize(PublishMessageBody content)
+        {
+            string message = JsonConvert.SerializeObject(content);
+            return Encoding.UTF8.GetBytes(message);
+        }
     }
 }

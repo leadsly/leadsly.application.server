@@ -54,10 +54,11 @@ namespace Leadsly.Domain.Providers
         public void ProcessNewCampaign(Campaign campaign)
         {
             // ensure ScanForProspectReplies, ConnectionWithdraw and MonitorForNewProspects phases are running on hal
-            // always trigger them here
+            // always trigger them here            
+            _campaignManager.TriggerMonitorForNewProspectsPhase(campaign.HalId, campaign.ApplicationUserId);
+            _campaignManager.TriggerScanProspectsForRepliesPhase(campaign.HalId, campaign.ApplicationUserId);
 
-
-            // if prospect list phase does not exists, this means were running new prospect list
+            // if prospect list phase does not exists, this means were running campaign off of existing prospect list
             if(campaign.ProspectListPhase == null)
             {                
                 _campaignManager.TriggerSendConnectionsPhase(campaign.CampaignId, campaign.ApplicationUserId);
@@ -112,7 +113,8 @@ namespace Leadsly.Domain.Providers
                 {
                     return new ProspectListBody
                     {
-                        SearchUrls = p.SearchUrls
+                        SearchUrls = p.SearchUrls,
+                        HalId = halId
                     };
                 }).ToList();
 
