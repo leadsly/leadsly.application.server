@@ -15,37 +15,12 @@ namespace Leadsly.Domain.Services
 {
     public class CampaignPhaseCommandProducer : ICampaignPhaseCommandProducer
     {
-        public CampaignPhaseCommandProducer(
-            ILogger<CampaignPhaseCommandProducer> logger,
-            IMessageBrokerOutlet messageBrokerOutlet,
-            ICampaignRepositoryFacade campaignRepositoryFacade,
-            IRabbitMQProvider rabbitMQProvider,
-            IHalRepository halRepository,
-            ICampaignProvider campaignProvider,
-            IUserProvider userProvider,
-            ITimestampService timestampService,
-            ISendFollowUpMessageProvider sendFollowUpMessageProvider
-            )
+        public CampaignPhaseCommandProducer(ILogger<CampaignPhaseCommandProducer> logger, IServiceProvider serviceProvider)
         {
-            _campaignRepositoryFacade = campaignRepositoryFacade;
-            _rabbitMQProvider = rabbitMQProvider;
-            _halRepository = halRepository;
-            _campaignProvider = campaignProvider;
-            _userProvider = userProvider;
-            _timestampService = timestampService;
-            _sendFollowUpMessageProvider = sendFollowUpMessageProvider;
-            _messageBrokerOutlet = messageBrokerOutlet;
+            _serviceProvider = serviceProvider;
             _logger = logger;
         }
 
-        private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
-        private readonly IRabbitMQProvider _rabbitMQProvider;
-        private readonly IHalRepository _halRepository;
-        private readonly ICampaignProvider _campaignProvider;
-        private readonly ISendFollowUpMessageProvider _sendFollowUpMessageProvider;
-        private readonly IUserProvider _userProvider;
-        private readonly ITimestampService _timestampService;
-        private readonly IMessageBrokerOutlet _messageBrokerOutlet;
         private readonly ILogger<CampaignPhaseCommandProducer> _logger;
         private readonly IServiceProvider _serviceProvider;
 
@@ -72,16 +47,23 @@ namespace Leadsly.Domain.Services
 
             using (var scope = _serviceProvider.CreateScope())
             {
+                IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
                 ILogger<MonitorForNewConnectionsAllCommand> logger = scope.ServiceProvider.GetRequiredService<ILogger<MonitorForNewConnectionsAllCommand>>();
+                ICampaignRepositoryFacade campaignRepositoryFacade = scope.ServiceProvider.GetRequiredService<ICampaignRepositoryFacade>();
+                IRabbitMQProvider rabbitMQProvider = scope.ServiceProvider.GetRequiredService<IRabbitMQProvider>();
+                IHalRepository halRepository = scope.ServiceProvider.GetRequiredService<IHalRepository>();
+                ICampaignProvider campaignProvider = scope.ServiceProvider.GetRequiredService<ICampaignProvider>();
+                IUserProvider userProvider = scope.ServiceProvider.GetRequiredService<IUserProvider>();
+                ITimestampService timestampService = scope.ServiceProvider.GetRequiredService<ITimestampService>();
 
                 MonitorForNewConnectionsAllCommand command = new MonitorForNewConnectionsAllCommand(
-                       _messageBrokerOutlet,
-                       logger,
-                        _userProvider,
-                        _campaignRepositoryFacade,
-                        _halRepository,
-                        _timestampService,
-                        _rabbitMQProvider
+                        messageBrokerOutlet,
+                        logger,
+                        userProvider,
+                        campaignRepositoryFacade,
+                        halRepository,
+                        timestampService,
+                        rabbitMQProvider
                     );
                 return command;
             }
@@ -93,16 +75,22 @@ namespace Leadsly.Domain.Services
 
             using (var scope = _serviceProvider.CreateScope())
             {
+                IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
                 ILogger<ProspectListsCommand> logger = scope.ServiceProvider.GetRequiredService<ILogger<ProspectListsCommand>>();
+                ICampaignRepositoryFacade campaignRepositoryFacade = scope.ServiceProvider.GetRequiredService<ICampaignRepositoryFacade>();
+                IRabbitMQProvider rabbitMQProvider = scope.ServiceProvider.GetRequiredService<IRabbitMQProvider>();
+                IHalRepository halRepository = scope.ServiceProvider.GetRequiredService<IHalRepository>();
+                ICampaignProvider campaignProvider = scope.ServiceProvider.GetRequiredService<ICampaignProvider>();
+                ITimestampService timestampService = scope.ServiceProvider.GetRequiredService<ITimestampService>();
 
                 ProspectListsCommand command = new ProspectListsCommand(
                     logger,
-                    _messageBrokerOutlet,
-                    _campaignProvider,
-                    _campaignRepositoryFacade,
-                    _halRepository,
-                    _timestampService,
-                    _rabbitMQProvider
+                    messageBrokerOutlet,
+                    campaignProvider,
+                    campaignRepositoryFacade,
+                    halRepository,
+                    timestampService,
+                    rabbitMQProvider
                     );
                 return command;
             }
@@ -113,15 +101,21 @@ namespace Leadsly.Domain.Services
             _logger.LogDebug("Creating FollowUpMessagePhaseForUncontactedProspectsCommand for recurring job");
             using (var scope = _serviceProvider.CreateScope())
             {
+                IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
                 ILogger<UncontactedFollowUpMessageCommand> logger = scope.ServiceProvider.GetRequiredService<ILogger<UncontactedFollowUpMessageCommand>>();
+                ICampaignRepositoryFacade campaignRepositoryFacade = scope.ServiceProvider.GetRequiredService<ICampaignRepositoryFacade>();
+                IRabbitMQProvider rabbitMQProvider = scope.ServiceProvider.GetRequiredService<IRabbitMQProvider>();
+                IHalRepository halRepository = scope.ServiceProvider.GetRequiredService<IHalRepository>();
+                ICampaignProvider campaignProvider = scope.ServiceProvider.GetRequiredService<ICampaignProvider>();
+                ISendFollowUpMessageProvider sendFollowUpMessageProvider = scope.ServiceProvider.GetRequiredService<ISendFollowUpMessageProvider>();
 
                 UncontactedFollowUpMessageCommand command = new UncontactedFollowUpMessageCommand(
-                        _messageBrokerOutlet,
-                        _campaignRepositoryFacade,
+                        messageBrokerOutlet,
+                        campaignRepositoryFacade,
                         logger,
-                        _halRepository,
-                        _sendFollowUpMessageProvider,
-                        _rabbitMQProvider
+                        halRepository,
+                        sendFollowUpMessageProvider,
+                        rabbitMQProvider
                     );
                 return command;
             }
@@ -132,15 +126,21 @@ namespace Leadsly.Domain.Services
             _logger.LogDebug("Creating DeepScanProspectsForRepliesCommand for recurring job");
             using (var scope = _serviceProvider.CreateScope())
             {
+                IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
                 ILogger<DeepScanProspectsForRepliesCommand> logger = scope.ServiceProvider.GetRequiredService<ILogger<DeepScanProspectsForRepliesCommand>>();
+                ICampaignRepositoryFacade campaignRepositoryFacade = scope.ServiceProvider.GetRequiredService<ICampaignRepositoryFacade>();
+                IRabbitMQProvider rabbitMQProvider = scope.ServiceProvider.GetRequiredService<IRabbitMQProvider>();
+                IHalRepository halRepository = scope.ServiceProvider.GetRequiredService<IHalRepository>();
+                ICampaignProvider campaignProvider = scope.ServiceProvider.GetRequiredService<ICampaignProvider>();
+                ITimestampService timestampService = scope.ServiceProvider.GetRequiredService<ITimestampService>();
 
                 DeepScanProspectsForRepliesCommand command = new DeepScanProspectsForRepliesCommand(
-                    _messageBrokerOutlet,
+                    messageBrokerOutlet,
                     logger,
-                    _halRepository,
-                    _rabbitMQProvider,
-                    _timestampService,
-                    _campaignRepositoryFacade
+                    halRepository,
+                    rabbitMQProvider,
+                    timestampService,
+                    campaignRepositoryFacade
                     );
                 return command;
             }
@@ -155,11 +155,11 @@ namespace Leadsly.Domain.Services
             _logger.LogDebug("Creating CreateMonitorForNewProspectsCommand. HalId: {halId}, UserId: {userId}", halId, userId);
             using (var scope = _serviceProvider.CreateScope())
             {
-                IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
+                IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();                
 
                 MonitorForNewConnectionsCommand command = new MonitorForNewConnectionsCommand(
-                        messageBrokerOutlet,
-                        halId,
+                        messageBrokerOutlet,                         
+                        halId, 
                         userId);
                 return command;
             }
@@ -174,16 +174,22 @@ namespace Leadsly.Domain.Services
             _logger.LogDebug("Creating CreateProspectListCommand. ProspectListPhaseId: {prospectListPhaseId}, UserId: {userId}", prospectListPhaseId, userId);
             using (var scope = _serviceProvider.CreateScope())
             {
+                IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
                 ILogger<ProspectListCommand> logger = scope.ServiceProvider.GetRequiredService<ILogger<ProspectListCommand>>();
+                ICampaignRepositoryFacade campaignRepositoryFacade = scope.ServiceProvider.GetRequiredService<ICampaignRepositoryFacade>();
+                IRabbitMQProvider rabbitMQProvider = scope.ServiceProvider.GetRequiredService<IRabbitMQProvider>();
+                IHalRepository halRepository = scope.ServiceProvider.GetRequiredService<IHalRepository>();
+                ICampaignProvider campaignProvider = scope.ServiceProvider.GetRequiredService<ICampaignProvider>();
+                ITimestampService timestampService = scope.ServiceProvider.GetRequiredService<ITimestampService>();
 
                 ProspectListCommand command = new ProspectListCommand(
                         logger,
-                        _messageBrokerOutlet,
-                        _campaignRepositoryFacade,
-                        _halRepository,
-                        _timestampService,
-                        _rabbitMQProvider,
-                        prospectListPhaseId,
+                        messageBrokerOutlet, 
+                        campaignRepositoryFacade,
+                        halRepository,
+                        timestampService,
+                        rabbitMQProvider,
+                        prospectListPhaseId, 
                         userId
                     );
                 return command;
@@ -199,16 +205,22 @@ namespace Leadsly.Domain.Services
             _logger.LogDebug("Creating CreateSendConnectionsCommand. CampaignId: {campaignId}, UserId: {userId}", campaignId, userId);
             using (var scope = _serviceProvider.CreateScope())
             {
+                IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
                 ILogger<SendConnectionsToProspectsCommand> logger = scope.ServiceProvider.GetRequiredService<ILogger<SendConnectionsToProspectsCommand>>();
+                ICampaignRepositoryFacade campaignRepositoryFacade = scope.ServiceProvider.GetRequiredService<ICampaignRepositoryFacade>();
+                IRabbitMQProvider rabbitMQProvider = scope.ServiceProvider.GetRequiredService<IRabbitMQProvider>();
+                IHalRepository halRepository = scope.ServiceProvider.GetRequiredService<IHalRepository>();
+                ICampaignProvider campaignProvider = scope.ServiceProvider.GetRequiredService<ICampaignProvider>();
+                ITimestampService timestampService = scope.ServiceProvider.GetRequiredService<ITimestampService>();
 
                 SendConnectionsToProspectsCommand command = new SendConnectionsToProspectsCommand(
-                        _messageBrokerOutlet,
+                        messageBrokerOutlet, 
                         logger,
-                        _campaignRepositoryFacade,
-                        _halRepository,
-                        _timestampService,
-                        _rabbitMQProvider,
-                        campaignId,
+                        campaignRepositoryFacade,
+                        halRepository,
+                        timestampService,
+                        rabbitMQProvider,
+                        campaignId, 
                         userId
                     );
                 return command;
@@ -224,16 +236,22 @@ namespace Leadsly.Domain.Services
             _logger.LogDebug("Creating CreateScanProspectsForRepliesCommand. HalId: {halId}, UserId: {userId}", halId, userId);
             using (var scope = _serviceProvider.CreateScope())
             {
+                IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
                 ILogger<ScanProspectsForRepliesCommand> logger = scope.ServiceProvider.GetRequiredService<ILogger<ScanProspectsForRepliesCommand>>();
+                ICampaignRepositoryFacade campaignRepositoryFacade = scope.ServiceProvider.GetRequiredService<ICampaignRepositoryFacade>();
+                IRabbitMQProvider rabbitMQProvider = scope.ServiceProvider.GetRequiredService<IRabbitMQProvider>();
+                IHalRepository halRepository = scope.ServiceProvider.GetRequiredService<IHalRepository>();
+                ICampaignProvider campaignProvider = scope.ServiceProvider.GetRequiredService<ICampaignProvider>();
+                ITimestampService timestampService = scope.ServiceProvider.GetRequiredService<ITimestampService>();
 
                 ScanProspectsForRepliesCommand command = new ScanProspectsForRepliesCommand(
-                        _messageBrokerOutlet,
-                        _halRepository,
+                        messageBrokerOutlet,
+                        halRepository,
                         logger,
-                        _campaignProvider,
-                        _campaignRepositoryFacade,
-                        _timestampService,
-                        _rabbitMQProvider,
+                        campaignProvider,
+                        campaignRepositoryFacade,
+                        timestampService,
+                        rabbitMQProvider,
                         halId,
                         userId
                     );
@@ -250,15 +268,20 @@ namespace Leadsly.Domain.Services
             _logger.LogDebug("Creating CreateSendConnectionsCommand. HalId: {halId}, UserId: {userId}", halId);
             using (var scope = _serviceProvider.CreateScope())
             {
+                IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
                 ILogger<FollowUpMessagesCommand> logger = scope.ServiceProvider.GetRequiredService<ILogger<FollowUpMessagesCommand>>();
+                ICampaignRepositoryFacade campaignRepositoryFacade = scope.ServiceProvider.GetRequiredService<ICampaignRepositoryFacade>();
+                IRabbitMQProvider rabbitMQProvider = scope.ServiceProvider.GetRequiredService<IRabbitMQProvider>();
+                IHalRepository halRepository = scope.ServiceProvider.GetRequiredService<IHalRepository>();
+                ISendFollowUpMessageProvider sendFollowUpMessageProvider = scope.ServiceProvider.GetRequiredService<ISendFollowUpMessageProvider>();
 
                 FollowUpMessagesCommand command = new FollowUpMessagesCommand(
-                        _messageBrokerOutlet,
+                        messageBrokerOutlet,
                         logger,
-                        _halRepository,
-                        _rabbitMQProvider,
-                        _campaignRepositoryFacade,
-                        _sendFollowUpMessageProvider,
+                        halRepository,
+                        rabbitMQProvider,
+                        campaignRepositoryFacade,
+                        sendFollowUpMessageProvider,
                         halId
                     );
                 return command;
@@ -270,14 +293,19 @@ namespace Leadsly.Domain.Services
             _logger.LogDebug("Creating CreateFollowUpMessageCommand. CampaignProspectFollowUpMessageId: {campaignProspectFollowUpMessageId}, CampaignId: {campaignId}", campaignProspectFollowUpMessageId, campaignId);
             using (var scope = _serviceProvider.CreateScope())
             {
+                IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
                 ILogger<FollowUpMessageCommand> logger = scope.ServiceProvider.GetRequiredService<ILogger<FollowUpMessageCommand>>();
+                ICampaignRepositoryFacade campaignRepositoryFacade = scope.ServiceProvider.GetRequiredService<ICampaignRepositoryFacade>();
+                IRabbitMQProvider rabbitMQProvider = scope.ServiceProvider.GetRequiredService<IRabbitMQProvider>();
+                IHalRepository halRepository = scope.ServiceProvider.GetRequiredService<IHalRepository>();
+
 
                 FollowUpMessageCommand command = new FollowUpMessageCommand(
-                        _messageBrokerOutlet,
+                        messageBrokerOutlet,
                         logger,
-                        _campaignRepositoryFacade,
-                        _halRepository,
-                        _rabbitMQProvider,
+                        campaignRepositoryFacade,
+                        halRepository,
+                        rabbitMQProvider,
                         campaignProspectFollowUpMessageId,
                         campaignId, scheduleTime
                     );
