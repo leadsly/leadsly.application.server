@@ -1,12 +1,8 @@
-﻿using Hangfire;
-using Leadsly.Application.Model;
-using Leadsly.Application.Model.Campaigns;
-using Leadsly.Application.Model.Entities.Campaigns;
+﻿using Leadsly.Application.Model.Entities.Campaigns;
+using Leadsly.Domain.Campaigns.Handlers;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
-using Leadsly.Domain.Services.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -14,29 +10,26 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.Campaigns.Commands
+namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages
 {
-    public class FollowUpMessagesCommand : FollowUpMessageBaseCommand, ICommand
+    public class FollowUpMessagesCommandHandler : FollowUpMessageCommandHandlerBase, ICommandHandler<FollowUpMessagesCommand>
     {
-        public FollowUpMessagesCommand(
-            IMessageBrokerOutlet messageBrokerOutlet, 
-            ILogger<FollowUpMessagesCommand> logger,
+        public FollowUpMessagesCommandHandler(
+            IMessageBrokerOutlet messageBrokerOutlet,
+            ILogger<FollowUpMessagesCommandHandler> logger,
             IHalRepository halRepository,
             IRabbitMQProvider rabbitMQProvider,
-            ICampaignRepositoryFacade campaignRepositoryFacade, 
-            ISendFollowUpMessageProvider sendFollowUpMessageService, 
-            string halId)
-            : base(messageBrokerOutlet, logger, campaignRepositoryFacade, halRepository, rabbitMQProvider)
+            ICampaignRepositoryFacade campaignRepositoryFacade,
+            ISendFollowUpMessageProvider sendFollowUpMessageService
+            ) : base(messageBrokerOutlet, logger, campaignRepositoryFacade, halRepository, rabbitMQProvider)
         {
-            _halId = halId;
             _campaignRepositoryFacade = campaignRepositoryFacade;
             _sendFollowUpMessageService = sendFollowUpMessageService;
-
         }
 
-        private readonly string _halId;
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
         private readonly ISendFollowUpMessageProvider _sendFollowUpMessageService;
+
 
         /// <summary>
         /// FollowUpMessagePhase triggered after DeepScanProspectsForRepliesPhase is finished running. This phase is triggered by hal once
@@ -46,9 +39,9 @@ namespace Leadsly.Domain.Campaigns.Commands
         /// <param name="halId"></param>
         /// <param name="userId"></param>
         /// <returns></returns>
-        public async Task ExecuteAsync()
+        public async Task HandleAsync(FollowUpMessagesCommand command)
         {
-            IList<Campaign> campaigns = await _campaignRepositoryFacade.GetAllActiveCampaignsByHalIdAsync(_halId);
+            IList<Campaign> campaigns = await _campaignRepositoryFacade.GetAllActiveCampaignsByHalIdAsync(command.HalId);
 
             IDictionary<CampaignProspectFollowUpMessage, DateTimeOffset> messagesGoingOut = new Dictionary<CampaignProspectFollowUpMessage, DateTimeOffset>();
             foreach (Campaign activeCampaign in campaigns)
@@ -69,7 +62,7 @@ namespace Leadsly.Domain.Campaigns.Commands
         {
             foreach (var messagePair in messagesGoingOut)
             {
-                await InternalExecuteAsync(messagePair.Key.CampaignProspectFollowUpMessageId, messagePair.Key.CampaignProspect.CampaignId, messagePair.Value);                
+                await InternalExecuteAsync(messagePair.Key.CampaignProspectFollowUpMessageId, messagePair.Key.CampaignProspect.CampaignId, messagePair.Value);
             }
         }
     }

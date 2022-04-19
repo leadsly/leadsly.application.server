@@ -5,7 +5,6 @@ using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -14,29 +13,26 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.Campaigns.Commands
+namespace Leadsly.Domain.Campaigns.ProspectListsHandlers
 {
-    public class ProspectListBaseCommand
+    public class ProspectListCommandHandlerBase
     {
-        public ProspectListBaseCommand(
-            ILogger logger, 
+        public ProspectListCommandHandlerBase(
+            ILogger logger,
             ICampaignRepositoryFacade campaignRepositoryFacade,
             IHalRepository halRepository,
-            ITimestampService timestampService,
             IRabbitMQProvider rabbitMQProvider
             )
         {
             _campaignRepositoryFacade = campaignRepositoryFacade;
-            _halRepository = halRepository;
-            _timestampService = timestampService;
+            _halRepository = halRepository;            
             _rabbitMQProvider = rabbitMQProvider;
             _logger = logger;
         }
 
         private readonly ILogger _logger;
         private ICampaignRepositoryFacade _campaignRepositoryFacade;
-        private IHalRepository _halRepository;
-        private ITimestampService _timestampService;
+        private IHalRepository _halRepository;        
         private readonly IRabbitMQProvider _rabbitMQProvider;
 
         protected async Task<ProspectListBody> CreateProspectListBodyAsync(string prospectListPhaseId, string userId, CancellationToken ct = default)

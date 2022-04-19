@@ -7,8 +7,6 @@ using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -17,16 +15,17 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.Campaigns.Commands
+namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler
 {
-    public class FollowUpMessageBaseCommand
+    public class FollowUpMessageCommandHandlerBase
     {
-        public FollowUpMessageBaseCommand(
-            IMessageBrokerOutlet messageBrokerOutlet, 
-            ILogger logger, 
-            ICampaignRepositoryFacade campaignRepositoryFacade, 
-            IHalRepository halRepository, 
-            IRabbitMQProvider rabbitMQProvider)
+        public FollowUpMessageCommandHandlerBase(
+            IMessageBrokerOutlet messageBrokerOutlet,
+            ILogger logger,
+            ICampaignRepositoryFacade campaignRepositoryFacade,
+            IHalRepository halRepository,
+            IRabbitMQProvider rabbitMQProvider
+            )
         {
             _messageBrokerOutlet = messageBrokerOutlet;
             _rabbitMQProvider = rabbitMQProvider;

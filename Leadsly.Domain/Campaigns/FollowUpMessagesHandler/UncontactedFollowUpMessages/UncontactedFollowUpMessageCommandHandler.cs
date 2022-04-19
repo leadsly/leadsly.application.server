@@ -2,11 +2,10 @@
 using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.Entities.Campaigns;
+using Leadsly.Domain.Campaigns.Handlers;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
-using Leadsly.Domain.Services.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -14,29 +13,28 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.Campaigns.Commands
+namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.UncontactedFollowUpMessages
 {
-    public class UncontactedFollowUpMessageCommand : FollowUpMessageBaseCommand, ICommand
+    public class UncontactedFollowUpMessageCommandHandler : FollowUpMessageCommandHandlerBase, ICommandHandler<UncontactedFollowUpMessageCommand>
     {
-        public UncontactedFollowUpMessageCommand(
-            IMessageBrokerOutlet messageBrokerOutlet, 
+        public UncontactedFollowUpMessageCommandHandler(
+            IMessageBrokerOutlet messageBrokerOutlet,
             ICampaignRepositoryFacade campaignRepositoryFacade,
-            ILogger<UncontactedFollowUpMessageCommand> logger,
+            ILogger<UncontactedFollowUpMessageCommandHandler> logger,
             IHalRepository halRepository,
             ISendFollowUpMessageProvider sendFollowUpMessageProvider,
             IRabbitMQProvider rabbitMQProvider
-            )
-            : base(messageBrokerOutlet, logger, campaignRepositoryFacade, halRepository, rabbitMQProvider)
+            ) : base(messageBrokerOutlet, logger, campaignRepositoryFacade, halRepository, rabbitMQProvider)
         {
-            _sendFollowUpMessageProvider = sendFollowUpMessageProvider;            
+            _sendFollowUpMessageProvider = sendFollowUpMessageProvider;
             _campaignRepositoryFacade = campaignRepositoryFacade;
             _messageBrokerOutlet = messageBrokerOutlet;
             _logger = logger;
         }
 
-        private readonly ILogger<UncontactedFollowUpMessageCommand> _logger;
+        private readonly ILogger<UncontactedFollowUpMessageCommandHandler> _logger;
         private readonly IMessageBrokerOutlet _messageBrokerOutlet;
-        private readonly ISendFollowUpMessageProvider _sendFollowUpMessageProvider;        
+        private readonly ISendFollowUpMessageProvider _sendFollowUpMessageProvider;
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
 
         /// <summary>
@@ -49,7 +47,7 @@ namespace Leadsly.Domain.Campaigns.Commands
         /// right away. If it falls sometime during the work day, we schedule it for that time, if it falls after the work day we do nothing and let the next recurring job take care of it.
         /// </summary>
         /// <returns></returns>
-        public async Task ExecuteAsync()
+        public async Task HandleAsync(UncontactedFollowUpMessageCommand command)
         {
             // first grab all active campaigns
             IList<Campaign> campaigns = await _campaignRepositoryFacade.GetAllActiveCampaignsAsync();

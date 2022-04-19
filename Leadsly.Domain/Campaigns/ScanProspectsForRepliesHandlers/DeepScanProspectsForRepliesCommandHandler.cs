@@ -2,11 +2,11 @@
 using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.Entities;
 using Leadsly.Application.Model.Entities.Campaigns;
+using Leadsly.Domain.Campaigns.Handlers;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -14,37 +14,31 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.Campaigns.Commands
+namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
 {
-    public class DeepScanProspectsForRepliesCommand : ScanProspectsForRepliesBaseCommand, ICommand
+    public class DeepScanProspectsForRepliesCommandHandler : ScanProspectsForRepliesCommandHandlerBase, ICommandHandler<DeepScanProspectsForRepliesCommand>
     {
-        public DeepScanProspectsForRepliesCommand
-            (IMessageBrokerOutlet messageBrokerOutlet, 
-            ILogger<DeepScanProspectsForRepliesCommand> logger,
-            IHalRepository halRepository, 
-            IRabbitMQProvider rabbitMQProvider, 
+        public DeepScanProspectsForRepliesCommandHandler(
+            IMessageBrokerOutlet messageBrokerOutlet,
+            ILogger<DeepScanProspectsForRepliesCommandHandler> logger,
+            IHalRepository halRepository,
+            IRabbitMQProvider rabbitMQProvider,
             ITimestampService timestampService,
-            ICampaignRepositoryFacade campaignRepositoryFacade)
-            : base(logger, campaignRepositoryFacade, rabbitMQProvider, halRepository, timestampService)
+            ICampaignRepositoryFacade campaignRepositoryFacade
+            ) : base(logger, campaignRepositoryFacade, rabbitMQProvider, halRepository, timestampService)
         {
             _messageBrokerOutlet = messageBrokerOutlet;
             _rabbitMQProvider = rabbitMQProvider;
             _logger = logger;
             _halRepository = halRepository;
             _campaignRepositoryFacade = campaignRepositoryFacade;
-
         }
 
-        private readonly ILogger<DeepScanProspectsForRepliesCommand> _logger;
+        private readonly ILogger<DeepScanProspectsForRepliesCommandHandler> _logger;
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
         private readonly IHalRepository _halRepository;
         private readonly IMessageBrokerOutlet _messageBrokerOutlet;
         private readonly IRabbitMQProvider _rabbitMQProvider;
-
-        public async Task ExecuteAsync()
-        {
-            await InternalExecuteListAsync();
-        }
 
         /// <summary>
         /// Triggered on recurring basis once a day. The purpose of this phase is to perform a deep analysis of the conversation history with any campaign prospect to who meets the following conditions
@@ -53,6 +47,11 @@ namespace Leadsly.Domain.Campaigns.Commands
         /// FollowUpMessagePhase and then ScanProspectsForRepliesPhase
         /// </summary>
         /// <returns></returns>
+        public async Task HandleAsync(DeepScanProspectsForRepliesCommand command)
+        {
+            await InternalExecuteListAsync();
+        }
+
         private async Task InternalExecuteListAsync()
         {
             IDictionary<string, IList<CampaignProspect>> halsCampaignProspects = await CreateHalsCampainProspectsAsync();
@@ -101,6 +100,5 @@ namespace Leadsly.Domain.Campaigns.Commands
 
             return halsCampaignProspects;
         }
-
     }
 }

@@ -4,11 +4,11 @@ using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.Entities;
 using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Application.Model.Entities.Campaigns.Phases;
+using Leadsly.Domain.Campaigns.Handlers;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -17,23 +17,20 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.Campaigns.Commands
+namespace Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers
 {
-    public class SendConnectionsToProspectsCommand : ICommand
+    public class SendConnectionsToProspectsCommandHandler : ICommandHandler<SendConnectionsToProspectsCommand>
     {
-        public SendConnectionsToProspectsCommand(
-            IMessageBrokerOutlet messageBrokerOutlet, 
-            ILogger<SendConnectionsToProspectsCommand> logger,            
+        public SendConnectionsToProspectsCommandHandler(
+            IMessageBrokerOutlet messageBrokerOutlet,
+            ILogger<SendConnectionsToProspectsCommandHandler> logger,
             ICampaignRepositoryFacade campaignRepositoryFacade,
             IHalRepository halRepository,
             ITimestampService timestampService,
-            IRabbitMQProvider rabbitMQProvider,
-            string campaignId, 
-            string userId)            
+            IRabbitMQProvider rabbitMQProvider
+            )
         {
-            _campaignId = campaignId;
-            _campaignRepositoryFacade = campaignRepositoryFacade;
-            _userId = userId;
+            _campaignRepositoryFacade = campaignRepositoryFacade;            
             _halRepository = halRepository;
             _timestampService = timestampService;
             _messageBrokerOutlet = messageBrokerOutlet;
@@ -41,14 +38,12 @@ namespace Leadsly.Domain.Campaigns.Commands
             _logger = logger;
         }
 
-        private readonly string _campaignId;
-        private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
-        private readonly string _userId;
+        private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;        
         private readonly IHalRepository _halRepository;
         private readonly ITimestampService _timestampService;
         private readonly IMessageBrokerOutlet _messageBrokerOutlet;
         private readonly IRabbitMQProvider _rabbitMQProvider;
-        private readonly ILogger<SendConnectionsToProspectsCommand> _logger;
+        private readonly ILogger<SendConnectionsToProspectsCommandHandler> _logger;
 
         /// <summary>
         /// Triggered by a new campaign that is using existing ProspectList or when ProspectListPhase finishes and we're ready to send out connections for the given campaign.
@@ -56,9 +51,9 @@ namespace Leadsly.Domain.Campaigns.Commands
         /// <param name="campaignId"></param>
         /// <param name="userId"></param>
         /// <returns></returns>
-        public async Task ExecuteAsync()
+        public async Task HandleAsync(SendConnectionsToProspectsCommand command)
         {
-            SendConnectionsBody messageBody = await CreateMessageBodyAsync();
+            SendConnectionsBody messageBody = await CreateMessageBodyAsync(command);
             IList<SendConnectionsStageBody> stages = await CreateStagesAsync(messageBody);
             await SchedulePhaseMessagesAsync(messageBody, stages);
         }
@@ -102,7 +97,7 @@ namespace Leadsly.Domain.Campaigns.Commands
         }
 
         private async Task<IList<SendConnectionsStageBody>> CreateStagesAsync(SendConnectionsBody messageBody)
-        {            
+        {
             string campaignId = messageBody.CampaignId;
             IList<SendConnectionsStageBody> sendConnectionsStagesBody = await GetSendConnectionsStagesAsync(campaignId, messageBody.DailyLimit);
 
@@ -148,9 +143,9 @@ namespace Leadsly.Domain.Campaigns.Commands
             return sendConnectionsStagesBody;
         }
 
-        private async Task<SendConnectionsBody> CreateMessageBodyAsync()
+        private async Task<SendConnectionsBody> CreateMessageBodyAsync(SendConnectionsToProspectsCommand command)
         {
-            SendConnectionsBody messageBody = await CreateSendConnectionsBodyAsync(_campaignId, _userId);
+            SendConnectionsBody messageBody = await CreateSendConnectionsBodyAsync(command.CampaignId, command.UserId);
 
             return messageBody;
         }
@@ -199,6 +194,5 @@ namespace Leadsly.Domain.Campaigns.Commands
 
             return sendConnectionsBody;
         }
-
     }
 }

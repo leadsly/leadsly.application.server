@@ -1,4 +1,9 @@
-﻿using Leadsly.Domain.Campaigns.Commands;
+﻿using Leadsly.Domain.Campaigns;
+using Leadsly.Domain.Campaigns.FollowUpMessagesHandler.UncontactedFollowUpMessages;
+using Leadsly.Domain.Campaigns.Handlers;
+using Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandler;
+using Leadsly.Domain.Campaigns.ProspectListsHandlers.ProspectLists;
+using Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -23,14 +28,29 @@ namespace Leadsly.Domain
         {
             using (var scope = _serviceProbider.CreateScope())
             {
-                ICampaignPhaseCommandProducer campaignPhaseCommandProducer = scope.ServiceProvider.GetService<ICampaignPhaseCommandProducer>();
+                HalWorkCommandHandlerDecorator<MonitorForNewConnectionsAllCommand> monitorHandler = 
+                    scope.ServiceProvider.GetRequiredService<HalWorkCommandHandlerDecorator<MonitorForNewConnectionsAllCommand>>();
 
-                IList<ICommand> commands = campaignPhaseCommandProducer.CreateRecurringJobCommands();
+                MonitorForNewConnectionsAllCommand monitorForNewConnectionsAllCommand = new MonitorForNewConnectionsAllCommand();
+                await monitorHandler.HandleAsync(monitorForNewConnectionsAllCommand);
 
-                ICampaignManager campaignManager = scope.ServiceProvider.GetService<ICampaignManager>();
-                campaignManager.SetCommands(commands);
+                HalWorkCommandHandlerDecorator<ProspectListsCommand> prospectsHandler = 
+                    scope.ServiceProvider.GetRequiredService<HalWorkCommandHandlerDecorator<ProspectListsCommand>>();
 
-                await campaignManager.ExecuteAllAsync();
+                ProspectListsCommand prospectListsCommand = new ProspectListsCommand();
+                await prospectsHandler.HandleAsync(prospectListsCommand);
+
+                HalWorkCommandHandlerDecorator<UncontactedFollowUpMessageCommand> uncontactedHandler =
+                   scope.ServiceProvider.GetRequiredService<HalWorkCommandHandlerDecorator<UncontactedFollowUpMessageCommand>>();
+                
+                UncontactedFollowUpMessageCommand uncontactedCommand = new UncontactedFollowUpMessageCommand();
+                await uncontactedHandler.HandleAsync(uncontactedCommand);
+
+                HalWorkCommandHandlerDecorator<DeepScanProspectsForRepliesCommand> deepScanHandler =
+                   scope.ServiceProvider.GetRequiredService<HalWorkCommandHandlerDecorator<DeepScanProspectsForRepliesCommand>>();
+
+                DeepScanProspectsForRepliesCommand deepScanCommand = new DeepScanProspectsForRepliesCommand();
+                await deepScanHandler.HandleAsync(deepScanCommand);
             } 
         }
     }

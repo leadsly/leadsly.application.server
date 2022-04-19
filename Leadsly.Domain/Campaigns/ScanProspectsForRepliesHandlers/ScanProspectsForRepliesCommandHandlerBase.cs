@@ -14,11 +14,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.Campaigns.Commands
+namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
 {
-    public class ScanProspectsForRepliesBaseCommand
+    public class ScanProspectsForRepliesCommandHandlerBase
     {
-        public ScanProspectsForRepliesBaseCommand(
+        public ScanProspectsForRepliesCommandHandlerBase(
             ILogger logger,
             ICampaignRepositoryFacade campaignRepositoryFacade,
             IRabbitMQProvider rabbitMQProvider,

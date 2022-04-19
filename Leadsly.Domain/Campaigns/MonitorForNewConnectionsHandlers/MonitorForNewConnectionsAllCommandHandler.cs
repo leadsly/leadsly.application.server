@@ -2,11 +2,12 @@
 using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.Entities;
 using Leadsly.Application.Model.Entities.Campaigns.Phases;
+//using Leadsly.Domain.Campaigns.Commands;
+using Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandler;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -15,20 +16,18 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.Campaigns.Commands
+namespace Leadsly.Domain.Campaigns.Handlers
 {
-    public class MonitorForNewConnectionsAllCommand : ICommand
+    public class MonitorForNewConnectionsAllCommandHandler : ICommandHandler<MonitorForNewConnectionsAllCommand>
     {
-        public MonitorForNewConnectionsAllCommand(
-            IMessageBrokerOutlet messageBrokerOutlet, 
-            ILogger<MonitorForNewConnectionsAllCommand> logger,
+        public MonitorForNewConnectionsAllCommandHandler(IMessageBrokerOutlet messageBrokerOutlet,
+            ILogger<MonitorForNewConnectionsAllCommandHandler> logger,
             IUserProvider userProvider,
             ICampaignRepositoryFacade campaignRepositoryFacade,
             IHalRepository halRepository,
             ITimestampService timestampService,
-            IRabbitMQProvider rabbitMQProvider
-            )
-        {
+            IRabbitMQProvider rabbitMQProvider)
+        {           
             _messageBrokerOutlet = messageBrokerOutlet;
             _logger = logger;
             _userProvider = userProvider;
@@ -38,23 +37,19 @@ namespace Leadsly.Domain.Campaigns.Commands
             _rabbitMQProvider = rabbitMQProvider;
         }
 
-        private readonly ILogger<MonitorForNewConnectionsAllCommand> _logger;
+        private readonly ILogger<MonitorForNewConnectionsAllCommandHandler> _logger;
+        private readonly IMessageBrokerOutlet _messageBrokerOutlet;        
         private readonly IUserProvider _userProvider;
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
         private readonly IHalRepository _halRepository;
         private readonly ITimestampService _timestampService;
         private readonly IRabbitMQProvider _rabbitMQProvider;
-        private readonly IMessageBrokerOutlet _messageBrokerOutlet;
 
-        /// <summary>
-        /// Triggered once on recurring basis. This phase is triggered once per registered Hal id. This is a passive phase that is supposed to run from the beginning of the work day until the end
-        /// </summary>
-        /// <returns></returns>
-        public async Task ExecuteAsync()
+        public async Task HandleAsync(MonitorForNewConnectionsAllCommand command)
         {
             string queueNameIn = RabbitMQConstants.MonitorNewAcceptedConnections.QueueName;
             string routingKeyIn = RabbitMQConstants.MonitorNewAcceptedConnections.RoutingKey;
-            
+
             IList<MonitorForNewAcceptedConnectionsBody> messageBodies = await CreateMessageBodiesAsync();
             foreach (MonitorForNewAcceptedConnectionsBody body in messageBodies)
             {

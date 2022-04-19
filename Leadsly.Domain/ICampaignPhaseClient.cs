@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.Providers.Interfaces
+namespace Leadsly.Domain
 {
     public interface ICampaignPhaseClient
     {
@@ -18,6 +18,6 @@ namespace Leadsly.Domain.Providers.Interfaces
 
         Task ProduceFollowUpMessagesPhaseAsync(string halId, string userId, CancellationToken ct = default);
 
-        Task ProduceSendFollowUpMessagesAsync(IList<CampaignProspect> campaignProspects, CancellationToken ct = default);
+        Task ProduceSendFollowUpMessagesAsync(IDictionary<CampaignProspectFollowUpMessage, DateTimeOffset> messagesGoingOut, CancellationToken ct = default);
     }
 }

@@ -11,7 +11,6 @@ using Leadsly.Application.Model.ViewModels;
 using Leadsly.Application.Model.ViewModels.Campaigns;
 using Leadsly.Application.Model.ViewModels.Response;
 using Leadsly.Domain.Campaigns;
-using Leadsly.Domain.Campaigns.Commands;
 using Leadsly.Domain.Converters;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
@@ -54,36 +53,6 @@ namespace Leadsly.Domain.Providers
         private readonly ILogger<CampaignProvider> _logger;   
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;  
         private readonly ICampaignService _campaignService;        
-
-        //public async Task ProcessNewCampaignAsync(Campaign campaign)
-        //{
-        //    // ensure ScanForProspectReplies, ConnectionWithdraw and MonitorForNewProspects phases are running on hal
-        //    // always trigger them here
-        //    //IList<ICommand> commands = new List<ICommand>();
-        //    //ICommand monitorCommand = _commandProducer.CreateMonitorForNewProspectsCommand(campaign.HalId, campaign.ApplicationUserId);
-        //    //ICommand scanCommand = _commandProducer.CreateScanProspectsForRepliesCommand(campaign.HalId, campaign.ApplicationUserId);            
-
-        //    //// if prospect list phase does not exists, this means were running campaign off of existing prospect list
-        //    //if(campaign.ProspectListPhase == null)
-        //    //{
-        //    //    // await _campaignManager.TriggerSendConnectionsPhaseAsync(campaign.CampaignId, campaign.ApplicationUserId);
-        //    //    ICommand sendCommand = _commandProducer.CreateSendConnectionsCommand(campaign.CampaignId, campaign.ApplicationUserId);
-        //    //    commands.Add(sendCommand);
-        //    //}
-        //    //else
-        //    //{
-        //    //    // await _campaignManager.TriggerProspectListPhaseAsync(campaign.ProspectListPhase.ProspectListPhaseId, campaign.ApplicationUserId);
-        //    //    ICommand prospectListCommand = _commandProducer.CreateProspectListCommand(campaign.ProspectListPhase.ProspectListPhaseId, campaign.ApplicationUserId);
-        //    //    commands.Add(prospectListCommand);
-        //    //}
-
-        //    //commands.Add(monitorCommand);
-        //    //commands.Add(scanCommand);
-
-        //    //_campaignManager.SetCommands(commands);
-        //    //await _campaignManager.ExecuteAllAsync();
-        //    await _campaignPhaseClient.HandleNewCampaignAsync(campaign);
-        //}
 
         public CampaignProspectList CreateCampaignProspectList(PrimaryProspectList primaryProspectList, string userId)
         {
@@ -368,42 +337,6 @@ namespace Leadsly.Domain.Providers
             result.OperationResults.Succeeded = true;
             return result;
         }
-
-        //public async Task TriggerSendConnectionsPhaseAsync(string campaignId, string userId)
-        //{
-        //    ICommand command = _commandProducer.CreateSendConnectionsCommand(campaignId, userId);
-        //    _campaignManager.SetCommand(command);
-        //    await _campaignManager.ExecuteAsync();
-        //}
-
-        //public async Task TriggerScanProspectsForRepliesPhaseAsync(string halId, string userId)
-        //{
-        //    ICommand command = _commandProducer.CreateScanProspectsForRepliesCommand(halId, userId);
-        //    _campaignManager.SetCommand(command);
-        //    await _campaignManager.ExecuteAsync();
-        //}
-
-        //public async Task TriggerFollowUpMessagesPhaseAsync(string halId, string userId)
-        //{
-        //    ICommand command = _commandProducer.CreateFollowUpMessagesCommand(halId);
-        //    _campaignManager.SetCommand(command);
-        //    await _campaignManager.ExecuteAsync();
-        //}
-
-        //public async Task SendFollowUpMessagesAsync(IList<CampaignProspect> campaignProspects, CancellationToken ct = default)
-        //{
-        //    var messagesToGoingOut = await _sendFollowUpMessageProvider.CreateSendFollowUpMessagesAsync(campaignProspects, ct);
-
-        //    IList<ICommand> commands = new List<ICommand>();
-        //    foreach (var messagePair in messagesToGoingOut)
-        //    {
-        //        ICommand command = _commandProducer.CreateFollowUpMessageCommand(messagePair.Key.CampaignProspectFollowUpMessageId, messagePair.Key.CampaignProspect.CampaignId, messagePair.Value);
-        //        commands.Add(command);
-        //    }
-
-        //    _campaignManager.SetCommands(commands);
-        //    await _campaignManager.ExecuteAllAsync();
-        //}
 
         private IList<SendConnectionsStage> CreateSendConnectionsStages()
         {

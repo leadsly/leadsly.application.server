@@ -1,11 +1,10 @@
 ﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
-using Leadsly.Application.Model.RabbitMQ;
+using Leadsly.Domain.Campaigns.Handlers;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -13,30 +12,23 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.Campaigns.Commands
+namespace Leadsly.Domain.Campaigns.ProspectListsHandlers.ProspectList
 {
-    public class ProspectListCommand : ProspectListBaseCommand, ICommand
+    public class ProspectListCommandHandler : ProspectListCommandHandlerBase, ICommandHandler<ProspectListCommand>
     {
-        public ProspectListCommand(
-            ILogger<ProspectListCommand> logger, 
-            IMessageBrokerOutlet messageBrokerOutlet, 
+        public ProspectListCommandHandler(
+            ILogger<ProspectListCommandHandler> logger,
+            IMessageBrokerOutlet messageBrokerOutlet,
             ICampaignRepositoryFacade campaignRepositoryFacade,
-            IHalRepository halRepository,
-            ITimestampService timestampService,
-            IRabbitMQProvider rabbitMQProvider,
-            string prospectListPhaseId, 
-            string userId)
-            : base(logger, campaignRepositoryFacade, halRepository, timestampService, rabbitMQProvider)
+            IHalRepository halRepository,            
+            IRabbitMQProvider rabbitMQProvider
+            ) : base(logger, campaignRepositoryFacade, halRepository, rabbitMQProvider)
         {
-            _prospectListPhaseId = prospectListPhaseId;
-            _userId = userId;
             _logger = logger;
             _messageBrokerOutlet = messageBrokerOutlet;
         }
 
-        private readonly string _prospectListPhaseId;
-        private readonly string _userId;
-        private readonly ILogger<ProspectListCommand> _logger;
+        private readonly ILogger<ProspectListCommandHandler> _logger;
         private readonly IMessageBrokerOutlet _messageBrokerOutlet;
 
         /// <summary>
@@ -44,14 +36,14 @@ namespace Leadsly.Domain.Campaigns.Commands
         /// PrimaryProspectList, PrimaryProspects, and CampaignProspects.
         /// </summary>
         /// <returns></returns>
-        public async Task ExecuteAsync()
+        public async Task HandleAsync(ProspectListCommand command)
         {
-            await InternalExecuteAsync();
+            await InternalExecuteAsync(command);
         }
 
-        private async Task InternalExecuteAsync()
+        private async Task InternalExecuteAsync(ProspectListCommand command)
         {
-            ProspectListBody messageBody = await CreateMessageBodyAsync();
+            ProspectListBody messageBody = await CreateMessageBodyAsync(command);
 
             string queueNameIn = RabbitMQConstants.NetworkingConnections.QueueName;
             string routingKeyIn = RabbitMQConstants.NetworkingConnections.RoutingKey;
@@ -63,9 +55,9 @@ namespace Leadsly.Domain.Campaigns.Commands
             _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers);
         }
 
-        private async Task<ProspectListBody> CreateMessageBodyAsync()
+        private async Task<ProspectListBody> CreateMessageBodyAsync(ProspectListCommand command)
         {
-            ProspectListBody messageBody = await CreateProspectListBodyAsync(_prospectListPhaseId, _userId);
+            ProspectListBody messageBody = await CreateProspectListBodyAsync(command.ProspectListPhaseId, command.UserId);
 
             return messageBody;
         }

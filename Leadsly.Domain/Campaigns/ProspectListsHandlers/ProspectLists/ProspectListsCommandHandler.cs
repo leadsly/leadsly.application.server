@@ -1,11 +1,11 @@
 ﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.Entities.Campaigns.Phases;
+using Leadsly.Domain.Campaigns.Handlers;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -13,39 +13,37 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.Campaigns.Commands
+namespace Leadsly.Domain.Campaigns.ProspectListsHandlers.ProspectLists
 {
-    public class ProspectListsCommand : ProspectListBaseCommand, ICommand
+    public class ProspectListsCommandHandler : ProspectListCommandHandlerBase, ICommandHandler<ProspectListsCommand>
     {
-        public ProspectListsCommand
-            (ILogger<ProspectListsCommand> logger, 
-            IMessageBrokerOutlet messageBrokerOutlet, 
-            ICampaignProvider campaignProvider,            
+        public ProspectListsCommandHandler(
+            ILogger<ProspectListsCommandHandler> logger,
+            IMessageBrokerOutlet messageBrokerOutlet,
+            ICampaignProvider campaignProvider,
             ICampaignRepositoryFacade campaignRepositoryFacade,
-            IHalRepository halRepository,
-            ITimestampService timestampService,
+            IHalRepository halRepository,            
             IRabbitMQProvider rabbitMQProvider
-            )
-            : base(logger, campaignRepositoryFacade, halRepository, timestampService, rabbitMQProvider)
+            ) : base(logger, campaignRepositoryFacade, halRepository, rabbitMQProvider)
         {
             _messageBrokerOutlet = messageBrokerOutlet;
-            _campaignProvider = campaignProvider;            
+            _campaignProvider = campaignProvider;
         }
 
         private readonly ICampaignProvider _campaignProvider;
         private readonly ILogger<ProspectListsCommand> _logger;
-        private readonly IMessageBrokerOutlet _messageBrokerOutlet;                
+        private readonly IMessageBrokerOutlet _messageBrokerOutlet;
 
         /// <summary>
         /// Triggered on recurring bases once in the morning. This phase is meant to trigger to create ProspectLists for campaigns that were created outside of Hal work hours.
         /// This means if user created campaign at 10:00PM local time, the campaign ProspectListPhase will not be triggered until the following morning.
         /// </summary>
         /// <returns></returns>
-        public async Task ExecuteAsync()
+        public async Task HandleAsync(ProspectListsCommand command)
         {
             await InternalExecuteListAsync();
         }
-        
+
         private async Task InternalExecuteListAsync()
         {
             // get the payload

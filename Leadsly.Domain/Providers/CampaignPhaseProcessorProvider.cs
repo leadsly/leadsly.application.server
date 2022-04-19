@@ -17,15 +17,21 @@ namespace Leadsly.Domain.Providers
 {
     public class CampaignPhaseProcessorProvider : ICampaignPhaseProcessorProvider
     {
-        public CampaignPhaseProcessorProvider(ICampaignRepositoryFacade campaignRepositoryFacade, ILogger<CampaignPhaseProcessorProvider> logger, ICampaignPhaseClient campaignPhaseClient)
+        public CampaignPhaseProcessorProvider(
+            ICampaignRepositoryFacade campaignRepositoryFacade, 
+            ILogger<CampaignPhaseProcessorProvider> logger,
+            ISendFollowUpMessageProvider sendFollowUpMessageProvider,
+            ICampaignPhaseClient campaignPhaseClient)
         {
             _logger = logger;
             _campaignPhaseClient = campaignPhaseClient;
+            _sendFollowUpMessageProvider = sendFollowUpMessageProvider;
             _campaignRepositoryFacade = campaignRepositoryFacade;
         }
 
         private readonly ILogger<CampaignPhaseProcessorProvider> _logger;
         private readonly ICampaignPhaseClient _campaignPhaseClient;
+        private readonly ISendFollowUpMessageProvider _sendFollowUpMessageProvider;
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
 
         public async Task<HalOperationResult<T>> ProcessProspectsAsync<T>(ProspectListPhaseCompleteRequest request, CancellationToken ct = default) where T : IOperationResponse
@@ -139,7 +145,8 @@ namespace Leadsly.Domain.Providers
             {
                 await _campaignRepositoryFacade.UpdateAllCampaignProspectsAsync(updatedCampaignProspects, ct);
 
-                await _campaignPhaseClient.ProduceSendFollowUpMessagesAsync(updatedCampaignProspects, ct);
+                var messagesToGoingOut = await _sendFollowUpMessageProvider.CreateSendFollowUpMessagesAsync(updatedCampaignProspects, ct);
+                await _campaignPhaseClient.ProduceSendFollowUpMessagesAsync(messagesToGoingOut, ct);
             }
 
             result.Succeeded = true;

@@ -1,33 +1,24 @@
 ﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
-using Leadsly.Application.Model.Entities;
-using Leadsly.Application.Model.RabbitMQ;
-using Leadsly.Domain.Facades.Interfaces;
-using Leadsly.Domain.Providers.Interfaces;
-using Leadsly.Domain.Repositories;
-using Microsoft.Extensions.DependencyInjection;
+using Leadsly.Domain.Campaigns.Handlers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.Campaigns.Commands
+namespace Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers
 {
-    public class MonitorForNewConnectionsCommand : ICommand
+    public class MonitorForNewConnectionsCommandHandler : ICommandHandler<MonitorForNewConnectionsCommand>
     {
-        public MonitorForNewConnectionsCommand(IMessageBrokerOutlet messageBrokerOutlet, string halId, string userId)
+        public MonitorForNewConnectionsCommandHandler(IMessageBrokerOutlet messageBrokerOutlet)
         {
-            _halId = halId;
-            _userId = userId;
             _messageBrokerOutlet = messageBrokerOutlet;
         }
 
-        private readonly string _halId;
-        private readonly string _userId;
         private readonly IMessageBrokerOutlet _messageBrokerOutlet;
-                
-        public async Task ExecuteAsync()
+
+        public async Task HandleAsync(MonitorForNewConnectionsCommand command)
         {
             MonitorForNewAcceptedConnectionsBody messageBody = await CreateMessageBodyAsync();
 
@@ -36,7 +27,6 @@ namespace Leadsly.Domain.Campaigns.Commands
             string halId = messageBody.HalId;
 
             _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, null);
-            
         }
 
         /// <summary>

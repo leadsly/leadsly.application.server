@@ -57,6 +57,7 @@ namespace Leadsly.Application.Api
                     .AddHttpContextAccessor()
                     .AddEmailServiceConfiguration()
                     .AddRepositories()
+                    .AddCommandHandlersConfiguration()
                     .AddRabbitMQConfiguration(Configuration)
                     .AddServices(Configuration)
                     .AddRemoveNull204FormatterConfigration()

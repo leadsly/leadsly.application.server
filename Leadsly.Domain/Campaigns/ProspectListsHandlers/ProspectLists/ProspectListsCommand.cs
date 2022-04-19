@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain
+namespace Leadsly.Domain.Campaigns.ProspectListsHandlers.ProspectLists
 {
-    public interface ICommand
+    public class ProspectListsCommand : ICommand
     {
     }
 }

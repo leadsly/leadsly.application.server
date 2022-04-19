@@ -46,6 +46,16 @@ using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Serializers.Interfaces;
 using Leadsly.Domain.Serializers;
 using Leadsly.Domain.Campaigns;
+using Leadsly.Domain.Campaigns.Handlers;
+using Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers;
+using Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages;
+using Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessage;
+using Leadsly.Domain.Campaigns.FollowUpMessagesHandler.UncontactedFollowUpMessages;
+using Leadsly.Domain.Campaigns.ProspectListsHandlers.ProspectList;
+using Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers;
+using Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers;
+using Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandler;
+using Leadsly.Domain.Campaigns.ProspectListsHandlers.ProspectLists;
 
 namespace Leadsly.Application.Api.Configurations
 {
@@ -162,8 +172,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ICampaignProvider, CampaignProvider>();
             services.AddScoped<IRabbitMQProvider, RabbitMQProvider>();
             services.AddScoped<ISendFollowUpMessageProvider, SendFollowUpMessageProvider>();
-            services.AddScoped<ICampaignPhaseProcessorProvider, CampaignPhaseProcessorProvider>();
-            services.AddScoped<ICampaignPhaseClient, CampaignPhaseClient>();
+            services.AddScoped<ICampaignPhaseProcessorProvider, CampaignPhaseProcessorProvider>();            
 
             return services;
         }
@@ -175,6 +184,39 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ISerializerFacade, SerializerFacade>();
             services.AddScoped<ICampaignRepositoryFacade, CampaignRepositoryFacade>();
             
+            return services;
+        }
+
+        public static IServiceCollection AddCommandHandlersConfiguration(this IServiceCollection services)
+        {
+            Log.Information("Registering command handlers.");
+
+            services.AddScoped<ICampaignPhaseClient, CampaignPhaseClient>();
+
+            services.AddScoped<HalWorkCommandHandlerDecorator<ScanProspectsForRepliesCommand>>();
+            services.AddScoped<HalWorkCommandHandlerDecorator<MonitorForNewConnectionsCommand>>();
+            services.AddScoped<HalWorkCommandHandlerDecorator<SendConnectionsToProspectsCommand>>();
+            services.AddScoped<HalWorkCommandHandlerDecorator<ProspectListCommand>>();
+            services.AddScoped<HalWorkCommandHandlerDecorator<FollowUpMessagesCommand>>();
+            services.AddScoped<HalWorkCommandHandlerDecorator<FollowUpMessageCommand>>();
+
+            // recurring jobs handlers
+            services.AddScoped<HalWorkCommandHandlerDecorator<MonitorForNewConnectionsAllCommand>>();
+            services.AddScoped<HalWorkCommandHandlerDecorator<ProspectListsCommand>>();
+            services.AddScoped<HalWorkCommandHandlerDecorator<UncontactedFollowUpMessageCommand>>();
+            services.AddScoped<HalWorkCommandHandlerDecorator<DeepScanProspectsForRepliesCommand>>();
+
+            services.AddScoped<ICommandHandler<FollowUpMessagesCommand>, FollowUpMessagesCommandHandler>();
+            services.AddScoped<ICommandHandler<FollowUpMessageCommand>, FollowUpMessageCommandHandler>();
+            services.AddScoped<ICommandHandler<UncontactedFollowUpMessageCommand>, UncontactedFollowUpMessageCommandHandler>();
+            services.AddScoped<ICommandHandler<MonitorForNewConnectionsAllCommand>, MonitorForNewConnectionsAllCommandHandler>();
+            services.AddScoped<ICommandHandler<MonitorForNewConnectionsCommand>, MonitorForNewConnectionsCommandHandler>();
+            services.AddScoped<ICommandHandler<ProspectListCommand>, ProspectListCommandHandler>();
+            services.AddScoped<ICommandHandler<ProspectListsCommand>, ProspectListsCommandHandler>();
+            services.AddScoped<ICommandHandler<DeepScanProspectsForRepliesCommand>, DeepScanProspectsForRepliesCommandHandler>();
+            services.AddScoped<ICommandHandler<ScanProspectsForRepliesCommand>, ScanProspectsForRepliesCommandHandler>();
+            services.AddScoped<ICommandHandler<SendConnectionsToProspectsCommand>, SendConnectionsToProspectsCommandHandler>();
+
             return services;
         }
 
@@ -192,12 +234,8 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<IHalWorkManager, HalWorkManager>();
             services.AddScoped<IMessageBrokerOutlet, MessageBrokerOutlet>();
             services.AddScoped<IRabbitMQManager, RabbitMQManager>();
-            services.AddScoped<ICampaignManager, CampaignManager>();
-            services.AddScoped<ICampaignPhaseCommandProducer, CampaignPhaseCommandProducer>();
-
-            //services.AddSingleton<ICampaignPhaseProducer, CampaignPhaseProducer>();
-            services.AddSingleton<IRecurringJobsHandler, RecurringJobsHandler>();
-                      
+            
+            services.AddSingleton<IRecurringJobsHandler, RecurringJobsHandler>();                      
 
             return services;
         }
