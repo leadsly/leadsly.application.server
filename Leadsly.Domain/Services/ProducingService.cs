@@ -26,7 +26,7 @@ namespace Leadsly.Domain.Services
             ////////////////////////////////////////////////////////////////////
 
             // RecurringJob.AddOrUpdate<ISupervisor>("activeCampaigns", (x) => x.ProcessAllCampaignsAsync(), Cron.Daily(6, 40));
-            BackgroundJob.Enqueue<ICampaignManager>((x) => x.ProcessAllActiveCampaignsAsync());
+            BackgroundJob.Enqueue<IRecurringJobsHandler>((x) => x.CreateAndPublishJobsAsync());
         }
     }
 }

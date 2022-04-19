@@ -1,7 +1,12 @@
 ﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
+using Leadsly.Application.Model.Entities.Campaigns.Phases;
+using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
+using Leadsly.Domain.Repositories;
+using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,15 +15,25 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Campaigns.Commands
 {
-    public class ProspectListsCommand : ICommand
+    public class ProspectListsCommand : ProspectListBaseCommand, ICommand
     {
-        public ProspectListsCommand(IMessageBrokerOutlet messageBrokerOutlet, IServiceProvider serviceProvider)
+        public ProspectListsCommand
+            (ILogger<ProspectListsCommand> logger, 
+            IMessageBrokerOutlet messageBrokerOutlet, 
+            ICampaignProvider campaignProvider,            
+            ICampaignRepositoryFacade campaignRepositoryFacade,
+            IHalRepository halRepository,
+            ITimestampService timestampService,
+            IRabbitMQProvider rabbitMQProvider
+            )
+            : base(logger, campaignRepositoryFacade, halRepository, timestampService, rabbitMQProvider)
         {
             _messageBrokerOutlet = messageBrokerOutlet;
-            _serviceProvider = serviceProvider;            
+            _campaignProvider = campaignProvider;            
         }
 
-        private readonly IServiceProvider _serviceProvider;
+        private readonly ICampaignProvider _campaignProvider;
+        private readonly ILogger<ProspectListsCommand> _logger;
         private readonly IMessageBrokerOutlet _messageBrokerOutlet;                
 
         /// <summary>
@@ -34,21 +49,17 @@ namespace Leadsly.Domain.Campaigns.Commands
         private async Task InternalExecuteListAsync()
         {
             // get the payload
-            HalsProspectListPhasesPayload payload = await CreateMessageBodiesAsync();
+            IList<ProspectListPhase> prospectListPhases = await CreateMessageBodiesAsync();
 
             // if there are values
-            if (payload.ProspectListPayload.Any() == true)
+            if (prospectListPhases.Any() == true)
             {
                 // iterate over each hal id and fire off the message
-                foreach (string id in payload.ProspectListPayload.Keys)
+                foreach (ProspectListPhase prospectListPhase in prospectListPhases)
                 {
-                    string halId = id;
-                    List<ProspectListBody> messageBodies = payload.ProspectListPayload[halId];
+                    ProspectListBody messageBody = await CreateProspectListBodyAsync(prospectListPhase.ProspectListPhaseId, prospectListPhase.Campaign.ApplicationUserId);
 
-                    foreach (ProspectListBody messageBody in messageBodies)
-                    {
-                        InternalExecute(messageBody);
-                    }
+                    InternalExecute(messageBody);
                 }
             }
         }
@@ -65,15 +76,11 @@ namespace Leadsly.Domain.Campaigns.Commands
             _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers);
         }
 
-        private async Task<HalsProspectListPhasesPayload> CreateMessageBodiesAsync()
+        private async Task<IList<ProspectListPhase>> CreateMessageBodiesAsync()
         {
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                ICampaignProvider campaignProvider = scope.ServiceProvider.GetRequiredService<ICampaignProvider>();
-                HalsProspectListPhasesPayload payload = await campaignProvider.GetIncompleteProspectListPhasesAsync();
+            IList<ProspectListPhase> prospectListPhases = await _campaignProvider.GetIncompleteProspectListPhasesAsync();
 
-                return payload;
-            }
+            return prospectListPhases;
         }
     }
 }

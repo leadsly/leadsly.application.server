@@ -159,9 +159,11 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ICloudPlatformProvider, CloudPlatformProvider>();
             services.AddScoped<IUserProvider, UserProvider>();
             services.AddScoped<ILeadslyHalProvider, LeadslyHalProvider>();
-            services.AddScoped<IMonitorNewConnectionsProvider, MonitorNewConnectionsProvider>();
             services.AddScoped<ICampaignProvider, CampaignProvider>();
             services.AddScoped<IRabbitMQProvider, RabbitMQProvider>();
+            services.AddScoped<ISendFollowUpMessageProvider, SendFollowUpMessageProvider>();
+            services.AddScoped<ICampaignPhaseProcessorProvider, CampaignPhaseProcessorProvider>();
+            services.AddScoped<ICampaignPhaseClient, CampaignPhaseClient>();
 
             return services;
         }
@@ -188,9 +190,14 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ICampaignService, CampaignService>();
             services.AddScoped<ITimestampService, TimestampService>();
             services.AddScoped<IHalWorkManager, HalWorkManager>();
-            
-            services.AddSingleton<ICampaignManager, CampaignManager>();
-            services.AddSingleton<ICampaignPhaseProducer, CampaignPhaseProducer>();
+            services.AddScoped<IMessageBrokerOutlet, MessageBrokerOutlet>();
+            services.AddScoped<IRabbitMQManager, RabbitMQManager>();
+            services.AddScoped<ICampaignManager, CampaignManager>();
+            services.AddScoped<ICampaignPhaseCommandProducer, CampaignPhaseCommandProducer>();
+
+            //services.AddSingleton<ICampaignPhaseProducer, CampaignPhaseProducer>();
+            services.AddSingleton<IRecurringJobsHandler, RecurringJobsHandler>();
+                      
 
             return services;
         }

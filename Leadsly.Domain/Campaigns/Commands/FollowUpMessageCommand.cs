@@ -1,10 +1,12 @@
-﻿using Leadsly.Application.Model;
+﻿using Hangfire;
+using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.RabbitMQ;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,20 +15,26 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Campaigns.Commands
 {
-    public class FollowUpMessageCommand : ICommand
+    public class FollowUpMessageCommand : FollowUpMessageBaseCommand, ICommand
     {        
-        public FollowUpMessageCommand(IMessageBrokerOutlet messageBrokerOutlet, IServiceProvider serviceProvider, string campaignProspectFollowUpMessageId, string campaignId)
+        public FollowUpMessageCommand(IMessageBrokerOutlet messageBrokerOutlet,  
+            ILogger<FollowUpMessageCommand> logger, 
+            ICampaignRepositoryFacade campaignRepositoryFacade, 
+            IHalRepository halRepository, 
+            IRabbitMQProvider rabbitMQProvider, 
+            string campaignProspectFollowUpMessageId, 
+            string campaignId, 
+            DateTimeOffset scheduleTime)
+            : base(messageBrokerOutlet, logger, campaignRepositoryFacade, halRepository, rabbitMQProvider)
         {
             _campaignProspectFollowUpMessageId = campaignProspectFollowUpMessageId;
             _campaignId = campaignId;
-            _messageBrokerOutlet = messageBrokerOutlet;
-            _serviceProvider = serviceProvider;
+            _scheduleTime = scheduleTime;
         }
 
         private readonly string _campaignId;
+        private readonly DateTimeOffset _scheduleTime;
         private readonly string _campaignProspectFollowUpMessageId;
-        private readonly IServiceProvider _serviceProvider;
-        private readonly IMessageBrokerOutlet _messageBrokerOutlet;
 
         /// <summary>
         /// FollowUpMessage triggered by MonitorForNewProspectsPhase. If new prospect accepts our connection invite and the follow up message delay falls during Hal's work day
@@ -37,20 +45,7 @@ namespace Leadsly.Domain.Campaigns.Commands
         /// <returns></returns>
         public async Task ExecuteAsync()
         {
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                IRabbitMQProvider rabbitMQProvider = scope.ServiceProvider.GetRequiredService<IRabbitMQProvider>();
-                IRabbitMQRepository rabbitMQRepository = scope.ServiceProvider.GetRequiredService<IRabbitMQRepository>();
-
-                // grab the CampaignProspectFollowUpMessage
-                FollowUpMessageBody followUpMessageBody = await rabbitMQProvider.CreateFollowUpMessageBodyAsync(_campaignProspectFollowUpMessageId, _campaignId);
-
-                string queueNameIn = RabbitMQConstants.FollowUpMessage.QueueName;
-                string routingKeyIn = RabbitMQConstants.FollowUpMessage.RoutingKey;
-                string halId = followUpMessageBody.HalId;
-
-                _messageBrokerOutlet.PublishPhase(followUpMessageBody, queueNameIn, routingKeyIn, halId);
-            }
+            await InternalExecuteAsync(_campaignProspectFollowUpMessageId, _campaignId, _scheduleTime);
         }
     }
 }

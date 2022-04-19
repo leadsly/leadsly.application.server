@@ -31,8 +31,8 @@ namespace Leadsly.Infrastructure.Repositories
                 _dbContext.HalUnits.Add(halDetails);
                 await _dbContext.SaveChangesAsync(ct);
 
-                string halUnitId = halDetails.HalUnitId;
-                _logger.LogDebug("Successfully created HalUnit. New HalUnit id is : {halUnitId}", halUnitId);
+                string halId = halDetails.HalId;
+                _logger.LogDebug("Successfully created HalUnit. New HalUnit' hal id is : {halId}", halId);
             }
             catch (Exception ex)
             {

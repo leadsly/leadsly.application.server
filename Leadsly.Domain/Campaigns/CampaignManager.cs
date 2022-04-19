@@ -17,182 +17,209 @@ namespace Leadsly.Domain.Campaigns
 {
     public class CampaignManager : ICampaignManager
     {
-        public CampaignManager(ILogger<CampaignManager> logger, ICampaignPhaseProducer campaignPhaseProducer, IServiceProvider serviceProvider)
+        public CampaignManager(ILogger<CampaignManager> logger, IServiceProvider serviceProvider)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
-            _campaignPhaseProducer = campaignPhaseProducer;
         }
 
         private readonly ICampaignPhaseProducer _campaignPhaseProducer;        
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<CampaignManager> _logger;
 
-        public async Task ProcessAllActiveCampaignsAsync()
+        private Stack<ICommand> _commands = new Stack<ICommand>();
+        private ICommand _command;
+
+        public void SetCommand(ICommand command)
         {
-            //TriggerConstantCampaignPhaseMessages();
-
-            //TriggerConnectionWithdrawPhase();            
-
-            await TriggerRecurringJobsAsync();
+            _command = command;
         }
 
-        private async Task TriggerRecurringJobsAsync()
+        public void AddCommand(ICommand command)
         {
-            await TriggerMonitorForNewConnectionsPhaseAsync();
-
-            await TriggerProspectListsPhaseAsync();
-
-            await TriggerFollowUpMessagePhaseForUncontactedProspectsAsync();
-
-            await TriggerDeepScanProspectsForRepliesAsync();
+            _commands.Push(command);
         }
-        
-        private async Task TriggerDeepScanProspectsForRepliesAsync()
+
+        public async Task ExecuteAsync()
         {
-            
-            using (var scope = _serviceProvider.CreateScope())
+            await _command.ExecuteAsync();
+        }
+
+        public async Task ExecuteAllAsync()
+        {
+            while (_commands.Count > 0)
             {
-                IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
-
-                DeepScanProspectsForRepliesCommand command = new DeepScanProspectsForRepliesCommand(messageBrokerOutlet, _serviceProvider);
-                _campaignPhaseProducer.SetCommand(command);
-                await _campaignPhaseProducer.ExecuteAsync();
-            }
-            // await _campaignPhaseProducer.PublishDeepScanProspectsForRepliesAsync();
-        }
-
-        private async Task TriggerFollowUpMessagePhaseForUncontactedProspectsAsync()
-        {
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
-
-                UncontactedFollowUpMessageCommand command = new UncontactedFollowUpMessageCommand(messageBrokerOutlet, _serviceProvider);
-                _campaignPhaseProducer.SetCommand(command);
-                await _campaignPhaseProducer.ExecuteAsync();
-            }
-            //await _campaignPhaseProducer.PublishUncontactedFollowUpMessagePhaseMessagesAsync();
-        }
-
-        private async Task TriggerMonitorForNewConnectionsPhaseAsync()
-        {
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
-
-                MonitorForNewConnectionsAllCommand command = new MonitorForNewConnectionsAllCommand(messageBrokerOutlet, _serviceProvider);
-                _campaignPhaseProducer.SetCommand(command);
-                await _campaignPhaseProducer.ExecuteAsync();
-            }
-
-            // BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishMonitorForNewConnectionsPhaseMessageAsync());
-        }
-
-        public async Task TriggerMonitorForNewProspectsPhase(string halId, string userId)
-        {
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
-
-                MonitorForNewConnectionsCommand command = new MonitorForNewConnectionsCommand(messageBrokerOutlet, _serviceProvider, halId, userId);
-                _campaignPhaseProducer.SetCommand(command);
-                await _campaignPhaseProducer.ExecuteAsync();
-            }
-
-            //BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishMonitorForNewConnectionsPhaseMessageAsync(halId, userId));
-        }
-
-        private async Task TriggerProspectListsPhaseAsync()
-        {
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
-
-                ProspectListsCommand command = new ProspectListsCommand(messageBrokerOutlet, _serviceProvider);
-                _campaignPhaseProducer.SetCommand(command);
-                await _campaignPhaseProducer.ExecuteAsync();
-            }
-            // BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishProspectListPhaseMessagesAsync());
-        }
-
-        private void TriggerConnectionWithdrawPhase()
-        {
-            BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishConnectionWithdrawPhaseMessages());
-        }
-
-        public async Task TriggerProspectListPhaseAsync(string prospectListPhaseId, string userId)
-        {
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
-
-                ProspectListCommand command = new ProspectListCommand(messageBrokerOutlet, _serviceProvider, prospectListPhaseId, userId);
-                _campaignPhaseProducer.SetCommand(command);
-                await _campaignPhaseProducer.ExecuteAsync();
-            }
-            // BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishProspectListPhaseMessagesAsync(prospectListPhaseId, userId));
-        }
-
-        public async Task TriggerSendConnectionsPhaseAsync(string campaignId, string userId)
-        {
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
-                ILogger<SendConnectionsToProspectsCommand> logger = scope.ServiceProvider.GetRequiredService<ILogger<SendConnectionsToProspectsCommand>>();
-
-                SendConnectionsToProspectsCommand command = new SendConnectionsToProspectsCommand(messageBrokerOutlet, _serviceProvider, logger, campaignId, userId);
-                _campaignPhaseProducer.SetCommand(command);
-                await _campaignPhaseProducer.ExecuteAsync();
-            }
-            // BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishSendConnectionsPhaseMessageAsync(campaignId, userId));
-        }
-
-        public async Task TriggerScanProspectsForRepliesPhaseAsync(string halId, string userId)
-        {
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
-
-                ScanProspectsForRepliesCommand command = new ScanProspectsForRepliesCommand(messageBrokerOutlet, _serviceProvider, halId, userId);
-                _campaignPhaseProducer.SetCommand(command);
-                await _campaignPhaseProducer.ExecuteAsync();
-            }
-            // BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishScanProspectsForRepliesPhaseAsync(halId, userId));
-        }
-
-        public async Task TriggerFollowUpMessagesPhaseAsync(string halId, string userId)
-        {
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
-
-                FollowUpMessagesCommand command = new FollowUpMessagesCommand(messageBrokerOutlet, _serviceProvider, halId, userId);
-                _campaignPhaseProducer.SetCommand(command);
-                await _campaignPhaseProducer.ExecuteAsync();
-            }
-            // BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishFollowUpMessagesPhaseAsync(halId, userId));
-        }
-
-        public async Task TriggerFollowUpMessagePhaseAsync(string campaignProspectFollowUpMessageId, string campaignId, DateTimeOffset scheduleTime = default)
-        {
-            //if(scheduleTime == default)
-            //{
-            //    await _campaignPhaseProducer.PublishFollowUpMessagePhaseMessageAsync(campaignProspectFollowUpMessageId, campaignId);
-            //}
-            //else
-            //{
-            //    BackgroundJob.Schedule<ICampaignPhaseProducer>(x => x.PublishFollowUpMessagePhaseMessageAsync(campaignProspectFollowUpMessageId, campaignId), scheduleTime);
-            //}
-
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
-
-                FollowUpMessageCommand command = new FollowUpMessageCommand(messageBrokerOutlet, _serviceProvider, campaignProspectFollowUpMessageId, campaignId);
-                _campaignPhaseProducer.SetCommand(command);
-                await _campaignPhaseProducer.ExecuteAsync();
+                ICommand command = _commands.Pop();
+                await command.ExecuteAsync();
             }
         }
+
+        public void SetCommands(IList<ICommand> commands)
+        {
+            _commands = new Stack<ICommand>(commands);
+        }
+
+        //public async Task ProcessAllActiveCampaignsAsync()
+        //{
+        //    //TriggerConstantCampaignPhaseMessages();
+
+        //    //TriggerConnectionWithdrawPhase();            
+
+        //    await TriggerRecurringJobsAsync();
+        //}
+
+        //private async Task TriggerRecurringJobsAsync()
+        //{
+        //    await TriggerMonitorForNewConnectionsPhaseAsync();
+
+        //    await TriggerProspectListsPhaseAsync();
+
+        //    await TriggerFollowUpMessagePhaseForUncontactedProspectsAsync();
+
+        //    await TriggerDeepScanProspectsForRepliesAsync();
+        //}
+
+        //private async Task TriggerDeepScanProspectsForRepliesAsync()
+        //{
+
+        //    using (var scope = _serviceProvider.CreateScope())
+        //    {
+        //        IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
+
+        //        DeepScanProspectsForRepliesCommand command = new DeepScanProspectsForRepliesCommand(messageBrokerOutlet, _serviceProvider);
+        //        _campaignPhaseProducer.SetCommand(command);
+        //        await _campaignPhaseProducer.ExecuteAsync();
+        //    }
+        //    // await _campaignPhaseProducer.PublishDeepScanProspectsForRepliesAsync();
+        //}
+
+        //private async Task TriggerFollowUpMessagePhaseForUncontactedProspectsAsync()
+        //{
+        //    using (var scope = _serviceProvider.CreateScope())
+        //    {
+        //        IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
+
+        //        UncontactedFollowUpMessageCommand command = new UncontactedFollowUpMessageCommand(messageBrokerOutlet, _serviceProvider);
+        //        _campaignPhaseProducer.SetCommand(command);
+        //        await _campaignPhaseProducer.ExecuteAsync();
+        //    }
+        //    //await _campaignPhaseProducer.PublishUncontactedFollowUpMessagePhaseMessagesAsync();
+        //}
+
+        //private async Task TriggerMonitorForNewConnectionsPhaseAsync()
+        //{
+        //    using (var scope = _serviceProvider.CreateScope())
+        //    {
+        //        IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
+
+        //        MonitorForNewConnectionsAllCommand command = new MonitorForNewConnectionsAllCommand(messageBrokerOutlet, _serviceProvider);
+        //        _campaignPhaseProducer.SetCommand(command);
+        //        await _campaignPhaseProducer.ExecuteAsync();
+        //    }
+
+        //    // BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishMonitorForNewConnectionsPhaseMessageAsync());
+        //}
+
+        //public async Task TriggerMonitorForNewProspectsPhaseAsync(string halId, string userId)
+        //{
+        //    using (var scope = _serviceProvider.CreateScope())
+        //    {
+        //        IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
+
+        //        MonitorForNewConnectionsCommand command = new MonitorForNewConnectionsCommand(messageBrokerOutlet, _serviceProvider, halId, userId);
+        //        _campaignPhaseProducer.SetCommand(command);
+        //        await _campaignPhaseProducer.ExecuteAsync();
+        //    }
+
+        //    //BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishMonitorForNewConnectionsPhaseMessageAsync(halId, userId));
+        //}
+
+        //private async Task TriggerProspectListsPhaseAsync()
+        //{
+        //    using (var scope = _serviceProvider.CreateScope())
+        //    {
+        //        IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
+
+        //        ProspectListsCommand command = new ProspectListsCommand(messageBrokerOutlet, _serviceProvider);
+        //        _campaignPhaseProducer.SetCommand(command);
+        //        await _campaignPhaseProducer.ExecuteAsync();
+        //    }
+        //    // BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishProspectListPhaseMessagesAsync());
+        //}
+
+        //public async Task TriggerProspectListPhaseAsync(string prospectListPhaseId, string userId)
+        //{
+        //    using (var scope = _serviceProvider.CreateScope())
+        //    {
+        //        IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
+
+        //        ProspectListCommand command = new ProspectListCommand(messageBrokerOutlet, _serviceProvider, prospectListPhaseId, userId);
+        //        _campaignPhaseProducer.SetCommand(command);
+        //        await _campaignPhaseProducer.ExecuteAsync();
+        //    }
+        //    // BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishProspectListPhaseMessagesAsync(prospectListPhaseId, userId));
+        //}
+
+        //public async Task TriggerSendConnectionsPhaseAsync(string campaignId, string userId)
+        //{
+        //    using (var scope = _serviceProvider.CreateScope())
+        //    {
+        //        IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
+        //        ILogger<SendConnectionsToProspectsCommand> logger = scope.ServiceProvider.GetRequiredService<ILogger<SendConnectionsToProspectsCommand>>();
+
+        //        SendConnectionsToProspectsCommand command = new SendConnectionsToProspectsCommand(messageBrokerOutlet, _serviceProvider, logger, campaignId, userId);
+        //        _campaignPhaseProducer.SetCommand(command);
+        //        await _campaignPhaseProducer.ExecuteAsync();
+        //    }
+        //    // BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishSendConnectionsPhaseMessageAsync(campaignId, userId));
+        //}
+
+        //public async Task TriggerScanProspectsForRepliesPhaseAsync(string halId, string userId)
+        //{
+        //    using (var scope = _serviceProvider.CreateScope())
+        //    {
+        //        IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
+
+        //        ScanProspectsForRepliesCommand command = new ScanProspectsForRepliesCommand(messageBrokerOutlet, _serviceProvider, halId, userId);
+        //        _campaignPhaseProducer.SetCommand(command);
+        //        await _campaignPhaseProducer.ExecuteAsync();
+        //    }
+        //    // BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishScanProspectsForRepliesPhaseAsync(halId, userId));
+        //}
+
+        //public async Task TriggerFollowUpMessagesPhaseAsync(string halId, string userId)
+        //{
+        //    using (var scope = _serviceProvider.CreateScope())
+        //    {
+        //        IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
+
+        //        FollowUpMessagesCommand command = new FollowUpMessagesCommand(messageBrokerOutlet, _serviceProvider, halId, userId);
+        //        _campaignPhaseProducer.SetCommand(command);
+        //        await _campaignPhaseProducer.ExecuteAsync();
+        //    }
+        //    // BackgroundJob.Enqueue<ICampaignPhaseProducer>(x => x.PublishFollowUpMessagesPhaseAsync(halId, userId));
+        //}
+
+        //public async Task TriggerFollowUpMessagePhaseAsync(string campaignProspectFollowUpMessageId, string campaignId, DateTimeOffset scheduleTime = default)
+        //{
+        //    //if(scheduleTime == default)
+        //    //{
+        //    //    await _campaignPhaseProducer.PublishFollowUpMessagePhaseMessageAsync(campaignProspectFollowUpMessageId, campaignId);
+        //    //}
+        //    //else
+        //    //{
+        //    //    BackgroundJob.Schedule<ICampaignPhaseProducer>(x => x.PublishFollowUpMessagePhaseMessageAsync(campaignProspectFollowUpMessageId, campaignId), scheduleTime);
+        //    //}
+
+        //    using (var scope = _serviceProvider.CreateScope())
+        //    {
+        //        IMessageBrokerOutlet messageBrokerOutlet = scope.ServiceProvider.GetRequiredService<IMessageBrokerOutlet>();
+
+        //        FollowUpMessageCommand command = new FollowUpMessageCommand(messageBrokerOutlet, _serviceProvider, campaignProspectFollowUpMessageId, campaignId);
+        //        _campaignPhaseProducer.SetCommand(command);
+        //        await _campaignPhaseProducer.ExecuteAsync();
+        //    }
+        //}
+
     }
 }

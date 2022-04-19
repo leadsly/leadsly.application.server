@@ -44,27 +44,27 @@ namespace Leadsly.Application.Api.Controllers
         [HttpPost]
         [AllowAnonymous]
         [Route("trigger-send-connection-requests")]
-        public IActionResult TriggerSendConnectionRequests([FromBody] TriggerSendConnectionsRequest request)
+        public async Task<IActionResult> TriggerSendConnectionRequestsAsync([FromBody] TriggerSendConnectionsRequest request)
         {
-            _supervisor.TriggerSendConnectionsPhase(request);
+            await _supervisor.TriggerSendConnectionsPhaseAsync(request);
             return Ok();
         }
 
         [HttpPost]
         [AllowAnonymous]
         [Route("trigger-scan-prospects-for-replies")]
-        public IActionResult TriggerScanProspectsForReplies([FromBody] TriggerScanProspectsForRepliesRequest request)
+        public async Task<IActionResult> TriggerScanProspectsForRepliesAsync([FromBody] TriggerScanProspectsForRepliesRequest request)
         {
-            _supervisor.TriggerScanProspectsForRepliesPhase(request);
+            await _supervisor.TriggerScanProspectsForRepliesPhaseAsync(request);
             return Ok();
         }
 
         [HttpPost]
         [AllowAnonymous]
         [Route("trigger-follow-up-messages")]
-        public IActionResult TriggerFollowUpMessages([FromBody] TriggerFollowUpMessageRequest request)
+        public async Task<IActionResult> TriggerFollowUpMessagesAsync([FromBody] TriggerFollowUpMessageRequest request)
         {
-            _supervisor.TriggerFollowUpMessagesPhase(request);
+            await _supervisor.TriggerFollowUpMessagesPhaseAsync(request);
             return Ok();
         }
 

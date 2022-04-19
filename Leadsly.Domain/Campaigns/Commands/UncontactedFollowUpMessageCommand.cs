@@ -1,10 +1,13 @@
-﻿using Leadsly.Application.Model;
+﻿using Hangfire;
+using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
+using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,16 +16,28 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Campaigns.Commands
 {
-    public class UncontactedFollowUpMessageCommand : ICommand
+    public class UncontactedFollowUpMessageCommand : FollowUpMessageBaseCommand, ICommand
     {
-        public UncontactedFollowUpMessageCommand(IMessageBrokerOutlet messageBrokerOutlet, IServiceProvider serviceProvider)
+        public UncontactedFollowUpMessageCommand(
+            IMessageBrokerOutlet messageBrokerOutlet, 
+            ICampaignRepositoryFacade campaignRepositoryFacade,
+            ILogger<UncontactedFollowUpMessageCommand> logger,
+            IHalRepository halRepository,
+            ISendFollowUpMessageProvider sendFollowUpMessageProvider,
+            IRabbitMQProvider rabbitMQProvider
+            )
+            : base(messageBrokerOutlet, logger, campaignRepositoryFacade, halRepository, rabbitMQProvider)
         {
+            _sendFollowUpMessageProvider = sendFollowUpMessageProvider;            
+            _campaignRepositoryFacade = campaignRepositoryFacade;
             _messageBrokerOutlet = messageBrokerOutlet;
-            _serviceProvider = serviceProvider;
+            _logger = logger;
         }
 
-        private readonly IServiceProvider _serviceProvider;
+        private readonly ILogger<UncontactedFollowUpMessageCommand> _logger;
         private readonly IMessageBrokerOutlet _messageBrokerOutlet;
+        private readonly ISendFollowUpMessageProvider _sendFollowUpMessageProvider;        
+        private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
 
         /// <summary>
         /// Triggered every morning and is meant to go out to those prospects who have accepted our invite, who have NOT replied and have NOT gotten a follow up message.
@@ -37,19 +52,39 @@ namespace Leadsly.Domain.Campaigns.Commands
         public async Task ExecuteAsync()
         {
             // first grab all active campaigns
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                ICampaignRepositoryFacade campaignRepositoryFacade = scope.ServiceProvider.GetRequiredService<ICampaignRepositoryFacade>();
-                ICampaignProvider campaignProvider = scope.ServiceProvider.GetRequiredService<ICampaignProvider>();
-                IList<Campaign> campaigns = await campaignRepositoryFacade.GetAllActiveCampaignsAsync();
-                foreach (Campaign activeCampaign in campaigns)
-                {
-                    // grab all campaign prospects for each campaign
-                    IList<CampaignProspect> campaignProspects = await campaignRepositoryFacade.GetAllCampaignProspectsByCampaignIdAsync(activeCampaign.CampaignId);
-                    // filter the list down to only those campaign prospects who have not yet been contacted
-                    List<CampaignProspect> uncontactedProspects = campaignProspects.Where(p => p.Accepted == true && p.Replied == false && p.FollowUpMessageSent == false).ToList();
+            IList<Campaign> campaigns = await _campaignRepositoryFacade.GetAllActiveCampaignsAsync();
 
-                    await campaignProvider.SendFollowUpMessagesAsync(uncontactedProspects);
+            IDictionary<CampaignProspectFollowUpMessage, DateTimeOffset> messagesGoingOut = new Dictionary<CampaignProspectFollowUpMessage, DateTimeOffset>();
+            foreach (Campaign activeCampaign in campaigns)
+            {
+                // grab all campaign prospects for each campaign
+                IList<CampaignProspect> campaignProspects = await _campaignRepositoryFacade.GetAllCampaignProspectsByCampaignIdAsync(activeCampaign.CampaignId);
+                // filter the list down to only those campaign prospects who have not yet been contacted
+                List<CampaignProspect> uncontactedProspects = campaignProspects.Where(p => p.Accepted == true && p.Replied == false && p.FollowUpMessageSent == false).ToList();
+
+                IDictionary<CampaignProspectFollowUpMessage, DateTimeOffset> messagesOut = await _sendFollowUpMessageProvider.CreateSendFollowUpMessagesAsync(uncontactedProspects);
+                messagesGoingOut.Concat(messagesOut);
+            }
+
+            await PublishMessagesGoingOut(messagesGoingOut);
+        }
+
+        private async Task PublishMessagesGoingOut(IDictionary<CampaignProspectFollowUpMessage, DateTimeOffset> messagesGoingOut)
+        {
+            foreach (var messagePair in messagesGoingOut)
+            {
+                FollowUpMessageBody followUpMessageBody = await CreateFollowUpMessageBodyAsync(messagePair.Key.CampaignProspectFollowUpMessageId, messagePair.Key.CampaignProspect.CampaignId);
+                string queueNameIn = RabbitMQConstants.FollowUpMessage.QueueName;
+                string routingKeyIn = RabbitMQConstants.FollowUpMessage.RoutingKey;
+                string halId = followUpMessageBody.HalId;
+
+                if (messagePair.Value == default)
+                {
+                    _messageBrokerOutlet.PublishPhase(followUpMessageBody, queueNameIn, routingKeyIn, halId, null);
+                }
+                else
+                {
+                    BackgroundJob.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(followUpMessageBody, queueNameIn, routingKeyIn, halId, null), messagePair.Value);
                 }
             }
         }

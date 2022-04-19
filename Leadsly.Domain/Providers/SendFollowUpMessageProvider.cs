@@ -1,5 +1,6 @@
 ﻿using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Domain.Facades.Interfaces;
+using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
@@ -9,23 +10,25 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.Services
+namespace Leadsly.Domain.Providers
 {
-    public class SendFollowUpMessageService : ISendFollowUpMessageService
+    public class SendFollowUpMessageProvider : ISendFollowUpMessageProvider
     {
-        public SendFollowUpMessageService(ICampaignRepositoryFacade campaignRepositoryFacade, ITimestampService timestampService, ILogger<SendFollowUpMessageService> logger)
+        public SendFollowUpMessageProvider(ICampaignRepositoryFacade campaignRepositoryFacade, ITimestampService timestampService, ILogger<SendFollowUpMessageProvider> logger)
         {
             _campaignRepositoryFacade = campaignRepositoryFacade;
             _timestampService = timestampService;
             _logger = logger;
         }
 
-        private readonly ILogger<SendFollowUpMessageService> _logger;
+        private readonly ILogger<SendFollowUpMessageProvider> _logger;
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
         private readonly ITimestampService _timestampService;
 
-        public async Task SendFollowUpMessagesAsync(IList<CampaignProspect> campaignProspects, CancellationToken ct = default)
+        public async Task<IDictionary<CampaignProspectFollowUpMessage, DateTimeOffset>> CreateSendFollowUpMessagesAsync(IList<CampaignProspect> campaignProspects, CancellationToken ct = default)
         {
+            IDictionary<CampaignProspectFollowUpMessage, DateTimeOffset> goingOut = new Dictionary<CampaignProspectFollowUpMessage, DateTimeOffset>();
+
             // grab first follow up messages for the following campaign id
             foreach (CampaignProspect campaignProspect in campaignProspects)
             {
@@ -43,13 +46,15 @@ namespace Leadsly.Domain.Services
                     {
                         // else prepare next follow up message to be sent
                         FollowUpMessage messageToGoOut = messages.SingleOrDefault(m => m.Order == nextFollowUpMessageOrder);
-                        await TriggerFollowUpMessageAsync(messageToGoOut, campaignProspect, ct);
+                        goingOut.Concat(await CreateFollowUpMessagesAsync(messageToGoOut, campaignProspect, ct));
                     }
                 }
             }
+
+            return goingOut;
         }
 
-        private async Task<IDictionary<CampaignProspectFollowUpMessage, DateTimeOffset>> TriggerFollowUpMessageAsync(FollowUpMessage message, CampaignProspect campaignProspect, CancellationToken ct = default)
+        private async Task<IDictionary<CampaignProspectFollowUpMessage, DateTimeOffset>> CreateFollowUpMessagesAsync(FollowUpMessage message, CampaignProspect campaignProspect, CancellationToken ct = default)
         {
             string followUpMessageId = message.FollowUpMessageId;
             int order = message.Order;

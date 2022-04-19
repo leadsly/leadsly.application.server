@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Domain
 {
+    [Obsolete("Deprecated in favor of PhaseProducer")]
     public interface ICampaignPhaseProducer
     {
         void SetCommand(ICommand command);

@@ -40,11 +40,11 @@ namespace Leadsly.Domain.Supervisor
         Task<HalOperationResult<T>> ProcessConnectionRequestSentForCampaignProspectsAsync<T>(CampaignProspectListRequest request, CancellationToken ct = default)
             where T : IOperationResponse;
 
-        void TriggerSendConnectionsPhase(TriggerSendConnectionsRequest request, CancellationToken ct = default);
+        Task TriggerSendConnectionsPhaseAsync(TriggerSendConnectionsRequest request, CancellationToken ct = default);
 
-        void TriggerScanProspectsForRepliesPhase(TriggerScanProspectsForRepliesRequest request, CancellationToken ct = default);
+        Task TriggerScanProspectsForRepliesPhaseAsync(TriggerScanProspectsForRepliesRequest request, CancellationToken ct = default);
 
-        void TriggerFollowUpMessagesPhase(TriggerFollowUpMessageRequest request, CancellationToken ct = default);
+        Task TriggerFollowUpMessagesPhaseAsync(TriggerFollowUpMessageRequest request, CancellationToken ct = default);
 
         Task<HalOperationResult<T>> ProcessNewlyAcceptedProspectsAsync<T>(NewProspectsConnectionsAcceptedRequest request, CancellationToken ct = default)
             where T : IOperationResponse;

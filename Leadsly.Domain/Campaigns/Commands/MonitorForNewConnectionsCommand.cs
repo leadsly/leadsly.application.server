@@ -12,21 +12,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain
+namespace Leadsly.Domain.Campaigns.Commands
 {
     public class MonitorForNewConnectionsCommand : ICommand
     {
-        public MonitorForNewConnectionsCommand(IMessageBrokerOutlet messageBrokerOutlet, IServiceProvider serviceProvider, string halId, string userId)
+        public MonitorForNewConnectionsCommand(IMessageBrokerOutlet messageBrokerOutlet, string halId, string userId)
         {
             _halId = halId;
             _userId = userId;
             _messageBrokerOutlet = messageBrokerOutlet;
-            _serviceProvider = serviceProvider;
         }
 
         private readonly string _halId;
         private readonly string _userId;
-        private readonly IServiceProvider _serviceProvider;
         private readonly IMessageBrokerOutlet _messageBrokerOutlet;
                 
         public async Task ExecuteAsync()
@@ -37,7 +35,7 @@ namespace Leadsly.Domain
             string routingKeyIn = RabbitMQConstants.MonitorNewAcceptedConnections.RoutingKey;
             string halId = messageBody.HalId;
 
-            _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId);
+            _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, null);
             
         }
 
@@ -52,10 +50,6 @@ namespace Leadsly.Domain
         {
             MonitorForNewAcceptedConnectionsBody messageBody = new MonitorForNewAcceptedConnectionsBody();
 
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                // TODO
-            }
 
             return Task.Run(() => messageBody);
         }

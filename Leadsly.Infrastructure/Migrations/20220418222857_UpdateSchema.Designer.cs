@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Leadsly.Infrastructure.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20220406195804_AddWindowHandleIdColumn")]
-    partial class AddWindowHandleIdColumn
+    [Migration("20220418222857_UpdateSchema")]
+    partial class UpdateSchema
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -191,6 +191,9 @@ namespace Leadsly.Infrastructure.Migrations
                     b.Property<bool>("Accepted")
                         .HasColumnType("boolean");
 
+                    b.Property<long>("AcceptedTimestamp")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("CampaignId")
                         .IsRequired()
                         .HasColumnType("text");
@@ -210,9 +213,26 @@ namespace Leadsly.Infrastructure.Migrations
                     b.Property<long>("LastFollowUpMessageSentTimestamp")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("PrimaryProspectId")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<string>("ProfileUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("Replied")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("ResponseMessage")
+                        .HasColumnType("text");
+
+                    b.Property<int>("SentFollowUpMessageOrderNum")
+                        .HasColumnType("integer");
 
                     b.HasKey("CampaignProspectId");
 
@@ -223,6 +243,31 @@ namespace Leadsly.Infrastructure.Migrations
                     b.HasIndex("PrimaryProspectId");
 
                     b.ToTable("CampaignProspects");
+                });
+
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.CampaignProspectFollowUpMessage", b =>
+                {
+                    b.Property<string>("CampaignProspectFollowUpMessageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CampaignProspectId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer");
+
+                    b.HasKey("CampaignProspectFollowUpMessageId");
+
+                    b.HasIndex("CampaignProspectId")
+                        .IsUnique();
+
+                    b.ToTable("CampaignProspectFollowUpMessages");
                 });
 
             modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.CampaignProspectList", b =>
@@ -283,9 +328,6 @@ namespace Leadsly.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long>("DateTimeDelayTimestamp")
-                        .HasColumnType("bigint");
-
                     b.Property<int>("Order")
                         .HasColumnType("integer");
 
@@ -293,23 +335,48 @@ namespace Leadsly.Infrastructure.Migrations
 
                     b.HasIndex("CampaignId");
 
-                    b.ToTable("FollowUpMessage");
+                    b.ToTable("FollowUpMessages");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.Phases.ChromeProfileName", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.FollowUpMessageDelay", b =>
                 {
-                    b.Property<string>("ChromeProfileNameId")
+                    b.Property<string>("FollowUpMessageDelayId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("FollowUpMessageId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<long>("Value")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("FollowUpMessageDelayId");
+
+                    b.HasIndex("FollowUpMessageId")
+                        .IsUnique();
+
+                    b.ToTable("FollowUpMessageDelay");
+                });
+
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.Phases.ChromeProfile", b =>
+                {
+                    b.Property<string>("ChromeProfileId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
                     b.Property<int>("CampaignPhaseType")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Profile")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("ChromeProfileNameId");
+                    b.HasKey("ChromeProfileId");
 
                     b.ToTable("ChromeProfileNames");
                 });
@@ -339,9 +406,9 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("ConnectionWithdrawPhases");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.Phases.FollowUpMessagesPhase", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.Phases.FollowUpMessagePhase", b =>
                 {
-                    b.Property<string>("FollowUpMessagesPhaseId")
+                    b.Property<string>("FollowUpMessagePhaseId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
@@ -349,10 +416,14 @@ namespace Leadsly.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("PageUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int>("PhaseType")
                         .HasColumnType("integer");
 
-                    b.HasKey("FollowUpMessagesPhaseId");
+                    b.HasKey("FollowUpMessagePhaseId");
 
                     b.HasIndex("CampaignId")
                         .IsUnique();
@@ -795,11 +866,23 @@ namespace Leadsly.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("EndHour")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("HalId")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("SocialAccountId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("StartHour")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TimeZoneId")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -1120,6 +1203,17 @@ namespace Leadsly.Infrastructure.Migrations
                     b.Navigation("PrimaryProspect");
                 });
 
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.CampaignProspectFollowUpMessage", b =>
+                {
+                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.CampaignProspect", "CampaignProspect")
+                        .WithOne("FollowUpMessage")
+                        .HasForeignKey("Leadsly.Application.Model.Entities.Campaigns.CampaignProspectFollowUpMessage", "CampaignProspectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CampaignProspect");
+                });
+
             modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.CampaignProspectList", b =>
                 {
                     b.HasOne("Leadsly.Application.Model.Entities.Campaigns.PrimaryProspectList", "PrimaryProspectList")
@@ -1153,6 +1247,17 @@ namespace Leadsly.Infrastructure.Migrations
                     b.Navigation("Campaign");
                 });
 
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.FollowUpMessageDelay", b =>
+                {
+                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.FollowUpMessage", "FollowUpMessage")
+                        .WithOne("Delay")
+                        .HasForeignKey("Leadsly.Application.Model.Entities.Campaigns.FollowUpMessageDelay", "FollowUpMessageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FollowUpMessage");
+                });
+
             modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.Phases.ConnectionWithdrawPhase", b =>
                 {
                     b.HasOne("Leadsly.Application.Model.Entities.SocialAccount", "SocialAccount")
@@ -1164,11 +1269,11 @@ namespace Leadsly.Infrastructure.Migrations
                     b.Navigation("SocialAccount");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.Phases.FollowUpMessagesPhase", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.Phases.FollowUpMessagePhase", b =>
                 {
                     b.HasOne("Leadsly.Application.Model.Entities.Campaigns.Campaign", "Campaign")
                         .WithOne("FollowUpMessagePhase")
-                        .HasForeignKey("Leadsly.Application.Model.Entities.Campaigns.Phases.FollowUpMessagesPhase", "CampaignId")
+                        .HasForeignKey("Leadsly.Application.Model.Entities.Campaigns.Phases.FollowUpMessagePhase", "CampaignId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1464,11 +1569,22 @@ namespace Leadsly.Infrastructure.Migrations
                     b.Navigation("SentConnectionsStatuses");
                 });
 
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.CampaignProspect", b =>
+                {
+                    b.Navigation("FollowUpMessage");
+                });
+
             modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.CampaignProspectList", b =>
                 {
                     b.Navigation("CampaignProspects");
 
                     b.Navigation("SearchUrls");
+                });
+
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.FollowUpMessage", b =>
+                {
+                    b.Navigation("Delay")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.PrimaryProspectList", b =>

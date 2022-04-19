@@ -39,7 +39,7 @@ namespace Leadsly.Application.Api
                 throw;
             }
             finally
-            {
+            {   
                 Log.CloseAndFlush();
             }
         }

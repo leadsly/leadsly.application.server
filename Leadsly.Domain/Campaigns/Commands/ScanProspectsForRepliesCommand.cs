@@ -2,11 +2,14 @@
 using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.Entities;
 using Leadsly.Application.Model.Entities.Campaigns;
+using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Application.Model.RabbitMQ;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
+using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,19 +18,39 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Campaigns.Commands
 {
-    public class ScanProspectsForRepliesCommand : ICommand
+    public class ScanProspectsForRepliesCommand : ScanProspectsForRepliesBaseCommand, ICommand
     {
-        public ScanProspectsForRepliesCommand(IMessageBrokerOutlet messageBrokerOutlet, IServiceProvider serviceProvider, string halId, string userId)
+        public ScanProspectsForRepliesCommand(
+            IMessageBrokerOutlet messageBrokerOutlet, 
+            IHalRepository halRepository,  
+            ILogger<ScanProspectsForRepliesCommand> logger,
+            ICampaignProvider campaignProvider,
+            ICampaignRepositoryFacade campaignRepositoryFacade,            
+            ITimestampService timestampService,
+            IRabbitMQProvider rabbitMQProvider,
+            string halId, 
+            string userId)
+            : base(logger, campaignRepositoryFacade, rabbitMQProvider, halRepository, timestampService)
         {
             _halId = halId;
             _userId = userId;
+            _campaignProvider = campaignProvider;
+            _campaignRepositoryFacade = campaignRepositoryFacade;
+            _timestampService = timestampService;
+            _rabbitMQProvider = rabbitMQProvider;
+            _halRepository = halRepository;
             _messageBrokerOutlet = messageBrokerOutlet;
-            _serviceProvider = serviceProvider;
+            _logger = logger;
         }
 
+        private readonly ILogger<ScanProspectsForRepliesCommand> _logger;
         private readonly string _halId;
         private readonly string _userId;
-        private readonly IServiceProvider _serviceProvider;
+        private readonly ICampaignProvider _campaignProvider;
+        private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
+        private readonly ITimestampService _timestampService;
+        private readonly IRabbitMQProvider _rabbitMQProvider;
+        private readonly IHalRepository _halRepository;
         private readonly IMessageBrokerOutlet _messageBrokerOutlet;
 
         /// <summary>
@@ -56,19 +79,13 @@ namespace Leadsly.Domain.Campaigns.Commands
         
         private async Task<ScanProspectsForRepliesBody> CreateMessageBodyAsync() 
         {
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                IRabbitMQProvider rabbitMQProvider = scope.ServiceProvider.GetRequiredService<IRabbitMQProvider>();
-                IHalRepository halRepository = scope.ServiceProvider.GetRequiredService<IHalRepository>();
+            HalUnit halUnit = await _halRepository.GetByHalIdAsync(_halId);
 
-                HalUnit halUnit = await halRepository.GetByHalIdAsync(_halId);
+            // fire off ScanProspectsForRepliesPhase with the payload of the contacted prospects
+            string scanprospectsForRepliesPhaseId = halUnit.SocialAccount.ScanProspectsForRepliesPhase.ScanProspectsForRepliesPhaseId;
+            ScanProspectsForRepliesBody messageBody = await CreateScanProspectsForRepliesBodyAsync(scanprospectsForRepliesPhaseId, halUnit.HalId, _userId);
 
-                // fire off ScanProspectsForRepliesPhase with the payload of the contacted prospects
-                string scanprospectsForRepliesPhaseId = halUnit.SocialAccount.ScanProspectsForRepliesPhase.ScanProspectsForRepliesPhaseId;
-                ScanProspectsForRepliesBody messageBody = await rabbitMQProvider.CreateScanProspectsForRepliesBodyAsync(scanprospectsForRepliesPhaseId, halUnit.HalId, _userId);
-
-                return messageBody;
-            }
-        }
+            return messageBody;
+        }        
     }
 }

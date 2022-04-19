@@ -19,25 +19,28 @@ namespace Leadsly.Domain.Supervisor
             IUserProvider userProvider,            
             ILeadslyHalProvider leadslyHalProvider,
             ICampaignProvider campaignProvider,
-            ITimestampService timestampService,
+            ICampaignPhaseClient campaignPhaseClient,
+            ICampaignPhaseProcessorProvider campaignPhaseProcessorProvider,
             IMemoryCache memoryCache,            
             ILogger<Supervisor> logger)
         {
             _campaignProvider = campaignProvider;
             _halRepository = halRepository;
-            _timestampService = timestampService;
+            _campaignPhaseClient = campaignPhaseClient;
             _campaignRepositoryFacade = campaignRepositoryFacade; 
             _stripeRepository = stripeRepository;          
             _cloudPlatformProvider = cloudPlatformProvider;
             _leadslyHalProvider = leadslyHalProvider;                        
             _memoryCache = memoryCache;
+            _campaignPhaseProcessorProvider = campaignPhaseProcessorProvider;
             _userProvider = userProvider;            
             _logger = logger;            
         }
 
+        private readonly ICampaignPhaseProcessorProvider _campaignPhaseProcessorProvider;
         private readonly ICampaignProvider _campaignProvider;        
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
-        private readonly ITimestampService _timestampService;
+        private readonly ICampaignPhaseClient _campaignPhaseClient;
         private readonly IHalRepository _halRepository;        
         private readonly ILeadslyHalProvider _leadslyHalProvider;    
         private readonly IUserProvider _userProvider;               

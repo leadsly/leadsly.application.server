@@ -13,7 +13,7 @@ namespace Leadsly.Domain.Services
 {
     public class HalWorkManager : IHalWorkManager
     {
-        public HalWorkManager(Logger<HalWorkManager> logger, ITimestampService timestampService)
+        public HalWorkManager(ILogger<HalWorkManager> logger, ITimestampService timestampService)
         {
             _logger = logger;
             _timestampService = timestampService;

@@ -24,164 +24,34 @@ namespace Leadsly.Domain.Supervisor
         public async Task<HalOperationResult<T>> ProcessProspectsAsync<T>(ProspectListPhaseCompleteRequest request, CancellationToken ct = default)
             where T : IOperationResponse
         {
-            HalOperationResult<T> result = new();
-
-            IList<CampaignProspect> campaignProspects = new List<CampaignProspect>();
-            IList<PrimaryProspect> prospects = new List<PrimaryProspect>();
-            foreach (PrimaryProspectRequest primaryProspectRequest in request.Prospects)
-            {
-                PrimaryProspect primaryProspect = new()
-                {
-                    AddedTimestamp = primaryProspectRequest.AddedTimestamp,
-                    Name = primaryProspectRequest.Name,
-                    Area = primaryProspectRequest.Area,
-                    EmploymentInfo = primaryProspectRequest.EmploymentInfo,
-                    PrimaryProspectListId = primaryProspectRequest.PrimaryProspectListId,
-                    ProfileUrl = primaryProspectRequest.ProfileUrl,
-                    SearchResultAvatarUrl = primaryProspectRequest.SearchResultAvatarUrl
-                };
-                prospects.Add(primaryProspect);
-
-                CampaignProspect campaignProspect = new()
-                {
-                    PrimaryProspect = primaryProspect,
-                    CampaignId = request.CampaignId,
-                    ProfileUrl = primaryProspectRequest.ProfileUrl,
-                    ConnectionSent = false,
-                    ConnectionSentTimestamp = 0,
-                    FollowUpMessageSent = false,
-                    LastFollowUpMessageSentTimestamp = 0
-                };
-                campaignProspects.Add(campaignProspect);
-            }
-
-            prospects = await _campaignRepositoryFacade.CreateAllPrimaryProspectsAsync(prospects, ct);
-            if (prospects == null)
-            {
-                return result;
-            }
-
-            campaignProspects = await _campaignRepositoryFacade.CreateAllCampaignProspectsAsync(campaignProspects, ct);
-            if(campaignProspects == null)
-            {
-                return result;
-            }
-
-            ProspectListPhase campaignProspectListPhase = await _campaignRepositoryFacade.GetProspectListPhaseByCampaignIdAsync(request.CampaignId, ct);
-            if (campaignProspectListPhase == null)
-            {
-                return result;
-            }
-
-            campaignProspectListPhase.Completed = true;
-
-            // mark campaign's prospect list phase as completed
-            campaignProspectListPhase = await _campaignRepositoryFacade.UpdateProspectListPhaseAsync(campaignProspectListPhase, ct);
-            if (campaignProspectListPhase == null)
-            {
-                return result;
-            }
-
-            result.Succeeded = true;
-            return result;
+            return await _campaignPhaseProcessorProvider.ProcessProspectsAsync<T>(request, ct);
         }
 
-        public void TriggerSendConnectionsPhase(TriggerSendConnectionsRequest request, CancellationToken ct = default)
+        public async Task TriggerSendConnectionsPhaseAsync(TriggerSendConnectionsRequest request, CancellationToken ct = default)
         {
-             _campaignProvider.TriggerSendConnectionsPhase(request.CampaignId, request.UserId);
+            await _campaignPhaseClient.ProduceSendConnectionsPhaseAsync(request.CampaignId, request.UserId, ct);
         }
 
-        public void TriggerScanProspectsForRepliesPhase(TriggerScanProspectsForRepliesRequest request, CancellationToken ct = default)
+        public async Task TriggerScanProspectsForRepliesPhaseAsync(TriggerScanProspectsForRepliesRequest request, CancellationToken ct = default)
         {
-            _campaignProvider.TriggerScanProspectsForRepliesPhase(request.HalId, request.UserId);
+            await _campaignPhaseClient.ProduceScanProspectsForRepliesPhaseAsync(request.HalId, request.UserId, ct);
         }
 
-        public void TriggerFollowUpMessagesPhase(TriggerFollowUpMessageRequest request, CancellationToken ct = default)            
+        public async Task TriggerFollowUpMessagesPhaseAsync(TriggerFollowUpMessageRequest request, CancellationToken ct = default)            
         {
-            _campaignProvider.TriggerFollowUpMessagesPhase(request.HalId, request.UserId);
+            await _campaignPhaseClient.ProduceFollowUpMessagesPhaseAsync(request.HalId, request.UserId, ct);
         }
 
         public async Task<HalOperationResult<T>> ProcessNewlyAcceptedProspectsAsync<T>(NewProspectsConnectionsAcceptedRequest request, CancellationToken ct = default)
             where T : IOperationResponse
         {
-            HalOperationResult<T> result = new();
-
-            IList<Campaign> usersActiveCampaigns = await _campaignRepositoryFacade.GetAllActiveCampaignsByUserIdAsync(request.ApplicationUserId, ct);
-
-            HashSet<string> campaignProspectListIds = new();
-            List<CampaignProspect> activeCampaignProspects = new List<CampaignProspect>();
-            foreach (Campaign campaign in usersActiveCampaigns)
-            {
-                // for each active campaign grab the corresponding primary prospect list id
-                string campaignProspectListId = campaign.CampaignProspectList.CampaignProspectListId;
-
-                // if the dictionary contains an entry for this primary prospect list just move on
-                if (campaignProspectListIds.Contains(campaignProspectListId))
-                    continue;
-
-                // get the primary prospect list by its id
-                CampaignProspectList campaignProspectList = await _campaignRepositoryFacade.GetCampaignProspectListByListIdAsync(campaignProspectListId);
-                
-                if(campaignProspectList != null)
-                {
-                    activeCampaignProspects.AddRange(campaignProspectList.CampaignProspects);
-
-                    // try and add that primary prospect list to the dictionary
-                    campaignProspectListIds.Add(campaignProspectListId);
-                }                
-            }
-
-            IList<CampaignProspect> updatedCampaignProspects = new List<CampaignProspect>();
-            foreach (NewProspectConnectionRequest newProspectConnectionRequest in request.NewAcceptedProspectsConnections)
-            {
-                // is the newly connected prospect part of any of the user's campaigns?
-                CampaignProspect campaignProspect = activeCampaignProspects.FirstOrDefault(p => p.ProfileUrl.Contains(newProspectConnectionRequest.ProfileUrl));
-                if (campaignProspect != null)
-                {
-                    campaignProspect.Accepted = true;
-                    campaignProspect.AcceptedTimestamp = newProspectConnectionRequest.AcceptedTimestamp;
-                    updatedCampaignProspects.Add(campaignProspect);
-                }
-            }
-
-            if(updatedCampaignProspects.Count > 0)
-            {
-                await _campaignRepositoryFacade.UpdateAllCampaignProspectsAsync(updatedCampaignProspects, ct);
-
-                await _campaignProvider.SendFollowUpMessagesAsync(updatedCampaignProspects, ct);
-            }
-
-            result.Succeeded = true;
-            return result;
+            return await _campaignPhaseProcessorProvider.ProcessNewlyAcceptedProspectsAsync<T>(request, ct);
         }
 
         public async Task<HalOperationResult<T>> ProcessConnectionRequestSentForCampaignProspectsAsync<T>(CampaignProspectListRequest request, CancellationToken ct = default)
             where T : IOperationResponse
         {
-            HalOperationResult<T> result = new();
-
-            IList<CampaignProspect> campaignProspects = await _campaignRepositoryFacade.GetAllCampaignProspectsByCampaignIdAsync(request.CampaignId);
-            IList<CampaignProspect> contactedProspects = new List<CampaignProspect>();
-            foreach (CampaignProspectRequest campaignRequest in request.CampaignProspects)
-            {
-                CampaignProspect contactedProspect = campaignProspects.FirstOrDefault(c => c.PrimaryProspect.ProfileUrl == campaignRequest.ProfileUrl);
-                if(contactedProspect != null)
-                {
-                    contactedProspect.ConnectionSent = true;
-                    contactedProspect.ConnectionSentTimestamp = campaignRequest.ConnectionSentTimestamp;
-
-                    contactedProspects.Add(contactedProspect);
-                }                
-            }
-
-            contactedProspects = await _campaignRepositoryFacade.UpdateAllCampaignProspectsAsync(contactedProspects, ct);
-            if(contactedProspects == null)
-            {
-                return result;
-            }
-
-            result.Succeeded = true;
-            return result;
+            return await _campaignPhaseProcessorProvider.ProcessConnectionRequestSentForCampaignProspectsAsync<T>(request, ct);
         }        
 
     }

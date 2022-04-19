@@ -5,7 +5,9 @@ using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
+using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,16 +16,30 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Campaigns.Commands
 {
-    public class DeepScanProspectsForRepliesCommand : ICommand
+    public class DeepScanProspectsForRepliesCommand : ScanProspectsForRepliesBaseCommand, ICommand
     {
-        public DeepScanProspectsForRepliesCommand(IMessageBrokerOutlet messageBrokerOutlet, IServiceProvider serviceProvider)
+        public DeepScanProspectsForRepliesCommand
+            (IMessageBrokerOutlet messageBrokerOutlet, 
+            ILogger<DeepScanProspectsForRepliesCommand> logger,
+            IHalRepository halRepository, 
+            IRabbitMQProvider rabbitMQProvider, 
+            ITimestampService timestampService,
+            ICampaignRepositoryFacade campaignRepositoryFacade)
+            : base(logger, campaignRepositoryFacade, rabbitMQProvider, halRepository, timestampService)
         {
             _messageBrokerOutlet = messageBrokerOutlet;
-            _serviceProvider = serviceProvider;            
+            _rabbitMQProvider = rabbitMQProvider;
+            _logger = logger;
+            _halRepository = halRepository;
+            _campaignRepositoryFacade = campaignRepositoryFacade;
+
         }
 
-        private readonly IServiceProvider _serviceProvider;
+        private readonly ILogger<DeepScanProspectsForRepliesCommand> _logger;
+        private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
+        private readonly IHalRepository _halRepository;
         private readonly IMessageBrokerOutlet _messageBrokerOutlet;
+        private readonly IRabbitMQProvider _rabbitMQProvider;
 
         public async Task ExecuteAsync()
         {
@@ -43,20 +59,15 @@ namespace Leadsly.Domain.Campaigns.Commands
 
             foreach (var halCampaignProspects in halsCampaignProspects)
             {
-                using (var scope = _serviceProvider.CreateScope())
-                {
-                    IHalRepository halRepository = scope.ServiceProvider.GetRequiredService<IHalRepository>();
-                    IRabbitMQProvider rabbitMQProvider = scope.ServiceProvider.GetRequiredService<IRabbitMQProvider>();
-                    HalUnit halUnit = await halRepository.GetByHalIdAsync(halCampaignProspects.Key);
-                    string scanProspectsForRepliesPhaseId = halUnit.SocialAccount.ScanProspectsForRepliesPhase.ScanProspectsForRepliesPhaseId;
-                    string userId = halUnit.SocialAccount.UserId;
-                    string halId = halUnit.HalId;
+                HalUnit halUnit = await _halRepository.GetByHalIdAsync(halCampaignProspects.Key);
+                string scanProspectsForRepliesPhaseId = halUnit.SocialAccount.ScanProspectsForRepliesPhase.ScanProspectsForRepliesPhaseId;
+                string userId = halUnit.SocialAccount.UserId;
+                string halId = halUnit.HalId;
 
-                    // fire off ScanProspectsForRepliesPhase with the payload of the contacted prospects
-                    ScanProspectsForRepliesBody messageBody = await rabbitMQProvider.CreateScanProspectsForRepliesBodyAsync(scanProspectsForRepliesPhaseId, halId, userId, halCampaignProspects.Value);
+                // fire off ScanProspectsForRepliesPhase with the payload of the contacted prospects
+                ScanProspectsForRepliesBody messageBody = await CreateScanProspectsForRepliesBodyAsync(scanProspectsForRepliesPhaseId, halId, userId, halCampaignProspects.Value);
 
-                    InternalExecute(messageBody);
-                }
+                InternalExecute(messageBody);
             }
         }
 
@@ -73,30 +84,22 @@ namespace Leadsly.Domain.Campaigns.Commands
 
         private async Task<IDictionary<string, IList<CampaignProspect>>> CreateHalsCampainProspectsAsync()
         {
-            using (var scope = _serviceProvider.CreateScope())
+            IList<Campaign> campaigns = await _campaignRepositoryFacade.GetAllActiveCampaignsAsync();
+            IDictionary<string, IList<CampaignProspect>> halsCampaignProspects = new Dictionary<string, IList<CampaignProspect>>();
+            foreach (Campaign activeCampaign in campaigns)
             {
-                ICampaignRepositoryFacade campaignRepositoryFacade = scope.ServiceProvider.GetRequiredService<ICampaignRepositoryFacade>();
-                IRabbitMQRepository rabbitMQRepository = scope.ServiceProvider.GetRequiredService<IRabbitMQRepository>();
-                IRabbitMQProvider rabbitMQProvider = scope.ServiceProvider.GetRequiredService<IRabbitMQProvider>();
-                IHalRepository halRepository = scope.ServiceProvider.GetRequiredService<IHalRepository>();
+                // grab all campaign prospects for each campaign
+                IList<CampaignProspect> campaignProspects = await _campaignRepositoryFacade.GetAllCampaignProspectsByCampaignIdAsync(activeCampaign.CampaignId);
+                IList<CampaignProspect> contactedProspects = campaignProspects.Where(p => p.Accepted == true && p.FollowUpMessageSent == true && p.Replied == false).ToList();
 
-                IList<Campaign> campaigns = await campaignRepositoryFacade.GetAllActiveCampaignsAsync();
-                IDictionary<string, IList<CampaignProspect>> halsCampaignProspects = new Dictionary<string, IList<CampaignProspect>>();
-                foreach (Campaign activeCampaign in campaigns)
+                if (contactedProspects.Count > 0)
                 {
-                    // grab all campaign prospects for each campaign
-                    IList<CampaignProspect> campaignProspects = await campaignRepositoryFacade.GetAllCampaignProspectsByCampaignIdAsync(activeCampaign.CampaignId);
-                    IList<CampaignProspect> contactedProspects = campaignProspects.Where(p => p.Accepted == true && p.FollowUpMessageSent == true && p.Replied == false).ToList();
-
-                    if (contactedProspects.Count > 0)
-                    {
-                        string halId = activeCampaign.HalId;
-                        halsCampaignProspects.Add(halId, contactedProspects);
-                    }
+                    string halId = activeCampaign.HalId;
+                    halsCampaignProspects.Add(halId, contactedProspects);
                 }
-
-                return halsCampaignProspects;
             }
+
+            return halsCampaignProspects;
         }
 
     }

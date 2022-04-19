@@ -1,9 +1,12 @@
 ﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.RabbitMQ;
+using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
+using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,19 +15,28 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Campaigns.Commands
 {
-    public class ProspectListCommand : ICommand
+    public class ProspectListCommand : ProspectListBaseCommand, ICommand
     {
-        public ProspectListCommand(IMessageBrokerOutlet messageBrokerOutlet, IServiceProvider serviceProvider, string prospectListPhaseId, string userId)
+        public ProspectListCommand(
+            ILogger<ProspectListCommand> logger, 
+            IMessageBrokerOutlet messageBrokerOutlet, 
+            ICampaignRepositoryFacade campaignRepositoryFacade,
+            IHalRepository halRepository,
+            ITimestampService timestampService,
+            IRabbitMQProvider rabbitMQProvider,
+            string prospectListPhaseId, 
+            string userId)
+            : base(logger, campaignRepositoryFacade, halRepository, timestampService, rabbitMQProvider)
         {
             _prospectListPhaseId = prospectListPhaseId;
             _userId = userId;
+            _logger = logger;
             _messageBrokerOutlet = messageBrokerOutlet;
-            _serviceProvider = serviceProvider;
         }
 
         private readonly string _prospectListPhaseId;
         private readonly string _userId;
-        private readonly IServiceProvider _serviceProvider;
+        private readonly ILogger<ProspectListCommand> _logger;
         private readonly IMessageBrokerOutlet _messageBrokerOutlet;
 
         /// <summary>
@@ -53,13 +65,9 @@ namespace Leadsly.Domain.Campaigns.Commands
 
         private async Task<ProspectListBody> CreateMessageBodyAsync()
         {
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                IRabbitMQProvider rabbitMQProvider = scope.ServiceProvider.GetRequiredService<IRabbitMQProvider>();
-                ProspectListBody messageBody = await rabbitMQProvider.CreateProspectListBodyAsync(_prospectListPhaseId, _userId);
+            ProspectListBody messageBody = await CreateProspectListBodyAsync(_prospectListPhaseId, _userId);
 
-                return messageBody;
-            }
+            return messageBody;
         }
     }
 }
