@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.Campaigns
+namespace Leadsly.Domain
 {
     public class HalWorkCommandHandlerDecorator<TCommand> : ICommandHandler<TCommand> 
         where TCommand : ICommand

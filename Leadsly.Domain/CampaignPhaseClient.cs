@@ -7,12 +7,8 @@ using Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers;
 using Leadsly.Domain.Campaigns.ProspectListsHandlers.ProspectList;
 using Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers;
 using Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers;
-using Leadsly.Domain.Providers.Interfaces;
-using Leadsly.Domain.Services.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 

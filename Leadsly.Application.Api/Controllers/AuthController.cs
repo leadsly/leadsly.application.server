@@ -1,4 +1,11 @@
-﻿using Leadsly.Application.Model.ViewModels;
+﻿using Leadsly.Api;
+using Leadsly.Application.Api.Authentication;
+using Leadsly.Application.Api.Extensions;
+using Leadsly.Application.Api.Services;
+using Leadsly.Application.Domain.OptionsJsonModels;
+using Leadsly.Application.Model.Entities;
+using Leadsly.Application.Model.ViewModels;
+using Leadsly.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -6,16 +13,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Security.Claims;
+using System.Text.Encodings.Web;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Text.Encodings.Web;
-using Leadsly.Application.Model.Entities;
-using Leadsly.Domain;
-using Leadsly.Application.Api.Services;
-using Leadsly.Application.Api.Authentication;
-using Leadsly.Application.Api.Extensions;
-using Leadsly.Api;
-using Leadsly.Application.Domain.OptionsJsonModels;
 
 namespace Leadsly.Application.Api.Controllers
 {

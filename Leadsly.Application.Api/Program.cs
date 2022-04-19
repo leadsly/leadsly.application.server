@@ -1,12 +1,9 @@
-using System;
-using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Serilog;
-using Azure.Identity;
-using Azure.Security.KeyVault.Secrets;
-using Azure.Extensions.AspNetCore.Configuration.Secrets;
+using System;
+using System.IO;
 
 namespace Leadsly.Application.Api
 {

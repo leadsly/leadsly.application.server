@@ -1,11 +1,8 @@
-﻿using Leadsly.Domain.Repositories;
-using Leadsly.Domain.Services;
-using Leadsly.Domain.Providers;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Caching.Memory;
-using Leadsly.Domain.Services.Interfaces;
+﻿using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
-using Leadsly.Domain.Facades.Interfaces;
+using Leadsly.Domain.Repositories;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 
 namespace Leadsly.Domain.Supervisor
 {

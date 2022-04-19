@@ -43,7 +43,7 @@ namespace Leadsly.Domain.Providers
             // create the new chrome profile name and save it
             ChromeProfile profileName = new()
             {
-                CampaignPhaseType = PhaseType.ProspectList,
+                CampaignPhaseType = phaseType,
                 Name = Guid.NewGuid().ToString()
             };
             await _halRepository.CreateChromeProfileAsync(profileName, ct);
