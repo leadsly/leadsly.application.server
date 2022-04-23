@@ -84,7 +84,14 @@ namespace Leadsly.Domain.Providers
             return halsPhases;
         }
 
-        public async Task<HalOperationResult<T>> ProcessProspectsRepliedAsync<T>(ProspectsRepliedRequest request, CancellationToken ct = default)
+        /// <summary>
+        /// This is used by DeepScanProspectsForRepliesPhase
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public async Task<HalOperationResult<T>> ProcessCampaignProspectsRepliedAsync<T>(ProspectsRepliedRequest request, CancellationToken ct = default)
             where T : IOperationResponse
         {
             HalOperationResult<T> result = new();
@@ -110,13 +117,60 @@ namespace Leadsly.Domain.Providers
         }
 
         /// <summary>
+        /// This is used by ScanProspectsForRepliesPhase
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public async Task<HalOperationResult<T>> ProcessProspectsRepliedAsync<T>(ProspectsRepliedRequest request, CancellationToken ct = default)
+            where T : IOperationResponse
+        {
+            HalOperationResult<T> result = new();
+
+            string halId = request.HalId;
+            IList<CampaignProspect> campaignProspectsToUpdate = new List<CampaignProspect>();
+            foreach (ProspectRepliedRequest prospectReplied in request.ProspectsReplied)
+            {
+                // check if this hal has any prospects in active campaigns that match this prospect
+                List<CampaignProspect> campaignProspects = await _campaignRepositoryFacade.GetAllActiveCampaignProspectsByHalIdAsync(halId, ct) as List<CampaignProspect>;
+                if(campaignProspects != null && campaignProspects.Count > 0)
+                {
+                    try
+                    {
+                        CampaignProspect campaignProspectToUpdate = campaignProspects.SingleOrDefault(p => p.Name == prospectReplied.ProspectName);
+                        if(campaignProspectsToUpdate != null)
+                        {
+                            campaignProspectToUpdate.Replied = true;
+                            campaignProspectToUpdate.ResponseMessage = prospectReplied.ResponseMessage;
+                            campaignProspectsToUpdate.Add(campaignProspectToUpdate);
+                        }
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        _logger.LogWarning("More than one prospect found. We need profile url to be able to figure out which prospect to update");
+                    }
+                }
+            }
+
+            campaignProspectsToUpdate = await _campaignRepositoryFacade.UpdateAllCampaignProspectsAsync(campaignProspectsToUpdate, ct);
+            if (campaignProspectsToUpdate == null)
+            {
+                return result;
+            }
+
+            result.Succeeded = true;
+            return result;
+        }
+
+        /// <summary>
         /// Grabs all ProspectListPhases that have not completed. Each campaign that creates new PropsectList will have
         /// a ProspectListPhase. ProspectListPhase is triggered first to gather all prospects in the given search urls.
         /// If campaign is created after Hal's work hours, the ProspectListPhase is not triggered until the next work day.
         /// </summary>
         /// <param name="ct">CancellationToken</param>
         /// <returns></returns>
-        public async Task<IList<ProspectListPhase>> GetIncompleteProspectListPhasesAsync(CancellationToken ct = default)
+        public async Task<IList<ProspectListPhase>> GetIncompleteProspectListPhasesAsync(string halId, CancellationToken ct = default)
         {
             IList<ProspectListPhase> prospectListPhases = await _campaignRepositoryFacade.GetAllActiveProspectListPhasesAsync(ct);
             IList<ProspectListPhase> incompleteProspectListPhases = prospectListPhases.Where(p => p.Completed == false).ToList();

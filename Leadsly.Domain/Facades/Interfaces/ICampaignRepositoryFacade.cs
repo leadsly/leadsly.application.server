@@ -25,6 +25,7 @@ namespace Leadsly.Domain.Facades.Interfaces
         #region CampaignProspect
         Task<IList<CampaignProspect>> CreateAllCampaignProspectsAsync(IList<CampaignProspect> campaignProspects, CancellationToken ct = default);
         Task<IList<CampaignProspect>> GetAllCampaignProspectsByCampaignIdAsync(string campaignId, CancellationToken ct = default);
+        Task<IList<CampaignProspect>> GetAllActiveCampaignProspectsByHalIdAsync(string halId, CancellationToken ct = default);
         Task<CampaignProspect> GetCampaignProspectByIdAsync(string campaignProspectId, CancellationToken ct = default);
         Task<IList<CampaignProspect>> UpdateAllCampaignProspectsAsync(IList<CampaignProspect> campaignProspects, CancellationToken ct = default);
         Task<CampaignProspectList> GetCampaignProspectListByListIdAsync(string campaignProspectListId, CancellationToken ct = default);
@@ -54,7 +55,6 @@ namespace Leadsly.Domain.Facades.Interfaces
 
         Task<PrimaryProspectList> GetPrimaryProspectListByNameAndUserIdAsync(string prospectListName, string userId, CancellationToken ct = default);
         Task<PrimaryProspectList> CreatePrimaryProspectListAsync(PrimaryProspectList primaryProspectList, CancellationToken ct = default);
-
         Task<PrimaryProspectList> GetPrimaryProspectListByIdAsync(string primaryProspectListId, CancellationToken ct = default);
         Task<PrimaryProspect> GetPrimaryProspectByIdAsync(string primaryProspectId, CancellationToken ct = default);
         Task<IList<PrimaryProspect>> CreateAllPrimaryProspectsAsync(IList<PrimaryProspect> primaryProspectList, CancellationToken ct = default);
@@ -64,8 +64,11 @@ namespace Leadsly.Domain.Facades.Interfaces
         #region ProspectListPhase
         Task<ProspectListPhase> UpdateProspectListPhaseAsync(ProspectListPhase prospectListPhase, CancellationToken ct = default);
         Task<IList<ProspectListPhase>> GetAllActiveProspectListPhasesAsync(CancellationToken ct = default);
+        Task<IList<ProspectListPhase>> GetAllActiveProspectListPhasesByHalIdAsync(string halId, CancellationToken ct = default);
         Task<ProspectListPhase> GetProspectListPhaseByCampaignIdAsync(string campaignId, CancellationToken ct = default);
         Task<ProspectListPhase> GetProspectListPhaseByIdAsync(string prospectListPhaseId, CancellationToken ct = default);
+        Task<bool> AnyIncompleteProspectListPhasesByHalIdAsync(string halId, CancellationToken ct = default);
+
         #endregion
 
         #region ScanProspectsForRepliesPhase

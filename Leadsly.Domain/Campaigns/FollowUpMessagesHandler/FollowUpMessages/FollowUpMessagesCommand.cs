@@ -13,6 +13,12 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages
             HalId = halId;
         }
 
+        public FollowUpMessagesCommand(IList<string> halIds)
+        {
+            HalIds = halIds;
+        }
+
+        public IList<string> HalIds { get; set; }
         public string HalId { get; set; }
     }
 }

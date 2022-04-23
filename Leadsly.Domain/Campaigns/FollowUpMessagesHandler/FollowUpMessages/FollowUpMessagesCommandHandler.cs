@@ -41,21 +41,58 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages
         /// <returns></returns>
         public async Task HandleAsync(FollowUpMessagesCommand command)
         {
-            IList<Campaign> campaigns = await _campaignRepositoryFacade.GetAllActiveCampaignsByHalIdAsync(command.HalId);
+            if(command.HalId != null)
+            {
+                await InternalHandleAsync(command.HalId);
+            }
+
+            if(command.HalIds != null)
+            {
+                await InternalExecuteListAsync(command.HalIds);
+            }
+        }
+
+        /// <summary>
+        /// Triggered by hal that has just finished running its DeepScanProspectsForRepliesPhase. This will loop through all campaign prospects for that hal that need to get
+        /// a follow up message sent.
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
+        private async Task InternalHandleAsync(string halId)
+        {
+            IList<Campaign> campaigns = await _campaignRepositoryFacade.GetAllActiveCampaignsByHalIdAsync(halId);
 
             IDictionary<CampaignProspectFollowUpMessage, DateTimeOffset> messagesGoingOut = new Dictionary<CampaignProspectFollowUpMessage, DateTimeOffset>();
             foreach (Campaign activeCampaign in campaigns)
             {
                 // grab all campaign prospects for each campaign
                 IList<CampaignProspect> campaignProspects = await _campaignRepositoryFacade.GetAllCampaignProspectsByCampaignIdAsync(activeCampaign.CampaignId);
-                List<CampaignProspect> uncontactedProspects = campaignProspects.Where(p => p.Accepted == true && p.Replied == false && p.FollowUpMessageSent == true).ToList();
-
-                // await campaignProvider.SendFollowUpMessagesAsync(uncontactedProspects);
-                IDictionary<CampaignProspectFollowUpMessage, DateTimeOffset> messagesOut = await _sendFollowUpMessageService.CreateSendFollowUpMessagesAsync(uncontactedProspects);
-                messagesGoingOut.Concat(messagesOut);
+                List<CampaignProspect> prospectsForFollowUpMessage = campaignProspects.Where(p => p.Accepted == true && p.Replied == false && p.FollowUpMessageSent == true).ToList();
+                if(prospectsForFollowUpMessage.Count > 0)
+                {
+                    // await campaignProvider.SendFollowUpMessagesAsync(uncontactedProspects);
+                    IDictionary<CampaignProspectFollowUpMessage, DateTimeOffset> messagesOut = await _sendFollowUpMessageService.CreateSendFollowUpMessagesAsync(prospectsForFollowUpMessage);
+                    messagesGoingOut.Concat(messagesOut);
+                }
             }
 
             await PublishMessagesGoingOut(messagesGoingOut);
+        }
+        
+        /// <summary>
+        /// Only triggered for those hals that did NOT have DeepScanProspectsForRepliesPhase executed. DeepScanProspectsForRepliesPhase
+        /// will handle execution of FollowUpMessagesPhase and ScanProspectsForReplies, however
+        /// it is possible that campaign prospects for specific hal do not return any results for DeepScanProspectsForRepliesPhase to execute,
+        /// in such cases we need to directly trigger FollowUpMessagesPhase and ScanProspectsForRepliesPhase
+        /// </summary>
+        /// <param name="halIds"></param>
+        /// <returns></returns>
+        private async Task InternalExecuteListAsync(IList<string> halIds)
+        {
+            foreach (string halId in halIds)
+            {
+                await InternalHandleAsync(halId);
+            }
         }
 
         private async Task PublishMessagesGoingOut(IDictionary<CampaignProspectFollowUpMessage, DateTimeOffset> messagesGoingOut)

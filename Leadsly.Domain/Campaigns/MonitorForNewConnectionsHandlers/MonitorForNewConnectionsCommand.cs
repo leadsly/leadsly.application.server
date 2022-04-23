@@ -8,13 +8,11 @@ namespace Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers
 {
     public class MonitorForNewConnectionsCommand : ICommand
     {
-        public MonitorForNewConnectionsCommand(string halId, string userId)
+        public MonitorForNewConnectionsCommand(string halId)
         {
             HalId = halId;
-            UserId = userId;
         }
 
         public string HalId { get; set; }
-        public string UserId { get; set; }
     }
 }

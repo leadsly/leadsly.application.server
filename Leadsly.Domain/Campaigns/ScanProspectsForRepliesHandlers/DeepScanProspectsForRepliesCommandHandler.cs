@@ -22,23 +22,21 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
             IMessageBrokerOutlet messageBrokerOutlet,
             ILogger<DeepScanProspectsForRepliesCommandHandler> logger,
             IHalRepository halRepository,
-            IRabbitMQProvider rabbitMQProvider,
+            IRabbitMQProvider rabbitMQProvider,            
             ITimestampService timestampService,
             ICampaignRepositoryFacade campaignRepositoryFacade
             ) : base(logger, campaignRepositoryFacade, rabbitMQProvider, halRepository, timestampService)
         {
-            _messageBrokerOutlet = messageBrokerOutlet;
-            _rabbitMQProvider = rabbitMQProvider;
+            _messageBrokerOutlet = messageBrokerOutlet;            
             _logger = logger;
-            _halRepository = halRepository;
+            _halRepository = halRepository;            
             _campaignRepositoryFacade = campaignRepositoryFacade;
         }
 
         private readonly ILogger<DeepScanProspectsForRepliesCommandHandler> _logger;
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
         private readonly IHalRepository _halRepository;
-        private readonly IMessageBrokerOutlet _messageBrokerOutlet;
-        private readonly IRabbitMQProvider _rabbitMQProvider;
+        private readonly IMessageBrokerOutlet _messageBrokerOutlet;        
 
         /// <summary>
         /// Triggered on recurring basis once a day. The purpose of this phase is to perform a deep analysis of the conversation history with any campaign prospect to who meets the following conditions
@@ -49,12 +47,12 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
         /// <returns></returns>
         public async Task HandleAsync(DeepScanProspectsForRepliesCommand command)
         {
-            await InternalExecuteListAsync();
+            await InternalExecuteListAsync(command);
         }
 
-        private async Task InternalExecuteListAsync()
+        private async Task InternalExecuteListAsync(DeepScanProspectsForRepliesCommand command)
         {
-            IDictionary<string, IList<CampaignProspect>> halsCampaignProspects = await CreateHalsCampainProspectsAsync();
+            IDictionary<string, IList<CampaignProspect>> halsCampaignProspects = await CreateHalsCampainProspectsAsync(command);
 
             foreach (var halCampaignProspects in halsCampaignProspects)
             {
@@ -64,7 +62,7 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
                 string halId = halUnit.HalId;
 
                 // fire off ScanProspectsForRepliesPhase with the payload of the contacted prospects
-                ScanProspectsForRepliesBody messageBody = await CreateScanProspectsForRepliesBodyAsync(scanProspectsForRepliesPhaseId, halId, userId, halCampaignProspects.Value);
+                ScanProspectsForRepliesBody messageBody = await CreateScanProspectsForRepliesBodyAsync(scanProspectsForRepliesPhaseId, halId, halCampaignProspects.Value);
 
                 InternalExecute(messageBody);
             }
@@ -81,19 +79,17 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
             _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers);
         }
 
-        private async Task<IDictionary<string, IList<CampaignProspect>>> CreateHalsCampainProspectsAsync()
+        private async Task<IDictionary<string, IList<CampaignProspect>>> CreateHalsCampainProspectsAsync(DeepScanProspectsForRepliesCommand command)
         {
-            IList<Campaign> campaigns = await _campaignRepositoryFacade.GetAllActiveCampaignsAsync();
             IDictionary<string, IList<CampaignProspect>> halsCampaignProspects = new Dictionary<string, IList<CampaignProspect>>();
-            foreach (Campaign activeCampaign in campaigns)
-            {
-                // grab all campaign prospects for each campaign
-                IList<CampaignProspect> campaignProspects = await _campaignRepositoryFacade.GetAllCampaignProspectsByCampaignIdAsync(activeCampaign.CampaignId);
-                IList<CampaignProspect> contactedProspects = campaignProspects.Where(p => p.Accepted == true && p.FollowUpMessageSent == true && p.Replied == false).ToList();
 
-                if (contactedProspects.Count > 0)
+            foreach (string halId in command.HalIds)
+            {
+                // get all campaign prospects by halId
+                IList<CampaignProspect> halCampaignProspects = await _campaignRepositoryFacade.GetAllActiveCampaignProspectsByHalIdAsync(halId);
+                IList<CampaignProspect> contactedProspects = halCampaignProspects.Where(p => p.Accepted == true && p.FollowUpMessageSent == true && p.Replied == false).ToList();
+                if(contactedProspects.Count > 0)
                 {
-                    string halId = activeCampaign.HalId;
                     halsCampaignProspects.Add(halId, contactedProspects);
                 }
             }

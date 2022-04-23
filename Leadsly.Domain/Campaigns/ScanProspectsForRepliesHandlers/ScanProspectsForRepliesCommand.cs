@@ -1,20 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
 {
     public class ScanProspectsForRepliesCommand : ICommand
     {
-        public ScanProspectsForRepliesCommand(string halId, string userId)
+        public ScanProspectsForRepliesCommand(string halId)
         {
             HalId = halId;
-            UserId = userId;
         }
 
+        public ScanProspectsForRepliesCommand(IList<string> halIds)
+        {
+            HalIds = halIds;
+        }
+
+        public IList<string> HalIds { get; set; }
         public string HalId { get; set; }
-        public string UserId { get; set; }
     }
 }

@@ -14,6 +14,12 @@ namespace Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers
             CampaignId = campaignId;
         }
 
+        public SendConnectionsToProspectsCommand(IList<string> halIds)
+        {
+            HalIds = halIds;
+        }
+
+        public IList<string> HalIds { get; set; }
         public string UserId { get; set; }
         public string CampaignId { get; set; }
     }

@@ -20,7 +20,7 @@ namespace Leadsly.Domain.Providers.Interfaces
 {
     public interface ICampaignProvider
     {       
-        Task<IList<ProspectListPhase>> GetIncompleteProspectListPhasesAsync(CancellationToken ct = default);
+        Task<IList<ProspectListPhase>> GetIncompleteProspectListPhasesAsync(string halId, CancellationToken ct = default);
         Task<List<string>> GetHalIdsWithActiveCampaignsAsync(CancellationToken ct = default);
         CampaignProspectList CreateCampaignProspectList(PrimaryProspectList primaryProspectList, string userId);
         Task<int> CreateDailyWarmUpLimitConfigurationAsync(long startDateTimestamp, CancellationToken ct = default);
@@ -35,6 +35,9 @@ namespace Leadsly.Domain.Providers.Interfaces
 
         Task<HalOperationResultViewModel<T>> CreateCampaignAsync<T>(CreateCampaignRequest request, string userId, CancellationToken ct = default)
             where T : IOperationResponseViewModel;
+
+        Task<HalOperationResult<T>> ProcessCampaignProspectsRepliedAsync<T>(ProspectsRepliedRequest request, CancellationToken ct = default)
+           where T : IOperationResponse;
 
         Task<HalOperationResult<T>> ProcessProspectsRepliedAsync<T>(ProspectsRepliedRequest request, CancellationToken ct = default)
            where T : IOperationResponse;

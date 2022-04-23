@@ -63,6 +63,29 @@ namespace Leadsly.Infrastructure.Repositories
             return campaignProspects;
         }
 
+        public async Task<IList<CampaignProspect>> GetAllActiveByHalIdAsync(string halId, CancellationToken ct = default)
+        {
+            _logger.LogDebug("Retrieving all CampaignProspects by hal id {halId}", halId);
+            IList<CampaignProspect> campaignProspects = default;
+            try
+            {
+                campaignProspects = await _dbContext.CampaignProspects
+                    .Include(p => p.Campaign)
+                    .Where(p => p.Campaign.Active == true && p.Campaign.HalId == halId)
+                    .Include(p => p.FollowUpMessage)
+                    .Include(p => p.PrimaryProspect)
+                    .ToListAsync(ct);
+
+                _logger.LogDebug("Successfully retrieved all CampaignProspects by hal id {halId}", halId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get all CampaignProspects by hal id {halId}. Returning an explicit null", halId);
+                return null;
+            }
+            return campaignProspects;
+        }
+
         public async Task<CampaignProspectList> GetListByListIdAsync(string campaignProspectListId, CancellationToken ct = default)
         {
             _logger.LogInformation("Retrieving CampaignProspectList by id {campaignProspectListId}", campaignProspectListId);

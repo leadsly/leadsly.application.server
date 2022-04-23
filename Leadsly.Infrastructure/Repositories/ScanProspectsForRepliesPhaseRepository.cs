@@ -45,7 +45,11 @@ namespace Leadsly.Infrastructure.Repositories
             ScanProspectsForRepliesPhase phase = default;
             try
             {
-                phase = await _dbContext.ScanProspectsForRepliesPhase.Where(p => p.ScanProspectsForRepliesPhaseId == scanProspectsForRepliesPhaseId).SingleAsync(ct);                                
+                phase = await _dbContext.ScanProspectsForRepliesPhase
+                    .Where(p => p.ScanProspectsForRepliesPhaseId == scanProspectsForRepliesPhaseId)
+                    .Include(p => p.SocialAccount)
+                    .SingleAsync(ct);                                
+
                 _logger.LogDebug("Successfully retrieved ScanProspectsForRepliesPhase by id {scanProspectsForRepliesPhaseId}", scanProspectsForRepliesPhaseId);
             }
             catch (Exception ex)

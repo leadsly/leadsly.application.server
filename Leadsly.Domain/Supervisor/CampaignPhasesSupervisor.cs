@@ -32,11 +32,23 @@ namespace Leadsly.Domain.Supervisor
             await _campaignPhaseClient.ProduceSendConnectionsPhaseAsync(request.CampaignId, request.UserId, ct);
         }
 
+        /// <summary>
+        /// Triggered by hal after DeepScanProspectsForRepliesPhase finishes running.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
         public async Task TriggerScanProspectsForRepliesPhaseAsync(TriggerScanProspectsForRepliesRequest request, CancellationToken ct = default)
         {
             await _campaignPhaseClient.ProduceScanProspectsForRepliesPhaseAsync(request.HalId, request.UserId, ct);
         }
 
+        /// <summary>
+        /// Triggered by hal after DeepScanProspectsForRepliesPhase finishes running.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
         public async Task TriggerFollowUpMessagesPhaseAsync(TriggerFollowUpMessageRequest request, CancellationToken ct = default)            
         {
             await _campaignPhaseClient.ProduceFollowUpMessagesPhaseAsync(request.HalId, request.UserId, ct);

@@ -101,7 +101,7 @@ namespace Leadsly.Domain.Facades
 
         public async Task<IList<Campaign>> GetAllActiveCampaignsByHalIdAsync(string halId, CancellationToken ct = default)
         {
-            return await _campaignRepository.GetAllActiveByUserIdAsync(halId, ct);
+            return await _campaignRepository.GetAllActiveByHalIdAsync(halId, ct);
         }
 
         public async Task<IList<ProspectListPhase>> GetAllActiveProspectListPhasesAsync(CancellationToken ct = default)
@@ -109,11 +109,21 @@ namespace Leadsly.Domain.Facades
             return await _prospectListPhaseRepository.GetAllActiveAsync(ct);
         }
 
+        public async Task<IList<ProspectListPhase>> GetAllActiveProspectListPhasesByHalIdAsync(string halId, CancellationToken ct = default)
+        {
+            return await _prospectListPhaseRepository.GetAllActiveByHalIdAsync(halId, ct);
+        }
+
         public async Task<IList<CampaignProspect>> GetAllCampaignProspectsByCampaignIdAsync(string campaignId, CancellationToken ct = default)
         {
             return await _campaignProspectRepository.GetAllByCampaignIdAsync(campaignId, ct);
         }
 
+        public async Task<IList<CampaignProspect>> GetAllActiveCampaignProspectsByHalIdAsync(string halId, CancellationToken ct = default)
+        {
+            return await _campaignProspectRepository.GetAllActiveByHalIdAsync(halId, ct);
+        }
+        
         public async Task<IList<MonitorForNewConnectionsPhase>> GetAllMonitorForNewConnectionsPhasesByUserIdAsync(string userId, CancellationToken ct = default)
         {
             return await _monitorForNewConnectionsPhaseRepository.GetAllByUserIdAsync(userId, ct);
@@ -222,6 +232,11 @@ namespace Leadsly.Domain.Facades
         public async Task<CampaignProspect> GetCampaignProspectByIdAsync(string campaignProspectId, CancellationToken ct = default)
         {
             return await _campaignProspectRepository.GetByIdAsync(campaignProspectId, ct);
+        }
+
+        public async Task<bool> AnyIncompleteProspectListPhasesByHalIdAsync(string halId, CancellationToken ct = default)
+        {
+            return await _prospectListPhaseRepository.AnyIncompleteByHalIdAsync(halId, ct);
         }
     }
 }

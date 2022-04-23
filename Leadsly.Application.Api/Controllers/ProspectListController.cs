@@ -35,9 +35,29 @@ namespace Leadsly.Application.Api.Controllers
             return Ok();
         }
 
-        [HttpPost("prospects-replied")]
+        [HttpPost("deep-scan/prospects-replied")]
         [AllowAnonymous]
         public async Task<IActionResult> CampaignProspectsReplied(ProspectsRepliedRequest request, CancellationToken ct = default)
+        {
+            HalOperationResult<IOperationResponse> result = await _supervisor.ProcessCampaignProspectsRepliedAsync<IOperationResponse>(request, ct);
+
+            if (result.Succeeded == false)
+            {
+                return BadRequest_CampaignProspectsReplied(result.Failures);
+            }
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// This is the end point that gets hit when prospects reply during normal ScanProspectsForRepliesPhase
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        [HttpPost("prospects-replied")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ProspectsReplied(ProspectsRepliedRequest request, CancellationToken ct = default)
         {
             HalOperationResult<IOperationResponse> result = await _supervisor.ProcessProspectsRepliedAsync<IOperationResponse>(request, ct);
 

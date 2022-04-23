@@ -127,5 +127,24 @@ namespace Leadsly.Infrastructure.Repositories
 
             return halUnit;
         }
+
+        public async Task<IList<string>> GetAllHalIdsAsync(CancellationToken ct = default)
+        {
+            _logger.LogInformation("Retrieving all hal ids");
+            IList<string> halIds = new List<string>();
+            try
+            {
+                halIds = await _dbContext.HalUnits.Select(h => h.HalId).ToListAsync(ct);
+
+                _logger.LogDebug("Successfully found hal ids");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve hal ids. Returning an explicit null");
+                return null;
+            }
+
+            return halIds;
+        }
     }
 }

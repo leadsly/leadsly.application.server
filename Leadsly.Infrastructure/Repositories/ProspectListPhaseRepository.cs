@@ -40,6 +40,24 @@ namespace Leadsly.Infrastructure.Repositories
             return prospectListPhases;
         }
 
+        public async Task<IList<ProspectListPhase>> GetAllActiveByHalIdAsync(string halId, CancellationToken ct = default)
+        {
+            _logger.LogInformation("Retrieving all prospect list phases that are associated with an active campaign for hal id {halId}", halId);
+            IList<ProspectListPhase> prospectListPhases = new List<ProspectListPhase>();
+            try
+            {
+                prospectListPhases = await _dbContext.ProspectListPhases.Include(p => p.Campaign).Where(p => p.Campaign.Active == true && p.Campaign.HalId == halId).ToListAsync(ct);
+                _logger.LogDebug("Successfully found prospect list phases for active campaigns for hal id {halId}", halId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve prospect list phases that are associated with active campaigns for hal id {halId}. Returning an explict null", halId);
+                return null;
+            }
+
+            return prospectListPhases;
+        }
+
         public async Task<ProspectListPhase> GetByCampaignIdAsync(string campaignId, CancellationToken ct = default)
         {
             _logger.LogInformation("Retrieving prospect list phase by campaign id {campaignId}", campaignId);
@@ -95,6 +113,22 @@ namespace Leadsly.Infrastructure.Repositories
                 return null;
             }
             return prospectListPhase;
+        }
+
+        public async Task<bool> AnyIncompleteByHalIdAsync(string halId, CancellationToken ct = default)
+        {
+            _logger.LogInformation("Checking for any incomplete prospect list phases for hal id {halId}", halId);
+            bool anyIncomplete = false;
+            try
+            {
+                anyIncomplete = await _dbContext.ProspectListPhases.Include(p => p.Campaign).Where(p => p.Campaign.Active == true && p.Completed == false).AnyAsync(ct);                
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to check for any incomplete prospect list phases with hal id {halId}. returning explicit false", halId);
+                return false;
+            }
+            return anyIncomplete;
         }
     }
 }

@@ -34,6 +34,9 @@ namespace Leadsly.Domain.Supervisor
         Task<HalOperationResult<T>> ProcessProspectsAsync<T>(ProspectListPhaseCompleteRequest request, CancellationToken ct = default)
             where T : IOperationResponse;
 
+        Task<HalOperationResult<T>> ProcessCampaignProspectsRepliedAsync<T>(ProspectsRepliedRequest request, CancellationToken ct = default)
+            where T : IOperationResponse;
+
         Task<HalOperationResult<T>> ProcessProspectsRepliedAsync<T>(ProspectsRepliedRequest request, CancellationToken ct = default)
             where T : IOperationResponse;
 

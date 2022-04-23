@@ -17,7 +17,7 @@ namespace Leadsly.Domain
     public class CampaignPhaseClient : ICampaignPhaseClient
     {
         public CampaignPhaseClient(
-            ICommandHandler<ScanProspectsForRepliesCommand> scanHandler,
+            HalWorkCommandHandlerDecorator<ScanProspectsForRepliesCommand> scanHandler,
             HalWorkCommandHandlerDecorator<MonitorForNewConnectionsCommand> monitorHandler,
             HalWorkCommandHandlerDecorator<SendConnectionsToProspectsCommand> connectionsHandler,
             HalWorkCommandHandlerDecorator<ProspectListCommand> prospectListHandler,
@@ -35,7 +35,7 @@ namespace Leadsly.Domain
 
         private readonly HalWorkCommandHandlerDecorator<FollowUpMessagesCommand> _followUpMessagesHandler;
         private readonly HalWorkCommandHandlerDecorator<FollowUpMessageCommand> _followUpMessageHandler;
-        private readonly ICommandHandler<ScanProspectsForRepliesCommand> _scanHandler;
+        private readonly HalWorkCommandHandlerDecorator<ScanProspectsForRepliesCommand> _scanHandler;
         private readonly HalWorkCommandHandlerDecorator<MonitorForNewConnectionsCommand> _monitorHandler;
         private readonly HalWorkCommandHandlerDecorator<SendConnectionsToProspectsCommand> _connectionsHandler;
         private readonly HalWorkCommandHandlerDecorator<ProspectListCommand> _prospectListHandler;
@@ -43,10 +43,10 @@ namespace Leadsly.Domain
         {
             // ensure ScanForProspectReplies, ConnectionWithdraw and MonitorForNewProspects phases are running on hal
             // always trigger them here            
-            MonitorForNewConnectionsCommand monitorCommand = new MonitorForNewConnectionsCommand(campaign.HalId, campaign.ApplicationUserId);
+            MonitorForNewConnectionsCommand monitorCommand = new MonitorForNewConnectionsCommand(campaign.HalId);
             await _monitorHandler.HandleAsync(monitorCommand);
 
-            ScanProspectsForRepliesCommand scanCommand = new ScanProspectsForRepliesCommand(campaign.HalId, campaign.ApplicationUserId);
+            ScanProspectsForRepliesCommand scanCommand = new ScanProspectsForRepliesCommand(campaign.HalId);
             await _scanHandler.HandleAsync(scanCommand);
 
             // if prospect list phase does not exists, this means were running campaign off of existing prospect list
@@ -70,7 +70,7 @@ namespace Leadsly.Domain
 
         public async Task ProduceScanProspectsForRepliesPhaseAsync(string halId, string userId, CancellationToken ct = default)
         {
-            ScanProspectsForRepliesCommand scanCommand = new ScanProspectsForRepliesCommand(halId, userId);
+            ScanProspectsForRepliesCommand scanCommand = new ScanProspectsForRepliesCommand(halId);
             await _scanHandler.HandleAsync(scanCommand);
         }
 

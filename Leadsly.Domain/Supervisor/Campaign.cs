@@ -48,6 +48,12 @@ namespace Leadsly.Domain.Supervisor
             return await _campaignProvider.CreateCampaignAsync<T>(request, userId, ct);
         }
 
+        public async Task<HalOperationResult<T>> ProcessCampaignProspectsRepliedAsync<T>(ProspectsRepliedRequest request, CancellationToken ct = default)
+            where T : IOperationResponse
+        {
+            return await _campaignProvider.ProcessCampaignProspectsRepliedAsync<T>(request, ct);
+        }
+
         public async Task<HalOperationResult<T>> ProcessProspectsRepliedAsync<T>(ProspectsRepliedRequest request, CancellationToken ct = default)
             where T : IOperationResponse
         {

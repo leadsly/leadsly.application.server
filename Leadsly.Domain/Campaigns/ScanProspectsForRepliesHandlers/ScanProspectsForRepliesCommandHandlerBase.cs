@@ -39,7 +39,15 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
         private readonly IHalRepository _halRepository;
         private readonly ITimestampService _timestampService;
 
-        protected async Task<ScanProspectsForRepliesBody> CreateScanProspectsForRepliesBodyAsync(string scanProspectsForRepliesPhaseId, string halId, string userId, IList<CampaignProspect> contactedCampaignProspects = default, CancellationToken ct = default)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="scanProspectsForRepliesPhaseId">Used by the DeepScanProspectsForRepliesPhase</param>
+        /// <param name="halId"></param>
+        /// <param name="contactedCampaignProspects"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        protected async Task<ScanProspectsForRepliesBody> CreateScanProspectsForRepliesBodyAsync(string scanProspectsForRepliesPhaseId, string halId, IList<CampaignProspect> contactedCampaignProspects = default, CancellationToken ct = default)
         {
             _logger.LogInformation("Creating scanprospects for replies body message for rabbit mq message broker.");
             ScanProspectsForRepliesPhase scanProspectsForRepliesPhase = await _campaignRepositoryFacade.GetScanProspectsForRepliesPhaseByIdAsync(scanProspectsForRepliesPhaseId, ct);
@@ -59,7 +67,7 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
                 PageUrl = scanProspectsForRepliesPhase.PageUrl,
                 HalId = halId,
                 ChromeProfileName = chromeProfileName,
-                UserId = userId,
+                UserId = scanProspectsForRepliesPhase.SocialAccount.UserId,
                 EndWorkTime = await _timestampService.GetEndWorkDayTimestampAsync(halId),
                 TimeZoneId = "Eastern Standard Time",
                 NamespaceName = config.ServiceDiscoveryConfig.Name,

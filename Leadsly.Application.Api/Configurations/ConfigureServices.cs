@@ -159,6 +159,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<IConnectAccountResponseSerializer, ConnectAccountResponseSerializer>();
             services.AddScoped<IEnterTwoFactorAuthCodeResponseSerializer, EnterTwoFactorAuthCodeResponseSerializer>();
             services.AddScoped<ICampaignPhaseSerializer, CampaignPhaseSerializer>();
+            services.AddScoped<IPhaseManager, PhaseManager>();
             
             return services;
         }
@@ -203,7 +204,7 @@ namespace Leadsly.Application.Api.Configurations
             // recurring jobs handlers
             services.AddScoped<HalWorkCommandHandlerDecorator<MonitorForNewConnectionsAllCommand>>();
             services.AddScoped<HalWorkCommandHandlerDecorator<ProspectListsCommand>>();
-            services.AddScoped<HalWorkCommandHandlerDecorator<UncontactedFollowUpMessageCommand>>();
+            services.AddScoped<HalWorkCommandHandlerDecorator<UncontactedFollowUpMessageCommand>>();            
             services.AddScoped<HalWorkCommandHandlerDecorator<DeepScanProspectsForRepliesCommand>>();
 
             services.AddScoped<ICommandHandler<FollowUpMessagesCommand>, FollowUpMessagesCommandHandler>();
@@ -215,7 +216,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ICommandHandler<ProspectListsCommand>, ProspectListsCommandHandler>();
             services.AddScoped<ICommandHandler<DeepScanProspectsForRepliesCommand>, DeepScanProspectsForRepliesCommandHandler>();
             services.AddScoped<ICommandHandler<ScanProspectsForRepliesCommand>, ScanProspectsForRepliesCommandHandler>();
-            services.AddScoped<ICommandHandler<SendConnectionsToProspectsCommand>, SendConnectionsToProspectsCommandHandler>();
+            services.AddScoped<ICommandHandler<SendConnectionsToProspectsCommand>, SendConnectionsToProspectsCommandHandler>();            
 
             return services;
         }

@@ -36,29 +36,45 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
 
         public async Task HandleAsync(ScanProspectsForRepliesCommand command)
         {
-            await InternalExecute(command);
+            if(command.HalIds != null)
+            {
+                await InternalHandleListAsync(command.HalIds);
+            }
+
+            if (command.HalId != null)
+            {
+                await InternalHandleAsync(command.HalId);
+            }
         }
 
-        private async Task InternalExecute(ScanProspectsForRepliesCommand command)
+        private async Task InternalHandleListAsync(IList<string> halIds)
         {
-            ScanProspectsForRepliesBody messageBody = await CreateMessageBodyAsync(command);
+            foreach (string halId in halIds)
+            {
+                await InternalHandleAsync(halId);
+            }
+        }
+
+        private async Task InternalHandleAsync(string halId)
+        {
+            ScanProspectsForRepliesBody messageBody = await CreateMessageBodyAsync(halId);
 
             string queueNameIn = RabbitMQConstants.ScanProspectsForReplies.QueueName;
             string routingKeyIn = RabbitMQConstants.ScanProspectsForReplies.RoutingKey;
-            string halId = messageBody.HalId;
+            
             Dictionary<string, object> headers = new Dictionary<string, object>();
             headers.Add(RabbitMQConstants.ScanProspectsForReplies.ExecutionType, RabbitMQConstants.ScanProspectsForReplies.ExecutePhase);
 
             _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers);
         }
 
-        private async Task<ScanProspectsForRepliesBody> CreateMessageBodyAsync(ScanProspectsForRepliesCommand command)
+        private async Task<ScanProspectsForRepliesBody> CreateMessageBodyAsync(string halId)
         {
-            HalUnit halUnit = await _halRepository.GetByHalIdAsync(command.HalId);
+            HalUnit halUnit = await _halRepository.GetByHalIdAsync(halId);
 
             // fire off ScanProspectsForRepliesPhase with the payload of the contacted prospects
             string scanprospectsForRepliesPhaseId = halUnit.SocialAccount.ScanProspectsForRepliesPhase.ScanProspectsForRepliesPhaseId;
-            ScanProspectsForRepliesBody messageBody = await CreateScanProspectsForRepliesBodyAsync(scanprospectsForRepliesPhaseId, halUnit.HalId, command.UserId);
+            ScanProspectsForRepliesBody messageBody = await CreateScanProspectsForRepliesBodyAsync(scanprospectsForRepliesPhaseId, halId);
 
             return messageBody;
         }

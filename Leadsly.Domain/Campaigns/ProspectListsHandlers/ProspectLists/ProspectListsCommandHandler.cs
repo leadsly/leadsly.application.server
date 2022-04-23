@@ -5,12 +5,9 @@ using Leadsly.Domain.Campaigns.Handlers;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
-using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Campaigns.ProspectListsHandlers.ProspectLists
@@ -41,13 +38,16 @@ namespace Leadsly.Domain.Campaigns.ProspectListsHandlers.ProspectLists
         /// <returns></returns>
         public async Task HandleAsync(ProspectListsCommand command)
         {
-            await InternalExecuteListAsync();
+            if(command.HalIds != null)
+            {
+                await InternalExecuteListAsync(command.HalIds);
+            }
         }
 
-        private async Task InternalExecuteListAsync()
+        private async Task InternalExecuteListAsync(IList<string> halIds)
         {
             // get the payload
-            IList<ProspectListPhase> prospectListPhases = await CreateMessageBodiesAsync();
+            IList<ProspectListPhase> prospectListPhases = await CreateMessageBodiesAsync(halIds);
 
             // if there are values
             if (prospectListPhases.Any() == true)
@@ -74,9 +74,17 @@ namespace Leadsly.Domain.Campaigns.ProspectListsHandlers.ProspectLists
             _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers);
         }
 
-        private async Task<IList<ProspectListPhase>> CreateMessageBodiesAsync()
+        private async Task<IList<ProspectListPhase>> CreateMessageBodiesAsync(IList<string> halIds)
         {
-            IList<ProspectListPhase> prospectListPhases = await _campaignProvider.GetIncompleteProspectListPhasesAsync();
+            List<ProspectListPhase> prospectListPhases = new List<ProspectListPhase>();
+            foreach (string halId in halIds)
+            {
+                IList<ProspectListPhase> halsProspectListPhases = await _campaignProvider.GetIncompleteProspectListPhasesAsync(halId);
+                if(halsProspectListPhases.Count > 0)
+                {
+                    prospectListPhases.AddRange(halsProspectListPhases);
+                }
+            }
 
             return prospectListPhases;
         }
