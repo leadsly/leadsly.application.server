@@ -139,7 +139,7 @@ namespace Leadsly.Domain.Providers
                     try
                     {
                         CampaignProspect campaignProspectToUpdate = campaignProspects.SingleOrDefault(p => p.Name == prospectReplied.ProspectName);
-                        if(campaignProspectsToUpdate != null)
+                        if(campaignProspectToUpdate != null)
                         {
                             campaignProspectToUpdate.Replied = true;
                             campaignProspectToUpdate.ResponseMessage = prospectReplied.ResponseMessage;
