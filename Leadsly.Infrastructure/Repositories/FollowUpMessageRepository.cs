@@ -28,7 +28,7 @@ namespace Leadsly.Infrastructure.Repositories
             IList<FollowUpMessage> messages = default;
             try
             {
-                messages = await _dbContext.FollowUpMessages.Where(f => f.CampaignId == campaignId).ToListAsync(ct);
+                messages = await _dbContext.FollowUpMessages.Where(f => f.CampaignId == campaignId).Include(f => f.Delay).ToListAsync(ct);
                 _logger.LogDebug("Successfully retrieved first FollowUpMessage for campaign id: {campaignId}", campaignId);
             }
             catch (Exception ex)

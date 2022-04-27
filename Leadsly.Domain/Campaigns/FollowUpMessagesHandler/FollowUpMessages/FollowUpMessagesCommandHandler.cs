@@ -32,9 +32,8 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages
 
 
         /// <summary>
-        /// FollowUpMessagePhase triggered after DeepScanProspectsForRepliesPhase is finished running. This phase is triggered by hal once
-        /// DeepScanProspectsForRepliesPhase has completed running, which runs every morning. Runs FollowUpMessagePhase on all eligible campaign prospects for the given 
-        /// Hal id that meet the following conditions. CampaignProspect accepted connection request, has not replied and has gotten a follow up message.
+        /// FollowUpMessagePhase triggered after DeepScanProspectsForRepliesPhase is finished running or if DeepScanProspectsForRepliesPhase did not run this is executed
+        /// directly        
         /// </summary>
         /// <param name="halId"></param>
         /// <param name="userId"></param>
@@ -51,28 +50,22 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages
                 await InternalExecuteListAsync(command.HalIds);
             }
         }
-
-        /// <summary>
-        /// Triggered by hal that has just finished running its DeepScanProspectsForRepliesPhase. This will loop through all campaign prospects for that hal that need to get
-        /// a follow up message sent.
-        /// </summary>
-        /// <param name="command"></param>
-        /// <returns></returns>
+        
         private async Task InternalHandleAsync(string halId)
         {
             IList<Campaign> campaigns = await _campaignRepositoryFacade.GetAllActiveCampaignsByHalIdAsync(halId);
 
-            IDictionary<CampaignProspectFollowUpMessage, DateTimeOffset> messagesGoingOut = new Dictionary<CampaignProspectFollowUpMessage, DateTimeOffset>();
+            Dictionary<CampaignProspectFollowUpMessage, DateTimeOffset> messagesGoingOut = new Dictionary<CampaignProspectFollowUpMessage, DateTimeOffset>();
             foreach (Campaign activeCampaign in campaigns)
             {
                 // grab all campaign prospects for each campaign
                 IList<CampaignProspect> campaignProspects = await _campaignRepositoryFacade.GetAllCampaignProspectsByCampaignIdAsync(activeCampaign.CampaignId);
-                List<CampaignProspect> prospectsForFollowUpMessage = campaignProspects.Where(p => p.Accepted == true && p.Replied == false && p.FollowUpMessageSent == true).ToList();
+                List<CampaignProspect> prospectsForFollowUpMessage = campaignProspects.Where(p => p.Accepted == true && p.Replied == false).ToList();
                 if(prospectsForFollowUpMessage.Count > 0)
                 {
                     // await campaignProvider.SendFollowUpMessagesAsync(uncontactedProspects);
-                    IDictionary<CampaignProspectFollowUpMessage, DateTimeOffset> messagesOut = await _sendFollowUpMessageService.CreateSendFollowUpMessagesAsync(prospectsForFollowUpMessage);
-                    messagesGoingOut.Concat(messagesOut);
+                    Dictionary<CampaignProspectFollowUpMessage, DateTimeOffset> messagesOut = await _sendFollowUpMessageService.CreateSendFollowUpMessagesAsync(prospectsForFollowUpMessage) as Dictionary<CampaignProspectFollowUpMessage, DateTimeOffset>;
+                    messagesGoingOut.AddRange(messagesOut);
                 }
             }
 

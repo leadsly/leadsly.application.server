@@ -153,6 +153,31 @@ namespace Leadsly.Domain.Providers
             return result;
         }
 
+        public async Task<HalOperationResult<T>> ProcessFollowUpMessageSentAsync<T>(FollowUpMessageSentRequest request, CancellationToken ct = default)
+            where T : IOperationResponse
+        {
+            HalOperationResult<T> result = new();
+
+            CampaignProspect campaignProspect = await _campaignRepositoryFacade.GetCampaignProspectByIdAsync(request.CampaignProspectId, ct);
+
+            if(campaignProspect.FollowUpMessageSent == false)
+            {
+                campaignProspect.FollowUpMessageSent = true;                
+            }
+
+            campaignProspect.LastFollowUpMessageSentTimestamp = request.MessageSentTimestamp;
+            campaignProspect.SentFollowUpMessageOrderNum = request.MessageOrderNum;
+            
+            campaignProspect = await _campaignRepositoryFacade.UpdateCampaignProspectAsync(campaignProspect, ct);
+            if(campaignProspect == null)
+            {
+                return result;
+            }
+
+            result.Succeeded = true;
+            return result;
+        }
+
         public async Task<HalOperationResult<T>> ProcessConnectionRequestSentForCampaignProspectsAsync<T>(CampaignProspectListRequest request, CancellationToken ct = default) where T : IOperationResponse
         {
             HalOperationResult<T> result = new();

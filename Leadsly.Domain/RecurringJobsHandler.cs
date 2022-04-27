@@ -1,5 +1,6 @@
 ﻿using Leadsly.Domain.Campaigns.FollowUpMessagesHandler.UncontactedFollowUpMessages;
 using Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandler;
+using Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers;
 using Leadsly.Domain.Campaigns.ProspectListsHandlers.ProspectLists;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -21,34 +22,43 @@ namespace Leadsly.Domain
             using (var scope = _serviceProbider.CreateScope())
             {
                 ////////////////////////////////////////////////////////////////////////////////////
+                /// ScanForNewConnectionsOffHours
+                ////////////////////////////////////////////////////////////////////////////////////
+                HalWorkCommandHandlerDecorator<CheckOffHoursNewConnectionsCommand> offHoursHandler =
+                    scope.ServiceProvider.GetRequiredService<HalWorkCommandHandlerDecorator<CheckOffHoursNewConnectionsCommand>>();
+
+                CheckOffHoursNewConnectionsCommand offHoursCommand = new CheckOffHoursNewConnectionsCommand();
+                await offHoursHandler.HandleAsync(offHoursCommand);
+
+                ////////////////////////////////////////////////////////////////////////////////////
                 /// MonitorForNewConnectionsAll
                 ////////////////////////////////////////////////////////////////////////////////////
-                HalWorkCommandHandlerDecorator<MonitorForNewConnectionsAllCommand> monitorHandler = 
-                    scope.ServiceProvider.GetRequiredService<HalWorkCommandHandlerDecorator<MonitorForNewConnectionsAllCommand>>();
+                //HalWorkCommandHandlerDecorator<MonitorForNewConnectionsAllCommand> monitorHandler = 
+                //    scope.ServiceProvider.GetRequiredService<HalWorkCommandHandlerDecorator<MonitorForNewConnectionsAllCommand>>();
 
-                MonitorForNewConnectionsAllCommand monitorForNewConnectionsAllCommand = new MonitorForNewConnectionsAllCommand();
-                await monitorHandler.HandleAsync(monitorForNewConnectionsAllCommand);
+                //MonitorForNewConnectionsAllCommand monitorForNewConnectionsAllCommand = new MonitorForNewConnectionsAllCommand();
+                //await monitorHandler.HandleAsync(monitorForNewConnectionsAllCommand);
 
-                ////////////////////////////////////////////////////////////////////////////////////
-                /// UncontactedFollowUpMessageCommand
-                ////////////////////////////////////////////////////////////////////////////////////
-                HalWorkCommandHandlerDecorator<UncontactedFollowUpMessageCommand> uncontactedHandler =
-                   scope.ServiceProvider.GetRequiredService<HalWorkCommandHandlerDecorator<UncontactedFollowUpMessageCommand>>();
-                
-                UncontactedFollowUpMessageCommand uncontactedCommand = new UncontactedFollowUpMessageCommand();
-                await uncontactedHandler.HandleAsync(uncontactedCommand);
+                //////////////////////////////////////////////////////////////////////////////////////
+                ///// UncontactedFollowUpMessageCommand
+                //////////////////////////////////////////////////////////////////////////////////////
+                //HalWorkCommandHandlerDecorator<UncontactedFollowUpMessageCommand> uncontactedHandler =
+                //   scope.ServiceProvider.GetRequiredService<HalWorkCommandHandlerDecorator<UncontactedFollowUpMessageCommand>>();
 
-                IPhaseManager phaseManager = scope.ServiceProvider.GetRequiredService<IPhaseManager>();
+                //UncontactedFollowUpMessageCommand uncontactedCommand = new UncontactedFollowUpMessageCommand();
+                //await uncontactedHandler.HandleAsync(uncontactedCommand);
 
-                //////////////////////////////////////////////////////////////////////////////////////////////////////
-                /// Prospecting [ DeepScanProspectsForReplies OR (FollowUpMessagePhase AND ScanProspectsForReplies) ]
-                //////////////////////////////////////////////////////////////////////////////////////////////////////
-                await phaseManager.ProspectingPhaseAsync();
+                //IPhaseManager phaseManager = scope.ServiceProvider.GetRequiredService<IPhaseManager>();
 
-                //////////////////////////////////////////////////////////////////////////////////////////////////
-                /// NetworkingConnectionsPhase [ ProspectListPhase OR SendConnectionsPhase ]
-                //////////////////////////////////////////////////////////////////////////////////////////////////
-                await phaseManager.NetworkingConnectionsPhaseAsync();
+                ////////////////////////////////////////////////////////////////////////////////////////////////////////
+                ///// Prospecting [ DeepScanProspectsForReplies OR (FollowUpMessagePhase AND ScanProspectsForReplies) ]
+                ////////////////////////////////////////////////////////////////////////////////////////////////////////
+                //await phaseManager.ProspectingPhaseAsync();
+
+                ////////////////////////////////////////////////////////////////////////////////////////////////////
+                ///// NetworkingConnectionsPhase [ ProspectListPhase OR SendConnectionsPhase ]
+                ////////////////////////////////////////////////////////////////////////////////////////////////////
+                //await phaseManager.NetworkingConnectionsPhaseAsync();
 
             }
         }

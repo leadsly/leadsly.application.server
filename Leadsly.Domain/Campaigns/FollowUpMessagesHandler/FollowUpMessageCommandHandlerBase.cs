@@ -63,8 +63,9 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler
         {
             _logger.LogInformation("Creating follow up message body for rabbit mq message broker.");
 
-            FollowUpMessagePhase followUpMessagePhase = await _campaignRepositoryFacade.GetFollowUpMessagePhaseByCampaignIdAsync(campaignProspectFollowUpMessageId, ct);
+            FollowUpMessagePhase followUpMessagePhase = await _campaignRepositoryFacade.GetFollowUpMessagePhaseByCampaignIdAsync(campaignId, ct);
             CampaignProspectFollowUpMessage followUpMessage = await _campaignRepositoryFacade.GetCampaignProspectFollowUpMessageByIdAsync(campaignProspectFollowUpMessageId, ct);
+            HalUnit halUnit = await _halRepository.GetByHalIdAsync(followUpMessagePhase.Campaign.HalId);
 
             ChromeProfile chromeProfile = await _halRepository.GetChromeProfileAsync(PhaseType.FollwUpMessage, ct);
             string chromeProfileName = chromeProfile?.Name;
@@ -83,6 +84,9 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler
                 Content = followUpMessage.Content,
                 UserId = followUpMessagePhase.Campaign.ApplicationUserId,
                 NamespaceName = config.ServiceDiscoveryConfig.Name,
+                TimeZoneId = halUnit.TimeZoneId,
+                OrderNum = followUpMessage.Order,
+                CampaignProspectId = followUpMessage.CampaignProspectId,
                 ChromeProfileName = chromeProfileName,
                 ServiceDiscoveryName = config.ApiServiceDiscoveryName,
                 PageUrl = followUpMessagePhase.PageUrl,

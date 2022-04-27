@@ -206,7 +206,9 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<HalWorkCommandHandlerDecorator<ProspectListsCommand>>();
             services.AddScoped<HalWorkCommandHandlerDecorator<UncontactedFollowUpMessageCommand>>();            
             services.AddScoped<HalWorkCommandHandlerDecorator<DeepScanProspectsForRepliesCommand>>();
+            services.AddScoped<HalWorkCommandHandlerDecorator<CheckOffHoursNewConnectionsCommand>>();
 
+            services.AddScoped<ICommandHandler<CheckOffHoursNewConnectionsCommand>, CheckOffHoursNewConnectionsCommandHandler>();
             services.AddScoped<ICommandHandler<FollowUpMessagesCommand>, FollowUpMessagesCommandHandler>();
             services.AddScoped<ICommandHandler<FollowUpMessageCommand>, FollowUpMessageCommandHandler>();
             services.AddScoped<ICommandHandler<UncontactedFollowUpMessageCommand>, UncontactedFollowUpMessageCommandHandler>();
@@ -421,6 +423,12 @@ namespace Leadsly.Application.Api.Configurations
                 // Serialize the name of enum values rather than their integer value
                 options.SerializerSettings.Converters.Add(new StringEnumConverter());
             });
+
+            JsonConvert.DefaultSettings = () => new JsonSerializerSettings
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                Converters = new[] { new StringEnumConverter() }
+            };
 
             return builder;
         }

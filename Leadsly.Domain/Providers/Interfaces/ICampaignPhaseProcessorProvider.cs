@@ -20,5 +20,8 @@ namespace Leadsly.Domain.Providers.Interfaces
 
         Task<HalOperationResult<T>> ProcessConnectionRequestSentForCampaignProspectsAsync<T>(CampaignProspectListRequest request, CancellationToken ct = default)
             where T : IOperationResponse;
+
+        Task<HalOperationResult<T>> ProcessFollowUpMessageSentAsync<T>(FollowUpMessageSentRequest request, CancellationToken ct = default)
+            where T : IOperationResponse;
     }
 }

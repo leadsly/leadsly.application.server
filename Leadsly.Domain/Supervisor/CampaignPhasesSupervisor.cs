@@ -64,7 +64,13 @@ namespace Leadsly.Domain.Supervisor
             where T : IOperationResponse
         {
             return await _campaignPhaseProcessorProvider.ProcessConnectionRequestSentForCampaignProspectsAsync<T>(request, ct);
-        }        
+        }
+
+        public async Task<HalOperationResult<T>> ProcessFollowUpMessageSentAsync<T>(FollowUpMessageSentRequest request, CancellationToken ct = default)
+            where T : IOperationResponse
+        {
+            return await _campaignPhaseProcessorProvider.ProcessFollowUpMessageSentAsync<T>(request, ct);
+        }
 
     }
 }

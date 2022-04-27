@@ -27,7 +27,7 @@ namespace Leadsly.Domain.Providers
 
         public async Task<IDictionary<CampaignProspectFollowUpMessage, DateTimeOffset>> CreateSendFollowUpMessagesAsync(IList<CampaignProspect> campaignProspects, CancellationToken ct = default)
         {
-            IDictionary<CampaignProspectFollowUpMessage, DateTimeOffset> goingOut = new Dictionary<CampaignProspectFollowUpMessage, DateTimeOffset>();
+            Dictionary<CampaignProspectFollowUpMessage, DateTimeOffset> goingOut = new Dictionary<CampaignProspectFollowUpMessage, DateTimeOffset>();
 
             // grab first follow up messages for the following campaign id
             foreach (CampaignProspect campaignProspect in campaignProspects)
@@ -46,7 +46,7 @@ namespace Leadsly.Domain.Providers
                     {
                         // else prepare next follow up message to be sent
                         FollowUpMessage messageToGoOut = messages.SingleOrDefault(m => m.Order == nextFollowUpMessageOrder);
-                        goingOut.Concat(await CreateFollowUpMessagesAsync(messageToGoOut, campaignProspect, ct));
+                        goingOut.AddRange(await CreateFollowUpMessagesAsync(messageToGoOut, campaignProspect, ct));
                     }
                 }
             }
@@ -54,11 +54,11 @@ namespace Leadsly.Domain.Providers
             return goingOut;
         }
 
-        private async Task<IDictionary<CampaignProspectFollowUpMessage, DateTimeOffset>> CreateFollowUpMessagesAsync(FollowUpMessage message, CampaignProspect campaignProspect, CancellationToken ct = default)
+        private async Task<Dictionary<CampaignProspectFollowUpMessage, DateTimeOffset>> CreateFollowUpMessagesAsync(FollowUpMessage message, CampaignProspect campaignProspect, CancellationToken ct = default)
         {
             string followUpMessageId = message.FollowUpMessageId;
             int order = message.Order;
-            IDictionary<CampaignProspectFollowUpMessage, DateTimeOffset> goingOut = new Dictionary<CampaignProspectFollowUpMessage, DateTimeOffset>();
+            Dictionary<CampaignProspectFollowUpMessage, DateTimeOffset> goingOut = new Dictionary<CampaignProspectFollowUpMessage, DateTimeOffset>();
             if (await CanFollowUpMessageBeSentTodayAsync(campaignProspect, message, ct) == true)
             {
                 _logger.LogInformation("FollowUpMessage with id: {followUpMessageId} and order: {order}. Will be sent today", followUpMessageId, order);
@@ -93,7 +93,7 @@ namespace Leadsly.Domain.Providers
 
         private async Task<CampaignProspectFollowUpMessage> CreateCampaignProspectFollowUpMessageAsync(FollowUpMessage message, CampaignProspect campaignProspect, CancellationToken ct = default)
         {
-            string content = message.Content.Replace("{{name}}", campaignProspect.Name);
+            string content = message.Content.Replace("{firstName}", campaignProspect.Name);
 
             CampaignProspectFollowUpMessage followUpMessage = new()
             {
@@ -116,7 +116,7 @@ namespace Leadsly.Domain.Providers
                 timeStamp = await _timestampService.CreateNowTimestampAsync(halId, ct);
             }
 
-            switch (message.Delay.Unit)
+            switch (message.Delay.Unit.ToUpper())
             {
                 case "MINUTES":
                     followUpMessageDatetimeOffset = DateTimeOffset.FromUnixTimeSeconds(timeStamp).AddMinutes(message.Delay.Value);

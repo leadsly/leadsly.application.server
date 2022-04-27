@@ -110,28 +110,24 @@ namespace Leadsly.Domain
         {
             // determine if DeepScanProspectsForReplies phase should go out or if
             // follow up message phase and scan prospects for replies message should be triggered instead
-            IList<string> deepScanHalIds = await GetHalIdsForDeepScanPhaseAsync(ct);            
-
+            IList<string> deepScanHalIds = await GetHalIdsForDeepScanPhaseAsync(ct);
             if (deepScanHalIds.Count > 0)
             {
                 DeepScanProspectsForRepliesCommand deepScanCommand = new DeepScanProspectsForRepliesCommand(deepScanHalIds);
                 await _deepHandler.HandleAsync(deepScanCommand);
-            }            
+            }
 
-            // trigger follow up message phase and then ScanProspectsForRepliesPhase
-            IList<string> followUpMessagesHalIds = await GetHalIdsForFollowUpMessagePhaseAsync(ct);
-            if(followUpMessagesHalIds.Count > 0)
+            IList<string> halIds = await GetAllHalIdsAsync(ct);
+            IList<string> directHalIds = halIds.Where(id => deepScanHalIds.Any(deepHalId => deepHalId != id)).ToList();
+            // trigger follow up message phase and then ScanProspectsForRepliesPhase            
+            if(directHalIds.Count > 0)
             {
-                FollowUpMessagesCommand followUpMsgsCommand = new FollowUpMessagesCommand(followUpMessagesHalIds);
+                FollowUpMessagesCommand followUpMsgsCommand = new FollowUpMessagesCommand(directHalIds);
                 await _followUpHandler.HandleAsync(followUpMsgsCommand);
-            }            
 
-            IList<string> scanProspectsHalIds = await GetHalIdsForScanProspectsForRepliesPhaseAsync(ct);
-            if(scanProspectsHalIds.Count > 0)
-            {
-                ScanProspectsForRepliesCommand scanProspectsCommand = new ScanProspectsForRepliesCommand(scanProspectsHalIds);
+                ScanProspectsForRepliesCommand scanProspectsCommand = new ScanProspectsForRepliesCommand(directHalIds);
                 await _scanProspectsHandler.HandleAsync(scanProspectsCommand);
-            }            
+            }                     
         }
 
         private async Task<IList<string>> GetHalIdsForDeepScanPhaseAsync(CancellationToken ct = default)
@@ -151,75 +147,75 @@ namespace Leadsly.Domain
             return deepScanHalIds;
         }
 
-        /// <summary>
-        /// The return list from this method should match the return list of the GetHalIdsForScanProspectsForRepliesPhaseAsync method
-        /// </summary>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        private async Task<IList<string>> GetHalIdsForFollowUpMessagePhaseAsync(CancellationToken ct = default)
-        {
-            // I am calling this potential follow up because this just gets the list of hal ids
-            // that did not have DeepScanProspectsForRepliesPhase going out, its possible that
-            // some of these hals may not have any follow up messages going out, but that isn't
-            // responsibility of this method to know that.
-            List<string> potentialFollowUpsHalIds = new List<string>();
+        ///// <summary>
+        ///// The return list from this method should match the return list of the GetHalIdsForScanProspectsForRepliesPhaseAsync method
+        ///// </summary>
+        ///// <param name="ct"></param>
+        ///// <returns></returns>
+        //private async Task<IList<string>> GetHalIdsForFollowUpMessagePhaseAsync(CancellationToken ct = default)
+        //{
+        //    // I am calling this potential follow up because this just gets the list of hal ids
+        //    // that did not have DeepScanProspectsForRepliesPhase going out, its possible that
+        //    // some of these hals may not have any follow up messages going out, but that isn't
+        //    // responsibility of this method to know that.
+        //    List<string> potentialFollowUpsHalIds = new List<string>();
 
-            // this call is cached
-            IList<string> halIds = await GetAllHalIdsAsync(ct);
-            foreach (string halId in halIds)
-            {
-                // this call is cached
-                IList<CampaignProspect> campaignProspects = await GetAllCampaignProspectsByHalIdAsync(halId, ct);
-                IList<CampaignProspect> deepScanProspects = campaignProspects.Where(p => p.Accepted == true && p.FollowUpMessageSent == true && p.Replied == false).ToList();
-                if(deepScanProspects.Count == 0)
-                {
-                    potentialFollowUpsHalIds.Add(halId);
-                }
-                else
-                {
-                    potentialFollowUpsHalIds.AddRange(campaignProspects
-                                                   .Where(p => deepScanProspects.Any(dsp => dsp.CampaignProspectId != p.CampaignProspectId))
-                                                   .Select(p => p.Campaign.HalId)
-                                                   .Distinct()
-                                                   .ToList());
-                } 
-            }
+        //    // this call is cached
+        //    IList<string> halIds = await GetAllHalIdsAsync(ct);
+        //    foreach (string halId in halIds)
+        //    {
+        //        // this call is cached
+        //        IList<CampaignProspect> campaignProspects = await GetAllCampaignProspectsByHalIdAsync(halId, ct);
+        //        IList<CampaignProspect> deepScanProspects = campaignProspects.Where(p => p.Accepted == true && p.Replied == false).ToList();
+        //        if(deepScanProspects.Count == 0)
+        //        {
+        //            potentialFollowUpsHalIds.Add(halId);
+        //        }
+        //        else
+        //        {
+        //            potentialFollowUpsHalIds.AddRange(campaignProspects
+        //                                           .Where(p => deepScanProspects.Any(dsp => dsp.CampaignProspectId != p.CampaignProspectId))
+        //                                           .Select(p => p.Campaign.HalId)
+        //                                           .Distinct()
+        //                                           .ToList());
+        //        } 
+        //    }
 
-            return potentialFollowUpsHalIds;
-        }
+        //    return potentialFollowUpsHalIds;
+        //}
 
-        /// <summary>
-        /// The return list from this method should match the return list of the GetHalIdsForFollowUpMessagePhaseAsync method
-        /// </summary>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        private async Task<IList<string>> GetHalIdsForScanProspectsForRepliesPhaseAsync(CancellationToken ct = default)
-        {
-            List<string> scanProspectsHalIds = new List<string>();
+        ///// <summary>
+        ///// The return list from this method should match the return list of the GetHalIdsForFollowUpMessagePhaseAsync method
+        ///// </summary>
+        ///// <param name="ct"></param>
+        ///// <returns></returns>
+        //private async Task<IList<string>> GetHalIdsForScanProspectsForRepliesPhaseAsync(CancellationToken ct = default)
+        //{
+        //    List<string> scanProspectsHalIds = new List<string>();
 
-            // this call is cached
-            IList<string> halIds = await GetAllHalIdsAsync(ct);
-            foreach (string halId in halIds)
-            {
-                // this call is cached
-                IList<CampaignProspect> campaignProspects = await GetAllCampaignProspectsByHalIdAsync(halId, ct);
-                IList<CampaignProspect> deepScanProspects = campaignProspects.Where(p => p.Accepted == true && p.FollowUpMessageSent == true && p.Replied == false).ToList();
-                if(deepScanProspects.Count == 0)
-                {
-                    scanProspectsHalIds.Add(halId);
-                }
-                else
-                {
-                    scanProspectsHalIds.AddRange(campaignProspects
-                                                .Where(p => deepScanProspects.Any(dsp => dsp.CampaignProspectId != p.CampaignProspectId))
-                                                .Select(p => p.Campaign.HalId)
-                                                .Distinct()
-                                                .ToList());
-                }
-            }
+        //    // this call is cached
+        //    IList<string> halIds = await GetAllHalIdsAsync(ct);
+        //    foreach (string halId in halIds)
+        //    {
+        //        // this call is cached
+        //        IList<CampaignProspect> campaignProspects = await GetAllCampaignProspectsByHalIdAsync(halId, ct);
+        //        IList<CampaignProspect> deepScanProspects = campaignProspects.Where(p => p.Accepted == true && p.FollowUpMessageSent == true && p.Replied == false).ToList();
+        //        if(deepScanProspects.Count == 0)
+        //        {
+        //            scanProspectsHalIds.Add(halId);
+        //        }
+        //        else
+        //        {
+        //            scanProspectsHalIds.AddRange(campaignProspects
+        //                                        .Where(p => deepScanProspects.Any(dsp => dsp.CampaignProspectId != p.CampaignProspectId))
+        //                                        .Select(p => p.Campaign.HalId)
+        //                                        .Distinct()
+        //                                        .ToList());
+        //        }
+        //    }
 
-            return scanProspectsHalIds;
-        }
+        //    return scanProspectsHalIds;
+        //}
 
         #endregion
 

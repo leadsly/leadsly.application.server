@@ -126,6 +126,25 @@ namespace Leadsly.Infrastructure.Repositories
             return campaignProspects;
         }
 
+        public async Task<CampaignProspect> UpdateAsync(CampaignProspect updatedCampaignProspect, CancellationToken ct = default)
+        {
+            _logger.LogInformation("Updating CampaignProspect");
+            try
+            {
+                _dbContext.CampaignProspects.Update(updatedCampaignProspect);
+                await _dbContext.SaveChangesAsync(ct);
+
+                _logger.LogDebug("Successfully updated CampaignProspect");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to update CampaignProspect. Returning an explicit null");
+                return null;
+            }
+
+            return updatedCampaignProspect;
+        }
+
         public async Task<CampaignProspect> GetByIdAsync(string campaignProspectId, CancellationToken ct = default)
         {
             _logger.LogDebug("Retrieving CampaignProspect by id {campaignProspectId}", campaignProspectId);

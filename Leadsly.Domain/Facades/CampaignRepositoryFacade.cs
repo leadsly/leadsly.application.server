@@ -189,6 +189,11 @@ namespace Leadsly.Domain.Facades
             return await _campaignProspectRepository.UpdateAllAsync(campaignProspects, ct);
         }
 
+        public async Task<CampaignProspect> UpdateCampaignProspectAsync(CampaignProspect updatedCampaignProspect, CancellationToken ct = default)
+        {
+            return await _campaignProspectRepository.UpdateAsync(updatedCampaignProspect, ct);
+        }
+
         public async Task<Campaign> UpdateCampaignAsync(Campaign updatedCampaign, CancellationToken ct = default)
         {
             return await _campaignRepository.UpdateAsync(updatedCampaign, ct);

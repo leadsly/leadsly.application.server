@@ -87,7 +87,7 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
             {
                 // get all campaign prospects by halId
                 IList<CampaignProspect> halCampaignProspects = await _campaignRepositoryFacade.GetAllActiveCampaignProspectsByHalIdAsync(halId);
-                IList<CampaignProspect> contactedProspects = halCampaignProspects.Take(2).ToList(); //halCampaignProspects.Where(p => p.Accepted == true && p.FollowUpMessageSent == true && p.Replied == false).ToList();
+                IList<CampaignProspect> contactedProspects = halCampaignProspects.Where(p => p.Accepted == true && p.FollowUpMessageSent == true && p.Replied == false).ToList();
                 if (contactedProspects.Count > 0)
                 {
                     halsCampaignProspects.Add(halId, contactedProspects);
