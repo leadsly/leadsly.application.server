@@ -43,7 +43,7 @@ namespace Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers
             foreach (MonitorForNewAcceptedConnectionsBody body in messageBodies)
             {
                 string halId = body.HalId;
-                _messageBrokerOutlet.PublishPhase(body, queueNameIn, routingKeyIn, halId, null);
+                _messageBrokerOutlet.PublishPhase(body, queueNameIn, routingKeyIn, halId, headers);
             }
         }
     }

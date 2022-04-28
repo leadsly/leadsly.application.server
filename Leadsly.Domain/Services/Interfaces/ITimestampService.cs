@@ -11,6 +11,7 @@ namespace Leadsly.Domain.Services.Interfaces
     {
         Task<long> CreateNowTimestampAsync(string halId, CancellationToken ct = default);
         Task<DateTimeOffset> CreateNowDatetimeOffsetAsync(string halId, CancellationToken ct = default);
+        Task<long> CreateTimestampInZoneAsync(string halId, long timestamp, CancellationToken ct = default);
         Task<DateTimeOffset> CreateDatetimeOffsetAsync(string halId, DateTime date, CancellationToken ct = default);
         Task<long> GetStartWorkDayTimestampAsync(string halId, CancellationToken ct = default);
         Task<long> GetEndWorkDayTimestampAsync(string halId, CancellationToken ct = default);

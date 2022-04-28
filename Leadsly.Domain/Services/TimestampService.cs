@@ -107,6 +107,19 @@ namespace Leadsly.Domain.Services
             return timestamp;
         }
 
+        public async Task<long> CreateTimestampInZoneAsync(string halId, long timestamp, CancellationToken ct = default)
+        {
+            HalUnit halUnit = await GetHalUnitByHalIdAsync(halId, ct);
+
+            DateTimeOffset dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(timestamp);
+
+            DateTime localDateTime = new DateTimeWithZone(dateTimeOffset.DateTime, TimeZoneInfo.FindSystemTimeZoneById(halUnit.TimeZoneId)).LocalTime;
+
+            long localizedTimestamp = new DateTimeOffset(localDateTime).ToUnixTimeSeconds();
+
+            return localizedTimestamp;
+        }
+
         public async Task<DateTimeOffset> GetStartWorkDayAsync(string halId, CancellationToken ct = default)
         {
             HalUnit halUnit = await GetHalUnitByHalIdAsync(halId, ct);

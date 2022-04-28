@@ -62,11 +62,15 @@ namespace Leadsly.Domain
                 await _prospectListsHandler.HandleAsync(prospectListsCommand);
             }
 
-            IList<string> sendConnectionsHalIds = await GetHalIdsForSendConnectionsPhaseAsync(ct);
-            if(sendConnectionsHalIds.Count > 0)
+            IList<string> halIds = await GetAllHalIdsAsync(ct);
+            if(incompleteHalIds.Count > 0)
             {
-                SendConnectionsToProspectsCommand sendConnectionsProspectsCommand = new SendConnectionsToProspectsCommand(sendConnectionsHalIds);
-                await _sendConnectionsHandler.HandleAsync(sendConnectionsProspectsCommand);
+                IList<string> sendConnectionsHalIds = halIds.Where(id => incompleteHalIds.Any(incId => incId != id)).ToList();
+                if (sendConnectionsHalIds.Count > 0)
+                {
+                    SendConnectionsToProspectsCommand sendConnectionsProspectsCommand = new SendConnectionsToProspectsCommand(sendConnectionsHalIds);
+                    await _sendConnectionsHandler.HandleAsync(sendConnectionsProspectsCommand);
+                }
             }            
         }
 

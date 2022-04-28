@@ -284,8 +284,8 @@ namespace Leadsly.Domain.Providers
             Campaign newCampaign = new()
             {
                 Name = request.CampaignDetails.Name,
-                StartTimestamp = request.CampaignDetails.StartTimestamp,
-                EndTimestamp = request.CampaignDetails.EndTimestamp,
+                StartTimestamp = await _timestampService.CreateTimestampInZoneAsync(request.HalId, request.CampaignDetails.StartTimestamp, ct),
+                EndTimestamp = await _timestampService.CreateTimestampInZoneAsync(request.HalId, request.CampaignDetails.EndTimestamp, ct),
                 DailyInvites = request.CampaignDetails.DailyInviteLimit,
                 IsWarmUpEnabled = request.CampaignDetails.WarmUp,
                 CampaignType = request.CampaignDetails.CampaignType,

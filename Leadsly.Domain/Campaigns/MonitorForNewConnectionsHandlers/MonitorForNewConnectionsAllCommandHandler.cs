@@ -40,7 +40,7 @@ namespace Leadsly.Domain.Campaigns.Handlers
             string queueNameIn = RabbitMQConstants.MonitorNewAcceptedConnections.QueueName;
             string routingKeyIn = RabbitMQConstants.MonitorNewAcceptedConnections.RoutingKey;
             Dictionary<string, object> headers = new Dictionary<string, object>();
-            headers.Add(RabbitMQConstants.MonitorNewAcceptedConnections.ExecuteType, RabbitMQConstants.MonitorNewAcceptedConnections.ExecuteOffHoursScan);
+            headers.Add(RabbitMQConstants.MonitorNewAcceptedConnections.ExecuteType, RabbitMQConstants.MonitorNewAcceptedConnections.ExecutePhase);
 
             IList<MonitorForNewAcceptedConnectionsBody> messageBodies = await CreateMessageBodiesAsync();
             foreach (MonitorForNewAcceptedConnectionsBody body in messageBodies)

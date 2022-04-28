@@ -33,11 +33,11 @@ namespace Leadsly.Domain
                 ////////////////////////////////////////////////////////////////////////////////////
                 /// MonitorForNewConnectionsAll
                 ////////////////////////////////////////////////////////////////////////////////////
-                //HalWorkCommandHandlerDecorator<MonitorForNewConnectionsAllCommand> monitorHandler = 
-                //    scope.ServiceProvider.GetRequiredService<HalWorkCommandHandlerDecorator<MonitorForNewConnectionsAllCommand>>();
+                HalWorkCommandHandlerDecorator<MonitorForNewConnectionsAllCommand> monitorHandler =
+                    scope.ServiceProvider.GetRequiredService<HalWorkCommandHandlerDecorator<MonitorForNewConnectionsAllCommand>>();
 
-                //MonitorForNewConnectionsAllCommand monitorForNewConnectionsAllCommand = new MonitorForNewConnectionsAllCommand();
-                //await monitorHandler.HandleAsync(monitorForNewConnectionsAllCommand);
+                MonitorForNewConnectionsAllCommand monitorForNewConnectionsAllCommand = new MonitorForNewConnectionsAllCommand();
+                await monitorHandler.HandleAsync(monitorForNewConnectionsAllCommand);
 
                 //////////////////////////////////////////////////////////////////////////////////////
                 ///// UncontactedFollowUpMessageCommand
@@ -48,18 +48,17 @@ namespace Leadsly.Domain
                 //UncontactedFollowUpMessageCommand uncontactedCommand = new UncontactedFollowUpMessageCommand();
                 //await uncontactedHandler.HandleAsync(uncontactedCommand);
 
-                //IPhaseManager phaseManager = scope.ServiceProvider.GetRequiredService<IPhaseManager>();
+                IPhaseManager phaseManager = scope.ServiceProvider.GetRequiredService<IPhaseManager>();
 
-                ////////////////////////////////////////////////////////////////////////////////////////////////////////
-                ///// Prospecting [ DeepScanProspectsForReplies OR (FollowUpMessagePhase AND ScanProspectsForReplies) ]
-                ////////////////////////////////////////////////////////////////////////////////////////////////////////
-                //await phaseManager.ProspectingPhaseAsync();
+                //////////////////////////////////////////////////////////////////////////////////////////////////////
+                /// Prospecting [ DeepScanProspectsForReplies OR (FollowUpMessagePhase AND ScanProspectsForReplies) ]
+                //////////////////////////////////////////////////////////////////////////////////////////////////////
+                await phaseManager.ProspectingPhaseAsync();
 
-                ////////////////////////////////////////////////////////////////////////////////////////////////////
-                ///// NetworkingConnectionsPhase [ ProspectListPhase OR SendConnectionsPhase ]
-                ////////////////////////////////////////////////////////////////////////////////////////////////////
-                //await phaseManager.NetworkingConnectionsPhaseAsync();
-
+                ////////////////////////////////////////////////////////////////////////////////////////////////
+                /// NetworkingConnectionsPhase[ProspectListPhase OR SendConnectionsPhase]
+                ////////////////////////////////////////////////////////////////////////////////////////////////
+                await phaseManager.NetworkingConnectionsPhaseAsync();
             }
         }
     }

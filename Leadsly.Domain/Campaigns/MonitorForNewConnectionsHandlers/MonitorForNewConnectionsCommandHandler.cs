@@ -1,32 +1,47 @@
 ﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
 using Leadsly.Domain.Campaigns.Handlers;
+using Leadsly.Domain.Facades.Interfaces;
+using Leadsly.Domain.Providers.Interfaces;
+using Leadsly.Domain.Repositories;
+using Leadsly.Domain.Services.Interfaces;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers
 {
-    public class MonitorForNewConnectionsCommandHandler : ICommandHandler<MonitorForNewConnectionsCommand>
+    public class MonitorForNewConnectionsCommandHandler : MonitorForNewConnectionsCommandHandlerBase, ICommandHandler<MonitorForNewConnectionsCommand>
     {
-        public MonitorForNewConnectionsCommandHandler(IMessageBrokerOutlet messageBrokerOutlet)
+        public MonitorForNewConnectionsCommandHandler(
+            IMessageBrokerOutlet messageBrokerOutlet,
+            ILogger<MonitorForNewConnectionsCommandHandler> logger,
+            IUserProvider userProvider,
+            ICampaignRepositoryFacade campaignRepositoryFacade,
+            IHalRepository halRepository,
+            ITimestampService timestampService,
+            IRabbitMQProvider rabbitMQProvider
+            ) : base(userProvider, campaignRepositoryFacade, rabbitMQProvider, halRepository, timestampService, logger)
         {
             _messageBrokerOutlet = messageBrokerOutlet;
+            _logger = logger;
         }
 
+        private readonly ILogger<MonitorForNewConnectionsCommandHandler> _logger;
         private readonly IMessageBrokerOutlet _messageBrokerOutlet;
 
         public async Task HandleAsync(MonitorForNewConnectionsCommand command)
         {
-            MonitorForNewAcceptedConnectionsBody messageBody = await CreateMessageBodyAsync();
-
             string queueNameIn = RabbitMQConstants.MonitorNewAcceptedConnections.QueueName;
             string routingKeyIn = RabbitMQConstants.MonitorNewAcceptedConnections.RoutingKey;
-            string halId = messageBody.HalId;
+            string halId = command.HalId;
 
-            _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, null);
+            Dictionary<string, object> headers = new Dictionary<string, object>();
+            headers.Add(RabbitMQConstants.MonitorNewAcceptedConnections.ExecuteType, RabbitMQConstants.MonitorNewAcceptedConnections.ExecutePhase);
+
+            MonitorForNewAcceptedConnectionsBody messageBody = await CreateMessageBodyAsync();
+            _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers);
         }
 
         /// <summary>
