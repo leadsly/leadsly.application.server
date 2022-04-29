@@ -35,28 +35,13 @@ namespace Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers
         {
             string queueNameIn = RabbitMQConstants.MonitorNewAcceptedConnections.QueueName;
             string routingKeyIn = RabbitMQConstants.MonitorNewAcceptedConnections.RoutingKey;
-            string halId = command.HalId;
+            string halId = command.HalId;            
 
             Dictionary<string, object> headers = new Dictionary<string, object>();
             headers.Add(RabbitMQConstants.MonitorNewAcceptedConnections.ExecuteType, RabbitMQConstants.MonitorNewAcceptedConnections.ExecutePhase);
 
-            MonitorForNewAcceptedConnectionsBody messageBody = await CreateMessageBodyAsync();
+            MonitorForNewAcceptedConnectionsBody messageBody = await CreateMessageBodyAsync(halId);
             _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers);
-        }
-
-        /// <summary>
-        /// Triggered once a new campaign is created. The intent is to ensure that this phase is running before we execute a new campaign.
-        /// </summary>
-        /// <param name="halId"></param>
-        /// <param name="userId"></param>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        private Task<MonitorForNewAcceptedConnectionsBody> CreateMessageBodyAsync()
-        {
-            MonitorForNewAcceptedConnectionsBody messageBody = new MonitorForNewAcceptedConnectionsBody();
-
-
-            return Task.Run(() => messageBody);
         }
     }
 }

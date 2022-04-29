@@ -8,7 +8,7 @@ namespace Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers
 {
     public class SendConnectionsToProspectsCommand : ICommand
     {
-        public SendConnectionsToProspectsCommand(string userId, string campaignId)
+        public SendConnectionsToProspectsCommand(string campaignId, string userId)
         {
             UserId = userId;
             CampaignId = campaignId;

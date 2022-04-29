@@ -58,6 +58,7 @@ namespace Leadsly.Domain.Providers
                 {
                     PrimaryProspect = primaryProspect,
                     CampaignId = request.CampaignId,
+                    CampaignProspectListId = request.CampaignProspectListId,
                     Name = primaryProspect.Name,
                     ProfileUrl = primaryProspectRequest.ProfileUrl,
                     ConnectionSent = false,

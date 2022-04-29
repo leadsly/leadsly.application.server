@@ -1,5 +1,6 @@
 ﻿using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.Entities;
+using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
@@ -43,6 +44,7 @@ namespace Leadsly.Domain.Campaigns.ProspectListsHandlers
             _logger.LogDebug("Creating prospect list body with primary prospect list id {primaryProspectListId}", primaryProspectListId);
             string campaignId = prospectListPhase.CampaignId;
             _logger.LogDebug("Creating prospect list body with campaign id {campaignId}", campaignId);
+            Campaign campaign = await _campaignRepositoryFacade.GetCampaignByIdAsync(campaignId, ct);
 
             ChromeProfile chromeProfile = await _halRepository.GetChromeProfileAsync(PhaseType.ProspectList, ct);
             string chromeProfileName = chromeProfile?.Name;
@@ -61,6 +63,7 @@ namespace Leadsly.Domain.Campaigns.ProspectListsHandlers
                 ChromeProfile = chromeProfileName,
                 PrimaryProspectListId = primaryProspectListId,
                 UserId = userId,
+                CampaignProspectListId = campaign.CampaignProspectList.CampaignProspectListId,
                 CampaignId = campaignId,
                 NamespaceName = config.ServiceDiscoveryConfig.Name,
                 ServiceDiscoveryName = config.ApiServiceDiscoveryName

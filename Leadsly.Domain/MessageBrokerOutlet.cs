@@ -20,7 +20,7 @@ namespace Leadsly.Domain
         private readonly IRabbitMQManager _rabbitMQManager;
         private readonly ISerializerFacade _serializerFacade;
 
-        public void PublishPhase(PublishMessageBody messageBody, string queueNameIn, string routingKeyIn, string halId, Dictionary<string, object> headers = default)
+        public void PublishPhase(PublishMessageBody messageBody, string queueNameIn, string routingKeyIn, string halId, Dictionary<string, object> headers)
         {
             byte[] body = _serializerFacade.Serialize(messageBody);
 

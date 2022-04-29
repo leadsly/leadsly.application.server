@@ -42,7 +42,7 @@ namespace Leadsly.Domain
         public async Task HandleNewCampaignAsync(Campaign campaign)
         {
             // ensure ScanForProspectReplies, ConnectionWithdraw and MonitorForNewProspects phases are running on hal
-            // always trigger them here            
+            // always trigger them here
             MonitorForNewConnectionsCommand monitorCommand = new MonitorForNewConnectionsCommand(campaign.HalId);
             await _monitorHandler.HandleAsync(monitorCommand);
 

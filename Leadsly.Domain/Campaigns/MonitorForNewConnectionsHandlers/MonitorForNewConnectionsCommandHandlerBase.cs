@@ -18,11 +18,11 @@ namespace Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers
     public class MonitorForNewConnectionsCommandHandlerBase
     {
         public MonitorForNewConnectionsCommandHandlerBase(
-            IUserProvider userProvider, 
-            ICampaignRepositoryFacade campaignRepositoryFacade, 
-            IRabbitMQProvider rabbitMQProvider, 
-            IHalRepository halRepository, 
-            ITimestampService timestampService, 
+            IUserProvider userProvider,
+            ICampaignRepositoryFacade campaignRepositoryFacade,
+            IRabbitMQProvider rabbitMQProvider,
+            IHalRepository halRepository,
+            ITimestampService timestampService,
             ILogger logger)
         {
             _userProvider = userProvider;
@@ -55,6 +55,15 @@ namespace Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers
             }
 
             return messageBodies;
+        }
+
+        protected async Task<MonitorForNewAcceptedConnectionsBody> CreateMessageBodyAsync(string halId)
+        {
+            HalUnit halUnit = await _halRepository.GetByHalIdAsync(halId);
+            SocialAccount socialAccount = await _userProvider.GetSocialAccountByHalIdAsync(halId);
+
+            MonitorForNewAcceptedConnectionsBody messageBody = await CreateMonitorForNewAcceptedConnectionsBodyAsync(socialAccount.HalDetails.HalId, socialAccount.UserId, socialAccount.SocialAccountId);
+            return messageBody;
         }
 
         private async Task<MonitorForNewAcceptedConnectionsBody> CreateMonitorForNewAcceptedConnectionsBodyAsync(string halId, string userId, string socialAccountId, int numOfHoursAgo = 0, CancellationToken ct = default)

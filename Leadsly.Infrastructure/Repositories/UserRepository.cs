@@ -83,5 +83,20 @@ namespace Leadsly.Infrastructure.Repositories
             return socialAccounts;
 
         }
+
+        public async Task<SocialAccount> GetSocialAccountByHalIdAsync(string halId, CancellationToken ct = default)
+        {
+            SocialAccount socialAccount = default;
+            try
+            {
+                socialAccount = await _dbContext.SocialAccounts.Include(s => s.HalDetails).Include(s => s.User).ThenInclude(u => u.Campaigns).Where(socialAccount => socialAccount.HalDetails.HalId == halId).SingleAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get social account");
+            }
+            return socialAccount;
+
+        }        
     }
 }

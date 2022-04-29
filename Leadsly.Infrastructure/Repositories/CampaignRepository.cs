@@ -86,7 +86,7 @@ namespace Leadsly.Infrastructure.Repositories
             Campaign campaign = default;
             try
             {
-                campaign = await _dbContext.Campaigns.Where(c => c.CampaignId == campaignId).SingleAsync(ct);
+                campaign = await _dbContext.Campaigns.Where(c => c.CampaignId == campaignId).Include(c => c.CampaignProspectList).SingleAsync(ct);
                 _logger.LogDebug("Successfully retrieved campaign by id {campaignId}", campaignId);
             }
             catch (Exception ex)

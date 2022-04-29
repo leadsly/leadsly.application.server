@@ -16,7 +16,6 @@ namespace Leadsly.Domain.Providers.Interfaces
         Task<bool> RemoveSocialAccountAndResourcesAsync(SocialAccount socialAccount, CancellationToken ct = default);
         Task<ApplicationUser> GetUserByIdAsync(string userId, CancellationToken ct = default);
         Task<IList<SocialAccount>> GetAllSocialAccounts(CancellationToken ct = default);
-
-
+        Task<SocialAccount> GetSocialAccountByHalIdAsync(string halId, CancellationToken ct = default);
     }
 }

@@ -69,13 +69,13 @@ namespace Leadsly.Domain.Providers
                 DateTimeOffset startWorkDayDateTime = await _timestampService.GetStartWorkDayAsync(campaignProspect.Campaign.HalId, ct);
                 DateTimeOffset endWorkDateDateTime = await _timestampService.GetEndWorkDayAsync(campaignProspect.Campaign.HalId, ct);
 
-                if (followUpMessageDateTime < startWorkDayDateTime)
+                if (followUpMessageDateTime.LocalDateTime < startWorkDayDateTime)
                 {
                     // fire right away
                     // await _campaignManager.TriggerFollowUpMessagePhaseAsync(campaignProspectFollowUpMessage.CampaignProspectFollowUpMessageId, campaignProspect.CampaignId);
                     goingOut.Add(campaignProspectFollowUpMessage, default);
                 }
-                else if (followUpMessageDateTime > startWorkDayDateTime && followUpMessageDateTime < endWorkDateDateTime)
+                else if (followUpMessageDateTime.LocalDateTime > startWorkDayDateTime && followUpMessageDateTime.LocalDateTime < endWorkDateDateTime)
                 {
                     // schedule with followUpMessageDateTime
                     // await _campaignManager.TriggerFollowUpMessagePhaseAsync(campaignProspectFollowUpMessage.CampaignProspectFollowUpMessageId, campaignProspect.CampaignId, followUpMessageDateTime);
@@ -143,12 +143,12 @@ namespace Leadsly.Domain.Providers
 
             bool canBeSentToday = false;
             // if followUpMessageDatetimeOffset falls between start date and end date schedule it
-            if (followUpMessageDatetimeOffset < startWorkDayDateTime)
+            if (followUpMessageDatetimeOffset.LocalDateTime < startWorkDayDateTime)
             {
                 // schedule right away
                 canBeSentToday = true;
             }
-            else if (followUpMessageDatetimeOffset > startWorkDayDateTime && followUpMessageDatetimeOffset < endWorkDateDateTime)
+            else if (followUpMessageDatetimeOffset.LocalDateTime > startWorkDayDateTime && followUpMessageDatetimeOffset.LocalDateTime < endWorkDateDateTime)
             {
                 // schedule it for the given date since it falls within our time range
                 canBeSentToday = true;

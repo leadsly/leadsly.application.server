@@ -237,5 +237,10 @@ namespace Leadsly.Domain.Providers
         {
             return await _userRepository.GetAllSocialAccountsAsync(ct);
         }
+
+        public async Task<SocialAccount> GetSocialAccountByHalIdAsync(string halId, CancellationToken ct = default)
+        {
+            return await _userRepository.GetSocialAccountByHalIdAsync(halId, ct);
+        }
     }
 }
