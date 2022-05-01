@@ -53,7 +53,33 @@ namespace Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers
         /// <returns></returns>
         public async Task HandleAsync(SendConnectionsToProspectsCommand command)
         {
-            SendConnectionsBody messageBody = await CreateMessageBodyAsync(command);
+            if(command.HalIds != null && command.HalIds.Count > 0)
+            {
+                await HandleInternalListAsync(command.HalIds);
+            }
+            else if(command.CampaignId != null && command.UserId != null)
+            {
+                await HandleInternalAsync(command.CampaignId, command.UserId);
+            }
+        }
+
+        private async Task HandleInternalListAsync(IList<string> halIds)
+        {
+            foreach (string halId in halIds)
+            {
+                IList<SendConnectionsBody> bodies = await CreateSendConnectionsBodiesAsync(halId);
+
+                foreach (SendConnectionsBody body in bodies)
+                {
+                    IList<SendConnectionsStageBody> stages = await CreateStagesAsync(body);
+                    await SchedulePhaseMessagesAsync(body, stages);
+                }                
+            }
+        }
+
+        private async Task HandleInternalAsync(string campaignId, string userId)
+        {
+            SendConnectionsBody messageBody = await CreateSendConnectionsBodyAsync(campaignId, userId);
             IList<SendConnectionsStageBody> stages = await CreateStagesAsync(messageBody);
             await SchedulePhaseMessagesAsync(messageBody, stages);
         }
@@ -106,7 +132,7 @@ namespace Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers
 
         private async Task<IList<SendConnectionsStageBody>> GetSendConnectionsStagesAsync(string campaignId, int dailyConnectionsLimit, CancellationToken ct = default)
         {
-            _logger.LogInformation("Getting the number of connections each stage should sent to stay within the daily limit");
+            _logger.LogInformation("Getting the number of connections each stage should send to stay within the daily limit");
             IList<SendConnectionsStageBody> sendConnectionsStagesBody = new List<SendConnectionsStageBody>();
             IList<SendConnectionsStage> sendConnectionsStages = await _campaignRepositoryFacade.GetStagesByCampaignIdAsync(campaignId, ct);
 
@@ -141,13 +167,6 @@ namespace Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers
             }
 
             return sendConnectionsStagesBody;
-        }
-
-        private async Task<SendConnectionsBody> CreateMessageBodyAsync(SendConnectionsToProspectsCommand command)
-        {
-            SendConnectionsBody messageBody = await CreateSendConnectionsBodyAsync(command.CampaignId, command.UserId);
-
-            return messageBody;
         }
 
         private async Task<SendConnectionsBody> CreateSendConnectionsBodyAsync(string campaignId, string userId, CancellationToken ct = default)
@@ -193,6 +212,20 @@ namespace Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers
             _logger.LogTrace("SendConnectionsBody object is configured with Service discovery name of {serviceDiscoveryname}", serviceDiscoveryname);
 
             return sendConnectionsBody;
+        }
+
+        private async Task<IList<SendConnectionsBody>> CreateSendConnectionsBodiesAsync(string halId, CancellationToken ct = default)
+        {
+            _logger.LogInformation("Creating send connections body message for rabbit mq message broker.");
+            IList<SendConnectionsBody> messageBodies = new List<SendConnectionsBody>();
+            IList<Campaign> campaigns = await _campaignRepositoryFacade.GetAllActiveCampaignsByHalIdAsync(halId);
+            foreach (Campaign activeCampaign in campaigns)
+            {
+                SendConnectionsBody messageBody = await CreateSendConnectionsBodyAsync(activeCampaign.CampaignId, activeCampaign.ApplicationUserId);
+                messageBodies.Add(messageBody);
+            }
+
+            return messageBodies;
         }
     }
 }

@@ -68,6 +68,12 @@ namespace Leadsly.Application.Api.Controllers
             return Ok();
         }
 
+        /// <summary>
+        /// Used by the ScanForConnectionsFromOffHours
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
         [HttpPost]
         [AllowAnonymous]
         [Route("process-newly-accepted-prospects")]

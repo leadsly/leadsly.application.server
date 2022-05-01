@@ -62,7 +62,7 @@ namespace Leadsly.Domain
                 await _prospectListsHandler.HandleAsync(prospectListsCommand);
             }
 
-            IList<string> halIds = await GetAllHalIdsAsync(ct);
+            IList<string> halIds = await GetAllHalIdsWithActiveCampaignsAsync(ct);
             if(incompleteHalIds.Count > 0)
             {
                 IList<string> sendConnectionsHalIds = halIds.Where(id => incompleteHalIds.Any(incId => incId != id)).ToList();
@@ -71,7 +71,13 @@ namespace Leadsly.Domain
                     SendConnectionsToProspectsCommand sendConnectionsProspectsCommand = new SendConnectionsToProspectsCommand(sendConnectionsHalIds);
                     await _sendConnectionsHandler.HandleAsync(sendConnectionsProspectsCommand);
                 }
-            }            
+            }
+            else
+            {
+                // if we do not have any incomplete ProspectLists then fire off send connections to prospects phase
+                SendConnectionsToProspectsCommand sendConnectionsProspectsCommand = new SendConnectionsToProspectsCommand(halIds);
+                await _sendConnectionsHandler.HandleAsync(sendConnectionsProspectsCommand);
+            }
         }
 
         private async Task<IList<string>> GetHalIdsForSendConnectionsPhaseAsync(CancellationToken ct = default)
@@ -121,8 +127,17 @@ namespace Leadsly.Domain
                 await _deepHandler.HandleAsync(deepScanCommand);
             }
 
-            IList<string> halIds = await GetAllHalIdsAsync(ct);
-            IList<string> directHalIds = halIds.Where(id => deepScanHalIds.Any(deepHalId => deepHalId != id)).ToList();
+            IList<string> halIds = await GetAllHalIdsWithActiveCampaignsAsync(ct);
+            IList<string> directHalIds = new List<string>();
+            if (deepScanHalIds.Count > 0)
+            {
+                directHalIds = halIds.Where(id => deepScanHalIds.Any(deepHalId => deepHalId != id)).ToList();
+            }
+            else
+            {
+                directHalIds = halIds;
+            }            
+
             // trigger follow up message phase and then ScanProspectsForRepliesPhase            
             if(directHalIds.Count > 0)
             {
@@ -151,76 +166,6 @@ namespace Leadsly.Domain
             return deepScanHalIds;
         }
 
-        ///// <summary>
-        ///// The return list from this method should match the return list of the GetHalIdsForScanProspectsForRepliesPhaseAsync method
-        ///// </summary>
-        ///// <param name="ct"></param>
-        ///// <returns></returns>
-        //private async Task<IList<string>> GetHalIdsForFollowUpMessagePhaseAsync(CancellationToken ct = default)
-        //{
-        //    // I am calling this potential follow up because this just gets the list of hal ids
-        //    // that did not have DeepScanProspectsForRepliesPhase going out, its possible that
-        //    // some of these hals may not have any follow up messages going out, but that isn't
-        //    // responsibility of this method to know that.
-        //    List<string> potentialFollowUpsHalIds = new List<string>();
-
-        //    // this call is cached
-        //    IList<string> halIds = await GetAllHalIdsAsync(ct);
-        //    foreach (string halId in halIds)
-        //    {
-        //        // this call is cached
-        //        IList<CampaignProspect> campaignProspects = await GetAllCampaignProspectsByHalIdAsync(halId, ct);
-        //        IList<CampaignProspect> deepScanProspects = campaignProspects.Where(p => p.Accepted == true && p.Replied == false).ToList();
-        //        if(deepScanProspects.Count == 0)
-        //        {
-        //            potentialFollowUpsHalIds.Add(halId);
-        //        }
-        //        else
-        //        {
-        //            potentialFollowUpsHalIds.AddRange(campaignProspects
-        //                                           .Where(p => deepScanProspects.Any(dsp => dsp.CampaignProspectId != p.CampaignProspectId))
-        //                                           .Select(p => p.Campaign.HalId)
-        //                                           .Distinct()
-        //                                           .ToList());
-        //        } 
-        //    }
-
-        //    return potentialFollowUpsHalIds;
-        //}
-
-        ///// <summary>
-        ///// The return list from this method should match the return list of the GetHalIdsForFollowUpMessagePhaseAsync method
-        ///// </summary>
-        ///// <param name="ct"></param>
-        ///// <returns></returns>
-        //private async Task<IList<string>> GetHalIdsForScanProspectsForRepliesPhaseAsync(CancellationToken ct = default)
-        //{
-        //    List<string> scanProspectsHalIds = new List<string>();
-
-        //    // this call is cached
-        //    IList<string> halIds = await GetAllHalIdsAsync(ct);
-        //    foreach (string halId in halIds)
-        //    {
-        //        // this call is cached
-        //        IList<CampaignProspect> campaignProspects = await GetAllCampaignProspectsByHalIdAsync(halId, ct);
-        //        IList<CampaignProspect> deepScanProspects = campaignProspects.Where(p => p.Accepted == true && p.FollowUpMessageSent == true && p.Replied == false).ToList();
-        //        if(deepScanProspects.Count == 0)
-        //        {
-        //            scanProspectsHalIds.Add(halId);
-        //        }
-        //        else
-        //        {
-        //            scanProspectsHalIds.AddRange(campaignProspects
-        //                                        .Where(p => deepScanProspects.Any(dsp => dsp.CampaignProspectId != p.CampaignProspectId))
-        //                                        .Select(p => p.Campaign.HalId)
-        //                                        .Distinct()
-        //                                        .ToList());
-        //        }
-        //    }
-
-        //    return scanProspectsHalIds;
-        //}
-
         #endregion
 
         private async Task<IList<string>> GetAllHalIdsAsync(CancellationToken ct = default)
@@ -235,6 +180,20 @@ namespace Leadsly.Domain
             }
 
             return halIds;
+        }
+
+        private async Task<IList<string>> GetAllHalIdsWithActiveCampaignsAsync(CancellationToken ct = default)
+        {
+            if (_memoryCache.TryGetValue(CacheKeys.AllActiveCampaigns, out IList<Campaign> activeCampaigns) == false)
+            {
+                activeCampaigns = await _campaignRepositoryFacade.GetAllActiveCampaignsAsync(ct);
+                if(activeCampaigns.Count > 0)
+                {
+                    _memoryCache.Set(CacheKeys.AllActiveCampaigns, activeCampaigns);
+                }
+            }
+
+            return activeCampaigns.Select(c => c.HalId).Distinct().ToList();
         }
 
         private async Task<IList<CampaignProspect>> GetAllCampaignProspectsByHalIdAsync(string halId, CancellationToken ct = default)
