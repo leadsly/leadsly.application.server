@@ -107,6 +107,13 @@ namespace Leadsly.Domain.Services
             return timestamp;
         }
 
+        public DateTimeOffset GetDateFromTimestamp(long timestamp)
+        {
+            DateTimeOffset dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(timestamp);
+
+            return dateTimeOffset;
+        }
+
         public async Task<long> CreateTimestampInZoneAsync(string halId, long timestamp, CancellationToken ct = default)
         {
             HalUnit halUnit = await GetHalUnitByHalIdAsync(halId, ct);
@@ -118,7 +125,7 @@ namespace Leadsly.Domain.Services
             long localizedTimestamp = new DateTimeOffset(localDateTime).ToUnixTimeSeconds();
 
             return localizedTimestamp;
-        }
+        }               
 
         public async Task<DateTimeOffset> GetStartWorkDayAsync(string halId, CancellationToken ct = default)
         {

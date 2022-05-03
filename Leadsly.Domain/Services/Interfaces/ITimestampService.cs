@@ -17,6 +17,7 @@ namespace Leadsly.Domain.Services.Interfaces
         Task<long> GetEndWorkDayTimestampAsync(string halId, CancellationToken ct = default);
         Task<DateTimeOffset> GetStartWorkDayAsync(string halId, CancellationToken ct = default);
         Task<DateTimeOffset> GetEndWorkDayAsync(string halId, CancellationToken ct = default);
+        DateTimeOffset GetDateFromTimestamp(long timestamp);
         bool TryParseString(string dateTime, out DateTimeOffset dateTimeOffset);
     }
 }

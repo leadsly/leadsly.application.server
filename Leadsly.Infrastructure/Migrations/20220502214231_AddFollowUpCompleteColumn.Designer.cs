@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Leadsly.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Leadsly.Infrastructure.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20220502214231_AddFollowUpCompleteColumn")]
+    partial class AddFollowUpCompleteColumn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -266,7 +268,8 @@ namespace Leadsly.Infrastructure.Migrations
 
                     b.HasKey("CampaignProspectFollowUpMessageId");
 
-                    b.HasIndex("CampaignProspectId");
+                    b.HasIndex("CampaignProspectId")
+                        .IsUnique();
 
                     b.ToTable("CampaignProspectFollowUpMessages");
                 });
@@ -1211,8 +1214,8 @@ namespace Leadsly.Infrastructure.Migrations
             modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.CampaignProspectFollowUpMessage", b =>
                 {
                     b.HasOne("Leadsly.Application.Model.Entities.Campaigns.CampaignProspect", "CampaignProspect")
-                        .WithMany("FollowUpMessages")
-                        .HasForeignKey("CampaignProspectId")
+                        .WithOne("FollowUpMessage")
+                        .HasForeignKey("Leadsly.Application.Model.Entities.Campaigns.CampaignProspectFollowUpMessage", "CampaignProspectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1576,7 +1579,7 @@ namespace Leadsly.Infrastructure.Migrations
 
             modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.CampaignProspect", b =>
                 {
-                    b.Navigation("FollowUpMessages");
+                    b.Navigation("FollowUpMessage");
                 });
 
             modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.CampaignProspectList", b =>

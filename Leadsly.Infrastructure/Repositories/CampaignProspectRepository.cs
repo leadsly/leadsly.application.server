@@ -49,7 +49,7 @@ namespace Leadsly.Infrastructure.Repositories
             {
                 campaignProspects = await _dbContext.CampaignProspects
                     .Where(c => c.CampaignId == campaignId)
-                    .Include(p => p.FollowUpMessage)
+                    .Include(p => p.FollowUpMessages)
                     .Include(p => p.PrimaryProspect)
                     .ToListAsync(ct);
 
@@ -72,7 +72,7 @@ namespace Leadsly.Infrastructure.Repositories
                 campaignProspects = await _dbContext.CampaignProspects
                     .Include(p => p.Campaign)
                     .Where(p => p.Campaign.Active == true && p.Campaign.HalId == halId)
-                    .Include(p => p.FollowUpMessage)
+                    .Include(p => p.FollowUpMessages)
                     .Include(p => p.PrimaryProspect)
                     .ToListAsync(ct);
 

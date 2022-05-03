@@ -2,6 +2,7 @@
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Services.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -14,14 +15,21 @@ namespace Leadsly.Domain.Providers
 {
     public class SendFollowUpMessageProvider : ISendFollowUpMessageProvider
     {
-        public SendFollowUpMessageProvider(ICampaignRepositoryFacade campaignRepositoryFacade, ITimestampService timestampService, ILogger<SendFollowUpMessageProvider> logger)
+        public SendFollowUpMessageProvider(
+            ICampaignRepositoryFacade campaignRepositoryFacade, 
+            ITimestampService timestampService, 
+            ILogger<SendFollowUpMessageProvider> logger,
+            IMemoryCache memoryCache
+            )
         {
+            _memoryCache = memoryCache;
             _campaignRepositoryFacade = campaignRepositoryFacade;
             _timestampService = timestampService;
             _logger = logger;
         }
 
         private readonly ILogger<SendFollowUpMessageProvider> _logger;
+        private readonly IMemoryCache _memoryCache;
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
         private readonly ITimestampService _timestampService;
 
@@ -32,26 +40,65 @@ namespace Leadsly.Domain.Providers
             // grab first follow up messages for the following campaign id
             foreach (CampaignProspect campaignProspect in campaignProspects)
             {
-                IList<FollowUpMessage> messages = await _campaignRepositoryFacade.GetFollowUpMessagesByCampaignIdAsync(campaignProspect.CampaignId, ct);
+                IList<FollowUpMessage> messages = await GetFollowUpMessagesByCampaignIdAsync(campaignProspect.CampaignId, ct);
                 if (messages != null)
                 {
-                    int nextFollowUpMessageOrder = DetermineNextFollowUpMessage(campaignProspect, messages);
-
-                    if (nextFollowUpMessageOrder == 0)
+                    IList<int> nextFollowUpMessageOrders = DetermineNextFollowUpMessages(campaignProspect, messages);
+                    if(nextFollowUpMessageOrders.Count == 0)
                     {
                         // this campaign prospect has received all of the follow up messages configured
                         // check if the last follow up message was sent 14 or more days ago, if yes mark this prospect as complete or fullfilled
+                        DateTimeOffset lastFollowUpMessage = _timestampService.GetDateFromTimestamp(campaignProspect.LastFollowUpMessageSentTimestamp);
+                        if ((lastFollowUpMessage.LocalDateTime - DateTime.Now).TotalDays < 14)
+                        {
+                            campaignProspect.FollowUpComplete = true;
+                            await _campaignRepositoryFacade.UpdateCampaignProspectAsync(campaignProspect, ct);
+                        }
                     }
                     else
                     {
-                        // else prepare next follow up message to be sent
-                        FollowUpMessage messageToGoOut = messages.SingleOrDefault(m => m.Order == nextFollowUpMessageOrder);
-                        goingOut.AddRange(await CreateFollowUpMessagesAsync(messageToGoOut, campaignProspect, ct));
+                        foreach (int nextFollowUpMessageOrder in nextFollowUpMessageOrders)
+                        {
+                            // else prepare next follow up message to be sent
+                            FollowUpMessage messageToGoOut = messages.SingleOrDefault(m => m.Order == nextFollowUpMessageOrder);
+                            var messagesOut = await CreateFollowUpMessagesAsync(messageToGoOut, campaignProspect, ct);
+                            goingOut.AddRange(messagesOut);
+                        }                        
                     }
+
+                    //int nextFollowUpMessageOrder = DetermineNextFollowUpMessage(campaignProspect, messages);
+
+                    //if (nextFollowUpMessageOrder == 0)
+                    //{
+                    //    // this campaign prospect has received all of the follow up messages configured
+                    //    // check if the last follow up message was sent 14 or more days ago, if yes mark this prospect as complete or fullfilled
+                    //    DateTimeOffset lastFollowUpMessage = _timestampService.GetDateFromTimestamp(campaignProspect.LastFollowUpMessageSentTimestamp);
+                    //    if((lastFollowUpMessage.LocalDateTime - DateTime.Now).TotalDays < 14)
+                    //    {
+                    //        campaignProspect.FollowUpComplete = true;
+                    //        await _campaignRepositoryFacade.UpdateCampaignProspectAsync(campaignProspect, ct);
+                    //    }
+                    //}
+                    //else
+                    //{
+                    //    // else prepare next follow up message to be sent
+                    //    FollowUpMessage messageToGoOut = messages.SingleOrDefault(m => m.Order == nextFollowUpMessageOrder);
+                    //    goingOut.AddRange(await CreateFollowUpMessagesAsync(messageToGoOut, campaignProspect, ct));
+                    //}
                 }
             }
 
             return goingOut;
+        }
+
+        private async Task<IList<FollowUpMessage>> GetFollowUpMessagesByCampaignIdAsync(string campaignId, CancellationToken ct = default)
+        {
+            if(_memoryCache.TryGetValue(campaignId, out IList<FollowUpMessage> followUpMessages) == false)
+            {
+                followUpMessages = await _campaignRepositoryFacade.GetFollowUpMessagesByCampaignIdAsync(campaignId, ct);
+                _memoryCache.Set(campaignId, followUpMessages);
+            }
+            return followUpMessages;
         }
 
         private async Task<Dictionary<CampaignProspectFollowUpMessage, DateTimeOffset>> CreateFollowUpMessagesAsync(FollowUpMessage message, CampaignProspect campaignProspect, CancellationToken ct = default)
@@ -71,14 +118,10 @@ namespace Leadsly.Domain.Providers
 
                 if (followUpMessageDateTime.LocalDateTime < startWorkDayDateTime)
                 {
-                    // fire right away
-                    // await _campaignManager.TriggerFollowUpMessagePhaseAsync(campaignProspectFollowUpMessage.CampaignProspectFollowUpMessageId, campaignProspect.CampaignId);
                     goingOut.Add(campaignProspectFollowUpMessage, default);
                 }
                 else if (followUpMessageDateTime.LocalDateTime > startWorkDayDateTime && followUpMessageDateTime.LocalDateTime < endWorkDateDateTime)
                 {
-                    // schedule with followUpMessageDateTime
-                    // await _campaignManager.TriggerFollowUpMessagePhaseAsync(campaignProspectFollowUpMessage.CampaignProspectFollowUpMessageId, campaignProspect.CampaignId, followUpMessageDateTime);
                     goingOut.Add(campaignProspectFollowUpMessage, followUpMessageDateTime);
                 }
             }
@@ -160,6 +203,28 @@ namespace Leadsly.Domain.Providers
             }
 
             return canBeSentToday;
+        }
+
+        private IList<int> DetermineNextFollowUpMessages(CampaignProspect campaignProspect, IList<FollowUpMessage> followUpMessages)
+        {
+            // the order ids of the next follow up messages.
+            IList<int> followUpOrders = new List<int>();
+            if(followUpMessages.Count == 0)
+            {
+                return followUpOrders;
+            }
+
+            if (campaignProspect.FollowUpMessageSent == true)
+            {
+                int previouslySentFollowUpMessageNum = campaignProspect.SentFollowUpMessageOrderNum;
+                followUpOrders = followUpMessages.Where(x => x.Order != previouslySentFollowUpMessageNum).Select(x => x.Order).ToList();
+            }
+            else
+            {
+                followUpOrders = followUpMessages.Select(m => m.Order).ToList();
+            }
+
+            return followUpOrders;
         }
 
         private int DetermineNextFollowUpMessage(CampaignProspect campaignProspect, IList<FollowUpMessage> followUpMessages)
