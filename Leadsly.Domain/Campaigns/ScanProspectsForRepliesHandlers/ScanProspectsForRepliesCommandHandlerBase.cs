@@ -47,7 +47,7 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
         /// <param name="contactedCampaignProspects"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        protected async Task<ScanProspectsForRepliesBody> CreateScanProspectsForRepliesBodyAsync(string scanProspectsForRepliesPhaseId, string halId, IList<CampaignProspect> contactedCampaignProspects = default, CancellationToken ct = default)
+        protected async Task<ScanProspectsForRepliesBody> CreateScanProspectsForRepliesBodyAsync(string scanProspectsForRepliesPhaseId, string halId, IList<CampaignProspect> campaignProspects = default, CancellationToken ct = default)
         {
             _logger.LogInformation("Creating scanprospects for replies body message for rabbit mq message broker.");
             ScanProspectsForRepliesPhase scanProspectsForRepliesPhase = await _campaignRepositoryFacade.GetScanProspectsForRepliesPhaseByIdAsync(scanProspectsForRepliesPhaseId, ct);
@@ -74,8 +74,32 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
                 ServiceDiscoveryName = config.ApiServiceDiscoveryName
             };
 
-            if (contactedCampaignProspects != null)
+            if (campaignProspects != null)
             {
+                IList<ContactedCampaignProspect> contactedCampaignProspects = new List<ContactedCampaignProspect>();
+                foreach (CampaignProspect campaignProspect in campaignProspects)
+                {
+                    int lastFollowUpMessageOrder = campaignProspect.SentFollowUpMessageOrderNum;
+                    CampaignProspectFollowUpMessage lastFollowUpMessage = campaignProspect.FollowUpMessages.Where(x => x.Order == lastFollowUpMessageOrder).FirstOrDefault();
+                    if(lastFollowUpMessage == null)
+                    {
+                        string campaignProspectId = campaignProspect.CampaignProspectId;
+                        int orderNum = campaignProspect.SentFollowUpMessageOrderNum;
+                        _logger.LogWarning("Could not determine user's last sent follow up message. CampaignProspectId: {campaignProspectId}\r\n FollowUpMessageOrder: {orderNum}", campaignProspectId, orderNum);
+                    }
+                    else
+                    {
+                        ContactedCampaignProspect contactedCampaignProspect = new()
+                        {
+                            CampaignProspectId = campaignProspect.CampaignProspectId,
+                            LastFollowUpMessageContent = lastFollowUpMessage.Content,
+                            Name = campaignProspect.Name,
+                            ProspectProfileUrl = campaignProspect.ProfileUrl
+                        };
+
+                        contactedCampaignProspects.Add(contactedCampaignProspect);
+                    }                    
+                }
                 scanProspectsForRepliesBody.ContactedCampaignProspects = contactedCampaignProspects;
             }
 
