@@ -133,7 +133,9 @@ namespace Leadsly.Domain.Providers
             foreach (NewProspectConnectionRequest newProspectConnectionRequest in request.NewAcceptedProspectsConnections)
             {
                 // is the newly connected prospect part of any of the user's campaigns?
-                CampaignProspect campaignProspect = activeCampaignProspects.FirstOrDefault(p => p.ProfileUrl.Contains(newProspectConnectionRequest.ProfileUrl));
+                // remove any trailing slashes
+                string searchProfileUrl = newProspectConnectionRequest.ProfileUrl.TrimEnd('/');
+                CampaignProspect campaignProspect = activeCampaignProspects.FirstOrDefault(p => p.ProfileUrl == searchProfileUrl);
                 if (campaignProspect != null)
                 {
                     campaignProspect.Accepted = true;

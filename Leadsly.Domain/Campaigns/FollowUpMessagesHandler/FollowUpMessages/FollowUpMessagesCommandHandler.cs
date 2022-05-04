@@ -90,7 +90,8 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages
 
         private async Task PublishMessagesGoingOut(IDictionary<CampaignProspectFollowUpMessage, DateTimeOffset> messagesGoingOut)
         {
-            foreach (var messagePair in messagesGoingOut)
+            // sort the messages going out by order
+            foreach (var messagePair in messagesGoingOut.OrderBy(k => k.Key.Order))
             {
                 await InternalExecuteAsync(messagePair.Key.CampaignProspectFollowUpMessageId, messagePair.Key.CampaignProspect.CampaignId, messagePair.Value);
             }
