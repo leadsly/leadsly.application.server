@@ -66,11 +66,9 @@ namespace Leadsly.Domain
             channel.QueueBind(queueName, exchangeName, routingKey, null);
 
             IBasicProperties basicProperties = channel.CreateBasicProperties();
-            basicProperties.MessageId = Guid.NewGuid().ToString();
-            // for any processes that do not acknowledge the message rightaway and wait until completed to acknowledge,
-            // set TTL for 2 hours. This is useful when user queues
-            //basicProperties.Expiration = TimeSpan.FromHours(2).TotalMilliseconds.ToString();
-            if(headers != default)
+            basicProperties.MessageId = Guid.NewGuid().ToString();            
+            basicProperties.Expiration = TimeSpan.FromHours(3).TotalMilliseconds.ToString();
+            if (headers != default)
             {
                 basicProperties.Headers = headers;
             }

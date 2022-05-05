@@ -24,20 +24,20 @@ namespace Leadsly.Domain
                 ////////////////////////////////////////////////////////////////////////////////////
                 /// ScanForNewConnectionsOffHours
                 ////////////////////////////////////////////////////////////////////////////////////
-                //HalWorkCommandHandlerDecorator<CheckOffHoursNewConnectionsCommand> offHoursHandler =
-                //    scope.ServiceProvider.GetRequiredService<HalWorkCommandHandlerDecorator<CheckOffHoursNewConnectionsCommand>>();
+                HalWorkCommandHandlerDecorator<CheckOffHoursNewConnectionsCommand> offHoursHandler =
+                    scope.ServiceProvider.GetRequiredService<HalWorkCommandHandlerDecorator<CheckOffHoursNewConnectionsCommand>>();
 
-                //CheckOffHoursNewConnectionsCommand offHoursCommand = new CheckOffHoursNewConnectionsCommand();
-                ////await offHoursHandler.HandleAsync(offHoursCommand);
+                CheckOffHoursNewConnectionsCommand offHoursCommand = new CheckOffHoursNewConnectionsCommand();
+                await offHoursHandler.HandleAsync(offHoursCommand);
 
-                //////////////////////////////////////////////////////////////////////////////////////
-                ///// MonitorForNewConnectionsAll
-                //////////////////////////////////////////////////////////////////////////////////////
-                //HalWorkCommandHandlerDecorator<MonitorForNewConnectionsAllCommand> monitorHandler =
-                //    scope.ServiceProvider.GetRequiredService<HalWorkCommandHandlerDecorator<MonitorForNewConnectionsAllCommand>>();
+                ////////////////////////////////////////////////////////////////////////////////////
+                /// MonitorForNewConnectionsAll
+                ////////////////////////////////////////////////////////////////////////////////////
+                HalWorkCommandHandlerDecorator<MonitorForNewConnectionsAllCommand> monitorHandler =
+                    scope.ServiceProvider.GetRequiredService<HalWorkCommandHandlerDecorator<MonitorForNewConnectionsAllCommand>>();
 
-                //MonitorForNewConnectionsAllCommand monitorForNewConnectionsAllCommand = new MonitorForNewConnectionsAllCommand();
-                //await monitorHandler.HandleAsync(monitorForNewConnectionsAllCommand);
+                MonitorForNewConnectionsAllCommand monitorForNewConnectionsAllCommand = new MonitorForNewConnectionsAllCommand();
+                await monitorHandler.HandleAsync(monitorForNewConnectionsAllCommand);
 
                 //////////////////////////////////////////////////////////////////////////////////////
                 ///// UncontactedFollowUpMessageCommand
@@ -53,7 +53,7 @@ namespace Leadsly.Domain
                 //////////////////////////////////////////////////////////////////////////////////////////////////////
                 /// Prospecting [ DeepScanProspectsForReplies OR (FollowUpMessagePhase AND ScanProspectsForReplies) ]
                 //////////////////////////////////////////////////////////////////////////////////////////////////////
-                //await phaseManager.ProspectingPhaseAsync();
+                await phaseManager.ProspectingPhaseAsync();
 
                 ////////////////////////////////////////////////////////////////////////////////////////////////
                 /// NetworkingConnectionsPhase[ProspectListPhase OR SendConnectionsPhase]
