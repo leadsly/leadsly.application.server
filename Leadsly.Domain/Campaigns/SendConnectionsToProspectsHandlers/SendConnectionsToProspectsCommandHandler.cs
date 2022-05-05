@@ -118,7 +118,7 @@ namespace Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers
             else
             {
                 // temporary to schedule jobs right away                
-                _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers);
+                // _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers);
             }
         }
 
@@ -173,6 +173,9 @@ namespace Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers
         {
             _logger.LogInformation("Creating send connections body message for rabbit mq message broker.");
             Campaign campaign = await _campaignRepositoryFacade.GetCampaignByIdAsync(campaignId, ct);
+
+            HalUnit halUnit = await _halRepository.GetByHalIdAsync(campaign.HalId, ct);
+
             int dailyConnectionsLimit = campaign.DailyInvites;
             _logger.LogDebug("Daily connection request limit is {dailyConnectionsLimit}", dailyConnectionsLimit);
             if (campaign.IsWarmUpEnabled == true)
@@ -197,9 +200,11 @@ namespace Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers
             {
                 ChromeProfileName = chromeProfileName,
                 DailyLimit = dailyConnectionsLimit,
-                HalId = campaign.HalId,
+                HalId = halUnit.HalId,
                 UserId = userId,
-                TimeZoneId = "Eastern Standard Time",
+                TimeZoneId = halUnit.TimeZoneId,
+                StartOfWorkday = halUnit.StartHour,
+                EndOfWorkday = halUnit.EndHour, 
                 StartDateTimestamp = campaign.StartTimestamp,
                 CampaignId = campaignId,
                 NamespaceName = config.ServiceDiscoveryConfig.Name,

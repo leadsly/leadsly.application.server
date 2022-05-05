@@ -41,6 +41,9 @@ namespace Leadsly.Domain.Campaigns.ProspectListsHandlers
             _logger.LogInformation("Creating prospect list body message for rabbit mq message broker.");
             ProspectListPhase prospectListPhase = await _campaignRepositoryFacade.GetProspectListPhaseByIdAsync(prospectListPhaseId, ct);
             string primaryProspectListId = prospectListPhase.Campaign.CampaignProspectList.PrimaryProspectListId;
+
+            HalUnit halUnit = await _halRepository.GetByHalIdAsync(prospectListPhase.Campaign.HalId, ct);
+
             _logger.LogDebug("Creating prospect list body with primary prospect list id {primaryProspectListId}", primaryProspectListId);
             string campaignId = prospectListPhase.CampaignId;
             _logger.LogDebug("Creating prospect list body with campaign id {campaignId}", campaignId);
@@ -59,7 +62,10 @@ namespace Leadsly.Domain.Campaigns.ProspectListsHandlers
             ProspectListBody prospectListBody = new()
             {
                 SearchUrls = prospectListPhase.SearchUrls,
-                HalId = prospectListPhase.Campaign.HalId,
+                HalId = halUnit.HalId,
+                TimeZoneId = halUnit.TimeZoneId,
+                EndOfWorkday = halUnit.EndHour,
+                StartOfWorkday = halUnit.StartHour,
                 ChromeProfile = chromeProfileName,
                 PrimaryProspectListId = primaryProspectListId,
                 UserId = userId,

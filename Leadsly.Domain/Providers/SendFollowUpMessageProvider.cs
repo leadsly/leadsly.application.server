@@ -65,26 +65,6 @@ namespace Leadsly.Domain.Providers
                             goingOut.AddRange(messagesOut);
                         }                        
                     }
-
-                    //int nextFollowUpMessageOrder = DetermineNextFollowUpMessage(campaignProspect, messages);
-
-                    //if (nextFollowUpMessageOrder == 0)
-                    //{
-                    //    // this campaign prospect has received all of the follow up messages configured
-                    //    // check if the last follow up message was sent 14 or more days ago, if yes mark this prospect as complete or fullfilled
-                    //    DateTimeOffset lastFollowUpMessage = _timestampService.GetDateFromTimestamp(campaignProspect.LastFollowUpMessageSentTimestamp);
-                    //    if((lastFollowUpMessage.LocalDateTime - DateTime.Now).TotalDays < 14)
-                    //    {
-                    //        campaignProspect.FollowUpComplete = true;
-                    //        await _campaignRepositoryFacade.UpdateCampaignProspectAsync(campaignProspect, ct);
-                    //    }
-                    //}
-                    //else
-                    //{
-                    //    // else prepare next follow up message to be sent
-                    //    FollowUpMessage messageToGoOut = messages.SingleOrDefault(m => m.Order == nextFollowUpMessageOrder);
-                    //    goingOut.AddRange(await CreateFollowUpMessagesAsync(messageToGoOut, campaignProspect, ct));
-                    //}
                 }
             }
 

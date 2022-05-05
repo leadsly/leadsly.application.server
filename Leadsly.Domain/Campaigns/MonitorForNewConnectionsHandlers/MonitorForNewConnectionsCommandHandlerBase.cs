@@ -70,6 +70,7 @@ namespace Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers
         {
             _logger.LogInformation("Creating monitor for new connections body message for rabbit mq message broker.");
             MonitorForNewConnectionsPhase monitorForNewConnectionsPhase = await _campaignRepositoryFacade.GetMonitorForNewConnectionsPhaseBySocialAccountIdAsync(socialAccountId, ct);
+            HalUnit halUnit = await _halRepository.GetByHalIdAsync(halId, ct);
 
             ChromeProfile chromeProfile = await _halRepository.GetChromeProfileAsync(PhaseType.MonitorNewConnections, ct);
             string chromeProfileName = chromeProfile?.Name;
@@ -86,13 +87,15 @@ namespace Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers
                 ChromeProfileName = chromeProfileName,
                 HalId = halId,
                 UserId = userId,
-                TimeZoneId = "Eastern Standard Time",
+                TimeZoneId = halUnit.TimeZoneId,
                 PageUrl = monitorForNewConnectionsPhase.PageUrl,
                 StartWorkTime = await _timestampService.GetStartWorkDayTimestampAsync(halId),
                 EndWorkTime = await _timestampService.GetEndWorkDayTimestampAsync(halId),
                 NamespaceName = config.ServiceDiscoveryConfig.Name,
                 ServiceDiscoveryName = config.ApiServiceDiscoveryName,
-                NumOfHoursAgo = numOfHoursAgo
+                NumOfHoursAgo = numOfHoursAgo,
+                StartOfWorkday = halUnit.StartHour,
+                EndOfWorkday = halUnit.EndHour
             };
 
             string namespaceName = config.ServiceDiscoveryConfig.Name;

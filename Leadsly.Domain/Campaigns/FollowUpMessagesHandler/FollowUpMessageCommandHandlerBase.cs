@@ -91,7 +91,9 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler
                 ServiceDiscoveryName = config.ApiServiceDiscoveryName,
                 PageUrl = followUpMessagePhase.PageUrl,
                 ProspectName = followUpMessage.CampaignProspect.Name,
-                ProspectProfileUrl = followUpMessage.CampaignProspect.ProfileUrl
+                ProspectProfileUrl = followUpMessage.CampaignProspect.ProfileUrl,
+                EndOfWorkday = halUnit.EndHour,
+                StartOfWorkday = halUnit.StartHour
             };
 
             string namespaceName = config.ServiceDiscoveryConfig.Name;

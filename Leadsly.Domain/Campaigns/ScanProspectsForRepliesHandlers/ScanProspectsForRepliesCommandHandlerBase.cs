@@ -52,6 +52,8 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
             _logger.LogInformation("Creating scanprospects for replies body message for rabbit mq message broker.");
             ScanProspectsForRepliesPhase scanProspectsForRepliesPhase = await _campaignRepositoryFacade.GetScanProspectsForRepliesPhaseByIdAsync(scanProspectsForRepliesPhaseId, ct);
 
+            HalUnit halUnit = await _halRepository.GetByHalIdAsync(halId, ct);
+
             ChromeProfile chromeProfile = await _halRepository.GetChromeProfileAsync(PhaseType.ScanForReplies, ct);
             string chromeProfileName = chromeProfile?.Name;
             if (chromeProfileName == null)
@@ -66,10 +68,12 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
             {
                 PageUrl = scanProspectsForRepliesPhase.PageUrl,
                 HalId = halId,
+                TimeZoneId = halUnit.TimeZoneId,
+                StartOfWorkday = halUnit.StartHour,
+                EndOfWorkday = halUnit.EndHour,
                 ChromeProfileName = chromeProfileName,
                 UserId = scanProspectsForRepliesPhase.SocialAccount.UserId,
-                EndWorkTime = await _timestampService.GetEndWorkDayTimestampAsync(halId),
-                TimeZoneId = "Eastern Standard Time",
+                EndWorkTime = await _timestampService.GetEndWorkDayTimestampAsync(halId),                
                 NamespaceName = config.ServiceDiscoveryConfig.Name,
                 ServiceDiscoveryName = config.ApiServiceDiscoveryName
             };
