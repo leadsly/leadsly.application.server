@@ -30,6 +30,15 @@ namespace Leadsly.Domain
 
         private ConnectionFactory ConfigureConnectionFactory(RabbitMQOptions options, string clientProviderName)
         {
+            string userName = options.ConnectionFactoryOptions.UserName;
+            string hostName = options.ConnectionFactoryOptions.HostName;
+            int port = options.ConnectionFactoryOptions.Port;
+            _logger.LogDebug("Creating ConnectionFactor for UserName: {userName}" +
+                "\r\nHostName: {hostName}" +
+                "\r\nPort: {port}" +
+                "\r\nClientProvidedName: {clientProvidedName}" +
+                "\r\nDispatchConsumerAsync: true", userName, hostName, port, clientProviderName);
+
             return new ConnectionFactory()
             {
                 UserName = options.ConnectionFactoryOptions.UserName,
@@ -44,8 +53,9 @@ namespace Leadsly.Domain
         public void PublishMessage(byte[] body, string queueNameIn, string routingKeyIn, string halId, Dictionary<string, object> headers = default)
         {
             RabbitMQOptions options = GetRabbitMQOptions();
-            string exchangeName = options.ExchangeOptions.Name;
-            string exchangeType = options.ExchangeOptions.ExchangeType;
+
+            string exchangeName = options.ExchangeOptions.Name;            
+            string exchangeType = options.ExchangeOptions.ExchangeType;            
 
             ConnectionFactory factory = ConfigureConnectionFactory(options, queueNameIn);
 
@@ -72,6 +82,18 @@ namespace Leadsly.Domain
             {
                 basicProperties.Headers = headers;
             }
+
+            _logger.LogInformation("Hal id is: {halId}. " +
+                        "\r\nThe queueName is: {queueName} " +
+                        "\r\nThe routingKey is: {routingKey} " +
+                        "\r\nThe exchangeName is: {exchangeName} " +
+                        "\r\nThe exchangeType is: {exchangeType} ",                        
+                        halId,
+                        queueName,
+                        routingKey,
+                        exchangeName,
+                        exchangeType
+                        );
 
             channel.BasicPublish(exchange: options.ExchangeOptions.Name, routingKey: routingKey, basicProperties: basicProperties, body: body);
         }
