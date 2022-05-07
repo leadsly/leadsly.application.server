@@ -483,63 +483,6 @@ namespace Leadsly.Application.Api.Controllers
             return Ok(patchedCampaign);
         }
 
-        [HttpPost("{id}/prospects")]
-        [AllowAnonymous]
-        public async Task<IActionResult> UpdateContactedCampaignProspectsAsync(string id, [FromBody] CampaignProspectListRequest request, CancellationToken ct = default)
-        {
-            HalOperationResult<IOperationResponse> result = await _supervisor.ProcessConnectionRequestSentForCampaignProspectsAsync<IOperationResponse>(request, ct);
-
-            if(result.Succeeded == false)
-            {
-                return BadRequest_UpdateContactedCampaignProspects(result.Failures);
-            }
-
-            return Ok();
-        }
-        
-        [HttpGet("{id}/sent-connections-url-statuses")]
-        [AllowAnonymous]
-        public async Task<IActionResult> GetSentConnectionsUrlStatusesAsync(string id, CancellationToken ct = default)
-        {
-            HalOperationResult<IGetSentConnectionsUrlStatusPayload> result = await _supervisor.GetSentConnectionsUrlStatusesAsync<IGetSentConnectionsUrlStatusPayload>(id, ct);
-            if(result.Succeeded == false)
-            {
-                return BadRequest_GettingSentConnectionsUrlStatuses(result.Failures);
-            }
-
-            return Ok(result.Value);
-        }
-
-        [HttpPatch("{id}/sent-connections-url-statuses")]
-        [AllowAnonymous]
-        public async Task<IActionResult> UpdateSentConnectionsUrlStatusesAsync(string id, [FromBody] UpdateSentConnectionsUrlStatusRequest request, CancellationToken ct = default)
-        {
-            HalOperationResult<IOperationResponse> result = await _supervisor.UpdateSentConnectionsUrlStatusesAsync<IOperationResponse>(id, request, ct);
-            if (result.Succeeded == false)
-            {
-                return BadRequest_UpdatingSentConnectionsUrlStatuses(result.Failures);
-            }
-
-            return Ok();
-        }
-
-        //[HttpGet("reports/effectiveness")]
-        //public IActionResult CampaignEffectivenessReports([FromQuery] List<string> ids, [FromQuery] long filterCriteria = 0L, [FromQuery] long startDate = 0L, [FromQuery] long endDate = 0L)
-        //{
-        //    List<CampaignViewModel> filteredCampaigns = Campaigns.Where(c => ids.Contains(c.Id)).ToList();
-
-        //    if(filteredCampaigns == null)
-        //    {
-        //        // To Do return custom bad request
-        //        return BadRequest();
-        //    }
-
-        //    if(filterCriteria != 0L)
-        //    {
-        //        DateTimeOffset
-        //    }
-        //}
-
         [HttpPost]
         [AllowAnonymous]
         public async Task<IActionResult> Create(CreateCampaignRequest request, CancellationToken ct = default)

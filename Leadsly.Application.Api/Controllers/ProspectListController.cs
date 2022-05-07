@@ -5,65 +5,36 @@ using Leadsly.Application.Model.Responses;
 using Leadsly.Domain.Supervisor;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Leadsly.Application.Api.Controllers
 {
     [ApiController]
-    [Route("prospect-list")]
+    [Route("[controller]")]
     public class ProspectListController : ApiControllerBase
     {
-        public ProspectListController(ISupervisor supervisor)
+        public ProspectListController(ILogger<ProspectListController> logger, ISupervisor supervisor)
         {
+            _logger = logger;
             _supervisor = supervisor;
         }
 
+        private readonly ILogger<ProspectListController> _logger;
         private readonly ISupervisor _supervisor;
 
-        [HttpPost]
+        [HttpPost("{halId:string}")]
         [AllowAnonymous]
-        public async Task<IActionResult> ProspectList(ProspectListPhaseCompleteRequest request, CancellationToken ct = default)
+        public async Task<IActionResult> ProspectList(string halId, ProspectListPhaseCompleteRequest request, CancellationToken ct = default)
         {
+            _logger.LogInformation("Executing ProspectList action for HalId {halId}", halId);
             HalOperationResult<IOperationResponse> result = await _supervisor.ProcessProspectsAsync<IOperationResponse>(request, ct);
 
             if(result.Succeeded == false)
             {
+                _logger.LogDebug("Failed to process prospects for HalId {halId}", halId);
                 return BadRequest_ProspectListPhase(result.Failures);
-            }
-
-            return Ok();
-        }
-
-        [HttpPost("deep-scan/prospects-replied")]
-        [AllowAnonymous]
-        public async Task<IActionResult> CampaignProspectsReplied(ProspectsRepliedRequest request, CancellationToken ct = default)
-        {
-            HalOperationResult<IOperationResponse> result = await _supervisor.ProcessCampaignProspectsRepliedAsync<IOperationResponse>(request, ct);
-
-            if (result.Succeeded == false)
-            {
-                return BadRequest_CampaignProspectsReplied(result.Failures);
-            }
-
-            return Ok();
-        }
-
-        /// <summary>
-        /// This is the end point that gets hit when prospects reply during normal ScanProspectsForRepliesPhase
-        /// </summary>
-        /// <param name="request"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        [HttpPost("prospects-replied")]
-        [AllowAnonymous]
-        public async Task<IActionResult> ProspectsReplied(ProspectsRepliedRequest request, CancellationToken ct = default)
-        {
-            HalOperationResult<IOperationResponse> result = await _supervisor.ProcessProspectsRepliedAsync<IOperationResponse>(request, ct);
-
-            if (result.Succeeded == false)
-            {
-                return BadRequest_CampaignProspectsReplied(result.Failures);
             }
 
             return Ok();

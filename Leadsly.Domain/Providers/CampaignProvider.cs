@@ -33,22 +33,19 @@ namespace Leadsly.Domain.Providers
         public CampaignProvider(
             ILogger<CampaignProvider> logger,
             ICampaignService campaignService,
-            ITimestampService timestampService,
-            ILeadslyHalProvider leadslyHalProvider,
+            ITimestampService timestampService,            
             ICampaignPhaseClient campaignPhaseClient,
             ICampaignRepositoryFacade campaignRepositoryFacade      
             )
         {
             _campaignPhaseClient = campaignPhaseClient;
             _timestampService = timestampService;
-            _campaignService = campaignService;
-            _leadslyHalProvider = leadslyHalProvider;
+            _campaignService = campaignService;            
             _logger = logger;
             _campaignRepositoryFacade = campaignRepositoryFacade;
         }
 
-        private readonly ICampaignPhaseClient _campaignPhaseClient;
-        private readonly ILeadslyHalProvider _leadslyHalProvider;
+        private readonly ICampaignPhaseClient _campaignPhaseClient;        
         private readonly ITimestampService _timestampService;
         private readonly ILogger<CampaignProvider> _logger;   
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;  
