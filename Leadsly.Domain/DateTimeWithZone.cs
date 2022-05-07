@@ -8,21 +8,20 @@ namespace Leadsly.Domain
 {
     public struct DateTimeWithZone
     {
-        private readonly DateTime utcDateTime;
+        private readonly DateTime dateTimeUnspec;
         private readonly TimeZoneInfo timeZone;
 
         public DateTimeWithZone(DateTime dateTime, TimeZoneInfo timeZone)
         {
-            var dateTimeUnspec = DateTime.SpecifyKind(dateTime, DateTimeKind.Unspecified);
-            utcDateTime = TimeZoneInfo.ConvertTimeToUtc(dateTimeUnspec, timeZone);
+            dateTimeUnspec = DateTime.SpecifyKind(dateTime, DateTimeKind.Unspecified);
             this.timeZone = timeZone;
         }
 
-        public DateTime UniversalTime
+        public DateTime DateTimeUnspecified
         {
             get
             {
-                return utcDateTime;
+                return dateTimeUnspec;
             }
         }
 
@@ -38,7 +37,7 @@ namespace Leadsly.Domain
         {
             get
             {
-                return TimeZoneInfo.ConvertTime(utcDateTime, timeZone);
+                return TimeZoneInfo.ConvertTimeFromUtc(DateTimeUnspecified, timeZone);
             }
         }
     }

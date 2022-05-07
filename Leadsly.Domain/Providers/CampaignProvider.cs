@@ -281,8 +281,8 @@ namespace Leadsly.Domain.Providers
             Campaign newCampaign = new()
             {
                 Name = request.CampaignDetails.Name,
-                StartTimestamp = await _timestampService.CreateTimestampInZoneAsync(request.HalId, request.CampaignDetails.StartTimestamp, ct),
-                EndTimestamp = await _timestampService.CreateTimestampInZoneAsync(request.HalId, request.CampaignDetails.EndTimestamp, ct),
+                StartTimestamp = request.CampaignDetails.StartTimestamp,
+                EndTimestamp = request.CampaignDetails.EndTimestamp,
                 DailyInvites = request.CampaignDetails.DailyInviteLimit,
                 IsWarmUpEnabled = request.CampaignDetails.WarmUp,
                 CampaignType = request.CampaignDetails.CampaignType,
@@ -304,7 +304,7 @@ namespace Leadsly.Domain.Providers
                     Name = request.CampaignDetails.PrimaryProspectList.Name,
                     SearchUrls = new List<SearchUrl>(),
                     UserId = userId,
-                    CreatedTimestamp = await _timestampService.CreateNowTimestampAsync(request.HalId, ct)
+                    CreatedTimestamp = _timestampService.CreateNowTimestamp()
                 };
 
                 foreach (string searchUrl in request.CampaignDetails.PrimaryProspectList.SearchUrls)
