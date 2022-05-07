@@ -118,7 +118,7 @@ namespace Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers
             else
             {
                 // temporary to schedule jobs right away                
-                _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers);
+                //_messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers);
             }
         }
 
