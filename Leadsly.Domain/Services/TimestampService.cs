@@ -47,7 +47,7 @@ namespace Leadsly.Domain.Services
             if(DateTime.TryParse(halUnit.StartHour, out DateTime startDateTime) == false)
             {
                 string startHour = halUnit?.StartHour;
-                _logger.LogError("Failed to parse hals start hour. Attempted to parse {startHour}", startHour);                ;
+                _logger.LogError("Failed to parse hals start hour. Attempted to parse {startHour}", startHour);
             }
             _logger.LogDebug("Successfully parsed start hour date time");
             if(halUnit.TimeZoneId == null)
