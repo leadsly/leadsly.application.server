@@ -8,6 +8,7 @@ using Leadsly.Application.Api.Authentication;
 using Leadsly.Application.Api.DataProtectorTokenProviders;
 using Leadsly.Application.Api.Services;
 using Leadsly.Application.Domain.OptionsJsonModels;
+using Leadsly.Application.Model;
 using Leadsly.Application.Model.Entities;
 using Leadsly.Domain;
 using Leadsly.Domain.Campaigns;
@@ -147,6 +148,8 @@ namespace Leadsly.Application.Api.Configurations
             //configuration.GetSection(nameof(LeadslyBotApiOptions)).Bind(options);
 
             services.AddHttpClient<ILeadslyHalApiService, LeadslyHalApiService>();
+
+            services.Configure<HalConfigOptions>(options => configuration.GetSection(nameof(HalConfigOptions)).Bind(options));
 
             services.Configure<CloudPlatformConfigurationOptions>(options => configuration.GetSection(nameof(CloudPlatformConfigurationOptions)).Bind(options));
             CloudPlatformConfigurationOptions cloudPlatformConfigurationOptions = new CloudPlatformConfigurationOptions();
