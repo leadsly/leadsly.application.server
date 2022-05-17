@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Leadsly.Application.Model;
 
 namespace Leadsly.Infrastructure.Repositories
 {
@@ -21,9 +22,10 @@ namespace Leadsly.Infrastructure.Repositories
             _cloudPlatformConfigurationOptions = cloudPlatformConfigurationOptions.Value;
             _dbContext = dbContext;
             _logger = logger;
+
         }
 
-        private readonly CloudPlatformConfigurationOptions _cloudPlatformConfigurationOptions;
+        private readonly CloudPlatformConfigurationOptions _cloudPlatformConfigurationOptions;        
         private readonly DatabaseContext _dbContext;
         private readonly ILogger<CloudPlatformRepository> _logger;
 

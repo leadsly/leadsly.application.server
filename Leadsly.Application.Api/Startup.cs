@@ -73,7 +73,7 @@ namespace Leadsly.Application.Api
             // if request does not contain api it will also work
             app.UsePathBase("/api");
 
-            if (env.IsDevelopment())
+            if (env.IsDevelopment() || env.IsStaging())
             {
                 app.UseCors(ApiConstants.Cors.AllowAll);
             }
@@ -96,7 +96,7 @@ namespace Leadsly.Application.Api
 
             app.UseSerilogRequestLogging();
 
-            app.UseHangfireDashboard("/hangfire-leadsly-server");
+            app.UseHangfireDashboard("/hangfire");
 
             app.SeedDatabase();
 

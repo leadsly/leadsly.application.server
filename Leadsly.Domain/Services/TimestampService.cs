@@ -124,9 +124,12 @@ namespace Leadsly.Domain.Services
         {
             _logger.LogInformation($"Creating localized date time from DateTimeOffset: {dateTimeOffset.DateTime}");
 
-            HalUnit halUnit = await GetHalUnitByHalIdAsync(halId, ct);            
+            _logger.LogDebug("Retrieving hal with id {halId}", halId);
+            HalUnit halUnit = await GetHalUnitByHalIdAsync(halId, ct);
 
-            DateTime localDateTime = new DateTimeWithZone(dateTimeOffset.DateTime, TimeZoneInfo.FindSystemTimeZoneById(halUnit.TimeZoneId)).LocalTime;
+            string timeZoneId = halUnit.TimeZoneId;
+            _logger.LogDebug("HalUnit's time zone id is {timeZoneId}", timeZoneId);
+            DateTime localDateTime = new DateTimeWithZone(dateTimeOffset.DateTime, TimeZoneInfo.FindSystemTimeZoneById(timeZoneId)).LocalTime;
 
             _logger.LogInformation($"Successfully created localized date time {localDateTime.Date}");
 

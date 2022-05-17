@@ -227,7 +227,7 @@ namespace Leadsly.Domain.Providers
         {
             string taskDefinition = $"{Guid.NewGuid()}-task-def";
             string containerName = $"hal-{Guid.NewGuid()}-container";
-            string halId = $"{Guid.NewGuid()}-id";
+            string halId = $"{Guid.NewGuid()}";
             SocialAccountCloudResourceDTO userSetup = default;
             try
             {

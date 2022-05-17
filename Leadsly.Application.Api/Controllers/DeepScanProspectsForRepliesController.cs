@@ -31,7 +31,7 @@ namespace Leadsly.Application.Api.Controllers
         /// <param name="ct"></param>
         /// <returns></returns>
         [AllowAnonymous]
-        [HttpPost("{halId:string}")]        
+        [HttpPost("{halId}")]        
         public async Task<IActionResult> ProspectsThatReplied(string halId, ProspectsRepliedRequest request, CancellationToken ct = default)
         {
             _logger.LogInformation("Executing DeepScanProspects action for HalId {halId}", halId);

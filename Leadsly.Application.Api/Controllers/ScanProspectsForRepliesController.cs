@@ -26,7 +26,7 @@ namespace Leadsly.Application.Api.Controllers
 
         [AllowAnonymous]
         [HttpPost]   
-        [Route("{halId:string}")]
+        [Route("{halId}")]
         public async Task<IActionResult> CreateScanProspectsForRepliesMessageAsync(string halId, [FromBody] TriggerScanProspectsForRepliesRequest request)
         {
             _logger.LogInformation("Executing CreateScanProspectsForRepliesMessage action for HalId {halId}", halId);
@@ -34,7 +34,7 @@ namespace Leadsly.Application.Api.Controllers
             return Ok();
         }
 
-        [HttpPost("{halId:string}/prospects-replied")]
+        [HttpPost("{halId}/prospects-replied")]
         [AllowAnonymous]
         public async Task<IActionResult> ProspectsReplied(string halId, ProspectsRepliedRequest request, CancellationToken ct = default)
         {

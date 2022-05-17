@@ -25,7 +25,7 @@ namespace Leadsly.Application.Api.Controllers
         private readonly ILogger<MonitorForNewProspectsController> _logger;
 
         [AllowAnonymous]
-        [HttpPost("{halId:string}/new-prospects")]
+        [HttpPost("{halId}/new-prospects")]
         public async Task<IActionResult> NewProspects(string halId, [FromBody] NewProspectsConnectionsAcceptedRequest request, CancellationToken ct = default)
         {
             _logger.LogInformation("Executing NewProspects for HalId {halId}", halId);

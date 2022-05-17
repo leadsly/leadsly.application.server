@@ -42,7 +42,7 @@ namespace Leadsly.Application.Api.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        [Route("{halId:string}")]
+        [Route("{halId}")]
         public async Task<IActionResult> CreateFollowUpMessagesMessageAsync(string halId, [FromBody] TriggerFollowUpMessageRequest request)
         {
             _logger.LogInformation("Executing CreateFollowUpMessagesMessage action for HalId {halId}", halId);
@@ -50,7 +50,7 @@ namespace Leadsly.Application.Api.Controllers
             return Ok();
         }
 
-        [HttpPost("{campaignProspectId:string}/follow-up")]
+        [HttpPost("{campaignProspectId}/follow-up")]
         [AllowAnonymous]
         public async Task<IActionResult> FollowUpMessageSentAsync(string campaignProspectId, [FromBody] FollowUpMessageSentRequest request, CancellationToken ct = default)
         {

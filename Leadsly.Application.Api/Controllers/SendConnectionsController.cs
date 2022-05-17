@@ -26,7 +26,7 @@ namespace Leadsly.Application.Api.Controllers
         private readonly ISupervisor _supervisor;
         private readonly ILogger<SendConnectionsController> _logger;
 
-        [HttpPost("{halId:string}")]        
+        [HttpPost("{halId}")]        
         public async Task<IActionResult> CreateSendConnectionsMessage(string halId, ProspectsRepliedRequest request, CancellationToken ct = default)
         {
             _logger.LogInformation("Executing CreateSendConnectionsMessage action for HalId {halId}", halId);
@@ -42,7 +42,7 @@ namespace Leadsly.Application.Api.Controllers
             return Ok();
         }
 
-        [HttpGet("{campaignId:string}/url")]        
+        [HttpGet("{campaignId}/url")]        
         public async Task<IActionResult> GetSentConnectionsUrlsAsync(string campaignId, CancellationToken ct = default)
         {
             _logger.LogInformation("Executing GetSentConnectionsUrls for CampaignId {campaignId}", campaignId);
@@ -56,7 +56,7 @@ namespace Leadsly.Application.Api.Controllers
             return Ok(result.Value);
         }
 
-        [HttpPatch("{campaignId:string}/url")]        
+        [HttpPatch("{campaignId}/url")]        
         public async Task<IActionResult> UpdateSentConnectionsUrlsAsync(string campaignId, [FromBody] UpdateSentConnectionsUrlStatusRequest request, CancellationToken ct = default)
         {
             _logger.LogInformation("Executing action UpdateSentConnectionsUrls for CampaignId {campaignId}", campaignId);
@@ -70,7 +70,7 @@ namespace Leadsly.Application.Api.Controllers
             return Ok();
         }
 
-        [HttpPost("{campaignId:string}/prospects")]        
+        [HttpPost("{campaignId}/prospects")]        
         public async Task<IActionResult> UpdateConnectionSentProspectsAsync(string campaignId, [FromBody] CampaignProspectListRequest request, CancellationToken ct = default)
         {
             _logger.LogInformation("Executing action UpdateConnectionSentProspects for CampaignId {campaignId}", campaignId);

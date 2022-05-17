@@ -24,7 +24,7 @@ namespace Leadsly.Application.Api.Controllers
         private readonly ILogger<ProspectListController> _logger;
         private readonly ISupervisor _supervisor;
 
-        [HttpPost("{halId:string}")]
+        [HttpPost("{halId}")]
         [AllowAnonymous]
         public async Task<IActionResult> ProspectList(string halId, ProspectListPhaseCompleteRequest request, CancellationToken ct = default)
         {

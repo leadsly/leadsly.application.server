@@ -1,35 +1,32 @@
-﻿using Leadsly.Application.Model;
-using Leadsly.Application.Model.Requests;
+﻿using Leadsly.Application.Model.Requests.Hal;
+using Leadsly.Application.Model.Requests.Hal.Interfaces;
+using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Leadsly.Application.Model.Requests.Hal;
-using Leadsly.Domain.Services.Interfaces;
-using Leadsly.Application.Model.Requests.Hal.Interfaces;
 
 namespace Leadsly.Domain.Services
 {
     public class LeadslyHalApiService : ILeadslyHalApiService
     {
-        public LeadslyHalApiService(HttpClient httpClient, ILogger<LeadslyHalApiService> logger)
+        public LeadslyHalApiService(HttpClient httpClient, ILogger<LeadslyHalApiService> logger, IUrlService urlService)
         {
             _httpClient = httpClient;
             _logger = logger;
+            _urlService = urlService;
         }
 
         private readonly HttpClient _httpClient;
         private readonly ILogger<LeadslyHalApiService> _logger;
-        private const string HttpPrefix = "http://";
+        private readonly IUrlService _urlService;
 
         public async Task<HttpResponseMessage> PerformHealthCheckAsync(HealthCheckRequest halRequest, CancellationToken ct = default)
         {
-            string url = halRequest.PrivateIpAddress != null ? $"{HttpPrefix}{halRequest.PrivateIpAddress}" : $"{HttpPrefix}{halRequest.ServiceDiscoveryName}.{halRequest.NamespaceName}";
+            string halUrl = _urlService.GetHalsBaseUrl(halRequest.NamespaceName);
+            string url = halRequest.PrivateIpAddress != null ? $"https://{halRequest.PrivateIpAddress}" : halUrl;
 
             HttpRequestMessage request = new()
             {
@@ -53,8 +50,7 @@ namespace Leadsly.Domain.Services
 
         public async Task<HttpResponseMessage> RequestNewWebDriverInstanceAsync(INewWebDriverRequest instantiateNewWebDriverRequest, CancellationToken ct = default)
         {
-            // string url = $"{HttpPrefix}{instantiateNewWebDriverRequest.ServiceDiscoveryName}.{instantiateNewWebDriverRequest.NamespaceName}";
-            string url = "http://localhost:5020";
+            string url = _urlService.GetHalsBaseUrl(instantiateNewWebDriverRequest.NamespaceName);
             HttpRequestMessage request = new()
             {
                 Method = HttpMethod.Post,
@@ -81,8 +77,7 @@ namespace Leadsly.Domain.Services
 
         public async Task<HttpResponseMessage> AuthenticateUserSocialAccountAsync(IConnectAccountRequest authRequest, CancellationToken ct = default)
         {
-            // string url = $"{HttpPrefix}{authRequest.ServiceDiscoveryName}.{authRequest.NamespaceName}";
-            string url = "http://localhost:5020";
+            string url = _urlService.GetHalsBaseUrl(authRequest.NamespaceName);
             HttpRequestMessage request = new()
             {
                 Method = HttpMethod.Post,
@@ -113,8 +108,7 @@ namespace Leadsly.Domain.Services
 
         public async Task<HttpResponseMessage> EnterTwoFactorAuthCodeAsync(IEnterTwoFactorAuthCodeRequest enterTwoFactorAuthRequest, CancellationToken ct = default)
         {
-            // string url = $"{HttpPrefix}{enterTwoFactorAuthRequest.ServiceDiscoveryName}.{enterTwoFactorAuthRequest.NamespaceName}";
-            string url = "http://localhost:5020";
+            string url = _urlService.GetHalsBaseUrl(enterTwoFactorAuthRequest.NamespaceName);
 
             HttpRequestMessage request = new()
             {

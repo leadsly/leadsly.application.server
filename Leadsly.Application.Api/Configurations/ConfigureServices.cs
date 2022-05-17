@@ -236,6 +236,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ITimestampService, TimestampService>();
             services.AddScoped<IMessageBrokerOutlet, MessageBrokerOutlet>();
             services.AddScoped<IRabbitMQManager, RabbitMQManager>();
+            services.AddScoped<IUrlService, UrlService>();
             
             services.AddSingleton<IRecurringJobsHandler, RecurringJobsHandler>();                      
 
