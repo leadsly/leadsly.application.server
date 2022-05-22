@@ -83,10 +83,10 @@ namespace Leadsly.Api
         }
 
         /// <summary>
-        /// Bad request when there is an issue creating a new user.
+        /// Bad request when processing prospect list
         /// </summary>        
         /// <returns></returns>
-        protected ObjectResult BadRequest_ProspectListPhase(List<Failure> errors)
+        protected ObjectResult BadRequest_ProspectList(List<Failure> errors)
         {
             Dictionary<string, string[]> errorsDictionary = errors.ToDictionary(x => Enum.GetName(x.Code ?? Codes.ERROR), x => new[] { x.Reason, x.Detail });
 
@@ -95,7 +95,25 @@ namespace Leadsly.Api
                 Type = ProblemDetailsTypes.BadRequestType,
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
-                Detail = ProblemDetailsDescriptions.ProspectListPhaseError,
+                Detail = ProblemDetailsDescriptions.ProspectListError,
+                Instance = this.HttpContext.Request.Path.Value
+            });
+        }
+
+        /// <summary>
+        /// Bad request when there is an issue updating prospect list phase.
+        /// </summary>        
+        /// <returns></returns>
+        protected ObjectResult BadRequest_UpdatingProspectListPhase(List<Failure> errors)
+        {
+            Dictionary<string, string[]> errorsDictionary = errors.ToDictionary(x => Enum.GetName(x.Code ?? Codes.ERROR), x => new[] { x.Reason, x.Detail });
+
+            return ProblemDetailsResult(new ValidationProblemDetails(errorsDictionary)
+            {
+                Type = ProblemDetailsTypes.BadRequestType,
+                Status = StatusCodes.Status400BadRequest,
+                Title = ReasonPhrases.GetReasonPhrase(400),
+                Detail = ProblemDetailsDescriptions.UpdateProspectListPhaseError,
                 Instance = this.HttpContext.Request.Path.Value
             });
         }

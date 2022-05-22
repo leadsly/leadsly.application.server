@@ -34,13 +34,13 @@ namespace Leadsly.Domain.Providers
         private readonly ISendFollowUpMessageProvider _sendFollowUpMessageProvider;
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
 
-        public async Task<HalOperationResult<T>> ProcessProspectsAsync<T>(ProspectListPhaseCompleteRequest request, CancellationToken ct = default) where T : IOperationResponse
+        public async Task<HalOperationResult<T>> ProcessProspectsAsync<T>(IList<PrimaryProspectRequest> prospectsToProcess, string campaignId, string campaignProspectListId, CancellationToken ct = default) where T : IOperationResponse
         {
             HalOperationResult<T> result = new();
 
             IList<CampaignProspect> campaignProspects = new List<CampaignProspect>();
             IList<PrimaryProspect> prospects = new List<PrimaryProspect>();
-            foreach (PrimaryProspectRequest primaryProspectRequest in request.Prospects)
+            foreach (PrimaryProspectRequest primaryProspectRequest in prospectsToProcess)
             {
                 PrimaryProspect primaryProspect = new()
                 {
@@ -57,8 +57,8 @@ namespace Leadsly.Domain.Providers
                 CampaignProspect campaignProspect = new()
                 {
                     PrimaryProspect = primaryProspect,
-                    CampaignId = request.CampaignId,
-                    CampaignProspectListId = request.CampaignProspectListId,
+                    CampaignId = campaignId,
+                    CampaignProspectListId = campaignProspectListId,
                     Name = primaryProspect.Name,
                     ProfileUrl = primaryProspectRequest.ProfileUrl,
                     ConnectionSent = false,
@@ -77,21 +77,6 @@ namespace Leadsly.Domain.Providers
 
             campaignProspects = await _campaignRepositoryFacade.CreateAllCampaignProspectsAsync(campaignProspects, ct);
             if (campaignProspects == null)
-            {
-                return result;
-            }
-
-            ProspectListPhase campaignProspectListPhase = await _campaignRepositoryFacade.GetProspectListPhaseByCampaignIdAsync(request.CampaignId, ct);
-            if (campaignProspectListPhase == null)
-            {
-                return result;
-            }
-
-            campaignProspectListPhase.Completed = true;
-
-            // mark campaign's prospect list phase as completed
-            campaignProspectListPhase = await _campaignRepositoryFacade.UpdateProspectListPhaseAsync(campaignProspectListPhase, ct);
-            if (campaignProspectListPhase == null)
             {
                 return result;
             }

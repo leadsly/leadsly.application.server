@@ -14,6 +14,7 @@ using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Application.Model.ViewModels.Campaigns;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.JsonPatch;
+using Leadsly.Application.Model.Entities.Campaigns.Phases;
 
 namespace Leadsly.Domain.Supervisor
 {
@@ -31,7 +32,10 @@ namespace Leadsly.Domain.Supervisor
         Task<HalOperationResultViewModel<T>> LeadslyTwoFactorAuthAsync<T>(TwoFactorAuthRequest request, CancellationToken ct = default)
             where T : IOperationResponseViewModel;
 
-        Task<HalOperationResult<T>> ProcessProspectsAsync<T>(ProspectListPhaseCompleteRequest request, CancellationToken ct = default)
+        Task<HalOperationResult<T>> ProcessProspectsAsync<T>(CollectedProspectsRequest request, CancellationToken ct = default)
+            where T : IOperationResponse;
+
+        Task<HalOperationResult<T>> UpdateProspectListPhaseAsync<T>(string prospectListPhaseId, JsonPatchDocument<ProspectListPhase> prospectListPhaseUpdate, CancellationToken ct)
             where T : IOperationResponse;
 
         Task<HalOperationResult<T>> ProcessCampaignProspectsRepliedAsync<T>(ProspectsRepliedRequest request, CancellationToken ct = default)

@@ -10,6 +10,7 @@ using Leadsly.Application.Model.Requests.Hal.Interfaces;
 using Leadsly.Application.Model.Responses;
 using Leadsly.Application.Model.ViewModels;
 using Leadsly.Application.Model.ViewModels.Response;
+using Microsoft.AspNetCore.JsonPatch;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,10 +22,45 @@ namespace Leadsly.Domain.Supervisor
 {
     partial class Supervisor : ISupervisor
     {
-        public async Task<HalOperationResult<T>> ProcessProspectsAsync<T>(ProspectListPhaseCompleteRequest request, CancellationToken ct = default)
+        public async Task<HalOperationResult<T>> ProcessProspectsAsync<T>(CollectedProspectsRequest request, CancellationToken ct = default)
             where T : IOperationResponse
         {
-            return await _campaignPhaseProcessorProvider.ProcessProspectsAsync<T>(request, ct);
+            HalOperationResult<T> result = new();
+
+            // only process those prospects who have not yet been added to the prospect list
+            CampaignProspectList campaignProspects = await _campaignRepositoryFacade.GetCampaignProspectListByListIdAsync(request.CampaignProspectListId, ct);
+            IList<PrimaryProspectRequest> prospectsToProcess = request.Prospects.Where(x => !campaignProspects.CampaignProspects.Any(p => x.ProfileUrl == p.ProfileUrl)).ToList();
+            string campaignId = request.CampaignId;
+            string campaignProspectListId = request.CampaignProspectListId;
+
+            if(prospectsToProcess.Count > 0)
+            {
+                result = await _campaignPhaseProcessorProvider.ProcessProspectsAsync<T>(prospectsToProcess, campaignId, campaignProspectListId, ct);
+                if (result.Succeeded == false)
+                {
+                    return result;
+                }
+            }            
+
+            result.Succeeded = true;
+            return result;
+        }
+
+        public async Task<HalOperationResult<T>> UpdateProspectListPhaseAsync<T>(string prospectListPhaseId, JsonPatchDocument<ProspectListPhase> patchDoc, CancellationToken ct)
+            where T : IOperationResponse
+        {
+            HalOperationResult<T> result = new();
+            ProspectListPhase phaseToUpdate = await _campaignRepositoryFacade.GetProspectListPhaseByIdAsync(prospectListPhaseId, ct);
+
+            patchDoc.ApplyTo(phaseToUpdate);
+            phaseToUpdate = await _campaignRepositoryFacade.UpdateProspectListPhaseAsync(phaseToUpdate, ct);
+            if(phaseToUpdate == null)
+            {
+                return result;
+            }
+
+            result.Succeeded = true;
+            return result;
         }
 
         public async Task TriggerSendConnectionsPhaseAsync(TriggerSendConnectionsRequest request, CancellationToken ct = default)

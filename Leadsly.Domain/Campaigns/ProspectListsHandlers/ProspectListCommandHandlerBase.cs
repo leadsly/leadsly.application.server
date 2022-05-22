@@ -62,6 +62,7 @@ namespace Leadsly.Domain.Campaigns.ProspectListsHandlers
             ProspectListBody prospectListBody = new()
             {
                 SearchUrls = prospectListPhase.SearchUrls,
+                ProspectListPhaseId = prospectListPhase.ProspectListPhaseId,
                 HalId = halUnit.HalId,
                 TimeZoneId = halUnit.TimeZoneId,
                 EndOfWorkday = halUnit.EndHour,

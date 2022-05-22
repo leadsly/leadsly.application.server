@@ -58,7 +58,8 @@
         public const string UpdatingSentConnectionsUrlStatuses = "Updating sent connections url statuses";
         public const string LeadslySocialAccountAuthenticationError = "Failed to authenticate user's social account";
         public const string LeadslyTwoFactorAuthError = "Failed to perform two factor authentication for user's social account";
-        public const string ProspectListPhaseError = "Error occured executing Prospect List phase";
+        public const string ProspectListError = "Error occured adding prospects";
+        public const string UpdateProspectListPhaseError = "Error occured updating Prospect List phase";
         public const string RepliedCampaignProspects = "Error occured updating campaign prospects that replied";
     }
 }

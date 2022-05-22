@@ -12,7 +12,7 @@ namespace Leadsly.Domain.Providers.Interfaces
 {
     public interface ICampaignPhaseProcessorProvider
     {
-        Task<HalOperationResult<T>> ProcessProspectsAsync<T>(ProspectListPhaseCompleteRequest request, CancellationToken ct = default)
+        Task<HalOperationResult<T>> ProcessProspectsAsync<T>(IList<PrimaryProspectRequest> prospectsToProcess, string campaignId, string campaignProspectListId, CancellationToken ct = default)
             where T : IOperationResponse;
 
         Task<HalOperationResult<T>> ProcessNewlyAcceptedProspectsAsync<T>(NewProspectsConnectionsAcceptedRequest request, CancellationToken ct = default)
