@@ -30,7 +30,7 @@ namespace Leadsly.Domain.Supervisor
             return await _campaignProvider.PatchUpdateCampaignAsync(campaignId, patchDoc, ct);
         }
 
-        public async Task<HalOperationResult<T>> UpdateSentConnectionsUrlStatusesAsync<T>(string campaignId, UpdateSentConnectionsUrlStatusRequest request, CancellationToken ct = default)
+        public async Task<HalOperationResult<T>> UpdateSentConnectionsUrlStatusesAsync<T>(string campaignId, UpdateSearchUrlDetailsRequest request, CancellationToken ct = default)
             where T : IOperationResponse
         {
             return await _campaignProvider.UpdateSentConnectionsUrlStatusesAsync<T>(campaignId, request, ct);

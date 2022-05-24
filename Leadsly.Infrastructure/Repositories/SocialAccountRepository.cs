@@ -70,5 +70,39 @@ namespace Leadsly.Infrastructure.Repositories
             }
             return result;
         }
+
+        public async Task<SocialAccount> GetByIdAsync(string id, CancellationToken ct = default)
+        {
+            SocialAccount socialAccount = default;
+            try
+            {
+                socialAccount = await _dbContext.SocialAccounts.FindAsync(id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve SocialAccount by id");
+                return null;
+            }
+            return socialAccount;
+        }
+
+        public async Task<SocialAccount> UpdateAsync(SocialAccount updatedSocialAccount, CancellationToken ct = default)
+        {
+            string socialAccountId = updatedSocialAccount?.SocialAccountId;
+            try
+            {
+                _dbContext.SocialAccounts.Update(updatedSocialAccount);
+                await _dbContext.SaveChangesAsync(ct);
+
+                _logger.LogDebug("Successfully udpated SocialAccount with id {socialAccountId}", socialAccountId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to update social account. Social account id {socialAccountId}", socialAccountId);
+                return null;
+            }
+
+            return updatedSocialAccount;
+        }
     }
 }

@@ -129,7 +129,7 @@ namespace Leadsly.Domain.Facades
             return await _monitorForNewConnectionsPhaseRepository.GetAllByUserIdAsync(userId, ct);
         }
 
-        public async Task<IList<SentConnectionsSearchUrlStatus>> GetAllSentConnectionsStatusesAsync(string campaignId, CancellationToken ct = default)
+        public async Task<IList<SearchUrlDetails>> GetAllSentConnectionsStatusesAsync(string campaignId, CancellationToken ct = default)
         {
             return await _sendConnectionsPhaseRepository.GetAllSentConnectionsStatusesAsync(campaignId, ct);
         }
@@ -204,7 +204,7 @@ namespace Leadsly.Domain.Facades
             return await _prospectListPhaseRepository.UpdateAsync(prospectListPhase, ct);
         }
 
-        public async Task<SentConnectionsSearchUrlStatus> UpdateSentConnectionsStatusAsync(SentConnectionsSearchUrlStatus updatedSearchUrlStatus, CancellationToken ct = default)
+        public async Task<SearchUrlDetails> UpdateSentConnectionsStatusAsync(SearchUrlDetails updatedSearchUrlStatus, CancellationToken ct = default)
         {
             return await _sendConnectionsPhaseRepository.UpdateSentConnectionsStatusAsync(updatedSearchUrlStatus, ct);
         }

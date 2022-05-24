@@ -22,6 +22,8 @@ namespace Leadsly.Domain.Supervisor
     {
         Task<Customer_Stripe> AddCustomerAsync_Stripe(Customer_Stripe stripeCustomerViewModel);
         Task<CampaignViewModel> PatchUpdateCampaignAsync(string campaignId, JsonPatchDocument<Campaign> campaignUpdate, CancellationToken ct = default);
+        Task<HalOperationResultViewModel<T>> PatchUpdateSocialAccountAsync<T>(string socialAccountId, JsonPatchDocument<SocialAccount> socialAccountUpdate, CancellationToken ct = default)
+            where T : IOperationResponseViewModel;
         Task<SetupAccountResultViewModel> LeadslyAccountSetupAsync(SetupAccountViewModel setup, CancellationToken ct = default);
 
         [Obsolete("This method is not longer used. We are not creating new chrome instances per campaign, we're using new tabs instead")]
@@ -65,8 +67,13 @@ namespace Leadsly.Domain.Supervisor
         Task<HalOperationResult<T>> GetSentConnectionsUrlStatusesAsync<T>(string campaignId, CancellationToken ct = default)
             where T : IOperationResponse;
 
-        Task<HalOperationResult<T>> UpdateSentConnectionsUrlStatusesAsync<T>(string campaignId, UpdateSentConnectionsUrlStatusRequest request, CancellationToken ct = default)
+        Task<HalOperationResult<T>> GetSearchUrlProgressAsync<T>(string campaignId, CancellationToken ct = default)
             where T : IOperationResponse;
 
+        Task<HalOperationResult<T>> UpdateSentConnectionsUrlStatusesAsync<T>(string campaignId, UpdateSearchUrlDetailsRequest request, CancellationToken ct = default)
+            where T : IOperationResponse;
+
+        Task<HalOperationResult<T>> UpdateSearchUrlProgressAsync<T>(string campaignId, JsonPatchDocument<SearchUrlProgress> searchUrlProgressToUpdate, CancellationToken ct = default)
+            where T : IOperationResponse;
     }
 }

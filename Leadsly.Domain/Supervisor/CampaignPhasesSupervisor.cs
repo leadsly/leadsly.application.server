@@ -1,6 +1,7 @@
 ﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.Campaigns.Interfaces;
+using Leadsly.Application.Model.Entities;
 using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Application.Model.Requests;
@@ -10,6 +11,7 @@ using Leadsly.Application.Model.Requests.Hal.Interfaces;
 using Leadsly.Application.Model.Responses;
 using Leadsly.Application.Model.ViewModels;
 using Leadsly.Application.Model.ViewModels.Response;
+using Leadsly.Domain.Converters;
 using Microsoft.AspNetCore.JsonPatch;
 using System;
 using System.Collections.Generic;
@@ -46,7 +48,7 @@ namespace Leadsly.Domain.Supervisor
             return result;
         }
 
-        public async Task<HalOperationResult<T>> UpdateProspectListPhaseAsync<T>(string prospectListPhaseId, JsonPatchDocument<ProspectListPhase> patchDoc, CancellationToken ct)
+        public async Task<HalOperationResult<T>> UpdateProspectListPhaseAsync<T>(string prospectListPhaseId, JsonPatchDocument<ProspectListPhase> patchDoc, CancellationToken ct = default)
             where T : IOperationResponse
         {
             HalOperationResult<T> result = new();
@@ -60,6 +62,40 @@ namespace Leadsly.Domain.Supervisor
             }
 
             result.Succeeded = true;
+            return result;
+        }
+
+        public async Task<HalOperationResultViewModel<T>> PatchUpdateSocialAccountAsync<T>(string socialAccountId, JsonPatchDocument<SocialAccount> patchDoc, CancellationToken ct = default)
+            where T : IOperationResponseViewModel
+        {
+            HalOperationResultViewModel<T> result = new();
+
+            SocialAccount socialAccountToUpdate = await _socialAccountRepository.GetByIdAsync(socialAccountId, ct);
+            if(socialAccountToUpdate == null)
+            {
+                result.OperationResults.Failures.Add(new()
+                {
+                    Code = Codes.ERROR,
+                    Detail = $"Failed to locate social account by id {socialAccountId}",
+                    Reason = "The provided social account id must be wrong or the social account user does not exist in the database"
+                });
+                return result;
+            }
+
+            patchDoc.ApplyTo(socialAccountToUpdate);
+            socialAccountToUpdate = await _socialAccountRepository.UpdateAsync(socialAccountToUpdate, ct);
+            if(socialAccountToUpdate == null)
+            {
+                result.OperationResults.Failures.Add(new()
+                {
+                    Code = Codes.ERROR,
+                    Detail = $"Failed to update social account with id {socialAccountId}",
+                    Reason = "Error occured when trying to update social account"
+                });
+                return result;
+            }
+
+            result.OperationResults.Succeeded = true;
             return result;
         }
 

@@ -43,10 +43,11 @@ namespace Leadsly.Infrastructure
         public DbSet<CampaignProspect> CampaignProspects { get; set; }
         public DbSet<HalUnit> HalUnits { get; set; }
         public DbSet<SearchUrl> SearchUrls { get; set; }
-        public DbSet<SentConnectionsSearchUrlStatus> SentConnectionsStatuses { get; set; }
+        public DbSet<SearchUrlDetails> SentConnectionsStatuses { get; set; }
         public DbSet<ChromeProfile> ChromeProfileNames { get; set; }
         public DbSet<CampaignWarmUp> CampaignWarmUps { get; set; }
         public DbSet<SendConnectionsStage> SendConnectionsStages { get; set; }
+        public DbSet<SearchUrlProgress> SearchUrlProgress { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

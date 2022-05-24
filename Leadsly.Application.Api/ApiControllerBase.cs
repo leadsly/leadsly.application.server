@@ -119,6 +119,24 @@ namespace Leadsly.Api
         }
 
         /// <summary>
+        /// Bad request when there is an issue updating social account.
+        /// </summary>        
+        /// <returns></returns>
+        protected ObjectResult BadRequest_UpdatingSocialAccount(List<FailureViewModel> errors)
+        {
+            Dictionary<string, string[]> errorsDictionary = errors.ToDictionary(x => Enum.GetName(x.Code ?? Codes.ERROR), x => new[] { x.Reason, x.Detail });
+
+            return ProblemDetailsResult(new ValidationProblemDetails(errorsDictionary)
+            {
+                Type = ProblemDetailsTypes.BadRequestType,
+                Status = StatusCodes.Status400BadRequest,
+                Title = ReasonPhrases.GetReasonPhrase(400),
+                Detail = ProblemDetailsDescriptions.UpdateSocialAccountError,
+                Instance = this.HttpContext.Request.Path.Value
+            });
+        }
+
+        /// <summary>
         /// Bad request when there is an issue processing campaign prospects that replied to our message.
         /// </summary>        
         /// <returns></returns>

@@ -17,7 +17,7 @@ namespace Leadsly.Application.Api.Controllers
 {
 
     /// <summary>
-    /// Healthcheck controller.
+    /// Leadsly controller.
     /// </summary>
     [ApiController]
     [Route("[controller]")]

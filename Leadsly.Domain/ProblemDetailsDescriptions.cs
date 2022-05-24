@@ -60,6 +60,7 @@
         public const string LeadslyTwoFactorAuthError = "Failed to perform two factor authentication for user's social account";
         public const string ProspectListError = "Error occured adding prospects";
         public const string UpdateProspectListPhaseError = "Error occured updating Prospect List phase";
+        public const string UpdateSocialAccountError = "Error occured updating SocialAccount";
         public const string RepliedCampaignProspects = "Error occured updating campaign prospects that replied";
     }
 }

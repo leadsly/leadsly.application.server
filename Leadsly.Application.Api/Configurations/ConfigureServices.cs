@@ -18,6 +18,7 @@ using Leadsly.Domain.Campaigns.FollowUpMessagesHandler.UncontactedFollowUpMessag
 using Leadsly.Domain.Campaigns.Handlers;
 using Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandler;
 using Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers;
+using Leadsly.Domain.Campaigns.NetworkingHandler;
 using Leadsly.Domain.Campaigns.ProspectListsHandlers.ProspectList;
 using Leadsly.Domain.Campaigns.ProspectListsHandlers.ProspectLists;
 using Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers;
@@ -121,6 +122,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ISendConnectionsPhaseRepository, SendConnectionsPhaseRepository>();
             services.AddScoped<IFollowUpMessagePhaseRepository, FollowUpMessagePhaseRepository>();
             services.AddScoped<IFollowUpMessageRepository, FollowUpMessageRepository>();
+            services.AddScoped<ISearchUrlProgressRepository, SearchUrlProgressRepository>();
 
             return services;
         }
@@ -203,6 +205,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<HalWorkCommandHandlerDecorator<ProspectListCommand>>();
             services.AddScoped<HalWorkCommandHandlerDecorator<FollowUpMessagesCommand>>();
             services.AddScoped<HalWorkCommandHandlerDecorator<FollowUpMessageCommand>>();
+            services.AddScoped<HalWorkCommandHandlerDecorator<NetworkingCommand>>();
 
             // recurring jobs handlers
             services.AddScoped<HalWorkCommandHandlerDecorator<MonitorForNewConnectionsAllCommand>>();
@@ -221,7 +224,8 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ICommandHandler<ProspectListsCommand>, ProspectListsCommandHandler>();
             services.AddScoped<ICommandHandler<DeepScanProspectsForRepliesCommand>, DeepScanProspectsForRepliesCommandHandler>();
             services.AddScoped<ICommandHandler<ScanProspectsForRepliesCommand>, ScanProspectsForRepliesCommandHandler>();
-            services.AddScoped<ICommandHandler<SendConnectionsToProspectsCommand>, SendConnectionsToProspectsCommandHandler>();            
+            services.AddScoped<ICommandHandler<SendConnectionsToProspectsCommand>, SendConnectionsToProspectsCommandHandler>();
+            services.AddScoped<ICommandHandler<NetworkingCommand>, NetworkingCommandHandler>();
 
             return services;
         }

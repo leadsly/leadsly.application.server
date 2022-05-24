@@ -206,15 +206,15 @@ namespace Leadsly.Domain.Providers
             return campaignViewModel;
         }
 
-        public async Task<HalOperationResult<T>> UpdateSentConnectionsUrlStatusesAsync<T>(string campaignId, UpdateSentConnectionsUrlStatusRequest request, CancellationToken ct = default)
+        public async Task<HalOperationResult<T>> UpdateSentConnectionsUrlStatusesAsync<T>(string campaignId, UpdateSearchUrlDetailsRequest request, CancellationToken ct = default)
             where T : IOperationResponse
         {
             HalOperationResult<T> result = new();
 
-            IList<SentConnectionsSearchUrlStatus> sentConnectionsSearchurlStatuses = await _campaignRepositoryFacade.GetAllSentConnectionsStatusesAsync(campaignId, ct);
-            foreach (SentConnectionsUrlStatusRequest payload in request.SentConnectionsUrlStatuses)
+            IList<SearchUrlDetails> searchUrlDetails = await _campaignRepositoryFacade.GetAllSentConnectionsStatusesAsync(campaignId, ct);
+            foreach (SearchUrlDetailsRequest payload in request.SearchUrlDetailsRequests)
             {
-                SentConnectionsSearchUrlStatus update = sentConnectionsSearchurlStatuses.Where(s => s.SentConnectionsSearchUrlStatusId == payload.SentConnectionsUrlStatusId).FirstOrDefault();
+                SearchUrlDetails update = searchUrlDetails.Where(s => s.SearchUrlDetailsId == payload.SearchUrlDetailsId).FirstOrDefault();
                 if (update == null)
                 {
                     continue;
@@ -240,19 +240,19 @@ namespace Leadsly.Domain.Providers
         {
             HalOperationResult<T> result = new();
 
-            IList<SentConnectionsSearchUrlStatus> sentConnectionsSearchUrlStatuses = await _campaignRepositoryFacade.GetAllSentConnectionsStatusesAsync(campaignId, ct);
+            IList<SearchUrlDetails> sentConnectionsSearchUrlStatuses = await _campaignRepositoryFacade.GetAllSentConnectionsStatusesAsync(campaignId, ct);
             if (sentConnectionsSearchUrlStatuses == null)
             {
                 return result;
             }
 
-            IList<SentConnectionsUrlStatusRequest> sentConnectionsSearchUrlStatusesPayload = sentConnectionsSearchUrlStatuses
+            IList<SearchUrlDetailsRequest> sentConnectionsSearchUrlStatusesPayload = sentConnectionsSearchUrlStatuses
                                                                                                 .Where(s => s.FinishedCrawling == false)
                                                                                                 .Select(s =>
                                                                                                 {
-                                                                                                    return new SentConnectionsUrlStatusRequest
+                                                                                                    return new SearchUrlDetailsRequest
                                                                                                     {
-                                                                                                        SentConnectionsUrlStatusId = s.SentConnectionsSearchUrlStatusId,
+                                                                                                        SearchUrlDetailsId = s.SearchUrlDetailsId,
                                                                                                         CurrentUrl = s.CurrentUrl,
                                                                                                         LastActivityTimestamp = s.LastActivityTimestamp,
                                                                                                         OriginalUrl = s.OriginalUrl,
@@ -265,7 +265,7 @@ namespace Leadsly.Domain.Providers
 
             IGetSentConnectionsUrlStatusPayload payload = new GetSentConnectionsUrlStatusPayload
             {
-                SentConnectionsUrlStatuses = sentConnectionsSearchUrlStatusesPayload
+                SearchUrlDetailsRequests = sentConnectionsSearchUrlStatusesPayload
             };
 
             result.Value = (T)payload;
@@ -343,11 +343,12 @@ namespace Leadsly.Domain.Providers
 
             Campaign newCampaignWithPhases = CreateCampaignPhases(newCampaign, request.CampaignDetails.PrimaryProspectList.Existing, ct);
 
-            IList<SentConnectionsSearchUrlStatus> sentConnectionsSearchUrlStatuses = new List<SentConnectionsSearchUrlStatus>();
+            IList<SearchUrlDetails> sentConnectionsSearchUrlStatuses = new List<SearchUrlDetails>();
+            IList<Application.Model.Entities.Campaigns.SearchUrlProgress> searchUrlsProgress = new List<Application.Model.Entities.Campaigns.SearchUrlProgress>();
             IList<string> searchUrls = request.CampaignDetails.PrimaryProspectList.Existing ? primaryProspectList.SearchUrls.Select(s => s.Url).ToList() : request.CampaignDetails.PrimaryProspectList.SearchUrls;
             foreach (string searchUrl in searchUrls)
             {
-                SentConnectionsSearchUrlStatus sentConnectionsSearchUrlStatus = new()
+                SearchUrlDetails sentConnectionsSearchUrlStatus = new()
                 {
                     Campaign = newCampaignWithPhases,
                     CurrentUrl = searchUrl,
@@ -358,8 +359,19 @@ namespace Leadsly.Domain.Providers
                     LastActivityTimestamp = 0
                 };
                 sentConnectionsSearchUrlStatuses.Add(sentConnectionsSearchUrlStatus);
+
+                Application.Model.Entities.Campaigns.SearchUrlProgress searchUrlProgress = new()
+                {
+                    Campaign = newCampaignWithPhases,
+                    LastPage = 0,
+                    LastProcessedProspect = 0,
+                    SearchUrl = searchUrl,
+                    WindowHandleId = string.Empty
+                };
+                searchUrlsProgress.Add(searchUrlProgress);
             }
             newCampaignWithPhases.SentConnectionsStatuses = sentConnectionsSearchUrlStatuses;
+            newCampaignWithPhases.SearchUrlsProgress = searchUrlsProgress;
 
             if (request.CampaignDetails.WarmUp == true)
             {

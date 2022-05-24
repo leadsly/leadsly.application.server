@@ -16,12 +16,14 @@ namespace Leadsly.Domain.Supervisor
             IUserProvider userProvider,            
             ILeadslyHalProvider leadslyHalProvider,
             ICampaignProvider campaignProvider,
+            ISocialAccountRepository socialAccountRepository,
             ICampaignPhaseClient campaignPhaseClient,
             ICampaignPhaseProcessorProvider campaignPhaseProcessorProvider,
             IMemoryCache memoryCache,            
             ILogger<Supervisor> logger)
         {
             _campaignProvider = campaignProvider;
+            _socialAccountRepository = socialAccountRepository;
             _halRepository = halRepository;
             _campaignPhaseClient = campaignPhaseClient;
             _campaignRepositoryFacade = campaignRepositoryFacade; 
@@ -35,7 +37,8 @@ namespace Leadsly.Domain.Supervisor
         }
 
         private readonly ICampaignPhaseProcessorProvider _campaignPhaseProcessorProvider;
-        private readonly ICampaignProvider _campaignProvider;        
+        private readonly ICampaignProvider _campaignProvider;
+        private readonly ISocialAccountRepository _socialAccountRepository;
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
         private readonly ICampaignPhaseClient _campaignPhaseClient;
         private readonly IHalRepository _halRepository;        

@@ -53,10 +53,12 @@ namespace Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers
         /// <returns></returns>
         public async Task HandleAsync(SendConnectionsToProspectsCommand command)
         {
+            // triggered on recurring basis
             if(command.HalIds != null && command.HalIds.Count > 0)
             {
                 await HandleInternalListAsync(command.HalIds);
             }
+            // triggered on new campaign
             else if(command.CampaignId != null && command.UserId != null)
             {
                 await HandleInternalAsync(command.CampaignId, command.UserId);

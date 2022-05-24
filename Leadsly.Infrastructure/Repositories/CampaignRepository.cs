@@ -95,8 +95,7 @@ namespace Leadsly.Infrastructure.Repositories
                 return null;
             }
             return campaign;
-        }
-                              
+        }                     
 
         public async Task<CampaignWarmUp> GetCampaignWarmUpByIdAsync(string campaignId, CancellationToken ct = default)
         {

@@ -57,7 +57,7 @@ namespace Leadsly.Application.Api.Controllers
         }
 
         [HttpPatch("{campaignId}/url")]        
-        public async Task<IActionResult> UpdateSentConnectionsUrlsAsync(string campaignId, [FromBody] UpdateSentConnectionsUrlStatusRequest request, CancellationToken ct = default)
+        public async Task<IActionResult> UpdateSentConnectionsUrlsAsync(string campaignId, [FromBody] UpdateSearchUrlDetailsRequest request, CancellationToken ct = default)
         {
             _logger.LogInformation("Executing action UpdateSentConnectionsUrls for CampaignId {campaignId}", campaignId);
             HalOperationResult<IOperationResponse> result = await _supervisor.UpdateSentConnectionsUrlStatusesAsync<IOperationResponse>(campaignId, request, ct);

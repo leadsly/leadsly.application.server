@@ -63,11 +63,12 @@ namespace Leadsly.Domain.Campaigns.ProspectListsHandlers
             {
                 SearchUrls = prospectListPhase.SearchUrls,
                 ProspectListPhaseId = prospectListPhase.ProspectListPhaseId,
+                SocialAccountId = halUnit.SocialAccountId,
                 HalId = halUnit.HalId,
                 TimeZoneId = halUnit.TimeZoneId,
                 EndOfWorkday = halUnit.EndHour,
                 StartOfWorkday = halUnit.StartHour,
-                ChromeProfile = chromeProfileName,
+                ChromeProfileName = chromeProfileName,
                 PrimaryProspectListId = primaryProspectListId,
                 UserId = userId,
                 CampaignProspectListId = campaign.CampaignProspectList.CampaignProspectListId,
