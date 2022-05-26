@@ -73,7 +73,7 @@ namespace Leadsly.Domain.Supervisor
         Task<HalOperationResult<T>> UpdateSentConnectionsUrlStatusesAsync<T>(string campaignId, UpdateSearchUrlDetailsRequest request, CancellationToken ct = default)
             where T : IOperationResponse;
 
-        Task<HalOperationResult<T>> UpdateSearchUrlProgressAsync<T>(string campaignId, JsonPatchDocument<SearchUrlProgress> searchUrlProgressToUpdate, CancellationToken ct = default)
+        Task<HalOperationResult<T>> UpdateSearchUrlProgressAsync<T>(string searchUrlProgressId, JsonPatchDocument<Application.Model.Entities.Campaigns.SearchUrlProgress> searchUrlProgressToUpdate, CancellationToken ct = default)
             where T : IOperationResponse;
     }
 }

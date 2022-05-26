@@ -15,6 +15,7 @@ namespace Leadsly.Domain.Supervisor
             ICloudPlatformProvider cloudPlatformProvider,
             IUserProvider userProvider,            
             ILeadslyHalProvider leadslyHalProvider,
+            ISearchUrlProgressRepository searchUrlProgressRepository,
             ICampaignProvider campaignProvider,
             ISocialAccountRepository socialAccountRepository,
             ICampaignPhaseClient campaignPhaseClient,
@@ -29,7 +30,8 @@ namespace Leadsly.Domain.Supervisor
             _campaignRepositoryFacade = campaignRepositoryFacade; 
             _stripeRepository = stripeRepository;          
             _cloudPlatformProvider = cloudPlatformProvider;
-            _leadslyHalProvider = leadslyHalProvider;                        
+            _leadslyHalProvider = leadslyHalProvider;
+            _searchUrlProgressRepository = searchUrlProgressRepository;
             _memoryCache = memoryCache;
             _campaignPhaseProcessorProvider = campaignPhaseProcessorProvider;
             _userProvider = userProvider;            
@@ -42,7 +44,8 @@ namespace Leadsly.Domain.Supervisor
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
         private readonly ICampaignPhaseClient _campaignPhaseClient;
         private readonly IHalRepository _halRepository;        
-        private readonly ILeadslyHalProvider _leadslyHalProvider;    
+        private readonly ILeadslyHalProvider _leadslyHalProvider;
+        private readonly ISearchUrlProgressRepository _searchUrlProgressRepository;
         private readonly IUserProvider _userProvider;               
         private readonly ICloudPlatformProvider _cloudPlatformProvider;
         private readonly IStripeRepository _stripeRepository;

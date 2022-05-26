@@ -47,7 +47,7 @@ namespace Leadsly.Infrastructure
         public DbSet<ChromeProfile> ChromeProfileNames { get; set; }
         public DbSet<CampaignWarmUp> CampaignWarmUps { get; set; }
         public DbSet<SendConnectionsStage> SendConnectionsStages { get; set; }
-        public DbSet<SearchUrlProgress> SearchUrlProgress { get; set; }
+        public DbSet<SearchUrlProgress> SearchUrlsProgress { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

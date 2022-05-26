@@ -48,7 +48,7 @@ namespace Leadsly.Domain
                 ////UncontactedFollowUpMessageCommand uncontactedCommand = new UncontactedFollowUpMessageCommand();
                 ////await uncontactedHandler.HandleAsync(uncontactedCommand);
 
-                //IPhaseManager phaseManager = scope.ServiceProvider.GetRequiredService<IPhaseManager>();
+                IPhaseManager phaseManager = scope.ServiceProvider.GetRequiredService<IPhaseManager>();
 
                 ////////////////////////////////////////////////////////////////////////////////////////////////////////
                 ///// Prospecting [ DeepScanProspectsForReplies OR (FollowUpMessagePhase AND ScanProspectsForReplies) ]

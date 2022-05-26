@@ -94,7 +94,7 @@ namespace Leadsly.Infrastructure.Repositories
                     .Where(p => p.PrimaryProspectId == primaryProspectId)
                     .SingleAsync(ct);
 
-                _logger.LogDebug("Successfully retrieved PrimaryProspectList by id {primaryProspectListId}", primaryProspectId);
+                _logger.LogDebug("Successfully retrieved PrimaryProspect by id {primaryProspectId}", primaryProspectId);
             }
             catch (Exception ex)
             {
@@ -119,6 +119,27 @@ namespace Leadsly.Infrastructure.Repositories
                 _logger.LogError(ex, "Failed to add PrimaryProspects from a list. Returning an explicit null");
                 return null;
             }
+            return primaryProspectList;
+        }
+
+        public async Task<PrimaryProspectList> GetListByUserIdAsync(string userId, CancellationToken ct = default)
+        {
+            _logger.LogInformation("Retrieving PrimaryProspect by user id {userId}", userId);
+            PrimaryProspectList primaryProspectList = default;
+            try
+            {
+                primaryProspectList = await _dbContext.PrimaryProspectLists
+                    .Where(p => p.UserId == userId)
+                    .SingleAsync(ct);
+
+                _logger.LogDebug("Successfully retrieved PrimaryProspectList by user id {userId}", userId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve PrimaryProspectList by user id {userId}. Returning an explicit null", userId);
+                return null;
+            }
+
             return primaryProspectList;
         }
     }

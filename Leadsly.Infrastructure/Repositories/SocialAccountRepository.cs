@@ -104,5 +104,35 @@ namespace Leadsly.Infrastructure.Repositories
 
             return updatedSocialAccount;
         }
+
+        public async Task<SocialAccount> GetByUserNameAsync(string email, CancellationToken ct = default)
+        {
+            SocialAccount socialAccount = default;
+            try
+            {
+                socialAccount = await _dbContext.SocialAccounts.Where(s => s.Username == email).SingleAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve SocialAccount by email {email}", email);
+                return null;
+            }
+            return socialAccount;
+        }
+
+        public async Task<IList<SocialAccount>> GetAllAsync(CancellationToken ct = default)
+        {
+            IList<SocialAccount> allSocialAccounts = default;
+            try
+            {
+                allSocialAccounts = await _dbContext.SocialAccounts.Include(s => s.HalDetails).ToListAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve all SocialAccounts");
+                return null;
+            }
+            return allSocialAccounts;
+        }
     }
 }

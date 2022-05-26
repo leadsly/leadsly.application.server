@@ -35,9 +35,11 @@ namespace Leadsly.Domain.Providers
             ICampaignService campaignService,
             ITimestampService timestampService,            
             ICampaignPhaseClient campaignPhaseClient,
-            ICampaignRepositoryFacade campaignRepositoryFacade      
+            ICampaignRepositoryFacade campaignRepositoryFacade,
+            ISocialAccountRepository socialAccountRepository
             )
         {
+            _socialAccountRepository = socialAccountRepository;
             _campaignPhaseClient = campaignPhaseClient;
             _timestampService = timestampService;
             _campaignService = campaignService;            
@@ -45,6 +47,7 @@ namespace Leadsly.Domain.Providers
             _campaignRepositoryFacade = campaignRepositoryFacade;
         }
 
+        private readonly ISocialAccountRepository _socialAccountRepository;
         private readonly ICampaignPhaseClient _campaignPhaseClient;        
         private readonly ITimestampService _timestampService;
         private readonly ILogger<CampaignProvider> _logger;   
@@ -363,8 +366,9 @@ namespace Leadsly.Domain.Providers
                 Application.Model.Entities.Campaigns.SearchUrlProgress searchUrlProgress = new()
                 {
                     Campaign = newCampaignWithPhases,
-                    LastPage = 0,
+                    LastPage = 1,
                     LastProcessedProspect = 0,
+                    TotalSearchResults = 0,
                     SearchUrl = searchUrl,
                     WindowHandleId = string.Empty
                 };
@@ -395,7 +399,15 @@ namespace Leadsly.Domain.Providers
                 return result;
             }
 
-            await _campaignPhaseClient.HandleNewCampaignAsync(newCampaign);
+            SocialAccount socialAccount = await _socialAccountRepository.GetByUserNameAsync(request.ConnectedAccount, ct);
+            if (socialAccount.RunProspectListFirst)
+            {
+                await _campaignPhaseClient.HandleNewCampaignAsync(newCampaign);
+            }
+            else
+            {
+                await _campaignPhaseClient.HandleNewCampaignMergedAsync(newCampaign);
+            }
 
             result.OperationResults.Succeeded = true;
             return result;

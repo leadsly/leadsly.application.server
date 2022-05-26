@@ -14,6 +14,8 @@ namespace Leadsly.Domain.Repositories
 
         Task<SearchUrlProgress> UpdateAsync(SearchUrlProgress searchUrlProgress, CancellationToken ct = default);
 
+        Task<SearchUrlProgress> GetByIdAsync(string searchUrlProgressId, CancellationToken ct = default);
+
         Task<IList<SearchUrlProgress>> GetAllByCampaignIdAsync(string campaignId, CancellationToken ct = default);
     }
 }

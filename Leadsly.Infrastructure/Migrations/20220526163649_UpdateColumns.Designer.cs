@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Leadsly.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Leadsly.Infrastructure.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20220526163649_UpdateColumns")]
+    partial class UpdateColumns
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -712,9 +714,6 @@ namespace Leadsly.Infrastructure.Migrations
                     b.Property<bool>("StartedCrawling")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("TotalSearchResults")
-                        .HasColumnType("integer");
-
                     b.Property<string>("WindowHandleId")
                         .IsRequired()
                         .HasColumnType("text");
@@ -1000,9 +999,6 @@ namespace Leadsly.Infrastructure.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<bool>("MonthlySearchLimitReached")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("RunProspectListFirst")
                         .HasColumnType("boolean");
 
                     b.Property<string>("UserId")

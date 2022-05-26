@@ -4,6 +4,7 @@ using Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessage;
 using Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages;
 using Leadsly.Domain.Campaigns.Handlers;
 using Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers;
+using Leadsly.Domain.Campaigns.NetworkingHandler;
 using Leadsly.Domain.Campaigns.ProspectListsHandlers.ProspectList;
 using Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers;
 using Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers;
@@ -22,7 +23,8 @@ namespace Leadsly.Domain
             HalWorkCommandHandlerDecorator<SendConnectionsToProspectsCommand> connectionsHandler,
             HalWorkCommandHandlerDecorator<ProspectListCommand> prospectListHandler,
             HalWorkCommandHandlerDecorator<FollowUpMessagesCommand> followUpMessagesHandler,
-            HalWorkCommandHandlerDecorator<FollowUpMessageCommand> followUpMessageHandler
+            HalWorkCommandHandlerDecorator<FollowUpMessageCommand> followUpMessageHandler,
+            HalWorkCommandHandlerDecorator<NetworkingCommand> networkingHandler
             )
         {
             _scanHandler = scanHandler;
@@ -31,9 +33,11 @@ namespace Leadsly.Domain
             _followUpMessagesHandler = followUpMessagesHandler;
             _followUpMessageHandler = followUpMessageHandler;
             _prospectListHandler = prospectListHandler;
+            _networkingHandler = networkingHandler;
         }
 
         private readonly HalWorkCommandHandlerDecorator<FollowUpMessagesCommand> _followUpMessagesHandler;
+        private readonly HalWorkCommandHandlerDecorator<NetworkingCommand> _networkingHandler;
         private readonly HalWorkCommandHandlerDecorator<FollowUpMessageCommand> _followUpMessageHandler;
         private readonly HalWorkCommandHandlerDecorator<ScanProspectsForRepliesCommand> _scanHandler;
         private readonly HalWorkCommandHandlerDecorator<MonitorForNewConnectionsCommand> _monitorHandler;
@@ -49,7 +53,7 @@ namespace Leadsly.Domain
             ScanProspectsForRepliesCommand scanCommand = new ScanProspectsForRepliesCommand(campaign.HalId);
             await _scanHandler.HandleAsync(scanCommand);
 
-            // if prospect list phase does not exists, this means were running campaign off of existing prospect list
+            // if prospect list phase does not exists, this means were running campaign off of existing prospect list            
             if (campaign.ProspectListPhase == null)
             {
                 SendConnectionsToProspectsCommand sendConnections = new SendConnectionsToProspectsCommand(campaign.CampaignId, campaign.ApplicationUserId);
@@ -59,7 +63,21 @@ namespace Leadsly.Domain
             {
                 ProspectListCommand prospectListCommand = new ProspectListCommand(campaign.ProspectListPhase.ProspectListPhaseId, campaign.ApplicationUserId);
                 await _prospectListHandler.HandleAsync(prospectListCommand);
-            }
+            }            
+        }
+
+        public async Task HandleNewCampaignMergedAsync(Campaign campaign)
+        {
+            // ensure ScanForProspectReplies, ConnectionWithdraw and MonitorForNewProspects phases are running on hal
+            // always trigger them here
+            MonitorForNewConnectionsCommand monitorCommand = new MonitorForNewConnectionsCommand(campaign.HalId);
+            await _monitorHandler.HandleAsync(monitorCommand);
+
+            ScanProspectsForRepliesCommand scanCommand = new ScanProspectsForRepliesCommand(campaign.HalId);
+            await _scanHandler.HandleAsync(scanCommand);
+
+            NetworkingCommand networkingCommand = new NetworkingCommand(campaign.CampaignId, campaign.ApplicationUserId);
+            await _networkingHandler.HandleAsync(networkingCommand);
         }
 
         public async Task ProduceSendConnectionsPhaseAsync(string campaignId, string userId, CancellationToken ct = default)
@@ -91,6 +109,6 @@ namespace Leadsly.Domain
                 FollowUpMessageCommand followUpCommand = new FollowUpMessageCommand(campaignId, messageId, scheduleTime);
                 await _followUpMessageHandler.HandleAsync(followUpCommand);
             }
-        }
+        }        
     }
 }

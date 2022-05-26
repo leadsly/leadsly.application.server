@@ -1,4 +1,6 @@
-﻿using Leadsly.Application.Model.Campaigns;
+﻿using Hangfire;
+using Leadsly.Application.Model;
+using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.Entities;
 using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Application.Model.Entities.Campaigns.Phases;
@@ -52,20 +54,87 @@ namespace Leadsly.Domain.Campaigns.NetworkingHandler
             // triggered on new campaign
             else if (command.CampaignId != null && command.UserId != null)
             {
-                await OnNewCampaignAsync(command.CampaignId, command.UserId);
+                await HandleInternalAsync(command.CampaignId, command.UserId);
             }
         }
 
-        private async Task OnNewCampaignAsync(string campaignId, string userId, CancellationToken ct = default)
+        private async Task HandleInternalListAsync(IList<string> halIds)
         {
-            IList<NetworkingMessageBody> messages = await GetNumberOfNetworkingPhasesAsync(campaignId);
-            // IList<NetworkingMessageBody> messages = await CreateNetworkingMessagesAsync(campaignId, userId);
-            IList<SendConnectionsStageBody> stages = await CreateStagesAsync(messageBody);
-            await SchedulePhaseMessagesAsync(messageBody, stages);
+            foreach (string halId in halIds)
+            {
+                IList<NetworkingMessageBody> messages = await CreateNetworkingMessageBodiesAsync(halId);
+
+                await SchedulePhaseMessagesAsync(messages);
+            }
         }
 
-        private async Task<IList<NetworkingMessageBody>> GetNumberOfNetworkingPhasesAsync(string campaignId, CancellationToken ct = default)
+        private async Task<IList<NetworkingMessageBody>> CreateNetworkingMessageBodiesAsync(string halId, CancellationToken ct = default)
         {
+            _logger.LogInformation("Creating networking message body for rabbit mq message broker.");
+            IList<NetworkingMessageBody> messages = new List<NetworkingMessageBody>();
+            IList<Campaign> campaigns = await _campaignRepositoryFacade.GetAllActiveCampaignsByHalIdAsync(halId);
+            foreach (Campaign activeCampaign in campaigns)
+            {
+                await HandleInternalAsync(activeCampaign.CampaignId, activeCampaign.ApplicationUserId);
+            }
+
+            return messages;
+        }
+
+        private async Task HandleInternalAsync(string campaignId, string userId, CancellationToken ct = default)
+        {
+            IList<NetworkingMessageBody> messages = new List<NetworkingMessageBody>();
+            IList<IDictionary<int, string>> propsectsToCrawlAndTimes = await GetNumberOfNetworkingPhasesAsync(campaignId);
+            foreach (var propsectsToCrawlAndTime in propsectsToCrawlAndTimes)
+            {
+                foreach (var item in propsectsToCrawlAndTime)
+                {
+                    int numberOfProspectsToCrawl = item.Key;
+                    string startTime = item.Value;
+                    NetworkingMessageBody message = await CreateNetworkingMessagesAsync(campaignId, userId, numberOfProspectsToCrawl, startTime, ct);
+                    messages.Add(message);
+                }                
+            }            
+            await SchedulePhaseMessagesAsync(messages);
+        }
+
+        private async Task SchedulePhaseMessagesAsync(IList<NetworkingMessageBody> messages)
+        {
+            foreach (NetworkingMessageBody message in messages)
+            {
+                await SchedulePhaseMessageAsync(message);
+            }
+        }
+
+        private async Task SchedulePhaseMessageAsync(NetworkingMessageBody message)
+        {
+            string queueNameIn = RabbitMQConstants.Networking.QueueName;
+            string routingKeyIn = RabbitMQConstants.Networking.RoutingKey;
+            string halId = message.HalId;
+
+            // TODO needs to be adjusted for DateTimeOffset and user's timeZoneId
+            DateTime nowLocalized = await _timestampService.GetNowLocalizedAsync(halId);
+            if (DateTimeOffset.TryParse(message.StartTime, out DateTimeOffset phaseStartDateTime) == false)
+            {
+                string startTime = message.StartTime;
+                _logger.LogError("Failed to parse Networking start time. Tried to parse {startTime}", startTime);
+            }
+
+            DateTime localizedStart = await _timestampService.GetLocalizedDateTimeAsync(halId, phaseStartDateTime);
+            if (nowLocalized.TimeOfDay < localizedStart.TimeOfDay)
+            {
+                BackgroundJob.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(message, queueNameIn, routingKeyIn, halId, null), phaseStartDateTime);
+            }
+            else
+            {
+                // temporary to schedule jobs right away                
+                _messageBrokerOutlet.PublishPhase(message, queueNameIn, routingKeyIn, halId, null);
+            }
+        }
+
+        private async Task<IList<IDictionary<int, string>>> GetNumberOfNetworkingPhasesAsync(string campaignId, CancellationToken ct = default)
+        {
+            IList<IDictionary<int, string>> propsectsToCrawlAndTime = new List<IDictionary<int, string>>();
             Campaign campaign = await _campaignRepositoryFacade.GetCampaignByIdAsync(campaignId, ct);
             if(campaign.IsWarmUpEnabled == true)
             {
@@ -83,32 +152,41 @@ namespace Leadsly.Domain.Campaigns.NetworkingHandler
                     int currentStageLimits = Convert.ToInt32(stageLimits);
                     stagesConnectionsLimit.Add(currentStageLimits);
                     divider--;
-                }
-                IList<NetworkingMessageBody> messageBodies = new List<NetworkingMessageBody>();
+                }                
 
                 for (int i = 0; i < stagesConnectionsLimit.Count; i++)
                 {
                     int numberOfPhases = Math.DivRem(stagesConnectionsLimit[i], 10, out int remainder);
-                    if(numberOfPhases == 0)
+                    // numberOfPhases becomes the number of Networking phases we need to trigger for this stage
+                    for (int j = 0; j < numberOfPhases; j++)
                     {
-                        // this means stageConnLimit was smaller then or equal to 10
-                        NetworkingMessageBody body = new()
-                        {
-                            
-                        };
+                        propsectsToCrawlAndTime.Add(
+                                new Dictionary<int, string>()
+                                {
+                                    { 10, sendConnectionsStages[i].StartTime } 
+                                }
+                            );
                     }
-                    else
+                    if (remainder != 0)
                     {
-                        // numberOfPhases becomes the number of Networking phases we need to trigger for this stage
+                        propsectsToCrawlAndTime.Add(
+                                new Dictionary<int, string>()
+                                {
+                                    { remainder, sendConnectionsStages[i].StartTime }
+                                }
+                            );
                     }
                 }
             }
+
+            return propsectsToCrawlAndTime;
         }
 
-        private async Task<IList<NetworkingMessageBody>> CreateNetworkingMessagesAsync(string campaignId, string userId, CancellationToken ct = default)
+        private async Task<NetworkingMessageBody> CreateNetworkingMessagesAsync(string campaignId, string userId, int numberOfProspectsToCrawl, string startTime, CancellationToken ct = default)
         {
             _logger.LogInformation("Creating send connections body message for rabbit mq message broker.");
             Campaign campaign = await _campaignRepositoryFacade.GetCampaignByIdAsync(campaignId, ct);
+            PrimaryProspectList primaryProspectList = await _campaignRepositoryFacade.GetPrimaryProspectListByIdAsync(campaign.CampaignProspectList.PrimaryProspectListId, ct);
 
             HalUnit halUnit = await _halRepository.GetByHalIdAsync(campaign.HalId, ct);
 
@@ -135,11 +213,14 @@ namespace Leadsly.Domain.Campaigns.NetworkingHandler
             NetworkingMessageBody sendConnectionsBody = new()
             {
                 ChromeProfileName = chromeProfileName,
-                DailyLimit = dailyConnectionsLimit,
                 HalId = halUnit.HalId,
                 UserId = userId,
                 TimeZoneId = halUnit.TimeZoneId,
                 StartOfWorkday = halUnit.StartHour,
+                CampaignProspectListId = campaign.CampaignProspectList.CampaignProspectListId,
+                PrimaryProspectListId = primaryProspectList.PrimaryProspectListId,
+                StartTime = startTime,
+                ProspectsToCrawl = numberOfProspectsToCrawl,
                 EndOfWorkday = halUnit.EndHour,
                 CampaignId = campaignId,
                 NamespaceName = config.ServiceDiscoveryConfig.Name,

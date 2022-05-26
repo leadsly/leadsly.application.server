@@ -12,6 +12,13 @@ namespace Leadsly.Domain
     {
         Task HandleNewCampaignAsync(Campaign campaign);
 
+        /// <summary>
+        /// This handles running ProspectList and SendConnections phases all into a single phase
+        /// </summary>
+        /// <param name="campaign"></param>
+        /// <returns></returns>
+        Task HandleNewCampaignMergedAsync(Campaign campaign);
+
         Task ProduceSendConnectionsPhaseAsync(string campaignId, string userId, CancellationToken ct = default);
 
         Task ProduceScanProspectsForRepliesPhaseAsync(string halId, string userId, CancellationToken ct = default);

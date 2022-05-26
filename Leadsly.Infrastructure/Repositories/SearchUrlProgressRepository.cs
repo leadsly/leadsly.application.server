@@ -27,7 +27,7 @@ namespace Leadsly.Infrastructure.Repositories
             _logger.LogInformation("Creating HalUnit.");
             try
             {
-                _dbContext.SearchUrlProgress.Add(searchUrlProgress);
+                _dbContext.SearchUrlsProgress.Add(searchUrlProgress);
                 await _dbContext.SaveChangesAsync(ct);
 
                 _logger.LogDebug("Successfully created SearchUrlProgress");
@@ -45,7 +45,7 @@ namespace Leadsly.Infrastructure.Repositories
             _logger.LogInformation("Updating SearchUrlProgress");
             try
             {
-                _dbContext.SearchUrlProgress.Update(searchUrlProgress);
+                _dbContext.SearchUrlsProgress.Update(searchUrlProgress);
                 await _dbContext.SaveChangesAsync(ct);
 
                 _logger.LogDebug("Successfully updated SearchUrlProgress");
@@ -61,10 +61,10 @@ namespace Leadsly.Infrastructure.Repositories
         public async Task<IList<SearchUrlProgress>> GetAllByCampaignIdAsync(string campaignId, CancellationToken ct = default)
         {
             _logger.LogInformation("Retrieving all SearchUrlProgress for campaign id {campaignId}", campaignId);
-            IList<SearchUrlProgress> searchUrlProgress = default;
+            IList<SearchUrlProgress> searchUrlsProgress = default;
             try
             {
-                searchUrlProgress = await _dbContext.SearchUrlProgress
+                searchUrlsProgress = await _dbContext.SearchUrlsProgress
                     .Where(status => status.CampaignId == campaignId)
                     .ToListAsync(ct);
 
@@ -73,6 +73,21 @@ namespace Leadsly.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to retrieve all searchUrlProgress for campaign id {campaignId}. Returning an explicit null", campaignId);
+                return null;
+            }
+            return searchUrlsProgress;
+        }
+
+        public async Task<SearchUrlProgress> GetByIdAsync(string searchUrlProgressId, CancellationToken ct = default)
+        {
+            SearchUrlProgress searchUrlProgress = default;
+            try
+            {
+                searchUrlProgress = await _dbContext.SearchUrlsProgress.FindAsync(searchUrlProgressId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve SearchUrlProgress by id {searchUrlProgressId}", searchUrlProgressId);
                 return null;
             }
             return searchUrlProgress;

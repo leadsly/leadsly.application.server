@@ -28,7 +28,7 @@ namespace Leadsly.Application.Api.Controllers
         private readonly ILogger<NetworkingController> _logger;
 
         [HttpGet("{campaignId}/url")]
-        public async Task<IActionResult> GetSearchUrlProgress(string campaignId, CancellationToken ct = default)
+        public async Task<IActionResult> GetSearchUrlsProgress(string campaignId, CancellationToken ct = default)
         {
             _logger.LogInformation("Executing action GetSearchUrlProgress for CampaignId {campaignId}", campaignId);
             HalOperationResult<IOperationResponse> result = await _supervisor.GetSearchUrlProgressAsync<IOperationResponse>(campaignId, ct);
@@ -38,21 +38,21 @@ namespace Leadsly.Application.Api.Controllers
                 return BadRequest_UpdatingSentConnectionsUrlStatuses(result.Failures);
             }
 
-            return Ok();
+            return Ok(result.Value);
         }
 
-        [HttpPatch("{campaignId}/url")]
-        public async Task<IActionResult> UpdateSearchUrlProgress(string campaignId, [FromBody] JsonPatchDocument<SearchUrlProgress> request, CancellationToken ct = default)
+        [HttpPatch("{searchUrlProgressId}/url")]
+        public async Task<IActionResult> UpdateSearchUrlProgress(string searchUrlProgressId, [FromBody] JsonPatchDocument<Application.Model.Entities.Campaigns.SearchUrlProgress> request, CancellationToken ct = default)
         {
-            _logger.LogInformation("Executing action UpdateSearchUrlProgress for CampaignId {campaignId}", campaignId);
-            HalOperationResult<IOperationResponse> result = await _supervisor.UpdateSearchUrlProgressAsync<IOperationResponse>(campaignId, request, ct);
+            _logger.LogInformation("Executing action UpdateSearchUrlProgress for SearchUrlPrgressId {searchUrlProgressId}", searchUrlProgressId);
+            HalOperationResult<IOperationResponse> result = await _supervisor.UpdateSearchUrlProgressAsync<IOperationResponse>(searchUrlProgressId, request, ct);
             if (result.Succeeded == false)
             {
-                _logger.LogDebug("Failed to update sent connection urls for CampaignId {campaignId}", campaignId);
+                _logger.LogDebug("Failed to update search url progress for SearchUrlPrgressId {searchUrlProgressId}", searchUrlProgressId);
                 return BadRequest_UpdatingSentConnectionsUrlStatuses(result.Failures);
             }
 
-            return Ok();
+            return Ok(result.Value);
         }
     }
 }

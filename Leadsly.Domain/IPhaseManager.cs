@@ -25,5 +25,7 @@ namespace Leadsly.Domain
         /// <param name="ct"></param>
         /// <returns></returns>
         Task NetworkingConnectionsPhaseAsync(CancellationToken ct = default);
+
+        Task NetworkingPhaseAsync(CancellationToken ct = default);
     }
 }

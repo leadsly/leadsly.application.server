@@ -1,4 +1,5 @@
-﻿using Leadsly.Application.Model;
+﻿using Domain.Models.Responses.Interfaces;
+using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.Campaigns.Interfaces;
 using Leadsly.Application.Model.Entities;
@@ -142,6 +143,57 @@ namespace Leadsly.Domain.Supervisor
             where T : IOperationResponse
         {
             return await _campaignPhaseProcessorProvider.ProcessFollowUpMessageSentAsync<T>(request, ct);
+        }
+
+        public async Task<HalOperationResult<T>> GetSearchUrlProgressAsync<T>(string campaignId, CancellationToken ct = default)
+            where T : IOperationResponse
+        {
+            HalOperationResult<T> result = new();
+
+            IList<Application.Model.Entities.Campaigns.SearchUrlProgress> searchUrlsProgressEntity = await _searchUrlProgressRepository.GetAllByCampaignIdAsync(campaignId, ct);
+
+            IList<Application.Model.Campaigns.SearchUrlProgress> searchUrlsProgres = searchUrlsProgressEntity.Select(s =>
+            {
+                return new Application.Model.Campaigns.SearchUrlProgress
+                {
+                    CampaignId = s.CampaignId,
+                    Exhausted = s.Exhausted,
+                    LastActivityTimestamp = s.LastActivityTimestamp,
+                    LastPage = s.LastPage,
+                    LastProcessedProspect = s.LastProcessedProspect,
+                    SearchUrl = s.SearchUrl,
+                    TotalSearchResults = s.TotalSearchResults,
+                    SearchUrlProgressId = s.SearchUrlProgressId,
+                    StartedCrawling = s.StartedCrawling,
+                    WindowHandleId = s.WindowHandleId
+                };
+            }).ToList();
+
+            ISearchUrlProgressResponse searchUrlProgressResponse = new SearchUrlProgressResponse
+            {
+                SearchUrlsProgress = searchUrlsProgres
+            };
+
+            result.Value = (T)searchUrlProgressResponse;
+            result.Succeeded = true;
+            return result;
+        }
+
+        public async Task<HalOperationResult<T>> UpdateSearchUrlProgressAsync<T>(string searchUrlProgressId, JsonPatchDocument<Application.Model.Entities.Campaigns.SearchUrlProgress> patchDoc, CancellationToken ct = default)
+            where T : IOperationResponse
+        {
+            HalOperationResult<T> result = new();
+            Application.Model.Entities.Campaigns.SearchUrlProgress searchUrlProgressToUpdate = await _searchUrlProgressRepository.GetByIdAsync(searchUrlProgressId, ct);
+
+            patchDoc.ApplyTo(searchUrlProgressToUpdate);
+            searchUrlProgressToUpdate = await _searchUrlProgressRepository.UpdateAsync(searchUrlProgressToUpdate, ct);
+            if (searchUrlProgressToUpdate == null)
+            {
+                return result;
+            }
+
+            result.Succeeded = true;
+            return result;
         }
 
     }
