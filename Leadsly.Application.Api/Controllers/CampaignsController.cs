@@ -4,7 +4,6 @@ using Leadsly.Application.Model.ViewModels.Campaigns;
 using Leadsly.Application.Model.ViewModels.Reports;
 using Leadsly.Application.Model.ViewModels.Reports.ApexCharts;
 using Leadsly.Application.Model.Entities;
-using Leadsly.Api;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;

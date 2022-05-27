@@ -5,10 +5,10 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
 using System;
 
-namespace Leadsly.Api.Filters
+namespace Leadsly.Application.Api.Filters
 {
     public class InvalidModelStateFilter : IActionFilter, IOrderedFilter
-    {       
+    {
         public int Order { get; set; }
 
         public void OnActionExecuted(ActionExecutedContext context)
@@ -24,7 +24,7 @@ namespace Leadsly.Api.Filters
                 return;
 
             ProblemDetails problemDetails = new ValidationProblemDetails(context.ModelState)
-            {                
+            {
                 Type = ProblemDetailsTypes.BadRequest,
                 Status = 400,
                 Title = ReasonPhrases.GetReasonPhrase(400),

@@ -3,9 +3,9 @@ using Leadsly.Application.Model.Entities;
 using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Domain.Facades.Interfaces;
+using Leadsly.Domain.Factories.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
-using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -14,29 +14,33 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.Campaigns.ProspectListsHandlers
+namespace Leadsly.Domain.Factories
 {
-    public class ProspectListCommandHandlerBase
+    public class ProspectListMessagesFactory : IProspectListMessagesFactory
     {
-        public ProspectListCommandHandlerBase(
-            ILogger logger,
+        public ProspectListMessagesFactory(
+            ILogger<ProspectListMessagesFactory> logger,
             ICampaignRepositoryFacade campaignRepositoryFacade,
             IHalRepository halRepository,
             IRabbitMQProvider rabbitMQProvider
             )
         {
             _campaignRepositoryFacade = campaignRepositoryFacade;
-            _halRepository = halRepository;            
+            _halRepository = halRepository;
             _rabbitMQProvider = rabbitMQProvider;
             _logger = logger;
         }
 
-        private readonly ILogger _logger;
-        private ICampaignRepositoryFacade _campaignRepositoryFacade;
-        private IHalRepository _halRepository;        
+        private readonly ILogger<ProspectListMessagesFactory> _logger;
+        private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
+        private readonly IHalRepository _halRepository;
         private readonly IRabbitMQProvider _rabbitMQProvider;
 
-        protected async Task<ProspectListBody> CreateProspectListBodyAsync(string prospectListPhaseId, string userId, CancellationToken ct = default)
+        public async Task<ProspectListBody> CreateMessageAsync(string prospectListPhaseId, string userId, CancellationToken ct = default)
+        {
+            return await CreateProspectListBodyAsync(prospectListPhaseId, userId, ct);
+        }
+        private async Task<ProspectListBody> CreateProspectListBodyAsync(string prospectListPhaseId, string userId, CancellationToken ct = default)
         {
             _logger.LogInformation("Creating prospect list body message for rabbit mq message broker.");
             ProspectListPhase prospectListPhase = await _campaignRepositoryFacade.GetProspectListPhaseByIdAsync(prospectListPhaseId, ct);

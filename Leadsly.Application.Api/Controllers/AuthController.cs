@@ -1,5 +1,4 @@
-﻿using Leadsly.Api;
-using Leadsly.Application.Api.Authentication;
+﻿using Leadsly.Application.Api.Authentication;
 using Leadsly.Application.Api.Extensions;
 using Leadsly.Application.Api.Services;
 using Leadsly.Application.Domain.OptionsJsonModels;

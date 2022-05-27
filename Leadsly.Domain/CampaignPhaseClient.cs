@@ -66,6 +66,11 @@ namespace Leadsly.Domain
             }            
         }
 
+        /// <summary>
+        /// Merged referes to triggering both ProspectListPhase AND SendConnectionsPhase in one
+        /// </summary>
+        /// <param name="campaign"></param>
+        /// <returns></returns>
         public async Task HandleNewCampaignMergedAsync(Campaign campaign)
         {
             // ensure ScanForProspectReplies, ConnectionWithdraw and MonitorForNewProspects phases are running on hal

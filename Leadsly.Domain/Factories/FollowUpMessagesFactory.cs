@@ -1,10 +1,9 @@
-﻿using Hangfire;
-using Leadsly.Application.Model;
-using Leadsly.Application.Model.Campaigns;
+﻿using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.Entities;
 using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Domain.Facades.Interfaces;
+using Leadsly.Domain.Factories.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Microsoft.Extensions.Logging;
@@ -15,19 +14,17 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler
+namespace Leadsly.Domain.Factories
 {
-    public class FollowUpMessageCommandHandlerBase
+    public class FollowUpMessagesFactory : IFollowUpMessagesFactory
     {
-        public FollowUpMessageCommandHandlerBase(
-            IMessageBrokerOutlet messageBrokerOutlet,
-            ILogger logger,
+        public FollowUpMessagesFactory(
+            ILogger<FollowUpMessagesFactory> logger,
             ICampaignRepositoryFacade campaignRepositoryFacade,
             IHalRepository halRepository,
             IRabbitMQProvider rabbitMQProvider
             )
         {
-            _messageBrokerOutlet = messageBrokerOutlet;
             _rabbitMQProvider = rabbitMQProvider;
             _logger = logger;
             _halRepository = halRepository;
@@ -36,30 +33,15 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler
 
         private readonly IRabbitMQProvider _rabbitMQProvider;
         private readonly IHalRepository _halRepository;
-        private readonly ILogger _logger;
+        private readonly ILogger<FollowUpMessagesFactory> _logger;
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
-        private readonly IMessageBrokerOutlet _messageBrokerOutlet;
 
-        protected async Task InternalExecuteAsync(string campaignProspectFollowUpMessageId, string campaignId, DateTimeOffset scheduleTime)
+        public async Task<FollowUpMessageBody> CreateMessageAsync(string campaignProspectFollowUpMessageId, string campaignId, CancellationToken ct = default)
         {
-            // grab the CampaignProspectFollowUpMessage
-            FollowUpMessageBody followUpMessageBody = await CreateFollowUpMessageBodyAsync(campaignProspectFollowUpMessageId, campaignId);
-
-            string queueNameIn = RabbitMQConstants.FollowUpMessage.QueueName;
-            string routingKeyIn = RabbitMQConstants.FollowUpMessage.RoutingKey;
-            string halId = followUpMessageBody.HalId;
-
-            if (scheduleTime == default)
-            {
-                _messageBrokerOutlet.PublishPhase(followUpMessageBody, queueNameIn, routingKeyIn, halId, null);
-            }
-            else
-            {
-                BackgroundJob.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(followUpMessageBody, queueNameIn, routingKeyIn, halId, null), scheduleTime.LocalDateTime);
-            }
+            return await CreateFollowUpMessageBodyAsync(campaignProspectFollowUpMessageId, campaignId, ct); ;
         }
 
-        protected async Task<FollowUpMessageBody> CreateFollowUpMessageBodyAsync(string campaignProspectFollowUpMessageId, string campaignId, CancellationToken ct = default)
+        private async Task<FollowUpMessageBody> CreateFollowUpMessageBodyAsync(string campaignProspectFollowUpMessageId, string campaignId, CancellationToken ct = default)
         {
             _logger.LogInformation("Creating follow up message body for rabbit mq message broker.");
 
@@ -102,7 +84,6 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler
             _logger.LogTrace("SendConnectionsBody object is configured with Service discovery name of {serviceDiscoveryname}", serviceDiscoveryname);
 
             return message;
-
         }
     }
 }

@@ -12,7 +12,6 @@ using Leadsly.Application.Model.Entities;
 using Leadsly.Domain;
 using Leadsly.Application.Model;
 using Leadsly.Application.Api.Authentication;
-using Leadsly.Api;
 using Leadsly.Application.Model.Entities;
 using Leadsly.Application.Model.ViewModels;
 

@@ -3,6 +3,7 @@ using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Domain.Campaigns.Handlers;
 using Leadsly.Domain.Facades.Interfaces;
+using Leadsly.Domain.Factories.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Microsoft.Extensions.Logging;
@@ -12,24 +13,24 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Campaigns.ProspectListsHandlers.ProspectLists
 {
-    public class ProspectListsCommandHandler : ProspectListCommandHandlerBase, ICommandHandler<ProspectListsCommand>
+    public class ProspectListsCommandHandler : ICommandHandler<ProspectListsCommand>
     {
         public ProspectListsCommandHandler(
+            IProspectListMessagesFactory messagesFactory,
             ILogger<ProspectListsCommandHandler> logger,
             IMessageBrokerOutlet messageBrokerOutlet,
-            ICampaignProvider campaignProvider,
-            ICampaignRepositoryFacade campaignRepositoryFacade,
-            IHalRepository halRepository,            
-            IRabbitMQProvider rabbitMQProvider
-            ) : base(logger, campaignRepositoryFacade, halRepository, rabbitMQProvider)
+            ICampaignProvider campaignProvider
+            )
         {
             _messageBrokerOutlet = messageBrokerOutlet;
+            _messagesFactory = messagesFactory;
             _campaignProvider = campaignProvider;
         }
 
         private readonly ICampaignProvider _campaignProvider;
         private readonly ILogger<ProspectListsCommand> _logger;
         private readonly IMessageBrokerOutlet _messageBrokerOutlet;
+        private readonly IProspectListMessagesFactory _messagesFactory;
 
         /// <summary>
         /// Triggered on recurring bases once in the morning. This phase is meant to trigger to create ProspectLists for campaigns that were created outside of Hal work hours.
@@ -55,7 +56,7 @@ namespace Leadsly.Domain.Campaigns.ProspectListsHandlers.ProspectLists
                 // iterate over each hal id and fire off the message
                 foreach (ProspectListPhase prospectListPhase in prospectListPhases)
                 {
-                    ProspectListBody messageBody = await CreateProspectListBodyAsync(prospectListPhase.ProspectListPhaseId, prospectListPhase.Campaign.ApplicationUserId);
+                    ProspectListBody messageBody = await _messagesFactory.CreateMessageAsync(prospectListPhase.ProspectListPhaseId, prospectListPhase.Campaign.ApplicationUserId);
 
                     InternalExecute(messageBody);
                 }

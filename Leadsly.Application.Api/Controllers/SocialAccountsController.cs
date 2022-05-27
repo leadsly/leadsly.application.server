@@ -1,5 +1,4 @@
-﻿using Leadsly.Api;
-using Leadsly.Application.Model;
+﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Entities;
 using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Application.Model.Responses;

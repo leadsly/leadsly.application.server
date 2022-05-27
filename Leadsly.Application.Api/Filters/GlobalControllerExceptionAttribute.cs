@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 using System;
 
-namespace Leadsly.Api.Filters
+namespace Leadsly.Application.Api.Filters
 {
 
     public class GlobalControllerExceptionAttribute : ExceptionFilterAttribute
@@ -42,7 +42,7 @@ namespace Leadsly.Api.Filters
 
                 context.Result = result;
             }
-            else if(context.Exception is OperationCanceledException)
+            else if (context.Exception is OperationCanceledException)
             {
                 _logger.LogInformation("Request was cancelled.");
 

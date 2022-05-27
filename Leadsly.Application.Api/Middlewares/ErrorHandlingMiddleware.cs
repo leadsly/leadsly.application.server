@@ -4,7 +4,7 @@ using System;
 using System.Net;
 using System.Threading.Tasks;
 
-namespace Leadsly.Api.Middlewares
+namespace Leadsly.Application.Api.Middlewares
 {
     public class ErrorHandlingMiddleware
     {
@@ -16,7 +16,7 @@ namespace Leadsly.Api.Middlewares
         }
 
         public async Task Invoke(HttpContext context)
-    {
+        {
             try
             {
                 await next(context);
@@ -33,11 +33,11 @@ namespace Leadsly.Api.Middlewares
             if (ex is not ILeadslyApiException)
             {
                 // 500 if unexpected
-                HttpStatusCode code = HttpStatusCode.InternalServerError; 
+                HttpStatusCode code = HttpStatusCode.InternalServerError;
 
                 context.Response.ContentType = "text/plain";
                 context.Response.StatusCode = (int)code;
-                
+
             }
 
             return context.Response.WriteAsync("Status Code: 500; Internal Server Error.");

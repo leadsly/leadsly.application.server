@@ -10,6 +10,7 @@ using Leadsly.Application.Api.Services;
 using Leadsly.Application.Domain.OptionsJsonModels;
 using Leadsly.Application.Model;
 using Leadsly.Application.Model.Entities;
+using Leadsly.Application.Model.RabbitMQ;
 using Leadsly.Domain;
 using Leadsly.Domain.Campaigns;
 using Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessage;
@@ -31,6 +32,7 @@ using Leadsly.Domain.Factories.Interfaces;
 using Leadsly.Domain.OptionsJsonModels;
 using Leadsly.Domain.Providers;
 using Leadsly.Domain.Providers.Interfaces;
+using Leadsly.Domain.RabbitMQ;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Serializers;
 using Leadsly.Domain.Serializers.Interfaces;
@@ -51,6 +53,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.ObjectPool;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -99,6 +103,13 @@ namespace Leadsly.Application.Api.Configurations
             Log.Information("Registering rabbit mq services configuration.");
 
             services.Configure<RabbitMQConfigOptions>(options => configuration.GetSection(nameof(RabbitMQConfigOptions)).Bind(options));
+            services.AddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
+            services.AddSingleton(s =>
+            {
+                ObjectPoolProvider provider = s.GetRequiredService<ObjectPoolProvider>();
+                IOptions<RabbitMQConfigOptions> rabbitMQConfigOptions = s.GetRequiredService<IOptions<RabbitMQConfigOptions>>();
+                return provider.Create(new RabbitModelPooledObjectPolicy(rabbitMQConfigOptions.Value));
+            });
 
             return services;
         }
@@ -110,6 +121,9 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<INetworkingMessagesFactory, NetworkingMessagesFactory>();
             services.AddScoped<IScanProspectsForRepliesMessagesFactory, ScanProspectsForRepliesMessagesFactory>();
             services.AddScoped<IMonitorForNewConnectionsMessagesFactory, MonitorForNewConnectionsMessagesFactory>();
+            services.AddScoped<ISendConnectionsToProspectsMessagesFactory, SendConnectionsToProspectsMessagesFactory>();
+            services.AddScoped<IProspectListMessagesFactory, ProspectListMessagesFactory>();
+            services.AddScoped<IFollowUpMessagesFactory, FollowUpMessagesFactory>();
 
             return services;
         }

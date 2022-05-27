@@ -1,34 +1,28 @@
 ﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
 using Leadsly.Domain.Campaigns.Handlers;
-using Leadsly.Domain.Facades.Interfaces;
-using Leadsly.Domain.Providers.Interfaces;
-using Leadsly.Domain.Repositories;
-using Leadsly.Domain.Services.Interfaces;
+using Leadsly.Domain.Factories.Interfaces;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Campaigns.ProspectListsHandlers.ProspectList
 {
-    public class ProspectListCommandHandler : ProspectListCommandHandlerBase, ICommandHandler<ProspectListCommand>
+    public class ProspectListCommandHandler : ICommandHandler<ProspectListCommand>
     {
         public ProspectListCommandHandler(
             ILogger<ProspectListCommandHandler> logger,
             IMessageBrokerOutlet messageBrokerOutlet,
-            ICampaignRepositoryFacade campaignRepositoryFacade,
-            IHalRepository halRepository,            
-            IRabbitMQProvider rabbitMQProvider
-            ) : base(logger, campaignRepositoryFacade, halRepository, rabbitMQProvider)
+            IProspectListMessagesFactory messagesFactory
+            )
         {
             _logger = logger;
+            _messagesFactory = messagesFactory;
             _messageBrokerOutlet = messageBrokerOutlet;
         }
 
         private readonly ILogger<ProspectListCommandHandler> _logger;
+        private readonly IProspectListMessagesFactory _messagesFactory;
         private readonly IMessageBrokerOutlet _messageBrokerOutlet;
 
         /// <summary>
@@ -57,7 +51,7 @@ namespace Leadsly.Domain.Campaigns.ProspectListsHandlers.ProspectList
 
         private async Task<ProspectListBody> CreateMessageBodyAsync(ProspectListCommand command)
         {
-            ProspectListBody messageBody = await CreateProspectListBodyAsync(command.ProspectListPhaseId, command.UserId);
+            ProspectListBody messageBody = await _messagesFactory.CreateMessageAsync(command.ProspectListPhaseId, command.UserId);
 
             return messageBody;
         }

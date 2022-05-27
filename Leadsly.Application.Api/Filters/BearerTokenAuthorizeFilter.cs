@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
 using System.Threading.Tasks;
 
-namespace Leadsly.Api.Filters
+namespace Leadsly.Application.Api.Filters
 {
     public class BearerTokenAuthorizeFilter : AuthorizeFilter
     {

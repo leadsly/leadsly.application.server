@@ -10,10 +10,10 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace Leadsly.Application.Api.Authentication.Jwt
+namespace Leadsly.Application.Api.Authentication
 {
     public class JwtFactory : IJwtFactory
-    {   
+    {
         public JwtFactory(IOptions<JwtIssuerOptions> jwtOptions, ILogger<IJwtFactory> logger)
         {
             _jwtOptions = jwtOptions.Value;
@@ -55,7 +55,7 @@ namespace Leadsly.Application.Api.Authentication.Jwt
         {
             DateTime universalTime = date.ToUniversalTime();
             DateTimeOffset offset = new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero);
-            double totalSeconds = (universalTime - offset).TotalSeconds;            
+            double totalSeconds = (universalTime - offset).TotalSeconds;
 
             return (long)Math.Round(totalSeconds);
         }

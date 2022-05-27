@@ -1,6 +1,5 @@
 ﻿using Leadsly.Domain;
 using Leadsly.Application.Model.ViewModels;
-using Leadsly.Api;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;

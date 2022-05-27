@@ -1,6 +1,11 @@
-﻿using Leadsly.Application.Model.Entities.Campaigns;
+﻿using Hangfire;
+using Leadsly.Application.Model;
+using Leadsly.Application.Model.Campaigns;
+using Leadsly.Application.Model.Entities.Campaigns;
+using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Domain.Campaigns.Handlers;
 using Leadsly.Domain.Facades.Interfaces;
+using Leadsly.Domain.Factories.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Microsoft.Extensions.Logging;
@@ -12,21 +17,26 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages
 {
-    public class FollowUpMessagesCommandHandler : FollowUpMessageCommandHandlerBase, ICommandHandler<FollowUpMessagesCommand>
+    public class FollowUpMessagesCommandHandler : ICommandHandler<FollowUpMessagesCommand>
     {
         public FollowUpMessagesCommandHandler(
+            IFollowUpMessagesFactory messagesFactory,
             IMessageBrokerOutlet messageBrokerOutlet,
             ILogger<FollowUpMessagesCommandHandler> logger,
-            IHalRepository halRepository,
-            IRabbitMQProvider rabbitMQProvider,
             ICampaignRepositoryFacade campaignRepositoryFacade,
             ISendFollowUpMessageProvider sendFollowUpMessageService
-            ) : base(messageBrokerOutlet, logger, campaignRepositoryFacade, halRepository, rabbitMQProvider)
+            )
         {
+            _logger = logger;
             _campaignRepositoryFacade = campaignRepositoryFacade;
+            _messagesFactory = messagesFactory;
+            _messageBrokerOutlet = messageBrokerOutlet;
             _sendFollowUpMessageService = sendFollowUpMessageService;
         }
 
+        private readonly IFollowUpMessagesFactory _messagesFactory;
+        private readonly IMessageBrokerOutlet _messageBrokerOutlet;
+        private readonly ILogger<FollowUpMessagesCommandHandler> _logger;
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
         private readonly ISendFollowUpMessageProvider _sendFollowUpMessageService;
 
@@ -93,7 +103,24 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages
             // sort the messages going out by order
             foreach (var messagePair in messagesGoingOut.OrderBy(k => k.Key.Order))
             {
-                await InternalExecuteAsync(messagePair.Key.CampaignProspectFollowUpMessageId, messagePair.Key.CampaignProspect.CampaignId, messagePair.Value);
+                FollowUpMessageBody followUpMessageBody = await _messagesFactory.CreateMessageAsync(messagePair.Key.CampaignProspectFollowUpMessageId, messagePair.Key.CampaignProspect.CampaignId);
+                PublishMessage(followUpMessageBody, messagePair.Value);
+            }
+        }
+
+        private void PublishMessage(FollowUpMessageBody followUpMessageBody, DateTimeOffset scheduleTime)
+        {
+            string queueNameIn = RabbitMQConstants.FollowUpMessage.QueueName;
+            string routingKeyIn = RabbitMQConstants.FollowUpMessage.RoutingKey;
+            string halId = followUpMessageBody.HalId;
+
+            if (scheduleTime == default)
+            {
+                _messageBrokerOutlet.PublishPhase(followUpMessageBody, queueNameIn, routingKeyIn, halId, null);
+            }
+            else
+            {
+                BackgroundJob.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(followUpMessageBody, queueNameIn, routingKeyIn, halId, null), scheduleTime.LocalDateTime);
             }
         }
     }

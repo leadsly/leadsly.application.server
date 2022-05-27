@@ -49,7 +49,7 @@ namespace Leadsly.Domain.Campaigns.NetworkingHandler
         {
             foreach (string halId in halIds)
             {
-                IList<NetworkingMessageBody> messages = await _networkingMessagesFactory.CreateNetworkingMessagesAsync(halId, ct); ;
+                IList<NetworkingMessageBody> messages = await _networkingMessagesFactory.CreateNetworkingMessagesAsync(halId, ct);
 
                 await SchedulePhaseMessagesAsync(messages);
             }
@@ -91,7 +91,7 @@ namespace Leadsly.Domain.Campaigns.NetworkingHandler
             else
             {
                 // temporary to schedule jobs right away                
-                _messageBrokerOutlet.PublishPhase(message, queueNameIn, routingKeyIn, halId, null);
+                //_messageBrokerOutlet.PublishPhase(message, queueNameIn, routingKeyIn, halId, null);
             }
         }
     }

@@ -16,7 +16,6 @@ using System.Threading.Tasks;
 using Leadsly.Application.Model.Entities;
 using Leadsly.Domain;
 using Leadsly.Application.Api.Services;
-using Leadsly.Api;
 using Leadsly.Application.Model.ViewModels.Reports;
 using System;
 using Leadsly.Application.Model.ViewModels.Reports.ApexCharts;

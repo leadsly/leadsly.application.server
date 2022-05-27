@@ -13,7 +13,7 @@ using Leadsly.Application.Model;
 using System;
 using Leadsly.Application.Model.ViewModels;
 
-namespace Leadsly.Api
+namespace Leadsly.Application.Api
 {
     /// <summary>
     /// Base class the API controllers.
@@ -78,7 +78,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.RegistrationDetail,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -96,7 +96,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.ProspectListError,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -114,7 +114,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.UpdateProspectListPhaseError,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -132,7 +132,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.UpdateSocialAccountError,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -150,7 +150,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.RepliedCampaignProspects,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -166,7 +166,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.FailedToGenerateToken,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -182,7 +182,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.FailedToSendEmail,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -198,7 +198,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.FailedToSendConfirmationEmail,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -214,7 +214,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.FailedToSendChangeEmailLink,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -230,7 +230,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.TokenNotFound,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -246,7 +246,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.UserNotFound,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             }); ;
         }
 
@@ -262,7 +262,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.TwoFactorAuthSetupVerificationCode,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             }); ;
         }
 
@@ -278,7 +278,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.FailedToUpdatePassword,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -294,7 +294,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.FailedToUpdateEmail,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -310,7 +310,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.FailedToUpdateResource,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -326,7 +326,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.FailedToConfirmUsersEmail,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -344,7 +344,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.FailedToUpdateEmail,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -362,7 +362,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.FailedToUpdatePassword,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -381,7 +381,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.LeadslySetup,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -400,7 +400,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.WebDriverCreationError,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -419,7 +419,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.CreateCampaignError,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -438,7 +438,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.UpdateContactedCampaignProspects,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -458,7 +458,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.SentConnectionsUrlStatuses,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -477,7 +477,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.UpdatingSentConnectionsUrlStatuses,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -496,7 +496,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.LeadslySocialAccountAuthenticationError,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -515,7 +515,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.LeadslySocialAccountAuthenticationError,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -531,7 +531,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.LeadslySetup,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -547,7 +547,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.TwoStepVerificationCodeOrProviderIsInvalid,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -563,7 +563,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.TwoFactorAuthRecoveryCode,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             }); ;
         }
 
@@ -579,7 +579,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.FailedToDisable2fa,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -595,7 +595,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.FailedToEnable2fa,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -611,7 +611,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.FailedToResetAuthenticatorKey,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -627,7 +627,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.TwoFactorAuthenticationIsNotEnabled,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -644,7 +644,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.CannotDisable2faWhenItsNotEnabled,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -660,7 +660,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.RegistrationErrorDetail,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -676,7 +676,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.NoTempPasswordValue,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -692,7 +692,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status401Unauthorized,
                 Title = ReasonPhrases.GetReasonPhrase(401),
                 Detail = ProblemDetailsDescriptions.UnauthorizedDetail,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -708,7 +708,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status401Unauthorized,
                 Title = ReasonPhrases.GetReasonPhrase(401),
                 Detail = ProblemDetailsDescriptions.UnauthorizedRefreshTokenFailed,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -725,7 +725,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status401Unauthorized,
                 Title = ReasonPhrases.GetReasonPhrase(401),
                 Detail = $"{ ProblemDetailsDescriptions.UnauthorizedDetail } Failed attempt: {failedAttempts}.",
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -741,7 +741,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status401Unauthorized,
                 Title = ReasonPhrases.GetReasonPhrase(401),
                 Detail = ProblemDetailsDescriptions.UnauthorizedAccountLocked,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -757,7 +757,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status403Forbidden,
                 Title = ReasonPhrases.GetReasonPhrase(404),
                 Detail = ProblemDetailsDescriptions.ForbiddenEmailNotConfirmed,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -773,7 +773,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status401Unauthorized,
                 Title = ReasonPhrases.GetReasonPhrase(401),
                 Detail = ProblemDetailsDescriptions.UnauthorizedExternalProvider,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -789,7 +789,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status401Unauthorized,
                 Title = ReasonPhrases.GetReasonPhrase(401),
                 Detail = ProblemDetailsDescriptions.UnauthorizedRegistrationToken,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -805,7 +805,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.StripeCustomerDoesNotExist,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -821,7 +821,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.NoEmailFound_Stripe,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -837,7 +837,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.NoEmailFound_Stripe,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -853,7 +853,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.FailedToDeserialize,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -869,7 +869,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.CampaignNotFound,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 
@@ -885,7 +885,7 @@ namespace Leadsly.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.CampaignPhaseProcessing,
-                Instance = this.HttpContext.Request.Path.Value
+                Instance = HttpContext.Request.Path.Value
             });
         }
 

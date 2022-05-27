@@ -1,4 +1,4 @@
-﻿using Leadsly.Api.Filters;
+﻿using Leadsly.Application.Api.Filters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using System.Linq;

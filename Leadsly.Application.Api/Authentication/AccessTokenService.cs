@@ -14,7 +14,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Leadsly.Domain;
 using Leadsly.Application.Model.Entities;
-using Leadsly.Application.Api.Authentication.Jwt;
 using Leadsly.Domain.Exceptions;
 using Leadsly.Domain.Exceptions;
 

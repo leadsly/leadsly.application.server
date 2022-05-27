@@ -9,7 +9,6 @@ using Microsoft.Extensions.FileProviders;
 using System.IO;
 using Microsoft.AspNetCore.Http;
 using Leadsly.Domain;
-using Leadsly.Api.Middlewares;
 using Leadsly.Application.Api.Configurations;
 using Hangfire;
 using Leadsly.Domain.OptionsJsonModels;
@@ -17,6 +16,7 @@ using Amazon.RDS.Util;
 using Leadsly.Application.Model;
 using Leadsly.Domain.Supervisor;
 using Leadsly.Domain.Services;
+using Leadsly.Application.Api.Middlewares;
 
 namespace Leadsly.Application.Api
 {
