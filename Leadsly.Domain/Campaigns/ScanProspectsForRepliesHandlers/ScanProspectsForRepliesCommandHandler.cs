@@ -3,6 +3,7 @@ using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.Entities;
 using Leadsly.Domain.Campaigns.Handlers;
 using Leadsly.Domain.Facades.Interfaces;
+using Leadsly.Domain.Factories.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
@@ -15,22 +16,20 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
 {
-    public class ScanProspectsForRepliesCommandHandler : ScanProspectsForRepliesCommandHandlerBase, ICommandHandler<ScanProspectsForRepliesCommand>
+    public class ScanProspectsForRepliesCommandHandler : ICommandHandler<ScanProspectsForRepliesCommand>
     {
         public ScanProspectsForRepliesCommandHandler(
-            IMessageBrokerOutlet messageBrokerOutlet,
-            IHalRepository halRepository,
-            ILogger<ScanProspectsForRepliesCommand> logger,
-            ICampaignRepositoryFacade campaignRepositoryFacade,
-            ITimestampService timestampService,
-            IRabbitMQProvider rabbitMQProvider
-            ) : base(logger, campaignRepositoryFacade, rabbitMQProvider, halRepository, timestampService)
+            IScanProspectsForRepliesMessagesFactory messagesFactory,
+            IMessageBrokerOutlet messageBrokerOutlet,            
+            ILogger<ScanProspectsForRepliesCommand> logger
+            )
         {
-            _halRepository = halRepository;
+            _messagesFactory = messagesFactory;
             _messageBrokerOutlet = messageBrokerOutlet;
             _logger = logger;
         }
-        private readonly IHalRepository _halRepository;
+
+        private readonly IScanProspectsForRepliesMessagesFactory _messagesFactory;        
         private readonly IMessageBrokerOutlet _messageBrokerOutlet;
         private readonly ILogger<ScanProspectsForRepliesCommand> _logger;
 
@@ -38,7 +37,7 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
         {
             if(command.HalIds != null)
             {
-                await InternalHandleListAsync(command.HalIds);
+                await InternalHandleAsync(command.HalIds);
             }
 
             if (command.HalId != null)
@@ -47,7 +46,7 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
             }
         }
 
-        private async Task InternalHandleListAsync(IList<string> halIds)
+        private async Task InternalHandleAsync(IList<string> halIds)
         {
             foreach (string halId in halIds)
             {
@@ -57,7 +56,7 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
 
         private async Task InternalHandleAsync(string halId)
         {
-            ScanProspectsForRepliesBody messageBody = await CreateMessageBodyAsync(halId);
+            ScanProspectsForRepliesBody messageBody = await _messagesFactory.CreateMessageAsync(halId);
 
             string queueNameIn = RabbitMQConstants.ScanProspectsForReplies.QueueName;
             string routingKeyIn = RabbitMQConstants.ScanProspectsForReplies.RoutingKey;
@@ -66,17 +65,6 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
             headers.Add(RabbitMQConstants.ScanProspectsForReplies.ExecutionType, RabbitMQConstants.ScanProspectsForReplies.ExecutePhase);
 
             _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers);
-        }
-
-        private async Task<ScanProspectsForRepliesBody> CreateMessageBodyAsync(string halId)
-        {
-            HalUnit halUnit = await _halRepository.GetByHalIdAsync(halId);
-
-            // fire off ScanProspectsForRepliesPhase with the payload of the contacted prospects
-            string scanprospectsForRepliesPhaseId = halUnit.SocialAccount.ScanProspectsForRepliesPhase.ScanProspectsForRepliesPhaseId;
-            ScanProspectsForRepliesBody messageBody = await CreateScanProspectsForRepliesBodyAsync(scanprospectsForRepliesPhaseId, halId);
-
-            return messageBody;
         }
     }
 }

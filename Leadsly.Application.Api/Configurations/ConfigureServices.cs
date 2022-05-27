@@ -26,6 +26,8 @@ using Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers;
 using Leadsly.Domain.DbInfo;
 using Leadsly.Domain.Facades;
 using Leadsly.Domain.Facades.Interfaces;
+using Leadsly.Domain.Factories;
+using Leadsly.Domain.Factories.Interfaces;
 using Leadsly.Domain.OptionsJsonModels;
 using Leadsly.Domain.Providers;
 using Leadsly.Domain.Providers.Interfaces;
@@ -97,6 +99,17 @@ namespace Leadsly.Application.Api.Configurations
             Log.Information("Registering rabbit mq services configuration.");
 
             services.Configure<RabbitMQConfigOptions>(options => configuration.GetSection(nameof(RabbitMQConfigOptions)).Bind(options));
+
+            return services;
+        }
+
+        public static IServiceCollection AddFactories(this IServiceCollection services)
+        {
+            Log.Information("Registering factories services.");
+
+            services.AddScoped<INetworkingMessagesFactory, NetworkingMessagesFactory>();
+            services.AddScoped<IScanProspectsForRepliesMessagesFactory, ScanProspectsForRepliesMessagesFactory>();
+            services.AddScoped<IMonitorForNewConnectionsMessagesFactory, MonitorForNewConnectionsMessagesFactory>();
 
             return services;
         }

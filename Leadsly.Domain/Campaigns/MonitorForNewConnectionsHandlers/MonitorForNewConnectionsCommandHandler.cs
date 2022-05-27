@@ -2,6 +2,7 @@
 using Leadsly.Application.Model.Campaigns;
 using Leadsly.Domain.Campaigns.Handlers;
 using Leadsly.Domain.Facades.Interfaces;
+using Leadsly.Domain.Factories.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
@@ -12,22 +13,20 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers
 {
-    public class MonitorForNewConnectionsCommandHandler : MonitorForNewConnectionsCommandHandlerBase, ICommandHandler<MonitorForNewConnectionsCommand>
+    public class MonitorForNewConnectionsCommandHandler : ICommandHandler<MonitorForNewConnectionsCommand>
     {
         public MonitorForNewConnectionsCommandHandler(
+            IMonitorForNewConnectionsMessagesFactory messagesFactory,
             IMessageBrokerOutlet messageBrokerOutlet,
-            ILogger<MonitorForNewConnectionsCommandHandler> logger,
-            IUserProvider userProvider,
-            ICampaignRepositoryFacade campaignRepositoryFacade,
-            IHalRepository halRepository,
-            ITimestampService timestampService,
-            IRabbitMQProvider rabbitMQProvider
-            ) : base(userProvider, campaignRepositoryFacade, rabbitMQProvider, halRepository, timestampService, logger)
+            ILogger<MonitorForNewConnectionsCommandHandler> logger
+            )
         {
+            _messagesFactory = messagesFactory;
             _messageBrokerOutlet = messageBrokerOutlet;
             _logger = logger;
         }
 
+        private readonly IMonitorForNewConnectionsMessagesFactory _messagesFactory;
         private readonly ILogger<MonitorForNewConnectionsCommandHandler> _logger;
         private readonly IMessageBrokerOutlet _messageBrokerOutlet;
 
@@ -40,7 +39,7 @@ namespace Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers
             Dictionary<string, object> headers = new Dictionary<string, object>();
             headers.Add(RabbitMQConstants.MonitorNewAcceptedConnections.ExecuteType, RabbitMQConstants.MonitorNewAcceptedConnections.ExecutePhase);
 
-            MonitorForNewAcceptedConnectionsBody messageBody = await CreateMessageBodyAsync(halId);
+            MonitorForNewAcceptedConnectionsBody messageBody = await _messagesFactory.CreateMessageAsync(halId);
             _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers);
         }
     }

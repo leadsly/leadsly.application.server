@@ -5,6 +5,7 @@ using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandler;
 using Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers;
 using Leadsly.Domain.Facades.Interfaces;
+using Leadsly.Domain.Factories.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
@@ -18,22 +19,21 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Campaigns.Handlers
 {
-    public class MonitorForNewConnectionsAllCommandHandler : MonitorForNewConnectionsCommandHandlerBase, ICommandHandler<MonitorForNewConnectionsAllCommand>
+    public class MonitorForNewConnectionsAllCommandHandler : ICommandHandler<MonitorForNewConnectionsAllCommand>
     {
-        public MonitorForNewConnectionsAllCommandHandler(IMessageBrokerOutlet messageBrokerOutlet,
-            ILogger<MonitorForNewConnectionsAllCommandHandler> logger,
-            IUserProvider userProvider,
-            ICampaignRepositoryFacade campaignRepositoryFacade,
-            IHalRepository halRepository,
-            ITimestampService timestampService,
-            IRabbitMQProvider rabbitMQProvider) : base(userProvider, campaignRepositoryFacade, rabbitMQProvider, halRepository, timestampService, logger)
+        public MonitorForNewConnectionsAllCommandHandler(
+            IMessageBrokerOutlet messageBrokerOutlet,
+            IMonitorForNewConnectionsMessagesFactory messagesFactory,
+            ILogger<MonitorForNewConnectionsAllCommandHandler> logger)
         {           
             _messageBrokerOutlet = messageBrokerOutlet;
+            _messagesFactory = messagesFactory;
             _logger = logger;
         }
 
         private readonly ILogger<MonitorForNewConnectionsAllCommandHandler> _logger;
-        private readonly IMessageBrokerOutlet _messageBrokerOutlet;        
+        private readonly IMessageBrokerOutlet _messageBrokerOutlet;
+        private readonly IMonitorForNewConnectionsMessagesFactory _messagesFactory;
 
         public async Task HandleAsync(MonitorForNewConnectionsAllCommand command)
         {
@@ -42,7 +42,7 @@ namespace Leadsly.Domain.Campaigns.Handlers
             Dictionary<string, object> headers = new Dictionary<string, object>();
             headers.Add(RabbitMQConstants.MonitorNewAcceptedConnections.ExecuteType, RabbitMQConstants.MonitorNewAcceptedConnections.ExecutePhase);
 
-            IList<MonitorForNewAcceptedConnectionsBody> messageBodies = await CreateMessageBodiesAsync();
+            IList<MonitorForNewAcceptedConnectionsBody> messageBodies = await _messagesFactory.CreateMessagesAsync();
             foreach (MonitorForNewAcceptedConnectionsBody body in messageBodies)
             {
                 string halId = body.HalId;

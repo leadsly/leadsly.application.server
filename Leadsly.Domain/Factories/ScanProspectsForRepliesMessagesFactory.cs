@@ -1,8 +1,10 @@
-﻿using Leadsly.Application.Model.Campaigns;
+﻿using Amazon.Runtime.Internal.Util;
+using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.Entities;
 using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Domain.Facades.Interfaces;
+using Leadsly.Domain.Factories.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
@@ -14,17 +16,16 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
+namespace Leadsly.Domain.Factories
 {
-    public class ScanProspectsForRepliesCommandHandlerBase
+    public class ScanProspectsForRepliesMessagesFactory : IScanProspectsForRepliesMessagesFactory
     {
-        public ScanProspectsForRepliesCommandHandlerBase(
-            ILogger logger,
+        public ScanProspectsForRepliesMessagesFactory(
+            ILogger<ScanProspectsForRepliesMessagesFactory> logger,
             ICampaignRepositoryFacade campaignRepositoryFacade,
             IRabbitMQProvider rabbitMQProvider,
             IHalRepository halRepository,
-            ITimestampService timestampService
-            )
+            ITimestampService timestampService)
         {
             _logger = logger;
             _campaignRepositoryFacade = campaignRepositoryFacade;
@@ -33,11 +34,20 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
             _timestampService = timestampService;
         }
 
-        private readonly ILogger _logger;
+        private readonly ILogger<ScanProspectsForRepliesMessagesFactory> _logger;
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
         private readonly IRabbitMQProvider _rabbitMQProvider;
         private readonly IHalRepository _halRepository;
         private readonly ITimestampService _timestampService;
+
+        public async Task<ScanProspectsForRepliesBody> CreateMessageAsync(string halId, IList<CampaignProspect> campaignProspects = default, CancellationToken ct = default)
+        {
+            HalUnit halUnit = await _halRepository.GetByHalIdAsync(halId);
+            // fire off ScanProspectsForRepliesPhase with the payload of the contacted prospects
+            string scanProspectsForRepliesPhaseId = halUnit.SocialAccount.ScanProspectsForRepliesPhase.ScanProspectsForRepliesPhaseId;
+
+            return await CreateScanProspectsForRepliesBodyAsync(scanProspectsForRepliesPhaseId, halId, campaignProspects, ct);
+        }
 
         /// <summary>
         /// 
@@ -47,7 +57,7 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
         /// <param name="contactedCampaignProspects"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        protected async Task<ScanProspectsForRepliesBody> CreateScanProspectsForRepliesBodyAsync(string scanProspectsForRepliesPhaseId, string halId, IList<CampaignProspect> campaignProspects = default, CancellationToken ct = default)
+        private async Task<ScanProspectsForRepliesBody> CreateScanProspectsForRepliesBodyAsync(string scanProspectsForRepliesPhaseId, string halId, IList<CampaignProspect> campaignProspects = default, CancellationToken ct = default)
         {
             _logger.LogInformation("Creating scanprospects for replies body message for rabbit mq message broker.");
             ScanProspectsForRepliesPhase scanProspectsForRepliesPhase = await _campaignRepositoryFacade.GetScanProspectsForRepliesPhaseByIdAsync(scanProspectsForRepliesPhaseId, ct);
@@ -73,7 +83,7 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
                 EndOfWorkday = halUnit.EndHour,
                 ChromeProfileName = chromeProfileName,
                 UserId = scanProspectsForRepliesPhase.SocialAccount.UserId,
-                EndWorkTime = await _timestampService.GetEndWorkDayTimestampAsync(halId),                
+                EndWorkTime = await _timestampService.GetEndWorkDayTimestampAsync(halId),
                 NamespaceName = config.ServiceDiscoveryConfig.Name,
                 ServiceDiscoveryName = config.ApiServiceDiscoveryName
             };
@@ -85,7 +95,7 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
                 {
                     int lastFollowUpMessageOrder = campaignProspect.SentFollowUpMessageOrderNum;
                     CampaignProspectFollowUpMessage lastFollowUpMessage = campaignProspect.FollowUpMessages.Where(x => x.Order == lastFollowUpMessageOrder).FirstOrDefault();
-                    if(lastFollowUpMessage == null)
+                    if (lastFollowUpMessage == null)
                     {
                         string campaignProspectId = campaignProspect.CampaignProspectId;
                         int orderNum = campaignProspect.SentFollowUpMessageOrderNum;
@@ -102,7 +112,7 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
                         };
 
                         contactedCampaignProspects.Add(contactedCampaignProspect);
-                    }                    
+                    }
                 }
                 scanProspectsForRepliesBody.ContactedCampaignProspects = contactedCampaignProspects;
             }

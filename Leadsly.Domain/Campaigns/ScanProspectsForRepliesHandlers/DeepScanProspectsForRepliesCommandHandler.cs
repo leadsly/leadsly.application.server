@@ -1,41 +1,34 @@
 ﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
-using Leadsly.Application.Model.Entities;
 using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Domain.Campaigns.Handlers;
 using Leadsly.Domain.Facades.Interfaces;
-using Leadsly.Domain.Providers.Interfaces;
-using Leadsly.Domain.Repositories;
-using Leadsly.Domain.Services.Interfaces;
+using Leadsly.Domain.Factories.Interfaces;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
 {
-    public class DeepScanProspectsForRepliesCommandHandler : ScanProspectsForRepliesCommandHandlerBase, ICommandHandler<DeepScanProspectsForRepliesCommand>
+    public class DeepScanProspectsForRepliesCommandHandler : ICommandHandler<DeepScanProspectsForRepliesCommand>
     {
         public DeepScanProspectsForRepliesCommandHandler(
+            IScanProspectsForRepliesMessagesFactory messagesFactory,
             IMessageBrokerOutlet messageBrokerOutlet,
             ILogger<DeepScanProspectsForRepliesCommandHandler> logger,
-            IHalRepository halRepository,
-            IRabbitMQProvider rabbitMQProvider,            
-            ITimestampService timestampService,
             ICampaignRepositoryFacade campaignRepositoryFacade
-            ) : base(logger, campaignRepositoryFacade, rabbitMQProvider, halRepository, timestampService)
+            )
         {
+            _messagesFactory = messagesFactory;
             _messageBrokerOutlet = messageBrokerOutlet;            
-            _logger = logger;
-            _halRepository = halRepository;            
+            _logger = logger;         
             _campaignRepositoryFacade = campaignRepositoryFacade;
         }
 
+        private readonly IScanProspectsForRepliesMessagesFactory _messagesFactory;
         private readonly ILogger<DeepScanProspectsForRepliesCommandHandler> _logger;
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
-        private readonly IHalRepository _halRepository;
         private readonly IMessageBrokerOutlet _messageBrokerOutlet;        
 
         /// <summary>
@@ -56,19 +49,16 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
 
             foreach (var halCampaignProspects in halsCampaignProspects)
             {
-                HalUnit halUnit = await _halRepository.GetByHalIdAsync(halCampaignProspects.Key);
-                string scanProspectsForRepliesPhaseId = halUnit.SocialAccount.ScanProspectsForRepliesPhase.ScanProspectsForRepliesPhaseId;
-                string userId = halUnit.SocialAccount.UserId;
-                string halId = halUnit.HalId;
+                string halId = halCampaignProspects.Key;
 
                 // fire off ScanProspectsForRepliesPhase with the payload of the contacted prospects
-                ScanProspectsForRepliesBody messageBody = await CreateScanProspectsForRepliesBodyAsync(scanProspectsForRepliesPhaseId, halId, halCampaignProspects.Value);
+                ScanProspectsForRepliesBody messageBody = await _messagesFactory.CreateMessageAsync(halId, halCampaignProspects.Value);
 
-                InternalExecute(messageBody);
+                PublishMessage(messageBody);
             }
         }
 
-        private void InternalExecute(ScanProspectsForRepliesBody messageBody)
+        private void PublishMessage(ScanProspectsForRepliesBody messageBody)
         {
             string queueNameIn = RabbitMQConstants.ScanProspectsForReplies.QueueName;
             string routingKeyIn = RabbitMQConstants.ScanProspectsForReplies.RoutingKey;
