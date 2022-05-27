@@ -1,23 +1,16 @@
-﻿using Domain.Models.Responses.Interfaces;
-using Leadsly.Application.Model;
+﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.Campaigns.Interfaces;
 using Leadsly.Application.Model.Entities;
 using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Application.Model.Entities.Campaigns.Phases;
-using Leadsly.Application.Model.Requests;
 using Leadsly.Application.Model.Requests.FromHal;
-using Leadsly.Application.Model.Requests.Hal;
-using Leadsly.Application.Model.Requests.Hal.Interfaces;
 using Leadsly.Application.Model.Responses;
 using Leadsly.Application.Model.ViewModels;
 using Leadsly.Application.Model.ViewModels.Response;
-using Leadsly.Domain.Converters;
 using Microsoft.AspNetCore.JsonPatch;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -150,26 +143,28 @@ namespace Leadsly.Domain.Supervisor
         {
             HalOperationResult<T> result = new();
 
-            IList<Application.Model.Entities.Campaigns.SearchUrlProgress> searchUrlsProgressEntity = await _searchUrlProgressRepository.GetAllByCampaignIdAsync(campaignId, ct);
+            IList<SearchUrlProgress> searchUrlsProgressEntity = await _searchUrlProgressRepository.GetAllByCampaignIdAsync(campaignId, ct);
 
-            IList<Application.Model.Campaigns.SearchUrlProgress> searchUrlsProgres = searchUrlsProgressEntity.Select(s =>
-            {
-                return new Application.Model.Campaigns.SearchUrlProgress
+            IList<SearchUrlProgressRequest> searchUrlsProgres = searchUrlsProgressEntity
+                .Where(s => s.Exhausted == false)
+                .Select(s =>
                 {
-                    CampaignId = s.CampaignId,
-                    Exhausted = s.Exhausted,
-                    LastActivityTimestamp = s.LastActivityTimestamp,
-                    LastPage = s.LastPage,
-                    LastProcessedProspect = s.LastProcessedProspect,
-                    SearchUrl = s.SearchUrl,
-                    TotalSearchResults = s.TotalSearchResults,
-                    SearchUrlProgressId = s.SearchUrlProgressId,
-                    StartedCrawling = s.StartedCrawling,
-                    WindowHandleId = s.WindowHandleId
-                };
-            }).ToList();
+                    return new SearchUrlProgressRequest
+                    {
+                        CampaignId = s.CampaignId,
+                        Exhausted = s.Exhausted,
+                        LastActivityTimestamp = s.LastActivityTimestamp,
+                        LastPage = s.LastPage,
+                        LastProcessedProspect = s.LastProcessedProspect,
+                        SearchUrl = s.SearchUrl,
+                        TotalSearchResults = s.TotalSearchResults,
+                        SearchUrlProgressId = s.SearchUrlProgressId,
+                        StartedCrawling = s.StartedCrawling,
+                        WindowHandleId = s.WindowHandleId
+                    };
+                }).ToList();
 
-            ISearchUrlProgressResponse searchUrlProgressResponse = new SearchUrlProgressResponse
+            ISearchUrlProgressPayload searchUrlProgressResponse = new SearchUrlProgressPayload
             {
                 SearchUrlsProgress = searchUrlsProgres
             };
@@ -179,11 +174,11 @@ namespace Leadsly.Domain.Supervisor
             return result;
         }
 
-        public async Task<HalOperationResult<T>> UpdateSearchUrlProgressAsync<T>(string searchUrlProgressId, JsonPatchDocument<Application.Model.Entities.Campaigns.SearchUrlProgress> patchDoc, CancellationToken ct = default)
+        public async Task<HalOperationResult<T>> UpdateSearchUrlProgressAsync<T>(string searchUrlProgressId, JsonPatchDocument<SearchUrlProgress> patchDoc, CancellationToken ct = default)
             where T : IOperationResponse
         {
             HalOperationResult<T> result = new();
-            Application.Model.Entities.Campaigns.SearchUrlProgress searchUrlProgressToUpdate = await _searchUrlProgressRepository.GetByIdAsync(searchUrlProgressId, ct);
+            SearchUrlProgress searchUrlProgressToUpdate = await _searchUrlProgressRepository.GetByIdAsync(searchUrlProgressId, ct);
 
             patchDoc.ApplyTo(searchUrlProgressToUpdate);
             searchUrlProgressToUpdate = await _searchUrlProgressRepository.UpdateAsync(searchUrlProgressToUpdate, ct);

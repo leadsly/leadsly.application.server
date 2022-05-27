@@ -75,7 +75,11 @@ namespace Leadsly.Domain.Campaigns.NetworkingHandler
             IList<Campaign> campaigns = await _campaignRepositoryFacade.GetAllActiveCampaignsByHalIdAsync(halId);
             foreach (Campaign activeCampaign in campaigns)
             {
-                await HandleInternalAsync(activeCampaign.CampaignId, activeCampaign.ApplicationUserId);
+                // filter here based on searchurlprogress
+                if(activeCampaign.SearchUrlsProgress.Any(s => s.Exhausted == false))
+                {
+                    await HandleInternalAsync(activeCampaign.CampaignId, activeCampaign.ApplicationUserId);
+                }                
             }
 
             return messages;

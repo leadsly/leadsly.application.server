@@ -163,6 +163,7 @@ namespace Leadsly.Infrastructure.Repositories
                 campaigns = await _dbContext.Campaigns
                     .Where(c => c.Active == true && c.HalId == halId)
                     .Include(c => c.CampaignProspectList)
+                    .Include(c => c.SearchUrlsProgress)
                     .ToListAsync(ct);
 
                 _logger.LogDebug("Successfully retrieved all active campaigns by hal id {halId}", halId);
