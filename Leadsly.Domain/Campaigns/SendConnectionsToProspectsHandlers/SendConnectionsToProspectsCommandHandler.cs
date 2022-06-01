@@ -121,14 +121,14 @@ namespace Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers
             messageBody.SendConnectionsStage = stage;
 
             // TODO needs to be adjusted for DateTimeOffset and user's timeZoneId
-            DateTime nowLocalized = await _timestampService.GetNowLocalizedAsync(halId);
+            DateTimeOffset nowLocalized = await _timestampService.GetNowLocalizedAsync(halId);
             if (DateTimeOffset.TryParse(stage.StartTime, out DateTimeOffset phaseStartDateTime) == false)
             {
                 string startTime = stage.StartTime;
                 _logger.LogError("Failed to parse SendConnectionRequests start time. Tried to parse {startTime}", startTime);
             }
 
-            DateTime localizedStart = await _timestampService.GetLocalizedDateTimeAsync(halId, phaseStartDateTime);
+            DateTimeOffset localizedStart = await _timestampService.GetLocalizedDateTimeOffsetAsync(halId, phaseStartDateTime);
             if (nowLocalized.TimeOfDay < localizedStart.TimeOfDay)
             {
                 BackgroundJob.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers), phaseStartDateTime);

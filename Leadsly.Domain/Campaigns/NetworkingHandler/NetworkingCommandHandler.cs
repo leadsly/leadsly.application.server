@@ -76,14 +76,15 @@ namespace Leadsly.Domain.Campaigns.NetworkingHandler
             string halId = message.HalId;
 
             // TODO needs to be adjusted for DateTimeOffset and user's timeZoneId
-            DateTime nowLocalized = await _timestampService.GetNowLocalizedAsync(halId);
+            //DateTime nowLocalized = await _timestampService.GetNowLocalizedAsync(halId);
+            DateTimeOffset nowLocalized = await _timestampService.GetNowLocalizedAsync(halId);
             if (DateTimeOffset.TryParse(message.StartTime, out DateTimeOffset phaseStartDateTime) == false)
             {
                 string startTime = message.StartTime;
                 _logger.LogError("Failed to parse Networking start time. Tried to parse {startTime}", startTime);
             }
 
-            DateTime localizedStart = await _timestampService.GetLocalizedDateTimeAsync(halId, phaseStartDateTime);
+            DateTimeOffset localizedStart = await _timestampService.GetLocalizedDateTimeOffsetAsync(halId, phaseStartDateTime);
             if (nowLocalized.TimeOfDay < localizedStart.TimeOfDay)
             {
                 BackgroundJob.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(message, queueNameIn, routingKeyIn, halId, null), phaseStartDateTime);
@@ -91,7 +92,7 @@ namespace Leadsly.Domain.Campaigns.NetworkingHandler
             else
             {
                 // temporary to schedule jobs right away                
-                //_messageBrokerOutlet.PublishPhase(message, queueNameIn, routingKeyIn, halId, null);
+                // _messageBrokerOutlet.PublishPhase(message, queueNameIn, routingKeyIn, halId, null);
             }
         }
     }

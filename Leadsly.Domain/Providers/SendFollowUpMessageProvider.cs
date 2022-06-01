@@ -48,8 +48,9 @@ namespace Leadsly.Domain.Providers
                     {
                         // this campaign prospect has received all of the follow up messages configured
                         // check if the last follow up message was sent 14 or more days ago, if yes mark this prospect as complete or fullfilled
-                        DateTimeOffset lastFollowUpMessage = _timestampService.GetDateFromTimestamp(campaignProspect.LastFollowUpMessageSentTimestamp);
-                        if ((lastFollowUpMessage.LocalDateTime - DateTime.Now).TotalDays < 14)
+                        DateTimeOffset localLastFollowUpMessage = await _timestampService.GetDateFromTimestampLocalizedAsync(campaignProspect.Campaign.HalId, campaignProspect.LastFollowUpMessageSentTimestamp);
+                        DateTimeOffset localNow = await _timestampService.GetNowLocalizedAsync(campaignProspect.Campaign.HalId);
+                        if ((localLastFollowUpMessage - localNow).TotalDays < 14)
                         {
                             campaignProspect.FollowUpComplete = true;
                             await _campaignRepositoryFacade.UpdateCampaignProspectAsync(campaignProspect, ct);
@@ -94,17 +95,17 @@ namespace Leadsly.Domain.Providers
 
                 DateTimeOffset followUpMessageDateTime = GetFollowUpMessageDateTime(message, campaignProspect.LastFollowUpMessageSentTimestamp);
 
-                DateTime followUpmessageDateTimeLocalized = await _timestampService.GetLocalizedDateTimeAsync(campaignProspect.Campaign.HalId, followUpMessageDateTime, ct);
-                DateTime startWorkDayDateTime = await _timestampService.GetStartWorkDayLocalizedAsync(campaignProspect.Campaign.HalId, ct);
-                DateTime endWorkDateDateTime = await _timestampService.GetEndWorkDayLocalizedAsync(campaignProspect.Campaign.HalId, ct);
+                DateTimeOffset followUpmessageDateTimeOffsetLocalized = await _timestampService.GetLocalizedDateTimeOffsetAsync(campaignProspect.Campaign.HalId, followUpMessageDateTime, ct);
+                DateTimeOffset startWorkDayDateTimeOffset = await _timestampService.GetStartWorkDayLocalizedAsync(campaignProspect.Campaign.HalId, ct);
+                DateTimeOffset endWorkDateDateTimeOffset = await _timestampService.GetEndWorkDayLocalizedAsync(campaignProspect.Campaign.HalId, ct);
 
-                if (followUpmessageDateTimeLocalized < startWorkDayDateTime)
+                if (followUpmessageDateTimeOffsetLocalized < startWorkDayDateTimeOffset)
                 {
                     goingOut.Add(campaignProspectFollowUpMessage, default);
                 }
-                else if (followUpmessageDateTimeLocalized > startWorkDayDateTime && followUpmessageDateTimeLocalized < endWorkDateDateTime)
+                else if (followUpmessageDateTimeOffsetLocalized > startWorkDayDateTimeOffset && followUpmessageDateTimeOffsetLocalized < endWorkDateDateTimeOffset)
                 {
-                    goingOut.Add(campaignProspectFollowUpMessage, followUpMessageDateTime);
+                    goingOut.Add(campaignProspectFollowUpMessage, followUpmessageDateTimeOffsetLocalized);
                 }
             }
             else
@@ -163,18 +164,18 @@ namespace Leadsly.Domain.Providers
         {
             DateTimeOffset followUpMessageDatetimeOffset = GetFollowUpMessageDateTime(message, campaignProspect.LastFollowUpMessageSentTimestamp);
 
-            DateTime followUpMessageDateTimeLocalized = await _timestampService.GetLocalizedDateTimeAsync(campaignProspect.Campaign.HalId, followUpMessageDatetimeOffset, ct);
-            DateTime startWorkDayDateTime = await _timestampService.GetStartWorkDayLocalizedAsync(campaignProspect.Campaign.HalId, ct);
-            DateTime endWorkDateDateTime = await _timestampService.GetEndWorkDayLocalizedAsync(campaignProspect.Campaign.HalId, ct);
+            DateTimeOffset followUpMessageDateTimeOffsetLocalized = await _timestampService.GetLocalizedDateTimeOffsetAsync(campaignProspect.Campaign.HalId, followUpMessageDatetimeOffset, ct);
+            DateTimeOffset startWorkDayDateTime = await _timestampService.GetStartWorkDayLocalizedAsync(campaignProspect.Campaign.HalId, ct);
+            DateTimeOffset endWorkDateDateTime = await _timestampService.GetEndWorkDayLocalizedAsync(campaignProspect.Campaign.HalId, ct);
 
             bool canBeSentToday = false;
             // if followUpMessageDatetimeOffset falls between start date and end date schedule it
-            if (followUpMessageDateTimeLocalized < startWorkDayDateTime)
+            if (followUpMessageDateTimeOffsetLocalized < startWorkDayDateTime)
             {
                 // schedule right away
                 canBeSentToday = true;
             }
-            else if (followUpMessageDateTimeLocalized > startWorkDayDateTime && followUpMessageDateTimeLocalized < endWorkDateDateTime)
+            else if (followUpMessageDateTimeOffsetLocalized > startWorkDayDateTime && followUpMessageDateTimeOffsetLocalized < endWorkDateDateTime)
             {
                 // schedule it for the given date since it falls within our time range
                 canBeSentToday = true;

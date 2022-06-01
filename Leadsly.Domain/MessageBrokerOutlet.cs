@@ -23,7 +23,7 @@ namespace Leadsly.Domain
         private readonly ISerializerFacade _serializerFacade;
         private readonly ILogger<MessageBrokerOutlet> _logger;
 
-        public void PublishPhase(PublishMessageBody messageBody, string queueNameIn, string routingKeyIn, string halId, Dictionary<string, object> headers)
+        public void PublishPhase(PublishMessageBody messageBody, string queueNameIn, string routingKeyIn, string halId, IDictionary<string, object> headers)
         {
             byte[] body = _serializerFacade.Serialize(messageBody);
 

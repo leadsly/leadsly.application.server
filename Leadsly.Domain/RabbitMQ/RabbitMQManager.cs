@@ -26,20 +26,23 @@ namespace Leadsly.Domain
         private readonly IRabbitMQRepository _rabbitMQRepository;
 
 
-        public void PublishMessage(byte[] body, string queueNameIn, string routingKeyIn, string halId, Dictionary<string, object> headers = default)
+        public void PublishMessage(byte[] body, string queueNameIn, string routingKeyIn, string halId, IDictionary<string, object> headers = default)
         {
             RabbitMQOptions options = GetRabbitMQOptions();
 
             string exchangeName = options.ExchangeOptions.Name;            
             string exchangeType = options.ExchangeOptions.ExchangeType;
-            
-            IModel channel = _pool.Get();
 
-            channel.ExchangeDeclare(exchangeName, exchangeType);
+            IModel channel = _pool.Get();
+            channel.ExchangeDeclare(exchangeName, exchangeType);            
 
             string queueName = options.QueueConfigOptions.Name.Replace("{halId}", halId);
             queueName = queueName.Replace("{queueName}", queueNameIn);
-            channel.QueueDeclare(queue: queueName, durable: false, exclusive: false, autoDelete: false, arguments: null);
+
+            IDictionary<string, object> arguments = new Dictionary<string, object>();
+            arguments.Add(RabbitMQConstants.QueueType, RabbitMQConstants.Quorum);
+
+            channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: arguments);
 
             string routingKey = options.RoutingKey.Replace("{halId}", halId);
             routingKey = routingKey.Replace("{purpose}", routingKeyIn);

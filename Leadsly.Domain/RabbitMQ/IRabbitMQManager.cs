@@ -10,6 +10,6 @@ namespace Leadsly.Domain
 {
     public interface IRabbitMQManager
     {
-        public void PublishMessage(byte[] body, string queueNameIn, string routingKeyIn, string halId, Dictionary<string, object> headers = default);
+        public void PublishMessage(byte[] body, string queueNameIn, string routingKeyIn, string halId, IDictionary<string, object> headers = default);
     }
 }

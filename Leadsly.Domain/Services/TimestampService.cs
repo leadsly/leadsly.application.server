@@ -28,14 +28,26 @@ namespace Leadsly.Domain.Services
             return DateTimeOffset.Now.ToUnixTimeSeconds();
         }
 
-        public async Task<DateTime> GetNowLocalizedAsync(string halId, CancellationToken ct = default)
+        //public async Task<DateTime> GetNowLocalizedAsync(string halId, CancellationToken ct = default)
+        //{
+        //    HalUnit halUnit = await GetHalUnitByHalIdAsync(halId, ct);
+        //    string zoneId = halUnit.TimeZoneId;
+
+        //    _logger.LogInformation("Executing GetDateTimeNowWithZone for zone {zoneId}", zoneId);
+        //    DateTime nowLocal = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, zoneId);
+        //    _logger.LogInformation($"Now in local zone {zoneId} is {nowLocal.Date}");
+
+        //    return nowLocal;
+        //}
+
+        public async Task<DateTimeOffset> GetNowLocalizedAsync(string halId, CancellationToken ct = default)
         {
             HalUnit halUnit = await GetHalUnitByHalIdAsync(halId, ct);
             string zoneId = halUnit.TimeZoneId;
 
             _logger.LogInformation("Executing GetDateTimeNowWithZone for zone {zoneId}", zoneId);
-            DateTime nowLocal = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, zoneId);
-            _logger.LogInformation($"Now in local zone {zoneId} is {nowLocal.Date}");
+            DateTimeOffset nowLocal = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, zoneId);
+            _logger.LogInformation($"Now in local zone {zoneId} is {nowLocal}");
 
             return nowLocal;
         }
@@ -80,31 +92,74 @@ namespace Leadsly.Domain.Services
             return timestamp;
         }
 
-        public DateTimeOffset GetDateFromTimestamp(long timestamp)
+        public async Task<DateTimeOffset> GetDateFromTimestampLocalizedAsync(string halId, long timestamp, CancellationToken ct = default)
         {
             _logger.LogInformation("Converting timestamp {timestamp} to DateTimeOffset", timestamp);
-            DateTimeOffset dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(timestamp);
+            HalUnit halUnit = await GetHalUnitByHalIdAsync(halId, ct);
 
-            return dateTimeOffset;
-        }           
+            string tzId = halUnit.TimeZoneId;
+            TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById(tzId);
 
-        public async Task<DateTime> GetStartWorkDayLocalizedAsync(string halId, CancellationToken ct = default)
+            DateTimeOffset timestampDateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(timestamp);
+            DateTimeOffset targetTime = TimeZoneInfo.ConvertTime(timestampDateTimeOffset, tzInfo);
+
+            return targetTime;
+        }
+
+        //public async Task<DateTime> GetStartWorkDayLocalizedAsync(string halId, CancellationToken ct = default)
+        //{
+        //    _logger.LogInformation("Retrieving StartWorkDayLocalized for HalId {halId}", halId);
+        //    HalUnit halUnit = await GetHalUnitByHalIdAsync(halId, ct);
+
+        //    if (DateTime.TryParse(halUnit.StartHour, out DateTime startDateTime) == false)
+        //    {
+        //        string startHour = halUnit?.StartHour;
+        //        _logger.LogError("Failed to parse hals start hour. Attempted to parse {startHour}", startHour);
+        //    }
+
+        //    _logger.LogDebug($"Successfully created start datetime localized: {startDateTime.Date}");
+
+        //    return startDateTime;
+        //}
+
+        public async Task<DateTimeOffset> GetStartWorkDayLocalizedAsync(string halId, CancellationToken ct = default)
         {
             _logger.LogInformation("Retrieving StartWorkDayLocalized for HalId {halId}", halId);
             HalUnit halUnit = await GetHalUnitByHalIdAsync(halId, ct);
 
-            if (DateTime.TryParse(halUnit.StartHour, out DateTime startDateTime) == false)
+            if (DateTimeOffset.TryParse(halUnit.StartHour, out DateTimeOffset startDateTime) == false)
             {
                 string startHour = halUnit?.StartHour;
                 _logger.LogError("Failed to parse hals start hour. Attempted to parse {startHour}", startHour);
+                throw new Exception("Failed to convert hal's start time to DateTimeOffset");
             }
 
             _logger.LogDebug($"Successfully created start datetime localized: {startDateTime.Date}");
+            string tzId = halUnit.TimeZoneId;
+            TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById(tzId);
 
-            return startDateTime;
+            DateTimeOffset targetTime = TimeZoneInfo.ConvertTime(startDateTime, tzInfo);
+
+            return targetTime;
         }
 
-        public async Task<DateTime> GetEndWorkDayLocalizedAsync(string halId, CancellationToken ct = default)
+        //public async Task<DateTime> GetEndWorkDayLocalizedAsync(string halId, CancellationToken ct = default)
+        //{
+        //    _logger.LogInformation("Retrieving EndWorkDayLocalized for HalId {halId}", halId);
+        //    HalUnit halUnit = await GetHalUnitByHalIdAsync(halId, ct);
+
+        //    if (DateTime.TryParse(halUnit.EndHour, out DateTime endDateTime) == false)
+        //    {
+        //        string endHour = halUnit?.EndHour;
+        //        _logger.LogError("Failed to parse hals end hour. Attempted to parse {endHour}", endHour);
+        //    }
+
+        //    _logger.LogDebug($"Successfully created end datetime localized: {endDateTime.Date}");
+
+        //    return endDateTime;
+        //}
+
+        public async Task<DateTimeOffset> GetEndWorkDayLocalizedAsync(string halId, CancellationToken ct = default)
         {
             _logger.LogInformation("Retrieving EndWorkDayLocalized for HalId {halId}", halId);
             HalUnit halUnit = await GetHalUnitByHalIdAsync(halId, ct);
@@ -115,25 +170,46 @@ namespace Leadsly.Domain.Services
                 _logger.LogError("Failed to parse hals end hour. Attempted to parse {endHour}", endHour);
             }
 
-            _logger.LogDebug($"Successfully created end datetime localized: {endDateTime.Date}");
+            _logger.LogDebug($"Successfully created end datetime localized: {endDateTime}");
 
-            return endDateTime;
+            string tzId = halUnit.TimeZoneId;
+            TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById(tzId);
+
+            DateTimeOffset targetTime = TimeZoneInfo.ConvertTime(endDateTime, tzInfo);
+
+            return targetTime;
         }
 
-        public async Task<DateTime> GetLocalizedDateTimeAsync(string halId, DateTimeOffset dateTimeOffset, CancellationToken ct = default)
+        //public async Task<DateTime> GetLocalizedDateTimeAsync(string halId, DateTimeOffset dateTimeOffset, CancellationToken ct = default)
+        //{
+        //    _logger.LogInformation($"Creating localized date time from DateTimeOffset: {dateTimeOffset.DateTime}");
+
+        //    _logger.LogDebug("Retrieving hal with id {halId}", halId);
+        //    HalUnit halUnit = await GetHalUnitByHalIdAsync(halId, ct);
+
+        //    string timeZoneId = halUnit.TimeZoneId;
+        //    _logger.LogDebug("HalUnit's time zone id is {timeZoneId}", timeZoneId);
+        //    DateTime localDateTime = new DateTimeWithZone(dateTimeOffset.DateTime, TimeZoneInfo.FindSystemTimeZoneById(timeZoneId)).LocalTime;
+
+        //    _logger.LogInformation($"Successfully created localized date time {localDateTime.Date}");
+
+        //    return localDateTime;
+        //}
+
+        public async Task<DateTimeOffset> GetLocalizedDateTimeOffsetAsync(string halId, DateTimeOffset dateTimeOffset, CancellationToken ct = default)
         {
-            _logger.LogInformation($"Creating localized date time from DateTimeOffset: {dateTimeOffset.DateTime}");
+            _logger.LogInformation($"Creating localized DateTimeOffset from DateTimeOffset: {dateTimeOffset}");
 
             _logger.LogDebug("Retrieving hal with id {halId}", halId);
             HalUnit halUnit = await GetHalUnitByHalIdAsync(halId, ct);
 
             string timeZoneId = halUnit.TimeZoneId;
             _logger.LogDebug("HalUnit's time zone id is {timeZoneId}", timeZoneId);
-            DateTime localDateTime = new DateTimeWithZone(dateTimeOffset.DateTime, TimeZoneInfo.FindSystemTimeZoneById(timeZoneId)).LocalTime;
+            TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);                        
 
-            _logger.LogInformation($"Successfully created localized date time {localDateTime.Date}");
+            DateTimeOffset targetTime = TimeZoneInfo.ConvertTime(dateTimeOffset, tzInfo);
 
-            return localDateTime;
+            return targetTime;
         }
 
         private async Task<HalUnit> GetHalUnitByHalIdAsync(string halId, CancellationToken ct = default)
