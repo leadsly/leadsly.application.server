@@ -76,7 +76,7 @@ namespace Leadsly.Domain.Factories
             Campaign campaign = await _campaignRepositoryFacade.GetCampaignByIdAsync(campaignId, ct);
             if (campaign.IsWarmUpEnabled == true)
             {
-
+                throw new NotImplementedException();
             }
             else
             {

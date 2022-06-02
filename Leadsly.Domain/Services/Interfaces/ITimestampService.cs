@@ -10,8 +10,9 @@ namespace Leadsly.Domain.Services.Interfaces
         Task<DateTimeOffset> GetNowLocalizedAsync(string halId, CancellationToken ct = default);
         Task<long> GetStartWorkDayTimestampAsync(string halId, CancellationToken ct = default);
         Task<long> GetEndWorkDayTimestampAsync(string halId, CancellationToken ct = default);        
-        Task<DateTimeOffset> GetStartOfWorkdayForHalIdAsync(string halId, CancellationToken ct = default);                
-        Task<DateTimeOffset> GetEndWorkDayForHalIdAsync(string halId, CancellationToken ct = default);        
+        Task<DateTimeOffset> GetStartWorkdayLocalizedForHalIdAsync(string halId, CancellationToken ct = default);                
+        Task<DateTimeOffset> GetEndWorkDayLocalizedForHalIdAsync(string halId, CancellationToken ct = default);
+        Task<DateTimeOffset> ParseDateTimeOffsetLocalizedAsync(string halId, string timeOfDay, CancellationToken ct = default);
         Task<DateTimeOffset> GetLocalizedDateTimeOffsetAsync(string halId, DateTimeOffset dateTimeOffset, CancellationToken ct = default);
         Task<DateTimeOffset> GetDateFromTimestampLocalizedAsync(string halId, long timestamp, CancellationToken ct = default);
     }

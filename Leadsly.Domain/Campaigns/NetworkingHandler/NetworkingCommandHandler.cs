@@ -76,20 +76,16 @@ namespace Leadsly.Domain.Campaigns.NetworkingHandler
             string halId = message.HalId;
 
             DateTimeOffset nowLocalized = await _timestampService.GetNowLocalizedAsync(halId);
-            if (DateTimeOffset.TryParse(message.StartTime, out DateTimeOffset phaseStartDateTime) == false)
-            {
-                string startTime = message.StartTime;
-                _logger.LogError("Failed to parse Networking start time. Tried to parse {startTime}", startTime);
-            }
+            DateTimeOffset phaseStartDateTimeOffset = await _timestampService.ParseDateTimeOffsetLocalizedAsync(halId, message.StartTime);
 
-            if (nowLocalized.TimeOfDay < phaseStartDateTime.TimeOfDay)
+            if (nowLocalized.TimeOfDay < phaseStartDateTimeOffset.TimeOfDay)
             {
-                _logger.LogInformation($"[Networking] This phase will be scheduled to start at {phaseStartDateTime}. Current local time is: {nowLocalized}");
-                BackgroundJob.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(message, queueNameIn, routingKeyIn, halId, null), phaseStartDateTime);
+                _logger.LogInformation($"[Networking] This phase will be scheduled to start at {phaseStartDateTimeOffset}. Current local time is: {nowLocalized}");
+                BackgroundJob.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(message, queueNameIn, routingKeyIn, halId, null), phaseStartDateTimeOffset);
             }
             else
             {
-                _logger.LogInformation($"[Networking] This phase will not be triggered today because it is in the past {phaseStartDateTime}. Current local time is: {nowLocalized}");
+                _logger.LogInformation($"[Networking] This phase will not be triggered today because it is in the past {phaseStartDateTimeOffset}. Current local time is: {nowLocalized}");
                 // temporary to schedule jobs right away                
                 // _messageBrokerOutlet.PublishPhase(message, queueNameIn, routingKeyIn, halId, null);
             }

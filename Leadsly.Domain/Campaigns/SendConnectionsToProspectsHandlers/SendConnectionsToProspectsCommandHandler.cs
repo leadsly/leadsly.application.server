@@ -121,21 +121,16 @@ namespace Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers
             messageBody.SendConnectionsStage = stage;
 
             DateTimeOffset nowLocalized = await _timestampService.GetNowLocalizedAsync(halId);
-            if (DateTimeOffset.TryParse(stage.StartTime, out DateTimeOffset phaseStartDateTime) == false)
-            {
-                string startTime = stage.StartTime;
-                _logger.LogError("Failed to parse SendConnectionRequests start time. Tried to parse {startTime}", startTime);
-            }
+            DateTimeOffset phaseStartDateTimeOffset = await _timestampService.ParseDateTimeOffsetLocalizedAsync(halId, stage.StartTime);            
 
-            // DateTimeOffset localizedStart = await _timestampService.GetLocalizedDateTimeOffsetAsync(halId, phaseStartDateTime);
-            if (nowLocalized.TimeOfDay < phaseStartDateTime.TimeOfDay)
+            if (nowLocalized.TimeOfDay < phaseStartDateTimeOffset.TimeOfDay)
             {
-                _logger.LogInformation($"[SendConnectionsHandler]: Publishing message for {phaseStartDateTime}. Current local time is: {nowLocalized}");
-                BackgroundJob.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers), phaseStartDateTime);
+                _logger.LogInformation($"[SendConnectionsHandler]: Publishing message for {phaseStartDateTimeOffset}. Current local time is: {nowLocalized}");
+                BackgroundJob.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers), phaseStartDateTimeOffset);
             }
             else
             {
-                _logger.LogInformation($"[SendConnectionsHandler]: Message will NOT be published because it is in the past {phaseStartDateTime}. Current local time is: {nowLocalized}");
+                _logger.LogInformation($"[SendConnectionsHandler]: Message will NOT be published because it is in the past {phaseStartDateTimeOffset}. Current local time is: {nowLocalized}");
                 // temporary to schedule jobs right away                
                 //_messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers);
             }
