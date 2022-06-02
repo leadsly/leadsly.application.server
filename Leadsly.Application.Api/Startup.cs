@@ -17,6 +17,7 @@ using Leadsly.Application.Model;
 using Leadsly.Domain.Supervisor;
 using Leadsly.Domain.Services;
 using Leadsly.Application.Api.Middlewares;
+using Leadsly.Application.Api.Filters;
 
 namespace Leadsly.Application.Api
 {
@@ -97,7 +98,11 @@ namespace Leadsly.Application.Api
 
             app.UseSerilogRequestLogging();
 
-            app.UseHangfireDashboard("/hangfire");
+            DashboardOptions options = new DashboardOptions()
+            {
+                Authorization = new[] { new HangfireAuthFilter() }                
+            };
+            app.UseHangfireDashboard("/hangfire", options);
 
             app.SeedDatabase();
 

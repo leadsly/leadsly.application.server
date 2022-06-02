@@ -28,13 +28,14 @@ namespace Leadsly.Domain.Services
         {
             //*************************** Daily Jobs ***************************
             ////////////////////////////////////////////////////////////////////
-            if(_env.IsDevelopment() || _env.IsStaging())
+            if(_env.IsDevelopment())
             {
                 BackgroundJob.Enqueue<IRecurringJobsHandler>((x) => x.CreateAndPublishJobsAsync());
             }
             else
             {
-                RecurringJob.AddOrUpdate<IRecurringJobsHandler>("activeCampaigns", (x) => x.CreateAndPublishJobsAsync(), Cron.Daily(6, 40));
+                _logger.LogDebug($"Local timezone is {TimeZoneInfo.Local}");
+                RecurringJob.AddOrUpdate<IRecurringJobsHandler>("activeCampaigns", (x) => x.CreateAndPublishJobsAsync(), Cron.Daily(6, 40), TimeZoneInfo.Local);
             }
         }
     }
