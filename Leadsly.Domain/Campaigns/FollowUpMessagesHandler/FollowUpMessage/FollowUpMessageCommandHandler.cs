@@ -46,7 +46,7 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessage
             }
             else
             {
-                BackgroundJob.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(followUpMessageBody, queueNameIn, routingKeyIn, halId, null), command.ScheduleTime.LocalDateTime);
+                BackgroundJob.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(followUpMessageBody, queueNameIn, routingKeyIn, halId, null), command.ScheduleTime);
             }
         }
     }

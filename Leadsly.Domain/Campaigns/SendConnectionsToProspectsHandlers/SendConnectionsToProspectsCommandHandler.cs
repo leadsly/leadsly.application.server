@@ -120,7 +120,6 @@ namespace Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers
 
             messageBody.SendConnectionsStage = stage;
 
-            // TODO needs to be adjusted for DateTimeOffset and user's timeZoneId
             DateTimeOffset nowLocalized = await _timestampService.GetNowLocalizedAsync(halId);
             if (DateTimeOffset.TryParse(stage.StartTime, out DateTimeOffset phaseStartDateTime) == false)
             {
@@ -128,13 +127,15 @@ namespace Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers
                 _logger.LogError("Failed to parse SendConnectionRequests start time. Tried to parse {startTime}", startTime);
             }
 
-            DateTimeOffset localizedStart = await _timestampService.GetLocalizedDateTimeOffsetAsync(halId, phaseStartDateTime);
-            if (nowLocalized.TimeOfDay < localizedStart.TimeOfDay)
+            // DateTimeOffset localizedStart = await _timestampService.GetLocalizedDateTimeOffsetAsync(halId, phaseStartDateTime);
+            if (nowLocalized.TimeOfDay < phaseStartDateTime.TimeOfDay)
             {
+                _logger.LogInformation($"[SendConnectionsHandler]: Publishing message for {phaseStartDateTime}. Current local time is: {nowLocalized}");
                 BackgroundJob.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers), phaseStartDateTime);
             }
             else
             {
+                _logger.LogInformation($"[SendConnectionsHandler]: Message will NOT be published because it is in the past {phaseStartDateTime}. Current local time is: {nowLocalized}");
                 // temporary to schedule jobs right away                
                 //_messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers);
             }
