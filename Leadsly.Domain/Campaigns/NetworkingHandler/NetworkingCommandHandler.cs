@@ -81,7 +81,7 @@ namespace Leadsly.Domain.Campaigns.NetworkingHandler
             if (nowLocalized.TimeOfDay < phaseStartDateTimeOffset.TimeOfDay)
             {
                 _logger.LogInformation($"[Networking] This phase will be scheduled to start at {phaseStartDateTimeOffset}. Current local time is: {nowLocalized}");
-                BackgroundJob.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(message, queueNameIn, routingKeyIn, halId, null), phaseStartDateTimeOffset);
+                BackgroundJob.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(message, queueNameIn, routingKeyIn, halId, null), phaseStartDateTimeOffset.AddMinutes(22));
             }
             else
             {

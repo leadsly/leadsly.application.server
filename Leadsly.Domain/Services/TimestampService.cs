@@ -36,7 +36,7 @@ namespace Leadsly.Domain.Services
             TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById(zoneId);
             _logger.LogInformation("Executing GetNowLocalizedAsync for zone {zoneId}", zoneId);
 
-            DateTime nowLocalTime = new DateTimeWithZone(DateTime.Now, tzInfo).LocalTime;
+            DateTime nowLocalTime = TimeZoneInfo.ConvertTime(DateTime.Now, tzInfo);
             DateTimeOffset targetDateTimeOffset =
                 new DateTimeOffset
                 (
@@ -46,7 +46,6 @@ namespace Leadsly.Domain.Services
                 (
                     DateTime.SpecifyKind(nowLocalTime, DateTimeKind.Local)
                 ));
-
 
             _logger.LogInformation($"Now in local zone {zoneId} is {targetDateTimeOffset}");
             return targetDateTimeOffset;
@@ -143,22 +142,19 @@ namespace Leadsly.Domain.Services
         private DateTimeOffset ParseDateTimeOffsetLocalized(string timeOfDay, string timeZoneId)
         {
             TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
-
-            if (DateTime.TryParse(timeOfDay, out DateTime phaseStartDateTime) == false)
-            {
-                string startTime = timeOfDay;
-                _logger.LogError("Failed to parse Networking start time. Tried to parse {startTime}", startTime);
-            }
+            TimeSpan ts = DateTime.Parse(timeOfDay).TimeOfDay;
+            DateTime nowLocalTime = TimeZoneInfo.ConvertTime(DateTime.Now, tzInfo);
+            DateTime targetDateTime = nowLocalTime.Date.AddTicks(ts.Ticks);
 
             DateTimeOffset targetDateTimeOffset =
                 new DateTimeOffset
                 (
-                    DateTime.SpecifyKind(phaseStartDateTime, DateTimeKind.Unspecified
-                ),
-                tzInfo.GetUtcOffset
-                (
-                    DateTime.SpecifyKind(phaseStartDateTime, DateTimeKind.Local)
-                ));
+                    targetDateTime,
+                    tzInfo.GetUtcOffset
+                    (
+                        DateTime.SpecifyKind(targetDateTime, DateTimeKind.Local)
+                    )
+                );
 
             return targetDateTimeOffset;
         }
