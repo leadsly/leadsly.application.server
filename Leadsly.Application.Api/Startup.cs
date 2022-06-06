@@ -35,15 +35,11 @@ namespace Leadsly.Application.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            PostgresOptions postgresOptions = new();            
-            Configuration.GetSection(nameof(PostgresOptions)).Bind(postgresOptions);
-            string authToken = RDSAuthTokenGenerator.GenerateAuthToken(postgresOptions.Host, postgresOptions.Port, postgresOptions.UserId);            
-            string defaultConnection = $"Host={postgresOptions.Host};User Id={postgresOptions.UserId};Password={authToken};Database={postgresOptions.Database};Include Error Detail=true";
-
             services.AddControllers()
                     .AddJsonOptionsConfiguration();
 
-            services.AddConnectionProviders(Configuration, Environment, defaultConnection)
+            services.AddDatabaseConnectionString(Configuration)
+                    .AddConnectionProviders(Environment)
                     .AddJsonWebTokenConfiguration(Configuration)
                     .AddAuthorizationConfiguration()
                     .AddCorsConfiguration(Configuration)
@@ -53,7 +49,7 @@ namespace Leadsly.Application.Api
                     .AddFacadesConfiguration()
                     .AddServicesConfiguration()
                     .AddLeadslyDependencies(Configuration)
-                    .AddHangfireConfig(defaultConnection)
+                    .AddHangfireConfig()
                     .AddIdentityConfiguration(Configuration)
                     .AddHttpContextAccessor()
                     .AddEmailServiceConfiguration()

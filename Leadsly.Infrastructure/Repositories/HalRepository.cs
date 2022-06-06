@@ -17,7 +17,7 @@ namespace Leadsly.Infrastructure.Repositories
         public HalRepository(DatabaseContext dbContext, ILogger<HalRepository> logger)
         {
             _dbContext = dbContext;
-            _logger = logger;
+            _logger = logger;            
         }
 
         private readonly ILogger<HalRepository> _logger;
@@ -47,7 +47,7 @@ namespace Leadsly.Infrastructure.Repositories
             _logger.LogInformation("Retrieving HalUnit by socialaccount username {connectedAccountUserName}", connectedAccountUsername);
             HalUnit halDetails = null;
             try
-            {
+            {                
                 // should always be just one
                 halDetails = await _dbContext.HalUnits
                     .Include(h => h.SocialAccount)

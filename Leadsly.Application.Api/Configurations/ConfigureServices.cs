@@ -1,5 +1,6 @@
 ﻿using Amazon;
 using Amazon.ECS;
+using Amazon.RDS.Util;
 using Amazon.Route53;
 using Amazon.ServiceDiscovery;
 using Hangfire;
@@ -69,13 +70,16 @@ namespace Leadsly.Application.Api.Configurations
 {
     public static class ConfigureServices
     {
-        public static IServiceCollection AddConnectionProviders(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env, string defaultConnection)
+        public static IServiceCollection AddConnectionProviders(this IServiceCollection services, IWebHostEnvironment env)
         {
             Log.Information("Configuring default connection string and database context.");
 
+            IServiceProvider serviceProvider = services.BuildServiceProvider();
+            IDbInfo dbInfo = serviceProvider.GetRequiredService<IDbInfo>();
+
             services.AddDbContext<DatabaseContext>(options =>
             {
-                options.UseNpgsql(defaultConnection);
+                options.UseNpgsql(dbInfo.ConnectionString);                
                 if (env.IsDevelopment())
                 {
                     Log.Information("Enabling SQL sensitive data logging.");
@@ -84,7 +88,31 @@ namespace Leadsly.Application.Api.Configurations
                 }
             }, ServiceLifetime.Scoped);
 
-            services.AddSingleton(new DbInfo(defaultConnection));
+            return services;
+        }
+
+        public static IServiceCollection AddDatabaseConnectionString(this IServiceCollection services, IConfiguration configuration, bool useIAMAuth = false)
+        {
+            DatabaseConnections databaseConnections = new();
+            configuration.GetSection(nameof(DatabaseConnections)).Bind(databaseConnections);
+            string defaultConnection = string.Empty;
+            if (useIAMAuth)
+            {
+                // IAM Authentication code. Token valid only for 15 mins and needs to be renewed after that                
+                string authToken = RDSAuthTokenGenerator.GenerateAuthToken(databaseConnections.IAMAuth.Host, databaseConnections.IAMAuth.Port, databaseConnections.IAMAuth.UserId);
+                defaultConnection = $"Host={databaseConnections.IAMAuth.Host};User Id={databaseConnections.IAMAuth.UserId};Password={authToken};Database={databaseConnections.IAMAuth.Database};Include Error Detail=true";
+            }
+            else
+            {
+                DatabaseConnectionInformation dbConnectionInfo = AwsSecretsFetcher.GetSecret<DatabaseConnectionInformation>(databaseConnections.AuthCredentials.Key, databaseConnections.AuthCredentials.AwsRegion);
+                defaultConnection = $"Host={dbConnectionInfo.Host};User Id={dbConnectionInfo.UserName};Password={dbConnectionInfo.Password};Database=leadsly;Include Error Detail=true";
+            }
+
+            services.AddSingleton(options =>
+            {
+                IDbInfo dbInfo = new DbInfo(defaultConnection);
+                return dbInfo;
+            });
 
             return services;
         }
@@ -154,15 +182,18 @@ namespace Leadsly.Application.Api.Configurations
             return services;
         }
 
-        public static IServiceCollection AddHangfireConfig(this IServiceCollection services, string defaultConnection)
+        public static IServiceCollection AddHangfireConfig(this IServiceCollection services)
         {
             Log.Information("Registering hangfire services.");
 
             GlobalJobFilters.Filters.Add(new AutomaticRetryAttribute { Attempts = 0 });
 
+            IServiceProvider serviceProvider = services.BuildServiceProvider();
+            IDbInfo dbInfo = serviceProvider.GetRequiredService<IDbInfo>();
+
             services.AddHangfire(config =>
             {
-                config.UsePostgreSqlStorage(defaultConnection);
+                config.UsePostgreSqlStorage(dbInfo.ConnectionString);
                 config.UseRecommendedSerializerSettings();
             }).AddHangfireServer();
 
