@@ -215,7 +215,7 @@ namespace Leadsly.Domain
             foreach (string halId in halIds)
             {
                 IList<CampaignProspect> campaignProspects = await GetAllCampaignProspectsByHalIdAsync(halId, ct);
-                if (campaignProspects.Any(p => p.Accepted == true && p.FollowUpMessageSent == true && p.Replied == false) == true)
+                if (campaignProspects.Any(p => p.Accepted == true && p.FollowUpMessageSent == true && p.Replied == false && p.FollowUpComplete == false) == true)
                 {
                     deepScanHalIds.Add(halId);
                 }

@@ -70,7 +70,7 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages
             {
                 // grab all campaign prospects for each campaign
                 IList<CampaignProspect> campaignProspects = await _campaignRepositoryFacade.GetAllCampaignProspectsByCampaignIdAsync(activeCampaign.CampaignId);
-                List<CampaignProspect> prospectsForFollowUpMessage = campaignProspects.Where(p => p.Accepted == true && p.Replied == false).ToList();
+                List<CampaignProspect> prospectsForFollowUpMessage = campaignProspects.Where(p => p.Accepted == true && p.Replied == false && p.FollowUpComplete == false).ToList();
                 if(prospectsForFollowUpMessage.Count > 0)
                 {
                     // await campaignProvider.SendFollowUpMessagesAsync(uncontactedProspects);
