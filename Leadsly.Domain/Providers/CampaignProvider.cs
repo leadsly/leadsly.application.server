@@ -142,7 +142,9 @@ namespace Leadsly.Domain.Providers
                         if(campaignProspectToUpdate != null)
                         {
                             campaignProspectToUpdate.Replied = true;
+                            campaignProspectToUpdate.FollowUpComplete = true;
                             campaignProspectToUpdate.ResponseMessage = prospectReplied.ResponseMessage;
+
                             campaignProspectsToUpdate.Add(campaignProspectToUpdate);
                         }
                     }

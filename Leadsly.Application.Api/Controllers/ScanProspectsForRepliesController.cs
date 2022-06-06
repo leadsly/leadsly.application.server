@@ -37,7 +37,7 @@ namespace Leadsly.Application.Api.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> ProspectsReplied(string halId, ProspectsRepliedRequest request, CancellationToken ct = default)
         {
-            _logger.LogInformation("Executing ProspectsReplies action for HalId {halId}", halId);
+            _logger.LogInformation("Executing ProspectsReplied action for HalId {halId}", halId);
 
             HalOperationResult<IOperationResponse> result = await _supervisor.ProcessProspectsRepliedAsync<IOperationResponse>(request, ct);
 

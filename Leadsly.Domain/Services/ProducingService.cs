@@ -26,15 +26,18 @@ namespace Leadsly.Domain.Services
 
         public void StartRecurringJobs()
         {
+            _logger.LogInformation("Starting to execute StartRecurringJobs");
             //*************************** Daily Jobs ***************************
             ////////////////////////////////////////////////////////////////////
             if(_env.IsDevelopment())
             {
+                _logger.LogInformation("Enquing CreateAndPublishJobsAsync");
                 BackgroundJob.Enqueue<IRecurringJobsHandler>((x) => x.CreateAndPublishJobsAsync());
             }
             else
             {
                 _logger.LogDebug($"Local timezone is {TimeZoneInfo.Local}");
+                _logger.LogInformation("Executing RecurringJob.AddOrUpdate");
                 RecurringJob.AddOrUpdate<IRecurringJobsHandler>("activeCampaigns", (x) => x.CreateAndPublishJobsAsync(), Cron.Daily(6, 40), TimeZoneInfo.Local);
             }
         }
