@@ -55,7 +55,7 @@ namespace Leadsly.Application.Api
                            {
                                IHostEnvironment env = hostBuilderContext.HostingEnvironment;
                                Log.Information($"Application is running in: {env.EnvironmentName} mode.");
-                               if (env.IsProduction() || env.IsStaging() || env.IsDevelopment())
+                               if (env.IsProduction() || env.IsStaging())
                                {
                                    Log.Information("Using AWS Secrets Manager");
                                    builder.AddSecretsManager();

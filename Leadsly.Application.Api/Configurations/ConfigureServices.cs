@@ -11,9 +11,7 @@ using Leadsly.Application.Api.Services;
 using Leadsly.Application.Domain.OptionsJsonModels;
 using Leadsly.Application.Model;
 using Leadsly.Application.Model.Entities;
-using Leadsly.Application.Model.RabbitMQ;
 using Leadsly.Domain;
-using Leadsly.Domain.Campaigns;
 using Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessage;
 using Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages;
 using Leadsly.Domain.Campaigns.FollowUpMessagesHandler.UncontactedFollowUpMessages;
@@ -91,7 +89,7 @@ namespace Leadsly.Application.Api.Configurations
             return services;
         }
 
-        public static IServiceCollection AddDatabaseConnectionString(this IServiceCollection services, IConfiguration configuration, bool useIAMAuth = false)
+        public static IServiceCollection AddDatabaseConnectionString(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env, bool useIAMAuth = false)
         {
             DatabaseConnections databaseConnections = new();
             configuration.GetSection(nameof(DatabaseConnections)).Bind(databaseConnections);
@@ -100,12 +98,23 @@ namespace Leadsly.Application.Api.Configurations
             {
                 // IAM Authentication code. Token valid only for 15 mins and needs to be renewed after that                
                 string authToken = RDSAuthTokenGenerator.GenerateAuthToken(databaseConnections.IAMAuth.Host, databaseConnections.IAMAuth.Port, databaseConnections.IAMAuth.UserId);
-                defaultConnection = $"Host={databaseConnections.IAMAuth.Host};User Id={databaseConnections.IAMAuth.UserId};Password={authToken};Database={databaseConnections.IAMAuth.Database};Include Error Detail=true";
+                defaultConnection = $"Host={databaseConnections.IAMAuth.Host};User Id={databaseConnections.IAMAuth.UserId};Password={authToken};Database={databaseConnections.Database};Include Error Detail=true";
             }
             else
             {
-                DatabaseConnectionInformation dbConnectionInfo = AwsSecretsFetcher.GetSecret<DatabaseConnectionInformation>(databaseConnections.AuthCredentials.Key, databaseConnections.AuthCredentials.AwsRegion);
-                defaultConnection = $"Host={dbConnectionInfo.Host};User Id={dbConnectionInfo.UserName};Password={dbConnectionInfo.Password};Database=leadsly;Include Error Detail=true";
+                if (env.IsDevelopment())
+                {
+                    // secrets.json
+                    string userName = configuration[$"{databaseConnections.AuthCredentials.Key}:Username"];
+                    string host = configuration[$"{databaseConnections.AuthCredentials.Key}:Host"];
+                    string password = configuration[$"{databaseConnections.AuthCredentials.Key}:Password"];
+                    defaultConnection = $"Host={host};User Id={userName};Password={password};Database={databaseConnections.Database};Include Error Detail=true";
+                }
+                else
+                {
+                    DatabaseConnectionInformation dbConnectionInfo = AwsSecretsFetcher.GetSecret<DatabaseConnectionInformation>(databaseConnections.AuthCredentials.Key, databaseConnections.AuthCredentials.AwsRegion);
+                    defaultConnection = $"Host={dbConnectionInfo.Host};User Id={dbConnectionInfo.UserName};Password={dbConnectionInfo.Password};Database={databaseConnections.Database};Include Error Detail=true";
+                }                
             }
 
             services.AddSingleton(options =>
