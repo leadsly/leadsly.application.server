@@ -51,46 +51,6 @@ namespace Leadsly.Domain.Services
             return targetDateTimeOffset;
         }
 
-        public async Task<long> GetStartWorkDayTimestampAsync(string halId, CancellationToken ct = default)
-        {
-            _logger.LogInformation("Executing GetStartWorkDayTimestamp for HalId {halId}", halId);
-            HalUnit halUnit = await GetHalUnitByHalIdAsync(halId, ct);
-            if(DateTime.TryParse(halUnit.StartHour, out DateTime startDateTime) == false)
-            {
-                string startHour = halUnit?.StartHour;
-                _logger.LogError("Failed to parse hals start hour. Attempted to parse {startHour}", startHour);
-            }
-            _logger.LogDebug("Successfully parsed start hour date time");
-            if(halUnit.TimeZoneId == null)
-            {
-                _logger.LogError("Hal does NOT have configured time zone! This is required to create time stamp for 'Now' for this hal unit");
-            }
-
-            long timestamp = new DateTimeOffset(startDateTime).ToUnixTimeSeconds();
-
-            return timestamp;
-        }
-
-        public async Task<long> GetEndWorkDayTimestampAsync(string halId, CancellationToken ct = default)
-        {
-            _logger.LogInformation("Executing GetEndWorkDayTimestamp for HalId {halId}", halId);
-            HalUnit halUnit = await GetHalUnitByHalIdAsync(halId, ct);            
-            if (DateTime.TryParse(halUnit.EndHour, out DateTime endDateTime) == false)
-            {
-                string endHour = halUnit?.EndHour;
-                _logger.LogError("Failed to parse hals end hour. Attempted to parse {endHour}", endHour);
-            }
-            _logger.LogDebug("Successfully parsed end hour date time");
-            if (halUnit.TimeZoneId == null)
-            {
-                _logger.LogError("Hal does NOT have configured time zone! This is required to create time stamp for 'Now' for this hal unit");
-            }
-
-            long timestamp = new DateTimeOffset(endDateTime).ToUnixTimeSeconds();
-
-            return timestamp;
-        }
-
         public async Task<DateTimeOffset> GetDateFromTimestampLocalizedAsync(string halId, long timestamp, CancellationToken ct = default)
         {
             _logger.LogInformation("Converting timestamp {timestamp} to DateTimeOffset", timestamp);

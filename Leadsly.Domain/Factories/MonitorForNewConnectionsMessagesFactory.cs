@@ -100,8 +100,6 @@ namespace Leadsly.Domain.Factories
                 UserId = userId,
                 TimeZoneId = halUnit.TimeZoneId,
                 PageUrl = monitorForNewConnectionsPhase.PageUrl,
-                StartWorkTime = await _timestampService.GetStartWorkDayTimestampAsync(halId),
-                EndWorkTime = await _timestampService.GetEndWorkDayTimestampAsync(halId),
                 NamespaceName = config.ServiceDiscoveryConfig.Name,
                 ServiceDiscoveryName = config.ApiServiceDiscoveryName,
                 NumOfHoursAgo = numOfHoursAgo,

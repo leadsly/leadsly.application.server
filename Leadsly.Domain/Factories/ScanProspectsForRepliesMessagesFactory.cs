@@ -83,7 +83,6 @@ namespace Leadsly.Domain.Factories
                 EndOfWorkday = halUnit.EndHour,
                 ChromeProfileName = chromeProfileName,
                 UserId = scanProspectsForRepliesPhase.SocialAccount.UserId,
-                EndWorkTime = await _timestampService.GetEndWorkDayTimestampAsync(halId),
                 NamespaceName = config.ServiceDiscoveryConfig.Name,
                 ServiceDiscoveryName = config.ApiServiceDiscoveryName
             };
