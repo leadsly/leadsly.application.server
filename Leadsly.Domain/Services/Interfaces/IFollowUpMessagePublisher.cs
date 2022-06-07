@@ -10,6 +10,6 @@ namespace Leadsly.Domain.Services.Interfaces
 {
     public interface IFollowUpMessagePublisher
     {
-        Task PublishPhaseAsync(FollowUpMessageBody messageBody, string queueNameIn, string routingKeyIn, string halId);
+        public Task PublishPhaseAsync(FollowUpMessageBody messageBody, string queueNameIn, string routingKeyIn, string halId);
     }
 }
