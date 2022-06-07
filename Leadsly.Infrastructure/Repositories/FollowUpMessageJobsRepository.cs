@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Leadsly.Infrastructure.Repositories
 {
-    internal class FollowUpMessageJobsRepository : IFollowUpMessageJobsRepository
+    public class FollowUpMessageJobsRepository : IFollowUpMessageJobsRepository
     {
         public FollowUpMessageJobsRepository(ILogger<FollowUpMessageJobsRepository> logger, DatabaseContext dbContext)
         {
@@ -20,6 +20,8 @@ namespace Leadsly.Infrastructure.Repositories
 
         private readonly ILogger<FollowUpMessageJobsRepository> _logger;
         private readonly DatabaseContext _dbContext;
+
+        private async Task<bool> FollowUpMessageJobExists(string id, CancellationToken ct = default) => await _dbContext.FollowUpMessageJobs.AnyAsync(c => c.FollowUpMessageJobId == id, ct);
 
         public async Task<FollowUpMessageJob> AddFollowUpJobAsync(FollowUpMessageJob followUpJob, CancellationToken ct = default)
         {
@@ -37,7 +39,7 @@ namespace Leadsly.Infrastructure.Repositories
             return followUpJob;
         }
 
-        public async Task<IList<FollowUpMessageJob>> GetFollowUpJobIdsAsync(string campaignProspectId, CancellationToken ct = default)
+        public async Task<IList<FollowUpMessageJob>> GetAllByCampaignProspectIdAsync(string campaignProspectId, CancellationToken ct = default)
         {
             _logger.LogInformation($"Retrieving FollowUpMessageJobs by campaignProspectId {campaignProspectId}");
             IList<FollowUpMessageJob> followUpMessageJobs = default;
@@ -50,6 +52,35 @@ namespace Leadsly.Infrastructure.Repositories
                 _logger.LogError(ex, $"Failed to retrieve FollowUpMessageJobs by campaignPropsectId {campaignProspectId}");
             }
             return followUpMessageJobs;
+        }
+
+        public async Task<FollowUpMessageJob> GetByFollowUpmessageIdAsync(string followUpMessageId, CancellationToken ct = default)
+        {
+            FollowUpMessageJob followUpMessageJob = default;
+            try
+            {
+                followUpMessageJob = await _dbContext.FollowUpMessageJobs.Where(x => x.FollowUpMessageId == followUpMessageId).SingleAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to retrieve FollowUpMessageJob by FollowUpMessageId {followUpMessageId}");
+            }
+
+            return followUpMessageJob;
+        }
+
+        public async Task<bool> DeleteFollowUpMessageJobAsync(string followUpMessageJobId, CancellationToken ct = default)
+        {
+            if (!await FollowUpMessageJobExists(followUpMessageJobId, ct))
+            {
+                return false;
+            }
+
+            FollowUpMessageJob toRemove = _dbContext.FollowUpMessageJobs.Find(followUpMessageJobId);
+            _dbContext.FollowUpMessageJobs.Remove(toRemove);
+            await _dbContext.SaveChangesAsync(ct);
+
+            return true;
         }
     }
 }

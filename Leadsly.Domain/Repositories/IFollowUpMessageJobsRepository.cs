@@ -10,8 +10,8 @@ namespace Leadsly.Domain.Repositories
 {
     public interface IFollowUpMessageJobsRepository
     {
-        Task<IList<FollowUpMessageJob>> GetFollowUpJobsAsync(string campaignProspectId, CancellationToken ct = default);
-        Task<FollowUpMessageJob> GetFollowUpMessageJobAsync(string followUpMessageId, CancellationToken ct = default);
+        Task<IList<FollowUpMessageJob>> GetAllByCampaignProspectIdAsync(string campaignProspectId, CancellationToken ct = default);
+        Task<FollowUpMessageJob> GetByFollowUpmessageIdAsync(string followUpMessageId, CancellationToken ct = default);
         Task<bool> DeleteFollowUpMessageJobAsync(string followUpMessageJobId, CancellationToken ct = default);
         Task<FollowUpMessageJob> AddFollowUpJobAsync(FollowUpMessageJob followUpmessageJob, CancellationToken ct = default);
     }

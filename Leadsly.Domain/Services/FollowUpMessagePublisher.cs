@@ -25,15 +25,15 @@ namespace Leadsly.Domain.Services
         private readonly IFollowUpMessageJobsRepository _followUpMessageJobsRepository;
         private readonly ILogger<IFollowUpMessagePublisher> _logger;
 
-        public async Task PublishPhaseAsync(FollowUpMessageBody messageBody, string queueNameIn, string routingKeyIn, string halId, CancellationToken ct = default)
+        public async Task PublishPhaseAsync(FollowUpMessageBody messageBody, string queueNameIn, string routingKeyIn, string halId)
         {
             _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, null);
 
-            FollowUpMessageJob followUpMessageJob = await _followUpMessageJobsRepository.GetFollowUpMessageJobAsync(messageBody.FollowUpMessageId, ct);
+            FollowUpMessageJob followUpMessageJob = await _followUpMessageJobsRepository.GetByFollowUpmessageIdAsync(messageBody.FollowUpMessageId);
             if(followUpMessageJob != null)
             {
                 // remove this job from the table now
-                await _followUpMessageJobsRepository.DeleteFollowUpMessageJobAsync(followUpMessageJob.FollowUpMessageId, ct);
+                await _followUpMessageJobsRepository.DeleteFollowUpMessageJobAsync(followUpMessageJob.FollowUpMessageId);
             }
         }
     }

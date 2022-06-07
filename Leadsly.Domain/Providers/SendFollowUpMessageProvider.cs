@@ -41,7 +41,9 @@ namespace Leadsly.Domain.Providers
 
         public async Task ScheduleFollowUpMessageAsync(FollowUpMessageBody followUpMessageBody, string queueNameIn, string routingKeyIn, string halId, DateTimeOffset scheduleTime, CancellationToken ct = default)
         {
+            _logger.LogDebug($"Scheduling FollowUpMessage to be published at {scheduleTime}");
             string jobId = BackgroundJob.Schedule<IFollowUpMessagePublisher>(x => x.PublishPhaseAsync(followUpMessageBody, queueNameIn, routingKeyIn, halId), scheduleTime);
+            _logger.LogDebug($"Scheduled hangfire job id is {jobId}");
 
             FollowUpMessageJob followUpJob = new()
             {

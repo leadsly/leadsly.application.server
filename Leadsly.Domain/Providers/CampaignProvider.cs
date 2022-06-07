@@ -177,7 +177,7 @@ namespace Leadsly.Domain.Providers
         private async Task DeleteAnyScheduledFollowUpMessagesAsync(string campaignProspectId, CancellationToken ct = default)
         {
             // check if this user has any scheduled follow up messages that still have to go out
-            List<FollowUpMessageJob> followUpMessageJobs = await _followUpMessageJobRepository.GetFollowUpJobIdsAsync(campaignProspectId, ct) as List<FollowUpMessageJob>;
+            List<FollowUpMessageJob> followUpMessageJobs = await _followUpMessageJobRepository.GetAllByCampaignProspectIdAsync(campaignProspectId, ct) as List<FollowUpMessageJob>;
             followUpMessageJobs.ForEach(followUpMessageJob =>
             {
                 _logger.LogDebug($"Removing hangfire job with id {followUpMessageJob.HangfireJobId}");
