@@ -187,6 +187,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<IFollowUpMessagePhaseRepository, FollowUpMessagePhaseRepository>();
             services.AddScoped<IFollowUpMessageRepository, FollowUpMessageRepository>();
             services.AddScoped<ISearchUrlProgressRepository, SearchUrlProgressRepository>();
+            services.AddScoped<IFollowUpMessageJobsRepository, FollowUpMessageJobsRepository>();
 
             return services;
         }

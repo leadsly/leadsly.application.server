@@ -1,6 +1,9 @@
-﻿using Leadsly.Application.Model.Entities.Campaigns;
+﻿using Hangfire;
+using Leadsly.Application.Model.Campaigns;
+using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
+using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -19,19 +22,36 @@ namespace Leadsly.Domain.Providers
             ICampaignRepositoryFacade campaignRepositoryFacade, 
             ITimestampService timestampService, 
             ILogger<SendFollowUpMessageProvider> logger,
+            IFollowUpMessageJobsRepository followUpMessageRepository,
             IMemoryCache memoryCache
             )
         {
             _memoryCache = memoryCache;
             _campaignRepositoryFacade = campaignRepositoryFacade;
+            _followUpMessageJobsRepository = followUpMessageRepository;
             _timestampService = timestampService;
             _logger = logger;
         }
 
+        private readonly IFollowUpMessageJobsRepository _followUpMessageJobsRepository;
         private readonly ILogger<SendFollowUpMessageProvider> _logger;
         private readonly IMemoryCache _memoryCache;
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
         private readonly ITimestampService _timestampService;
+
+        public async Task ScheduleFollowUpMessageAsync(FollowUpMessageBody followUpMessageBody, string queueNameIn, string routingKeyIn, string halId, DateTimeOffset scheduleTime, CancellationToken ct = default)
+        {
+            string jobId = BackgroundJob.Schedule<IFollowUpMessagePublisher>(x => x.PublishPhaseAsync(followUpMessageBody, queueNameIn, routingKeyIn, halId), scheduleTime);
+
+            FollowUpMessageJob followUpJob = new()
+            {
+                CampaignProspectId = followUpMessageBody.CampaignProspectId,
+                HangfireJobId = jobId,
+                FollowUpMessageId = followUpMessageBody.FollowUpMessageId
+            };
+
+            await _followUpMessageJobsRepository.AddFollowUpJobAsync(followUpJob, ct);
+        }
 
         public async Task<IDictionary<CampaignProspectFollowUpMessage, DateTimeOffset>> CreateSendFollowUpMessagesAsync(IList<CampaignProspect> campaignProspects, CancellationToken ct = default)
         {

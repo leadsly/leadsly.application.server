@@ -1,4 +1,5 @@
-﻿using Leadsly.Application.Model;
+﻿using Hangfire;
+using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.Campaigns.Interfaces;
 using Leadsly.Application.Model.Entities;
@@ -36,9 +37,13 @@ namespace Leadsly.Domain.Providers
             ITimestampService timestampService,            
             ICampaignPhaseClient campaignPhaseClient,
             ICampaignRepositoryFacade campaignRepositoryFacade,
+            IMemoryCache memoryCache,
+            IFollowUpMessageJobsRepository followUpMessageJobRepository,
             ISocialAccountRepository socialAccountRepository
             )
         {
+            _followUpMessageJobRepository = followUpMessageJobRepository;
+            _memoryCache = memoryCache;
             _socialAccountRepository = socialAccountRepository;
             _campaignPhaseClient = campaignPhaseClient;
             _timestampService = timestampService;
@@ -47,6 +52,8 @@ namespace Leadsly.Domain.Providers
             _campaignRepositoryFacade = campaignRepositoryFacade;
         }
 
+        private readonly IFollowUpMessageJobsRepository _followUpMessageJobRepository;
+        private readonly IMemoryCache _memoryCache;
         private readonly ISocialAccountRepository _socialAccountRepository;
         private readonly ICampaignPhaseClient _campaignPhaseClient;        
         private readonly ITimestampService _timestampService;
@@ -133,19 +140,21 @@ namespace Leadsly.Domain.Providers
             foreach (ProspectRepliedRequest prospectReplied in request.ProspectsReplied)
             {
                 // check if this hal has any prospects in active campaigns that match this prospect
-                List<CampaignProspect> campaignProspects = await _campaignRepositoryFacade.GetAllActiveCampaignProspectsByHalIdAsync(halId, ct) as List<CampaignProspect>;
+                List<CampaignProspect> campaignProspects = await GetActiveCampaignProspectsByHalIdAsync(halId, ct) as List<CampaignProspect>;
                 if(campaignProspects != null && campaignProspects.Count > 0)
                 {
                     try
                     {
                         CampaignProspect campaignProspectToUpdate = campaignProspects.SingleOrDefault(p => p.Name == prospectReplied.ProspectName);
-                        if(campaignProspectToUpdate != null)
+                        if (campaignProspectToUpdate != null)
                         {
                             campaignProspectToUpdate.Replied = true;
                             campaignProspectToUpdate.FollowUpComplete = true;
                             campaignProspectToUpdate.ResponseMessage = prospectReplied.ResponseMessage;
 
                             campaignProspectsToUpdate.Add(campaignProspectToUpdate);
+
+                            await DeleteAnyScheduledFollowUpMessagesAsync(campaignProspectToUpdate.CampaignProspectId, ct);
                         }
                     }
                     catch (InvalidOperationException ex)
@@ -163,6 +172,28 @@ namespace Leadsly.Domain.Providers
 
             result.Succeeded = true;
             return result;
+        }
+
+        private async Task DeleteAnyScheduledFollowUpMessagesAsync(string campaignProspectId, CancellationToken ct = default)
+        {
+            // check if this user has any scheduled follow up messages that still have to go out
+            List<FollowUpMessageJob> followUpMessageJobs = await _followUpMessageJobRepository.GetFollowUpJobIdsAsync(campaignProspectId, ct) as List<FollowUpMessageJob>;
+            followUpMessageJobs.ForEach(followUpMessageJob =>
+            {
+                _logger.LogDebug($"Removing hangfire job with id {followUpMessageJob.HangfireJobId}");
+                BackgroundJob.Delete(followUpMessageJob.HangfireJobId);
+            });
+        }
+
+        private async Task<IList<CampaignProspect>> GetActiveCampaignProspectsByHalIdAsync(string halId, CancellationToken ct = default)
+        {
+            if(_memoryCache.TryGetValue(halId, out IList<CampaignProspect> campaignProspects) == false)
+            {
+                campaignProspects = await _campaignRepositoryFacade.GetAllActiveCampaignProspectsByHalIdAsync(halId, ct);
+                _memoryCache.Set(halId, campaignProspects, TimeSpan.FromMinutes(3));
+            }
+
+            return campaignProspects;
         }
 
         /// <summary>

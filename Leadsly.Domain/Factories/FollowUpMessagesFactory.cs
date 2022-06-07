@@ -65,6 +65,7 @@ namespace Leadsly.Domain.Factories
                 HalId = followUpMessagePhase.Campaign.HalId,
                 Content = followUpMessage.Content,
                 UserId = followUpMessagePhase.Campaign.ApplicationUserId,
+                FollowUpMessageId = followUpMessage.CampaignProspectFollowUpMessageId,
                 NamespaceName = config.ServiceDiscoveryConfig.Name,
                 TimeZoneId = halUnit.TimeZoneId,
                 OrderNum = followUpMessage.Order,

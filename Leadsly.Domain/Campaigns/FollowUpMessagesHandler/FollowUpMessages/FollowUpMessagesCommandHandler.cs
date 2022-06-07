@@ -24,21 +24,21 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages
             IMessageBrokerOutlet messageBrokerOutlet,
             ILogger<FollowUpMessagesCommandHandler> logger,
             ICampaignRepositoryFacade campaignRepositoryFacade,
-            ISendFollowUpMessageProvider sendFollowUpMessageService
+            ISendFollowUpMessageProvider sendFollowUpMessagProvider
             )
         {
             _logger = logger;
             _campaignRepositoryFacade = campaignRepositoryFacade;
             _messagesFactory = messagesFactory;
             _messageBrokerOutlet = messageBrokerOutlet;
-            _sendFollowUpMessageService = sendFollowUpMessageService;
+            _sendFollowUpMessageProvider = sendFollowUpMessagProvider;
         }
 
         private readonly IFollowUpMessagesFactory _messagesFactory;
         private readonly IMessageBrokerOutlet _messageBrokerOutlet;
         private readonly ILogger<FollowUpMessagesCommandHandler> _logger;
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
-        private readonly ISendFollowUpMessageProvider _sendFollowUpMessageService;
+        private readonly ISendFollowUpMessageProvider _sendFollowUpMessageProvider;
 
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages
                 if(prospectsForFollowUpMessage.Count > 0)
                 {
                     // await campaignProvider.SendFollowUpMessagesAsync(uncontactedProspects);
-                    Dictionary<CampaignProspectFollowUpMessage, DateTimeOffset> messagesOut = await _sendFollowUpMessageService.CreateSendFollowUpMessagesAsync(prospectsForFollowUpMessage) as Dictionary<CampaignProspectFollowUpMessage, DateTimeOffset>;
+                    Dictionary<CampaignProspectFollowUpMessage, DateTimeOffset> messagesOut = await _sendFollowUpMessageProvider.CreateSendFollowUpMessagesAsync(prospectsForFollowUpMessage) as Dictionary<CampaignProspectFollowUpMessage, DateTimeOffset>;
                     messagesGoingOut.AddRange(messagesOut);
                 }
             }
@@ -104,11 +104,11 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages
             foreach (var messagePair in messagesGoingOut.OrderBy(k => k.Key.Order))
             {
                 FollowUpMessageBody followUpMessageBody = await _messagesFactory.CreateMessageAsync(messagePair.Key.CampaignProspectFollowUpMessageId, messagePair.Key.CampaignProspect.CampaignId);
-                PublishMessage(followUpMessageBody, messagePair.Value);
+                await PublishMessage(followUpMessageBody, messagePair.Value);
             }
         }
 
-        private void PublishMessage(FollowUpMessageBody followUpMessageBody, DateTimeOffset scheduleTime)
+        private async Task PublishMessage(FollowUpMessageBody followUpMessageBody, DateTimeOffset scheduleTime)
         {
             string queueNameIn = RabbitMQConstants.FollowUpMessage.QueueName;
             string routingKeyIn = RabbitMQConstants.FollowUpMessage.RoutingKey;
@@ -120,7 +120,8 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages
             }
             else
             {
-                BackgroundJob.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(followUpMessageBody, queueNameIn, routingKeyIn, halId, null), scheduleTime);
+                _logger.LogInformation($"Scheduling FollowUpMessageBody to go out at {scheduleTime}");
+                await _sendFollowUpMessageProvider.ScheduleFollowUpMessageAsync(followUpMessageBody, queueNameIn, routingKeyIn, halId, scheduleTime);                
             }
         }
     }
