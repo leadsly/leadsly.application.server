@@ -12,6 +12,6 @@ namespace Leadsly.Domain.Services.Interfaces
         Task<DateTimeOffset> GetEndWorkDayLocalizedForHalIdAsync(string halId, CancellationToken ct = default);
         Task<DateTimeOffset> ParseDateTimeOffsetLocalizedAsync(string halId, string timeOfDay, CancellationToken ct = default);
         Task<DateTimeOffset> GetLocalizedDateTimeOffsetAsync(string halId, DateTimeOffset dateTimeOffset, CancellationToken ct = default);
-        Task<DateTimeOffset> GetDateFromTimestampLocalizedAsync(string halId, long timestamp, CancellationToken ct = default);
+        Task<DateTimeOffset> GetDateFromTimestampLocalizedAsync(string halId, long timestamp, CancellationToken ct = default);        
     }
 }

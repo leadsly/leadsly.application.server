@@ -83,24 +83,13 @@ namespace Leadsly.Domain.Factories
                 IList<SendConnectionsStage> sendConnectionsStages = await _campaignRepositoryFacade.GetStagesByCampaignIdAsync(campaignId, ct);
 
                 int invitesPerStage = Math.DivRem(campaign.DailyInvites, sendConnectionsStages.Count, out int remainderInvites);
-                List<int> stagesConnectionsLimit = sendConnectionsStages.Select(_ => invitesPerStage).ToList();                
+                List<int> stagesConnectionsLimit = sendConnectionsStages.OrderBy(s => s.Order).Select(_ => invitesPerStage).ToList();                
                 if(remainderInvites != 0)
                 {
                     int last = stagesConnectionsLimit.Last();
                     stagesConnectionsLimit.RemoveAt(stagesConnectionsLimit.Count - 1);
                     last += remainderInvites;
                     stagesConnectionsLimit.Add(last);
-                }
-
-                int divider = sendConnectionsStages.Count;
-                decimal totalInvites = campaign.DailyInvites;                
-                while (divider > 0)
-                {
-                    decimal stageLimits = Math.Round(totalInvites / sendConnectionsStages.Count, 0);
-                    
-                    int currentStageLimits = Convert.ToInt32(stageLimits);
-                    stagesConnectionsLimit.Add(currentStageLimits);
-                    divider--;
                 }
 
                 for (int i = 0; i < stagesConnectionsLimit.Count; i++)

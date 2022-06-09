@@ -1,21 +1,29 @@
-﻿using Leadsly.Domain.Campaigns.FollowUpMessagesHandler.UncontactedFollowUpMessages;
+﻿using Hangfire;
+using Hangfire.Storage;
+using Leadsly.Application.Model.Entities;
+using Leadsly.Domain.Campaigns.FollowUpMessagesHandler.UncontactedFollowUpMessages;
 using Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandler;
 using Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers;
 using Leadsly.Domain.Campaigns.ProspectListsHandlers.ProspectLists;
+using Leadsly.Domain.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Leadsly.Domain
 {
     public class RecurringJobsHandler : IRecurringJobsHandler
     {
-        public RecurringJobsHandler(IServiceProvider serviceProbider)
+        public RecurringJobsHandler(IServiceProvider serviceProbider, HalWorkCommandHandlerDecorator<CheckOffHoursNewConnectionsCommand> offHoursHandler)
         {
             _serviceProbider = serviceProbider;
+            _offHoursHandler = offHoursHandler;
         }
 
         private readonly IServiceProvider _serviceProbider;
+        private readonly HalWorkCommandHandlerDecorator<CheckOffHoursNewConnectionsCommand> _offHoursHandler;
 
         public async Task CreateAndPublishJobsAsync()
         {
@@ -65,6 +73,22 @@ namespace Leadsly.Domain
                 ////////////////////////////////////////////////////////////////////////////////////////////////
                 await phaseManager.NetworkingPhaseAsync();
             }
+        }
+
+        public async Task CreateAndPublishJobsByHalIdAsync(string halId)
+        {
+            // 1. Run a daily job that scans for any new supported time zones
+
+            // 2. For each supported time zone create a recurring job called 'ActiveCampaigns_EasternStandardTime' or 'ActiveCampaigns_CentralStandardTime' if one does not already exist and schedule it
+
+            // 3. Each recurring job for specific TimeZone is triggered, will get the timezoneId
+
+            // 4. The recurring job will then look at the lookup table HalsTimeZones and retrieve all hal ids that match 'Eastern Standard Time' and trigger all of the required daily phases
+
+            /////
+            
+            // 1. when new hal unit is onboarded, add that hal unit id to the look up table HalsTimeZones with the corresponding TimeZoneId            
+
         }
     }
 }

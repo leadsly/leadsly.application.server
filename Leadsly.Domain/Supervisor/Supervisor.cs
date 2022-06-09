@@ -1,6 +1,7 @@
 ﻿using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
+using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
@@ -19,10 +20,12 @@ namespace Leadsly.Domain.Supervisor
             ICampaignProvider campaignProvider,
             ISocialAccountRepository socialAccountRepository,
             ICampaignPhaseClient campaignPhaseClient,
+            ILeadslyRecurringJobsManager recurringJobsManager,
             ICampaignPhaseProcessorProvider campaignPhaseProcessorProvider,
             IMemoryCache memoryCache,            
             ILogger<Supervisor> logger)
         {
+            _recurringJobsManager = recurringJobsManager;
             _campaignProvider = campaignProvider;
             _socialAccountRepository = socialAccountRepository;
             _halRepository = halRepository;
@@ -38,6 +41,7 @@ namespace Leadsly.Domain.Supervisor
             _logger = logger;            
         }
 
+        private readonly ILeadslyRecurringJobsManager _recurringJobsManager;
         private readonly ICampaignPhaseProcessorProvider _campaignPhaseProcessorProvider;
         private readonly ICampaignProvider _campaignProvider;
         private readonly ISocialAccountRepository _socialAccountRepository;

@@ -49,6 +49,8 @@ namespace Leadsly.Infrastructure
         public DbSet<SendConnectionsStage> SendConnectionsStages { get; set; }
         public DbSet<SearchUrlProgress> SearchUrlsProgress { get; set; }
         public DbSet<FollowUpMessageJob> FollowUpMessageJobs { get; set; }
+        public DbSet<LeadslyTimeZone> SupportedTimeZones { get; set; }
+        public DbSet<HalTimeZone> TimeZonesHals { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

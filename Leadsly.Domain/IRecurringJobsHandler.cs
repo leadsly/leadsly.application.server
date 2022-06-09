@@ -8,6 +8,8 @@ namespace Leadsly.Domain
 {
     public interface IRecurringJobsHandler
     {
-        Task CreateAndPublishJobsAsync();        
+        public Task CreateAndPublishJobsAsync();
+
+        public Task CreateAndPublishJobsByHalIdAsync(string halId);
     }
 }

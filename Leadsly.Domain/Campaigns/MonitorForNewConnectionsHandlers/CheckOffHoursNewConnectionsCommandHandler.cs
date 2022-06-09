@@ -1,17 +1,9 @@
 ﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
 using Leadsly.Domain.Campaigns.Handlers;
-using Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandler;
-using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Factories.Interfaces;
-using Leadsly.Domain.Providers.Interfaces;
-using Leadsly.Domain.Repositories;
-using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers
@@ -44,7 +36,7 @@ namespace Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers
             {
                 string halId = body.HalId;
                 _messageBrokerOutlet.PublishPhase(body, queueNameIn, routingKeyIn, halId, headers);
-            }
+            }        
         }
     }
 }

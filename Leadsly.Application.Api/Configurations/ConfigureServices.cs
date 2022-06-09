@@ -207,6 +207,9 @@ namespace Leadsly.Application.Api.Configurations
                 config.UseRecommendedSerializerSettings();
             }).AddHangfireServer();
 
+            services.AddSingleton<IHangfireService, HangfireService>();
+            services.AddScoped<ILeadslyRecurringJobsManager, LeadslyRecurringJobsManager>();
+
             return services;
         }
 
