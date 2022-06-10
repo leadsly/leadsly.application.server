@@ -20,12 +20,12 @@ namespace Leadsly.Domain.Supervisor
             ICampaignProvider campaignProvider,
             ISocialAccountRepository socialAccountRepository,
             ICampaignPhaseClient campaignPhaseClient,
-            ILeadslyRecurringJobsManager recurringJobsManager,
+            ITimeZoneProvider timezoneProvider,            
             ICampaignPhaseProcessorProvider campaignPhaseProcessorProvider,
             IMemoryCache memoryCache,            
             ILogger<Supervisor> logger)
         {
-            _recurringJobsManager = recurringJobsManager;
+            _timezoneProvider = timezoneProvider;
             _campaignProvider = campaignProvider;
             _socialAccountRepository = socialAccountRepository;
             _halRepository = halRepository;
@@ -40,9 +40,9 @@ namespace Leadsly.Domain.Supervisor
             _userProvider = userProvider;            
             _logger = logger;            
         }
-
-        private readonly ILeadslyRecurringJobsManager _recurringJobsManager;
+        
         private readonly ICampaignPhaseProcessorProvider _campaignPhaseProcessorProvider;
+        private readonly ITimeZoneProvider _timezoneProvider;
         private readonly ICampaignProvider _campaignProvider;
         private readonly ISocialAccountRepository _socialAccountRepository;
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;

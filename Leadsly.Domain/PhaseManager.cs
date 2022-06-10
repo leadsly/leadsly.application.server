@@ -8,7 +8,6 @@ using Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers;
 using Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Repositories;
-using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System;
@@ -61,6 +60,12 @@ namespace Leadsly.Domain
         private HalWorkCommandHandlerDecorator<NetworkingCommand> _networkingCommandHandler;
 
         #region NetworkingPhase
+
+        public async Task NetworkingPhaseAsync(string halId, CancellationToken ct = default)
+        {
+            NetworkingCommand networkingCommand = new NetworkingCommand(halId);
+            await _networkingCommandHandler.HandleAsync(networkingCommand);
+        }
 
         public async Task NetworkingPhaseAsync(CancellationToken ct = default)
         {
@@ -174,6 +179,33 @@ namespace Leadsly.Domain
         #endregion
 
         #region ProspectingPhase
+        public async Task ProspectingPhaseAsync(string halId, CancellationToken ct = default)
+        {
+            if(await PublishDeepScanAsync(halId, ct) == true)
+            {
+                DeepScanProspectsForRepliesCommand deepScanCommand = new DeepScanProspectsForRepliesCommand(halId);
+                await _deepHandler.HandleAsync(deepScanCommand);
+            }
+            else
+            {
+                FollowUpMessagesCommand followUpMsgsCommand = new FollowUpMessagesCommand(halId);
+                await _followUpHandler.HandleAsync(followUpMsgsCommand);
+
+                ScanProspectsForRepliesCommand scanProspectsCommand = new ScanProspectsForRepliesCommand(halId);
+                await _scanProspectsHandler.HandleAsync(scanProspectsCommand);
+            }
+        }
+
+        private async Task<bool> PublishDeepScanAsync(string halId, CancellationToken ct = default)
+        {
+            IList<CampaignProspect> campaignProspects = await GetAllCampaignProspectsByHalIdAsync(halId, ct);
+            if (campaignProspects.Any(p => p.Accepted == true && p.FollowUpMessageSent == true && p.Replied == false && p.FollowUpComplete == false) == true)
+            {
+                return true;
+            }
+            return false;
+        }
+
         public async Task ProspectingPhaseAsync(CancellationToken ct = default)
         {
             // determine if DeepScanProspectsForReplies phase should go out or if
@@ -266,6 +298,6 @@ namespace Leadsly.Domain
             }
 
             return campaignProspects;
-        }        
+        }
     }
 }

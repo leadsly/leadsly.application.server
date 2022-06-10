@@ -19,6 +19,12 @@ namespace Leadsly.Domain.Campaigns.NetworkingHandler
             HalIds = halIds;
         }
 
+        public NetworkingCommand(string halId)
+        {
+            HalId = halId;
+        }
+
+        public string HalId { get; set; }
         public IList<string> HalIds { get; set; }
         public string UserId { get; set; }
         public string CampaignId { get; set; }

@@ -298,7 +298,7 @@ namespace Leadsly.Domain.Supervisor
             }
 
             HalUnit halUnit = result.Value as HalUnit;
-            result = await OnboardUnitForRecurringJobs(halUnit);
+            result = await OnboardNewHalUnitOntoRecurringJobsAsync(halUnit, ct);
             if(result.Succeeded == false)
             {
                 await _cloudPlatformProvider.RollbackCloudResourcesAsync(cloudResourceSetupResult, socialAccountDTO.UserId, ct);
@@ -309,7 +309,7 @@ namespace Leadsly.Domain.Supervisor
             return result;     
         }
 
-        private async Task<LeadslySetupResultDTO> OnboardUnitForRecurringJobs(HalUnit halUnit)
+        private async Task<LeadslySetupResultDTO> OnboardNewHalUnitOntoRecurringJobsAsync(HalUnit halUnit, CancellationToken ct = default)
         {
             LeadslySetupResultDTO result = new()
             {
@@ -321,7 +321,7 @@ namespace Leadsly.Domain.Supervisor
                 return result;
             }
 
-            _recurringJobsManager.OnboardNewHalUnit(halUnit);
+            await _timezoneProvider.AddHalTimezoneAsync(halUnit, ct);
 
             result.Succeeded = true;
             return result;

@@ -5,12 +5,9 @@ using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Factories.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
-using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -22,33 +19,42 @@ namespace Leadsly.Domain.Factories
             IUserProvider userProvider,
             ICampaignRepositoryFacade campaignRepositoryFacade,
             IRabbitMQProvider rabbitMQProvider,
-            IHalRepository halRepository,
-            ITimestampService timestampService,
+            IHalRepository halRepository,            
             ILogger<MonitorForNewConnectionsMessagesFactory> logger)
         {
             _userProvider = userProvider;
             _campaignRepositoryFacade = campaignRepositoryFacade;
             _rabbitMQProvider = rabbitMQProvider;
-            _halRepository = halRepository;
-            _timestampService = timestampService;
+            _halRepository = halRepository;            
             _logger = logger;
         }
 
         private readonly IUserProvider _userProvider;
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
         private readonly IRabbitMQProvider _rabbitMQProvider;
-        private readonly IHalRepository _halRepository;
-        private readonly ITimestampService _timestampService;
+        private readonly IHalRepository _halRepository;        
         private readonly ILogger<MonitorForNewConnectionsMessagesFactory> _logger;
+
+        public async Task<MonitorForNewAcceptedConnectionsBody> CreateMessageAsync(string halId, int numOfHoursAgo = 0, CancellationToken ct = default)
+        {
+            return await CreateMessageBodyAsync(halId, numOfHoursAgo, ct);
+        }
+
+        private async Task<MonitorForNewAcceptedConnectionsBody> CreateMessageBodyAsync(string halId, int numOfHoursAgo = 0, CancellationToken ct = default)
+        {
+            SocialAccount socialAccount = await _userProvider.GetSocialAccountByHalIdAsync(halId, ct);
+            MonitorForNewAcceptedConnectionsBody messageBody = default;
+            if (socialAccount.User.Campaigns.Any(c => c.Active == true))
+            {
+                messageBody = await CreateMonitorForNewAcceptedConnectionsBodyAsync(socialAccount.HalDetails.HalId, socialAccount.UserId, socialAccount.SocialAccountId, numOfHoursAgo);
+            }            
+
+            return messageBody;
+        }
 
         public async Task<IList<MonitorForNewAcceptedConnectionsBody>> CreateMessagesAsync(int numOfHoursAgo = 0, CancellationToken ct = default)
         {
             return await CreateMessageBodiesAsync(numOfHoursAgo, ct);
-        }
-
-        public async Task<MonitorForNewAcceptedConnectionsBody> CreateMessageAsync(string halId, CancellationToken ct = default)
-        {
-            return await CreateMessageBodyAsync(halId, ct);
         }
 
         private async Task<IList<MonitorForNewAcceptedConnectionsBody>> CreateMessageBodiesAsync(int numOfHoursAgo = 0, CancellationToken ct = default)
@@ -66,6 +72,11 @@ namespace Leadsly.Domain.Factories
             }
 
             return messageBodies;
+        }
+
+        public async Task<MonitorForNewAcceptedConnectionsBody> CreateMessageAsync(string halId, CancellationToken ct = default)
+        {
+            return await CreateMessageBodyAsync(halId, ct);
         }
 
         private async Task<MonitorForNewAcceptedConnectionsBody> CreateMessageBodyAsync(string halId, CancellationToken ct = default)

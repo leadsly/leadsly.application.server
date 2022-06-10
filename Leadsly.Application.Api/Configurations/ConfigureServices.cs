@@ -188,6 +188,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<IFollowUpMessageRepository, FollowUpMessageRepository>();
             services.AddScoped<ISearchUrlProgressRepository, SearchUrlProgressRepository>();
             services.AddScoped<IFollowUpMessageJobsRepository, FollowUpMessageJobsRepository>();
+            services.AddScoped<ITimeZoneRepository, TimeZoneRepository>();
 
             return services;
         }
@@ -208,7 +209,7 @@ namespace Leadsly.Application.Api.Configurations
             }).AddHangfireServer();
 
             services.AddSingleton<IHangfireService, HangfireService>();
-            services.AddScoped<ILeadslyRecurringJobsManager, LeadslyRecurringJobsManager>();
+            services.AddScoped<ILeadslyRecurringJobsManagerService, LeadslyRecurringJobsManagerService>();
 
             return services;
         }
@@ -249,7 +250,8 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ICampaignProvider, CampaignProvider>();
             services.AddScoped<IRabbitMQProvider, RabbitMQProvider>();
             services.AddScoped<ISendFollowUpMessageProvider, SendFollowUpMessageProvider>();
-            services.AddScoped<ICampaignPhaseProcessorProvider, CampaignPhaseProcessorProvider>();            
+            services.AddScoped<ICampaignPhaseProcessorProvider, CampaignPhaseProcessorProvider>();
+            services.AddScoped<ITimeZoneProvider, TimeZoneProvider>();
 
             return services;
         }
@@ -316,7 +318,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<IRabbitMQManager, RabbitMQManager>();
             services.AddScoped<IUrlService, UrlService>();
             
-            services.AddSingleton<IRecurringJobsHandler, RecurringJobsHandler>();                      
+            services.AddScoped<IRecurringJobsHandler, RecurringJobsHandler>();                      
 
             return services;
         }

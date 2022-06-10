@@ -1,11 +1,10 @@
 ﻿using Hangfire;
-using Hangfire.Storage;
+using Leadsly.Application.Model;
 using Leadsly.Application.Model.Entities;
-using Leadsly.Domain.Campaigns.FollowUpMessagesHandler.UncontactedFollowUpMessages;
 using Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandler;
 using Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers;
-using Leadsly.Domain.Campaigns.ProspectListsHandlers.ProspectLists;
 using Leadsly.Domain.Repositories;
+using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -16,14 +15,18 @@ namespace Leadsly.Domain
 {
     public class RecurringJobsHandler : IRecurringJobsHandler
     {
-        public RecurringJobsHandler(IServiceProvider serviceProbider, HalWorkCommandHandlerDecorator<CheckOffHoursNewConnectionsCommand> offHoursHandler)
+        public RecurringJobsHandler(IServiceProvider serviceProbider, ITimeZoneRepository timezoneRepository, IHangfireService hangfireService, ILeadslyRecurringJobsManagerService leadslyRecurringJobsManagersService)
         {
             _serviceProbider = serviceProbider;
-            _offHoursHandler = offHoursHandler;
+            _leadslyRecurringJobsManagerService = leadslyRecurringJobsManagersService;
+            _hangfireService = hangfireService;
+            _timezoneRepository = timezoneRepository;
         }
 
         private readonly IServiceProvider _serviceProbider;
-        private readonly HalWorkCommandHandlerDecorator<CheckOffHoursNewConnectionsCommand> _offHoursHandler;
+        private readonly IHangfireService _hangfireService;
+        private readonly ITimeZoneRepository _timezoneRepository;
+        private readonly ILeadslyRecurringJobsManagerService _leadslyRecurringJobsManagerService;
 
         public async Task CreateAndPublishJobsAsync()
         {
@@ -75,10 +78,23 @@ namespace Leadsly.Domain
             }
         }
 
-        public async Task CreateAndPublishJobsByHalIdAsync(string halId)
+        public async Task PublishJobsAsync(string timeZoneId)
         {
-            // 1. Run a daily job that scans for any new supported time zones
+            // get all hal ids for this time zone
+            IList<HalTimeZone> halTimeZones = await _timezoneRepository.GetAllByTimeZoneIdAsync(timeZoneId);
+            if(halTimeZones.Count > 0)
+            {
+                List<string> halIds = halTimeZones.Select(h => h.HalId).ToList();
 
+                foreach (string halId in halIds)
+                {
+                    await _leadslyRecurringJobsManagerService.PublishMessagesAsync(halId);
+                }
+            }            
+        }
+
+        public async Task ScheduleJobsForNewTimeZonesAsync()
+        {
             // 2. For each supported time zone create a recurring job called 'ActiveCampaigns_EasternStandardTime' or 'ActiveCampaigns_CentralStandardTime' if one does not already exist and schedule it
 
             // 3. Each recurring job for specific TimeZone is triggered, will get the timezoneId
@@ -86,9 +102,28 @@ namespace Leadsly.Domain
             // 4. The recurring job will then look at the lookup table HalsTimeZones and retrieve all hal ids that match 'Eastern Standard Time' and trigger all of the required daily phases
 
             /////
-            
-            // 1. when new hal unit is onboarded, add that hal unit id to the look up table HalsTimeZones with the corresponding TimeZoneId            
 
+            // 1. when new hal unit is onboarded, add that hal unit id to the look up table HalsTimeZones with the corresponding TimeZoneId   
+
+            // get all supported time zones
+            IList<LeadslyTimeZone> supportedTimeZones = await _timezoneRepository.GetAllSupportedTimeZonesAsync();
+
+            using (var connection = JobStorage.Current.GetConnection())
+            {
+                foreach (LeadslyTimeZone leadslyTimeZone in supportedTimeZones)
+                {
+                    string timeZoneId = leadslyTimeZone.TimeZoneId;
+                    string timeZoneIdNormalized = timeZoneId.Trim().Replace(" ", string.Empty);
+                    string jobName = $"ActiveCampaigns_{timeZoneIdNormalized}";
+                    Dictionary<string, string> recurringJob = connection.GetAllEntriesFromHash($"recurring-job:{jobName}");
+
+                    if(recurringJob.Count == 0)
+                    {
+                        TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+                        _hangfireService.AddOrUpdate<IRecurringJobsHandler>(jobName, (x) => x.PublishJobsAsync(timeZoneId), HangFireConstants.RecurringJobs.DailyCronSchedule, tzInfo);
+                    }
+                }
+            }                
         }
     }
 }

@@ -1,13 +1,8 @@
 ﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
 using Leadsly.Domain.Campaigns.Handlers;
-using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Factories.Interfaces;
-using Leadsly.Domain.Providers.Interfaces;
-using Leadsly.Domain.Repositories;
-using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -39,7 +34,7 @@ namespace Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers
             Dictionary<string, object> headers = new Dictionary<string, object>();
             headers.Add(RabbitMQConstants.MonitorNewAcceptedConnections.ExecuteType, RabbitMQConstants.MonitorNewAcceptedConnections.ExecutePhase);
 
-            MonitorForNewAcceptedConnectionsBody messageBody = await _messagesFactory.CreateMessageAsync(halId);
+            MonitorForNewAcceptedConnectionsBody messageBody = await _messagesFactory.CreateMessageAsync(halId, System.Threading.CancellationToken.None);
             _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers);
         }
     }

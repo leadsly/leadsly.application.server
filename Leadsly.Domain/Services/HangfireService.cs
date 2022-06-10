@@ -10,9 +10,6 @@ namespace Leadsly.Domain.Services
 {
     public class HangfireService : IHangfireService
     {
-        public const string OnboardNewUnits_RecurringJobId = "OnboardNewHalUnits";        
-        public static string ActiveCampaignsCronSchedule = Cron.Daily(6, 40);        
-
         public HangfireService(ILogger<HangfireService> logger)
         {            
             _logger = logger;

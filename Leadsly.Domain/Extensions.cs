@@ -1,13 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Leadsly.Domain
 {
     public static class Extensions
     {
+        public static Dictionary<TKey, TValue> Merge<TKey, TValue>(IEnumerable<Dictionary<TKey, TValue>> dictionaries)
+        {
+            Dictionary<TKey, TValue> result = new Dictionary<TKey, TValue>();
+            foreach (var dict in dictionaries)
+            {
+                foreach (var x in dict)
+                {
+                    result[x.Key] = x.Value;
+                }   
+            }
+                
+            return result;
+        }
+
         public static void AddRange<T, S>(this Dictionary<T, S> source, Dictionary<T, S> collection)
         {
             if (collection == null)

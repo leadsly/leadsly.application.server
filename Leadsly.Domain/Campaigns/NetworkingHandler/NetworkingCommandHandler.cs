@@ -38,6 +38,10 @@ namespace Leadsly.Domain.Campaigns.NetworkingHandler
             {
                 await HandleInternalAsync(command.HalIds);
             }
+            else if (string.IsNullOrEmpty(command.HalId) == false)
+            {
+                await HandleInternalAsync(command.HalId);
+            }
             // triggered on new campaign
             else if (command.CampaignId != null && command.UserId != null)
             {
@@ -49,10 +53,15 @@ namespace Leadsly.Domain.Campaigns.NetworkingHandler
         {
             foreach (string halId in halIds)
             {
-                IList<NetworkingMessageBody> messages = await _networkingMessagesFactory.CreateNetworkingMessagesAsync(halId, ct);
-
-                await SchedulePhaseMessagesAsync(messages);
+                await HandleInternalAsync(halId, ct);
             }
+        }
+
+        private async Task HandleInternalAsync(string halId, CancellationToken ct = default)
+        {
+            IList<NetworkingMessageBody> messages = await _networkingMessagesFactory.CreateNetworkingMessagesAsync(halId, ct);
+
+            await SchedulePhaseMessagesAsync(messages);
         }
 
         private async Task HandleInternalAsync(string campaignId, string userId, CancellationToken ct = default)

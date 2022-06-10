@@ -1,4 +1,5 @@
 ﻿using Hangfire;
+using Leadsly.Application.Model;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
@@ -27,17 +28,14 @@ namespace Leadsly.Domain.Services
             ////////////////////////////////////////////////////////////////////
             if(_env.IsDevelopment())
             {
-                _logger.LogInformation("Enquing CreateAndPublishJobsAsync");                
-                _hangfireService.Enqueue<IRecurringJobsHandler>((x) => x.CreateAndPublishJobsAsync());
+                //_hangfireService.Enqueue<IRecurringJobsHandler>((x) => x.CreateAndPublishJobsAsync());
+                _hangfireService.Enqueue<IRecurringJobsHandler>((x) => x.ScheduleJobsForNewTimeZonesAsync());
             }
             else
             {
-                _logger.LogDebug($"Local timezone is {TimeZoneInfo.Local}");
-                _logger.LogInformation("Executing RecurringJob.AddOrUpdate");
-                // run the server under Eastern Standard Time timezone
                 TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
-
-                _hangfireService.AddOrUpdate<IRecurringJobsHandler>("activeCampaigns", (x) => x.CreateAndPublishJobsAsync(), Cron.Daily(6, 40), tzInfo);
+                // 1. Run a daily job that scans for any new supported time zones                            
+                _hangfireService.AddOrUpdate<IRecurringJobsHandler>(HangFireConstants.RecurringJobs.ScheduleNewTimeZones, (x) => x.ScheduleJobsForNewTimeZonesAsync(), HangFireConstants.RecurringJobs.DailyCronSchedule, tzInfo);
             }
         }
     }

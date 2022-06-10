@@ -13,6 +13,13 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
             HalIds = halIds;
         }
 
+        public DeepScanProspectsForRepliesCommand(string halId)
+        {
+            HalId = halId;
+        }
+
         public IList<string> HalIds { get; set; }
+
+        public string HalId { get; set; }
     }
 }

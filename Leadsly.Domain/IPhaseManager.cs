@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 
 namespace Leadsly.Domain
@@ -25,8 +21,6 @@ namespace Leadsly.Domain
         /// <param name="ct"></param>
         /// <returns></returns>
         Task NetworkingConnectionsPhaseAsync(CancellationToken ct = default);
-
-
         Task NetworkingPhaseAsync(CancellationToken ct = default);
     }
 }

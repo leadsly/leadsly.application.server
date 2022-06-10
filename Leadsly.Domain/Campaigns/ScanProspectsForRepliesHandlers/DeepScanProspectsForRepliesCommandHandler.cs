@@ -40,12 +40,29 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
         /// <returns></returns>
         public async Task HandleAsync(DeepScanProspectsForRepliesCommand command)
         {
-            await InternalExecuteListAsync(command);
+            if(command.HalIds != null)
+            {
+                await InternalExecuteAsync(command.HalIds);
+            }
+            else if(string.IsNullOrEmpty(command.HalId) == false)
+            {
+                await InternalExecuteAsync(command.HalId);
+            }            
         }
 
-        private async Task InternalExecuteListAsync(DeepScanProspectsForRepliesCommand command)
+        private async Task InternalExecuteAsync(string halId)
         {
-            IDictionary<string, IList<CampaignProspect>> halsCampaignProspects = await CreateHalsCampainProspectsAsync(command);
+            IList<string> halIds = new List<string>()
+            {
+                halId
+            };
+
+            await InternalExecuteAsync(halIds);
+        }
+
+        private async Task InternalExecuteAsync(IList<string> halIds)
+        {
+            IDictionary<string, IList<CampaignProspect>> halsCampaignProspects = await CreateHalsCampainProspectsAsync(halIds);
 
             foreach (var halCampaignProspects in halsCampaignProspects)
             {
@@ -69,22 +86,30 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
             _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers);
         }
 
-        private async Task<IDictionary<string, IList<CampaignProspect>>> CreateHalsCampainProspectsAsync(DeepScanProspectsForRepliesCommand command)
+        private async Task<IDictionary<string, IList<CampaignProspect>>> CreateHalsCampainProspectsAsync(IList<string> halIds)
         {
             IDictionary<string, IList<CampaignProspect>> halsCampaignProspects = new Dictionary<string, IList<CampaignProspect>>();
 
-            foreach (string halId in command.HalIds)
+            foreach (string halId in halIds)
             {
-                // get all campaign prospects by halId
-                IList<CampaignProspect> halCampaignProspects = await _campaignRepositoryFacade.GetAllActiveCampaignProspectsByHalIdAsync(halId);
-                IList<CampaignProspect> contactedProspects = halCampaignProspects.Where(p => p.Accepted == true && p.FollowUpMessageSent == true && p.Replied == false && p.FollowUpComplete == false).ToList();
-                if (contactedProspects.Count > 0)
+                IList<CampaignProspect> halsCampProspects = await GetCampainProspectsAsync(halId);
+                if(halsCampProspects.Count > 0)
                 {
-                    halsCampaignProspects.Add(halId, contactedProspects);
+                    halsCampaignProspects.Add(halId, halsCampProspects);
                 }
             }
 
             return halsCampaignProspects;
+        }
+
+        private async Task<IList<CampaignProspect>> GetCampainProspectsAsync(string halId)
+        {
+            IDictionary<string, IList<CampaignProspect>> halsCampaignProspects = new Dictionary<string, IList<CampaignProspect>>();
+
+            IList<CampaignProspect> halCampaignProspects = await _campaignRepositoryFacade.GetAllActiveCampaignProspectsByHalIdAsync(halId);
+            IList<CampaignProspect> contactedProspects = halCampaignProspects.Where(p => p.Accepted == true && p.FollowUpMessageSent == true && p.Replied == false && p.FollowUpComplete == false).ToList();
+            
+            return contactedProspects;
         }
     }
 }
