@@ -50,7 +50,7 @@ namespace Leadsly.Infrastructure.Repositories
             {                
                 // should always be just one
                 halDetails = await _dbContext.HalUnits
-                    .Include(h => h.SocialAccount)
+                    .Include(h => h.SocialAccount)                    
                     .Where(h => h.SocialAccount.Username == connectedAccountUsername)
                     .SingleAsync(ct);
 
@@ -108,7 +108,7 @@ namespace Leadsly.Infrastructure.Repositories
             HalUnit halUnit = default;
             try
             {
-                halUnit = await _dbContext.HalUnits.Where(h => h.HalId == halId)
+                halUnit = await _dbContext.HalUnits.Where(h => h.HalId == halId)                                                    
                                                     .Include(h => h.SocialAccount)
                                                         .ThenInclude(s => s.ConnectionWithdrawPhase)
                                                      .Include(h => h.SocialAccount)

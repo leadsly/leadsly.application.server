@@ -923,6 +923,25 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("EcsTaskDefinitions");
                 });
 
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.HalTimeZone", b =>
+                {
+                    b.Property<string>("HalTimeZoneId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("HalId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TimeZoneId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("HalTimeZoneId");
+
+                    b.ToTable("HalTimeZones");
+                });
+
             modelBuilder.Entity("Leadsly.Application.Model.Entities.HalUnit", b =>
                 {
                     b.Property<string>("HalUnitId")
@@ -938,6 +957,10 @@ namespace Leadsly.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("HalId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("HalTimeZoneId")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -961,6 +984,24 @@ namespace Leadsly.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("HalUnits");
+                });
+
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.LeadslyTimeZone", b =>
+                {
+                    b.Property<string>("LeadslyTimeZoneId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TimeZoneId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("LeadslyTimeZoneId");
+
+                    b.HasIndex("TimeZoneId")
+                        .IsUnique();
+
+                    b.ToTable("SupportedTimeZones");
                 });
 
             modelBuilder.Entity("Leadsly.Application.Model.Entities.Organization", b =>

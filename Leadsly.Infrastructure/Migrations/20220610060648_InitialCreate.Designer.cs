@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Leadsly.Infrastructure.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20220523151607_AddMonthlySearchLimitReachedSocialAccount")]
-    partial class AddMonthlySearchLimitReachedSocialAccount
+    [Migration("20220610060648_InitialCreate")]
+    partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -366,6 +366,29 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("FollowUpMessageDelay");
                 });
 
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.FollowUpMessageJob", b =>
+                {
+                    b.Property<string>("FollowUpMessageJobId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CampaignProspectId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("FollowUpMessageId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("HangfireJobId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("FollowUpMessageJobId");
+
+                    b.ToTable("FollowUpMessageJobs");
+                });
+
             modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.Phases.ChromeProfile", b =>
                 {
                     b.Property<string>("ChromeProfileId")
@@ -647,36 +670,9 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("SearchUrls");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.SendConnectionsStage", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.SearchUrlDetails", b =>
                 {
-                    b.Property<string>("SendConnectionsStageId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CampaignId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("NumOfConnections")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Order")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("StartTime")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("SendConnectionsStageId");
-
-                    b.HasIndex("CampaignId");
-
-                    b.ToTable("SendConnectionsStages");
-                });
-
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.SentConnectionsSearchUrlStatus", b =>
-                {
-                    b.Property<string>("SentConnectionsSearchUrlStatusId")
+                    b.Property<string>("SearchUrlDetailsId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
@@ -705,11 +701,81 @@ namespace Leadsly.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("SentConnectionsSearchUrlStatusId");
+                    b.HasKey("SearchUrlDetailsId");
 
                     b.HasIndex("CampaignId");
 
                     b.ToTable("SentConnectionsStatuses");
+                });
+
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.SearchUrlProgress", b =>
+                {
+                    b.Property<string>("SearchUrlProgressId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CampaignId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("Exhausted")
+                        .HasColumnType("boolean");
+
+                    b.Property<long>("LastActivityTimestamp")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("LastPage")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("LastProcessedProspect")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SearchUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("StartedCrawling")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("TotalSearchResults")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("WindowHandleId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("SearchUrlProgressId");
+
+                    b.HasIndex("CampaignId");
+
+                    b.ToTable("SearchUrlsProgress");
+                });
+
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.SendConnectionsStage", b =>
+                {
+                    b.Property<string>("SendConnectionsStageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CampaignId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("NumOfConnections")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("StartTime")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("SendConnectionsStageId");
+
+                    b.HasIndex("CampaignId");
+
+                    b.ToTable("SendConnectionsStages");
                 });
 
             modelBuilder.Entity("Leadsly.Application.Model.Entities.CloudMapServiceDiscoveryService", b =>
@@ -859,6 +925,25 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("EcsTaskDefinitions");
                 });
 
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.HalTimeZone", b =>
+                {
+                    b.Property<string>("HalTimeZoneId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("HalId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TimeZoneId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("HalTimeZoneId");
+
+                    b.ToTable("HalTimeZones");
+                });
+
             modelBuilder.Entity("Leadsly.Application.Model.Entities.HalUnit", b =>
                 {
                     b.Property<string>("HalUnitId")
@@ -874,6 +959,10 @@ namespace Leadsly.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("HalId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("HalTimeZoneId")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -897,6 +986,24 @@ namespace Leadsly.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("HalUnits");
+                });
+
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.LeadslyTimeZone", b =>
+                {
+                    b.Property<string>("LeadslyTimeZoneId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TimeZoneId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("LeadslyTimeZoneId");
+
+                    b.HasIndex("TimeZoneId")
+                        .IsUnique();
+
+                    b.ToTable("SupportedTimeZones");
                 });
 
             modelBuilder.Entity("Leadsly.Application.Model.Entities.Organization", b =>
@@ -959,6 +1066,9 @@ namespace Leadsly.Infrastructure.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<bool>("MonthlySearchLimitReached")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("RunProspectListFirst")
                         .HasColumnType("boolean");
 
                     b.Property<string>("UserId")
@@ -1382,10 +1492,10 @@ namespace Leadsly.Infrastructure.Migrations
                     b.Navigation("PrimaryProspectList");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.SendConnectionsStage", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.SearchUrlDetails", b =>
                 {
                     b.HasOne("Leadsly.Application.Model.Entities.Campaigns.Campaign", "Campaign")
-                        .WithMany("SendConnectionStages")
+                        .WithMany("SentConnectionsStatuses")
                         .HasForeignKey("CampaignId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1393,10 +1503,21 @@ namespace Leadsly.Infrastructure.Migrations
                     b.Navigation("Campaign");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.SentConnectionsSearchUrlStatus", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.SearchUrlProgress", b =>
                 {
                     b.HasOne("Leadsly.Application.Model.Entities.Campaigns.Campaign", "Campaign")
-                        .WithMany("SentConnectionsStatuses")
+                        .WithMany("SearchUrlsProgress")
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Campaign");
+                });
+
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.SendConnectionsStage", b =>
+                {
+                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.Campaign", "Campaign")
+                        .WithMany("SendConnectionStages")
                         .HasForeignKey("CampaignId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1567,6 +1688,8 @@ namespace Leadsly.Infrastructure.Migrations
 
                     b.Navigation("ProspectListPhase")
                         .IsRequired();
+
+                    b.Navigation("SearchUrlsProgress");
 
                     b.Navigation("SendConnectionRequestPhase")
                         .IsRequired();
