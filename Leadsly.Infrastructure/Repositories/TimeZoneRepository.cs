@@ -23,19 +23,18 @@ namespace Leadsly.Infrastructure.Repositories
 
         public async Task<HalTimeZone> AddHalTimeZoneAsync(HalTimeZone newHalInTimeZone, CancellationToken ct = default)
         {
-            _logger.LogInformation($"Adding entry into the HalTimeZone table for HalId {newHalInTimeZone.HalId} for time zone {newHalInTimeZone.HalTimeZoneId}");
-            HalTimeZone halTimeZone = default;
+            _logger.LogInformation($"Adding entry into the HalTimeZone table for HalId {newHalInTimeZone.HalId} for time zone {newHalInTimeZone.HalTimeZoneId}");            
             try
             {
                 _dbContext.HalTimeZones.Add(newHalInTimeZone);
                 await _dbContext.SaveChangesAsync(ct);
-                _logger.LogInformation($"Successfully saved HalTimeZone for HalId {newHalInTimeZone.HalId} for time zone {newHalInTimeZone.HalTimeZoneId}")
+                _logger.LogInformation($"Successfully saved HalTimeZone for HalId {newHalInTimeZone.HalId} for time zone {newHalInTimeZone.HalTimeZoneId}");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Failed to save the new HalTimeZone for HalId {newHalInTimeZone.HalId} for time zone {newHalInTimeZone.HalTimeZoneId}");
             }
-            return halTimeZone;
+            return newHalInTimeZone;
         }
 
         public async Task<IList<HalTimeZone>> GetAllByTimeZoneIdAsync(string timeZoneId, CancellationToken ct = default)

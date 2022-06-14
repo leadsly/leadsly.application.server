@@ -44,7 +44,10 @@ namespace Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers
         private async Task InternalHandleAsync(string halId, string queueNameIn, string routingKeyIn, Dictionary<string, object> headers)
         {
             MonitorForNewAcceptedConnectionsBody messageBody = await _messagesFactory.CreateMessageAsync(halId, 12);
-            _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers);
+            if(messageBody != null)
+            {
+                _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers);
+            }            
         }
 
         private async Task InternalHandleAsync(string queueNameIn, string routingKeyIn, Dictionary<string, object> headers)

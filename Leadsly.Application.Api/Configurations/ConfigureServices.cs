@@ -250,8 +250,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ICampaignProvider, CampaignProvider>();
             services.AddScoped<IRabbitMQProvider, RabbitMQProvider>();
             services.AddScoped<ISendFollowUpMessageProvider, SendFollowUpMessageProvider>();
-            services.AddScoped<ICampaignPhaseProcessorProvider, CampaignPhaseProcessorProvider>();
-            services.AddScoped<ITimeZoneProvider, TimeZoneProvider>();
+            services.AddScoped<ICampaignPhaseProcessorProvider, CampaignPhaseProcessorProvider>();            
 
             return services;
         }

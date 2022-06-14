@@ -5,7 +5,9 @@ using Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandler;
 using Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,14 +17,20 @@ namespace Leadsly.Domain
 {
     public class RecurringJobsHandler : IRecurringJobsHandler
     {
-        public RecurringJobsHandler(IServiceProvider serviceProbider, ITimeZoneRepository timezoneRepository, IHangfireService hangfireService, ILeadslyRecurringJobsManagerService leadslyRecurringJobsManagersService)
+        public RecurringJobsHandler(IServiceProvider serviceProbider,
+            ITimeZoneRepository timezoneRepository, 
+            IHangfireService hangfireService, 
+            ILeadslyRecurringJobsManagerService leadslyRecurringJobsManagersService,
+            IWebHostEnvironment env)
         {
+            _env = env;
             _serviceProbider = serviceProbider;
             _leadslyRecurringJobsManagerService = leadslyRecurringJobsManagersService;
             _hangfireService = hangfireService;
             _timezoneRepository = timezoneRepository;
         }
 
+        private readonly IWebHostEnvironment _env;
         private readonly IServiceProvider _serviceProbider;
         private readonly IHangfireService _hangfireService;
         private readonly ITimeZoneRepository _timezoneRepository;
@@ -95,17 +103,6 @@ namespace Leadsly.Domain
 
         public async Task ScheduleJobsForNewTimeZonesAsync()
         {
-            // 2. For each supported time zone create a recurring job called 'ActiveCampaigns_EasternStandardTime' or 'ActiveCampaigns_CentralStandardTime' if one does not already exist and schedule it
-
-            // 3. Each recurring job for specific TimeZone is triggered, will get the timezoneId
-
-            // 4. The recurring job will then look at the lookup table HalsTimeZones and retrieve all hal ids that match 'Eastern Standard Time' and trigger all of the required daily phases
-
-            /////
-
-            // 1. when new hal unit is onboarded, add that hal unit id to the look up table HalsTimeZones with the corresponding TimeZoneId   
-
-            // get all supported time zones
             IList<LeadslyTimeZone> supportedTimeZones = await _timezoneRepository.GetAllSupportedTimeZonesAsync();
 
             using (var connection = JobStorage.Current.GetConnection())
@@ -117,10 +114,17 @@ namespace Leadsly.Domain
                     string jobName = $"ActiveCampaigns_{timeZoneIdNormalized}";
                     Dictionary<string, string> recurringJob = connection.GetAllEntriesFromHash($"recurring-job:{jobName}");
 
-                    if(recurringJob.Count == 0)
+                    if(recurringJob == null || recurringJob?.Count == 0)
                     {
-                        TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
-                        _hangfireService.AddOrUpdate<IRecurringJobsHandler>(jobName, (x) => x.PublishJobsAsync(timeZoneId), HangFireConstants.RecurringJobs.DailyCronSchedule, tzInfo);
+                        if (_env.IsDevelopment())
+                        {
+                            _hangfireService.Enqueue<IRecurringJobsHandler>(x => x.PublishJobsAsync(timeZoneId));
+                        }
+                        else
+                        {
+                            TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+                            _hangfireService.AddOrUpdate<IRecurringJobsHandler>(jobName, (x) => x.PublishJobsAsync(timeZoneId), HangFireConstants.RecurringJobs.DailyCronSchedule, tzInfo);
+                        }                        
                     }
                 }
             }                

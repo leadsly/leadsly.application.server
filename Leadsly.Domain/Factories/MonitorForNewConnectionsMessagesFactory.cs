@@ -81,10 +81,9 @@ namespace Leadsly.Domain.Factories
 
         private async Task<MonitorForNewAcceptedConnectionsBody> CreateMessageBodyAsync(string halId, CancellationToken ct = default)
         {
-            HalUnit halUnit = await _halRepository.GetByHalIdAsync(halId);
             SocialAccount socialAccount = await _userProvider.GetSocialAccountByHalIdAsync(halId);
 
-            MonitorForNewAcceptedConnectionsBody messageBody = await CreateMonitorForNewAcceptedConnectionsBodyAsync(socialAccount.HalDetails.HalId, socialAccount.UserId, socialAccount.SocialAccountId);
+            MonitorForNewAcceptedConnectionsBody messageBody = await CreateMonitorForNewAcceptedConnectionsBodyAsync(halId, socialAccount.UserId, socialAccount.SocialAccountId);
             return messageBody;
         }
 

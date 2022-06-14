@@ -16,56 +16,9 @@ namespace Leadsly.Infrastructure.DatabaseInitializer
     {
         public async static Task Populate(IServiceProvider serviceProvider, ILogger<DatabaseInitializer> logger)
         {
-            //try
-            //{
-            //    DatabaseContext databaseContext = serviceProvider.GetRequiredService<DatabaseContext>();
-            //    PrimaryProspect primaryProspect = new()
-            //    {
-            //        AddedTimestamp = DateTimeOffset.Now.ToUnixTimeSeconds(),
-            //        Area = "Cleveland, OH",
-            //        EmploymentInfo = "CTO",
-            //        Name = "Oskar Mikolajczyk",
-            //        PrimaryProspectListId = "303f8062-9fbf-499d-8cd4-5a7e7ebd78d0",
-            //        ProfileUrl = "https://www.linkedin.com/in/oskar-mikolajczyk-864290237",
-            //        SearchResultAvatarUrl = "empty string here"
-            //    };
-            //    databaseContext.PrimaryProspects.Add(primaryProspect);
-
-            //    CampaignProspect campaignProspect = new()
-            //    {
-            //        PrimaryProspect = primaryProspect,
-            //        FollowUpMessageSent = true,
-            //        Accepted = true,
-            //        Replied = false,
-            //        ProfileUrl = "https://www.linkedin.com/in/oskar-mikolajczyk-864290237",
-            //        AcceptedTimestamp = DateTimeOffset.Now.ToUnixTimeSeconds(),
-            //        CampaignId = "9bce0fd8-705b-45e2-a3b4-da8419359255",
-            //        Name = "Oskar Mikolajczyk",
-            //        ConnectionSent = true,
-            //        SentFollowUpMessageOrderNum = 1,
-            //        LastFollowUpMessageSentTimestamp = DateTimeOffset.Now.ToUnixTimeSeconds(),
-            //    };
-
-            //    databaseContext.CampaignProspects.Add(campaignProspect);
-
-            //    CampaignProspectFollowUpMessage followUpMessage = new()
-            //    {
-            //        CampaignProspect = campaignProspect,
-            //        Content = "Hello Oskar. Just wanted to stop by and say hi",
-            //        Order = 1
-            //    };
-            //    databaseContext.CampaignProspectFollowUpMessages.Add(followUpMessage);
-
-            //    databaseContext.SaveChanges();
-            //}
-            //catch(Exception ex)
-            //{
-
-            //}            
-
-            LeadslyUserManager userManager = serviceProvider.GetService<LeadslyUserManager>();
-            RoleManager<IdentityRole> roleManager = serviceProvider.GetService<RoleManager<IdentityRole>>();
-            IConfiguration configuration = serviceProvider.GetService<IConfiguration>();
+            LeadslyUserManager userManager = serviceProvider.GetRequiredService<LeadslyUserManager>();
+            RoleManager<IdentityRole> roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
 
             await Seed(userManager, roleManager, configuration, logger);
         }

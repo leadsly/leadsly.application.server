@@ -1,16 +1,13 @@
-﻿using Leadsly.Domain.Supervisor;
-using Leadsly.Application.Model;
+﻿using Leadsly.Application.Model.Requests;
+using Leadsly.Application.Model.ViewModels;
+using Leadsly.Application.Model.ViewModels.Cloud;
+using Leadsly.Application.Model.ViewModels.Response.Hal;
+using Leadsly.Domain.Supervisor;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Net.Http;
-using Leadsly.Application.Model.ViewModels.Cloud;
-using Leadsly.Application.Model.Requests;
-using Leadsly.Application.Model.Responses.Hal;
-using Leadsly.Application.Model.ViewModels.Response.Hal;
-using Leadsly.Application.Model.ViewModels;
 
 namespace Leadsly.Application.Api.Controllers
 {
