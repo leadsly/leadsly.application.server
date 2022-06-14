@@ -28,13 +28,16 @@ namespace Leadsly.Domain.Services
             ////////////////////////////////////////////////////////////////////
             if(_env.IsDevelopment())
             {
+                _logger.LogInformation("Current enviornment is in Development. Executing 'ScheduleJobsForNewTimeZonesAsync' right away");
                 //_hangfireService.Enqueue<IRecurringJobsHandler>((x) => x.CreateAndPublishJobsAsync());
                 _hangfireService.Enqueue<IRecurringJobsHandler>((x) => x.ScheduleJobsForNewTimeZonesAsync());
             }
             else
             {
+                _logger.LogInformation("Current enviornment is NOT in Development. Executing 'ScheduleJobsForNewTimeZonesAsync' on scheduled basis");
                 TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
-                // 1. Run a daily job that scans for any new supported time zones                            
+                _logger.LogTrace("Server will execute 'ScheduleJobsForNewTimeZonesAsync' on a daily cron schedule using 'Eastern Standard Time'");
+                _logger.LogDebug($"The 'ScheduleJobsForNewTimeZonesAsync' recurring job has an id of {HangFireConstants.RecurringJobs.ScheduleNewTimeZones}");
                 _hangfireService.AddOrUpdate<IRecurringJobsHandler>(HangFireConstants.RecurringJobs.ScheduleNewTimeZones, (x) => x.ScheduleJobsForNewTimeZonesAsync(), HangFireConstants.RecurringJobs.DailyCronSchedule, tzInfo);
             }
         }

@@ -8,6 +8,7 @@ using Leadsly.Domain.Services.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,9 +22,11 @@ namespace Leadsly.Domain
             ITimeZoneRepository timezoneRepository, 
             IHangfireService hangfireService, 
             ILeadslyRecurringJobsManagerService leadslyRecurringJobsManagersService,
+            ILogger<RecurringJobsHandler> logger,
             IWebHostEnvironment env)
         {
             _env = env;
+            _logger = logger;
             _serviceProbider = serviceProbider;
             _leadslyRecurringJobsManagerService = leadslyRecurringJobsManagersService;
             _hangfireService = hangfireService;
@@ -31,6 +34,7 @@ namespace Leadsly.Domain
         }
 
         private readonly IWebHostEnvironment _env;
+        private readonly ILogger<RecurringJobsHandler> _logger;
         private readonly IServiceProvider _serviceProbider;
         private readonly IHangfireService _hangfireService;
         private readonly ITimeZoneRepository _timezoneRepository;
@@ -104,18 +108,25 @@ namespace Leadsly.Domain
         public async Task ScheduleJobsForNewTimeZonesAsync()
         {
             IList<LeadslyTimeZone> supportedTimeZones = await _timezoneRepository.GetAllSupportedTimeZonesAsync();
+            _logger.LogDebug($"'ScheduleJobsForNewTimeZonesAsync' found {supportedTimeZones.Count} supported time zones");
 
             using (var connection = JobStorage.Current.GetConnection())
             {
                 foreach (LeadslyTimeZone leadslyTimeZone in supportedTimeZones)
                 {
                     string timeZoneId = leadslyTimeZone.TimeZoneId;
+                    _logger.LogTrace("Currently executing job is for for {timeZoneId}", timeZoneId);
                     string timeZoneIdNormalized = timeZoneId.Trim().Replace(" ", string.Empty);
                     string jobName = $"ActiveCampaigns_{timeZoneIdNormalized}";
-                    Dictionary<string, string> recurringJob = connection.GetAllEntriesFromHash($"recurring-job:{jobName}");
+                    _logger.LogTrace("Recurring daily Hangfire job name is {jobName}", jobName);
+
+                    string hangfireRecurringJobName = $"recurring-job:{jobName}";
+                    _logger.LogDebug($"Retrieving Hangfire recurring job using the following hash name {hangfireRecurringJobName}");
+                    Dictionary<string, string> recurringJob = connection.GetAllEntriesFromHash(hangfireRecurringJobName);
 
                     if(recurringJob == null || recurringJob?.Count == 0)
                     {
+                        _logger.LogDebug("Recurring job was not found. Creating a new recurring job called {jobName}", jobName);
                         if (_env.IsDevelopment())
                         {
                             _hangfireService.Enqueue<IRecurringJobsHandler>(x => x.PublishJobsAsync(timeZoneId));
