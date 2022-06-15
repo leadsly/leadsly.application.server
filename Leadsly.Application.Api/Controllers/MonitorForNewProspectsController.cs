@@ -27,8 +27,8 @@ namespace Leadsly.Application.Api.Controllers
         [HttpPost("{halId}/new-prospects")]
         public async Task<IActionResult> NewProspects(string halId, [FromBody] NewProspectsConnectionsAcceptedRequest request, CancellationToken ct = default)
         {
-            _logger.LogInformation("Executing NewProspects for HalId {halId}", halId);
-            HalOperationResult<IOperationResponse> result = await _supervisor.ProcessNewlyAcceptedProspectsAsync<IOperationResponse>(request, ct);
+            _logger.LogInformation("Executing NewProspects for HalId {halId} for CheckOffHoursNewConnections", halId);
+            HalOperationResult<IOperationResponse> result = await _supervisor.ProcessNewlyAcceptedProspectsAsync<IOperationResponse>(request, ct);            
 
             if (result.Succeeded == false)
             {
@@ -36,6 +36,7 @@ namespace Leadsly.Application.Api.Controllers
                 return BadRequest_FailedToProcessCampaignPhase();
             }
 
+            _logger.LogInformation("Finished processing new prospects from CheckOffHoursNewConnections", halId);
             return Ok();
         }
 

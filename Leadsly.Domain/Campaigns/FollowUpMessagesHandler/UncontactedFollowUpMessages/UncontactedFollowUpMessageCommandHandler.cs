@@ -1,17 +1,15 @@
-﻿using Hangfire;
-using Leadsly.Application.Model;
+﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Domain.Campaigns.Handlers;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Factories.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
-using Leadsly.Domain.Repositories;
+using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.UncontactedFollowUpMessages
@@ -20,12 +18,14 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.UncontactedFollowUpMe
     {
         public UncontactedFollowUpMessageCommandHandler(
             IFollowUpMessagesFactory messagesFactory,
+            IHangfireService hangfireService,
             IMessageBrokerOutlet messageBrokerOutlet,
             ICampaignRepositoryFacade campaignRepositoryFacade,
             ILogger<UncontactedFollowUpMessageCommandHandler> logger,            
             ISendFollowUpMessageProvider sendFollowUpMessageProvider            
             )
         {
+            _hangfireService = hangfireService;
             _sendFollowUpMessageProvider = sendFollowUpMessageProvider;
             _campaignRepositoryFacade = campaignRepositoryFacade;
             _messagesFactory = messagesFactory;
@@ -33,6 +33,7 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.UncontactedFollowUpMe
             _logger = logger;
         }
 
+        private readonly IHangfireService _hangfireService;
         private readonly ILogger<UncontactedFollowUpMessageCommandHandler> _logger;
         private readonly IFollowUpMessagesFactory _messagesFactory;
         private readonly IMessageBrokerOutlet _messageBrokerOutlet;
@@ -84,7 +85,7 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.UncontactedFollowUpMe
                 }
                 else
                 {
-                    BackgroundJob.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(followUpMessageBody, queueNameIn, routingKeyIn, halId, null), messagePair.Value);
+                    _hangfireService.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(followUpMessageBody, queueNameIn, routingKeyIn, halId, null), messagePair.Value);
                 }
             }
         }

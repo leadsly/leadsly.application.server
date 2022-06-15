@@ -29,5 +29,20 @@ namespace Leadsly.Domain.Services
         {
             return BackgroundJob.Enqueue<T>(methodCall);
         }
+
+        public string Schedule<T>([InstantHandle, NotNull] Expression<Func<T, Task>> methodCall, DateTimeOffset enqueueAt)
+        {
+            return BackgroundJob.Schedule<T>(methodCall, enqueueAt);
+        }
+
+        public string Schedule<T>([InstantHandle, NotNull] Expression<Action<T>> methodCall, DateTimeOffset enqueueAt)
+        {
+            return BackgroundJob.Schedule<T>(methodCall, enqueueAt);
+        }
+
+        public bool Delete([NotNull] string jobId)
+        {
+            return BackgroundJob.Delete(jobId);
+        }
     }
 }

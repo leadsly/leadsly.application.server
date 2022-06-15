@@ -21,11 +21,13 @@ namespace Leadsly.Domain.Providers
         public SendFollowUpMessageProvider(
             ICampaignRepositoryFacade campaignRepositoryFacade, 
             ITimestampService timestampService, 
+            IHangfireService hangfireService,
             ILogger<SendFollowUpMessageProvider> logger,
             IFollowUpMessageJobsRepository followUpMessageRepository,
             IMemoryCache memoryCache
             )
         {
+            _hangfireService = hangfireService;
             _memoryCache = memoryCache;
             _campaignRepositoryFacade = campaignRepositoryFacade;
             _followUpMessageJobsRepository = followUpMessageRepository;
@@ -33,6 +35,7 @@ namespace Leadsly.Domain.Providers
             _logger = logger;
         }
 
+        private readonly IHangfireService _hangfireService;
         private readonly IFollowUpMessageJobsRepository _followUpMessageJobsRepository;
         private readonly ILogger<SendFollowUpMessageProvider> _logger;
         private readonly IMemoryCache _memoryCache;
@@ -42,7 +45,7 @@ namespace Leadsly.Domain.Providers
         public async Task ScheduleFollowUpMessageAsync(FollowUpMessageBody followUpMessageBody, string queueNameIn, string routingKeyIn, string halId, DateTimeOffset scheduleTime, CancellationToken ct = default)
         {
             _logger.LogDebug($"Scheduling FollowUpMessage to be published at {scheduleTime}");
-            string jobId = BackgroundJob.Schedule<IFollowUpMessagePublisher>(x => x.PublishPhaseAsync(followUpMessageBody, queueNameIn, routingKeyIn, halId), scheduleTime);
+            string jobId = _hangfireService.Schedule<IFollowUpMessagePublisher>(x => x.PublishPhaseAsync(followUpMessageBody, queueNameIn, routingKeyIn, halId), scheduleTime);            
             _logger.LogDebug($"Scheduled hangfire job id is {jobId}");
 
             FollowUpMessageJob followUpJob = new()

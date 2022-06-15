@@ -90,6 +90,9 @@ namespace Leadsly.Domain.Providers
             HalOperationResult<T> result = new();
 
             IList<Campaign> usersActiveCampaigns = await _campaignRepositoryFacade.GetAllActiveCampaignsByUserIdAsync(request.ApplicationUserId, ct);
+            string userId = request.ApplicationUserId;
+            int activeCampaignsCount = usersActiveCampaigns.Count;
+            _logger.LogDebug("User with id {userId}, has {activeCampaignsCount} active campaign(s)", userId, activeCampaignsCount);
 
             HashSet<string> campaignProspectListIds = new();
             List<CampaignProspect> activeCampaignProspects = new List<CampaignProspect>();
@@ -102,7 +105,7 @@ namespace Leadsly.Domain.Providers
                 if (campaignProspectListIds.Contains(campaignProspectListId))
                     continue;
 
-                // get the primary prospect list by its id
+                // get the primary prospect list by its id                
                 CampaignProspectList campaignProspectList = await _campaignRepositoryFacade.GetCampaignProspectListByListIdAsync(campaignProspectListId);
 
                 if (campaignProspectList != null)

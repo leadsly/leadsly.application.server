@@ -18,15 +18,18 @@ namespace Leadsly.Domain.Campaigns.NetworkingHandler
             IMessageBrokerOutlet messageBrokerOutlet,
             ILogger<NetworkingCommandHandler> logger,
             ITimestampService timestampService,
+            IHangfireService hangfireService,
             INetworkingMessagesFactory networkingMessagesFactory
             )
         {
+            _hangfireService = hangfireService;
             _networkingMessagesFactory = networkingMessagesFactory;
             _timestampService = timestampService;
             _messageBrokerOutlet = messageBrokerOutlet;
             _logger = logger;
         }
 
+        private readonly IHangfireService _hangfireService;
         private readonly INetworkingMessagesFactory _networkingMessagesFactory;
         private readonly ITimestampService _timestampService;
         private readonly IMessageBrokerOutlet _messageBrokerOutlet;
@@ -90,7 +93,7 @@ namespace Leadsly.Domain.Campaigns.NetworkingHandler
             if (nowLocalized.TimeOfDay < phaseStartDateTimeOffset.TimeOfDay)
             {
                 _logger.LogInformation($"[Networking] This phase will be scheduled to start at {phaseStartDateTimeOffset}. Current local time is: {nowLocalized}");
-                BackgroundJob.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(message, queueNameIn, routingKeyIn, halId, null), phaseStartDateTimeOffset);
+                _hangfireService.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(message, queueNameIn, routingKeyIn, halId, null), phaseStartDateTimeOffset);                
             }
             else
             {

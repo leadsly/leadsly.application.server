@@ -37,11 +37,13 @@ namespace Leadsly.Domain.Providers
             ITimestampService timestampService,            
             ICampaignPhaseClient campaignPhaseClient,
             ICampaignRepositoryFacade campaignRepositoryFacade,
+            IHangfireService hangfireService,
             IMemoryCache memoryCache,
             IFollowUpMessageJobsRepository followUpMessageJobRepository,
             ISocialAccountRepository socialAccountRepository
             )
         {
+            _hangfireService = hangfireService;
             _followUpMessageJobRepository = followUpMessageJobRepository;
             _memoryCache = memoryCache;
             _socialAccountRepository = socialAccountRepository;
@@ -52,6 +54,7 @@ namespace Leadsly.Domain.Providers
             _campaignRepositoryFacade = campaignRepositoryFacade;
         }
 
+        private readonly IHangfireService _hangfireService;
         private readonly IFollowUpMessageJobsRepository _followUpMessageJobRepository;
         private readonly IMemoryCache _memoryCache;
         private readonly ISocialAccountRepository _socialAccountRepository;
@@ -180,8 +183,8 @@ namespace Leadsly.Domain.Providers
             List<FollowUpMessageJob> followUpMessageJobs = await _followUpMessageJobRepository.GetAllByCampaignProspectIdAsync(campaignProspectId, ct) as List<FollowUpMessageJob>;
             followUpMessageJobs.ForEach(followUpMessageJob =>
             {
-                _logger.LogDebug($"Removing hangfire job with id {followUpMessageJob.HangfireJobId}");
-                BackgroundJob.Delete(followUpMessageJob.HangfireJobId);
+                _logger.LogDebug($"Removing hangfire job with id {followUpMessageJob.HangfireJobId}");                
+                _hangfireService.Delete(followUpMessageJob.HangfireJobId);
             });
         }
 

@@ -47,7 +47,7 @@ namespace Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers
             if(messageBody != null)
             {
                 _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers);
-            }            
+            }
         }
 
         private async Task InternalHandleAsync(string queueNameIn, string routingKeyIn, Dictionary<string, object> headers)

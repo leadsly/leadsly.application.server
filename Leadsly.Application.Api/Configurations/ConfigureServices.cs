@@ -237,6 +237,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<IEnterTwoFactorAuthCodeResponseSerializer, EnterTwoFactorAuthCodeResponseSerializer>();
             services.AddScoped<ICampaignPhaseSerializer, CampaignPhaseSerializer>();
             services.AddScoped<IPhaseManager, PhaseManager>();
+            services.AddScoped<IFollowUpMessagePublisher, FollowUpMessagePublisher>();
             
             return services;
         }

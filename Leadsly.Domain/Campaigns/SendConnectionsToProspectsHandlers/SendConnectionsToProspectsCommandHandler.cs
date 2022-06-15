@@ -26,14 +26,17 @@ namespace Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers
             ISendConnectionsToProspectsMessagesFactory messagesFactory,
             ILogger<SendConnectionsToProspectsCommandHandler> logger,
             ICampaignRepositoryFacade campaignRepositoryFacade,
+            IHangfireService hangfireService,
             ITimestampService timestampService)            
         {
+            _hangfireService = hangfireService;
             _campaignRepositoryFacade = campaignRepositoryFacade; 
             _messagesFactory = messagesFactory;
             _timestampService = timestampService;
             _logger = logger;
         }
 
+        private readonly IHangfireService _hangfireService;
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;  
         private readonly ISendConnectionsToProspectsMessagesFactory _messagesFactory;
         private readonly ITimestampService _timestampService;
@@ -125,8 +128,8 @@ namespace Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers
 
             if (nowLocalized.TimeOfDay < phaseStartDateTimeOffset.TimeOfDay)
             {
-                _logger.LogInformation($"[SendConnectionsHandler]: Publishing message for {phaseStartDateTimeOffset}. Current local time is: {nowLocalized}");
-                BackgroundJob.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers), phaseStartDateTimeOffset);
+                _logger.LogInformation($"[SendConnectionsHandler]: Publishing message for {phaseStartDateTimeOffset}. Current local time is: {nowLocalized}");                
+                _hangfireService.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers), phaseStartDateTimeOffset);
             }
             else
             {
