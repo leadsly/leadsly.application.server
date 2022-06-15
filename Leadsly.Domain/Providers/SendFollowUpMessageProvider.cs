@@ -148,7 +148,9 @@ namespace Leadsly.Domain.Providers
 
         private async Task<CampaignProspectFollowUpMessage> CreateCampaignProspectFollowUpMessageAsync(FollowUpMessage message, CampaignProspect campaignProspect, CancellationToken ct = default)
         {
-            string content = message.Content.Replace("{firstName}", campaignProspect.Name);
+            string firstName = campaignProspect.Name.Split(' ').FirstOrDefault();
+            firstName = string.IsNullOrEmpty(firstName) ? "there" : firstName;
+            string content = message.Content.Replace("{firstName}", firstName);
 
             CampaignProspectFollowUpMessage followUpMessage = new()
             {
