@@ -161,6 +161,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ISendConnectionsToProspectsMessagesFactory, SendConnectionsToProspectsMessagesFactory>();
             services.AddScoped<IProspectListMessagesFactory, ProspectListMessagesFactory>();
             services.AddScoped<IFollowUpMessagesFactory, FollowUpMessagesFactory>();
+            services.AddScoped<IJwtFactory, JwtFactory>();
 
             return services;
         }
@@ -317,6 +318,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<IMessageBrokerOutlet, MessageBrokerOutlet>();
             services.AddScoped<IRabbitMQManager, RabbitMQManager>();
             services.AddScoped<IUrlService, UrlService>();
+            services.AddScoped<IAccessTokenService, AccessTokenService>();
             
             services.AddScoped<IRecurringJobsHandler, RecurringJobsHandler>();                      
 
