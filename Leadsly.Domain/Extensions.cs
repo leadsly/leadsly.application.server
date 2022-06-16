@@ -5,6 +5,16 @@ namespace Leadsly.Domain
 {
     public static class Extensions
     {
+        public static string Capitalize(this string str)
+        {
+            if (string.IsNullOrEmpty(str))
+            {
+                return string.Empty;
+            }
+                
+            return char.ToUpper(str[0]) + str.Substring(1).ToLower();
+        }
+
         public static Dictionary<TKey, TValue> Merge<TKey, TValue>(IEnumerable<Dictionary<TKey, TValue>> dictionaries)
         {
             Dictionary<TKey, TValue> result = new Dictionary<TKey, TValue>();

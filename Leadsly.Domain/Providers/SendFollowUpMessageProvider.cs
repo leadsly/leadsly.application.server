@@ -118,7 +118,9 @@ namespace Leadsly.Domain.Providers
             {
                 _logger.LogInformation("FollowUpMessage with id: {followUpMessageId} and order: {order}. Will be sent today", followUpMessageId, order);
 
-                CampaignProspectFollowUpMessage campaignProspectFollowUpMessage = await CreateCampaignProspectFollowUpMessageAsync(message, campaignProspect, ct);
+                // check if this prospect already contains a follow up message created with the given order, so we don't needlessly create multiple follow up messages
+                // and so that multiple follow up messages dont go out
+                CampaignProspectFollowUpMessage campaignProspectFollowUpMessage = await CreateOrGetFollowUpMessageAsync(message, campaignProspect, ct);
 
                 DateTimeOffset followUpMessageDateTime = GetFollowUpMessageDateTime(message, campaignProspect.LastFollowUpMessageSentTimestamp);
                 _logger.LogDebug($"[CreateFollowUpMessagesAsync]: Non localized date time to send out follow up message is: {followUpMessageDateTime}");
@@ -146,21 +148,30 @@ namespace Leadsly.Domain.Providers
             return goingOut;
         }
 
-        private async Task<CampaignProspectFollowUpMessage> CreateCampaignProspectFollowUpMessageAsync(FollowUpMessage message, CampaignProspect campaignProspect, CancellationToken ct = default)
+        private async Task<CampaignProspectFollowUpMessage> CreateOrGetFollowUpMessageAsync(FollowUpMessage message, CampaignProspect campaignProspect, CancellationToken ct = default)
         {
-            string firstName = campaignProspect.Name.Split(' ').FirstOrDefault();
-            firstName = string.IsNullOrEmpty(firstName) ? "there" : firstName;
-            string content = message.Content.Replace("{firstName}", firstName);
-
-            CampaignProspectFollowUpMessage followUpMessage = new()
+            if(campaignProspect.FollowUpMessages.Any(f => f.Order == message.Order) == true)
             {
-                CampaignProspect = campaignProspect,
-                CampaignProspectId = campaignProspect.CampaignProspectId,
-                Order = message.Order,
-                Content = content
-            };
+                // if for whatever reason the server was restarted or we have already created a follow up message for this prospect
+                // with the given order id
+                return campaignProspect.FollowUpMessages.SingleOrDefault(f => f.Order == message.Order);
+            }
+            else
+            {
+                string firstName = campaignProspect.Name.Split(' ').FirstOrDefault();
+                firstName = string.IsNullOrEmpty(firstName) ? "there" : firstName.Capitalize();
+                string content = message.Content.Replace("{firstName}", firstName);
 
-            return await _campaignRepositoryFacade.CreateFollowUpMessageAsync(followUpMessage, ct);
+                CampaignProspectFollowUpMessage followUpMessage = new()
+                {
+                    CampaignProspect = campaignProspect,
+                    CampaignProspectId = campaignProspect.CampaignProspectId,
+                    Order = message.Order,
+                    Content = content
+                };
+
+                return await _campaignRepositoryFacade.CreateFollowUpMessageAsync(followUpMessage, ct);
+            }
         }
 
         private DateTimeOffset GetFollowUpMessageDateTime(FollowUpMessage message, long lastFollowUpMessageSentTimeStamp)
