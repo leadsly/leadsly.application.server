@@ -71,7 +71,7 @@ namespace Leadsly.Domain.Services
 
             HalUnit halUnit = await GetHalUnitByHalIdAsync(halId, ct);
 
-            DateTimeOffset startDateTimeOffset = ParseDateTimeOffsetLocalized(halUnit.StartHour, halUnit.TimeZoneId);
+            DateTimeOffset startDateTimeOffset = ParseLocalized(halUnit.StartHour, halUnit.TimeZoneId);
 
             _logger.LogDebug($"Hal with id {halId} start date is {startDateTimeOffset}");
 
@@ -83,23 +83,21 @@ namespace Leadsly.Domain.Services
             _logger.LogInformation("Retrieving EndWorkDayLocalized for HalId {halId}", halId);
             HalUnit halUnit = await GetHalUnitByHalIdAsync(halId, ct);
 
-            DateTimeOffset endDateTimeOffset = ParseDateTimeOffsetLocalized(halUnit.EndHour, halUnit.TimeZoneId);
+            DateTimeOffset endDateTimeOffset = ParseLocalized(halUnit.EndHour, halUnit.TimeZoneId);
 
             _logger.LogDebug($"Hal with id {halId} end date is {endDateTimeOffset}");
 
             return endDateTimeOffset;
         }
         
-        public async Task<DateTimeOffset> ParseDateTimeOffsetLocalizedAsync(string halId, string timeOfDay, CancellationToken ct = default)
+        public DateTimeOffset ParseDateTimeOffsetLocalized(string timeZoneId, string timeOfDay)
         {
-            HalUnit halUnit = await GetHalUnitByHalIdAsync(halId, ct);
-
-            DateTimeOffset targetDateTimeOffset = ParseDateTimeOffsetLocalized(timeOfDay, halUnit.TimeZoneId);
+            DateTimeOffset targetDateTimeOffset = ParseLocalized(timeOfDay, timeZoneId);
 
             return targetDateTimeOffset;
         }
 
-        private DateTimeOffset ParseDateTimeOffsetLocalized(string timeOfDay, string timeZoneId)
+        private DateTimeOffset ParseLocalized(string timeOfDay, string timeZoneId)
         {
             TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
             TimeSpan ts = DateTime.Parse(timeOfDay).TimeOfDay;

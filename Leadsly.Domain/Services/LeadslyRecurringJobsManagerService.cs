@@ -51,7 +51,7 @@ namespace Leadsly.Domain.Services
         private readonly HalWorkCommandHandlerDecorator<ScanProspectsForRepliesCommand> _scanProspectsHandler;        
         private readonly HalWorkCommandHandlerDecorator<NetworkingCommand> _networkingCommandHandler;
 
-        public async Task PublishMessagesAsync(string halId)
+        public async Task PublishHalPhasesAsync(string halId)
         {
             //////////////////////////////////////////////////////////////////////////////////////
             ///// ScanForNewConnectionsOffHours

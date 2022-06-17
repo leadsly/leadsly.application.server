@@ -124,7 +124,7 @@ namespace Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers
             messageBody.SendConnectionsStage = stage;
 
             DateTimeOffset nowLocalized = await _timestampService.GetNowLocalizedAsync(halId);
-            DateTimeOffset phaseStartDateTimeOffset = await _timestampService.ParseDateTimeOffsetLocalizedAsync(halId, stage.StartTime);            
+            DateTimeOffset phaseStartDateTimeOffset = _timestampService.ParseDateTimeOffsetLocalized(messageBody.TimeZoneId, stage.StartTime);            
 
             if (nowLocalized.TimeOfDay < phaseStartDateTimeOffset.TimeOfDay)
             {

@@ -20,13 +20,17 @@ namespace Leadsly.Domain
     {
         public RecurringJobsHandler(IServiceProvider serviceProbider,
             ITimeZoneRepository timezoneRepository, 
-            IHangfireService hangfireService, 
+            IHangfireService hangfireService,
+            IHalRepository halRepository,
+            ITimestampService timestampService,
             ILeadslyRecurringJobsManagerService leadslyRecurringJobsManagersService,
             ILogger<RecurringJobsHandler> logger,
             IWebHostEnvironment env)
         {
             _env = env;
+            _halRepository = halRepository;
             _logger = logger;
+            _timestampService = timestampService;
             _serviceProbider = serviceProbider;
             _leadslyRecurringJobsManagerService = leadslyRecurringJobsManagersService;
             _hangfireService = hangfireService;
@@ -34,6 +38,8 @@ namespace Leadsly.Domain
         }
 
         private readonly IWebHostEnvironment _env;
+        private readonly ITimestampService _timestampService;
+        private readonly IHalRepository _halRepository;
         private readonly ILogger<RecurringJobsHandler> _logger;
         private readonly IServiceProvider _serviceProbider;
         private readonly IHangfireService _hangfireService;
@@ -93,14 +99,25 @@ namespace Leadsly.Domain
         public async Task PublishJobsAsync(string timeZoneId)
         {
             // get all hal ids for this time zone
+            _logger.LogInformation("Executing daily cron job for time zone {timeZoneId}", timeZoneId);
             IList<HalTimeZone> halTimeZones = await _timezoneRepository.GetAllByTimeZoneIdAsync(timeZoneId);
             if(halTimeZones.Count > 0)
             {
-                List<string> halIds = halTimeZones.Select(h => h.HalId).ToList();
+                int hals = halTimeZones.Count;
+                _logger.LogDebug("Time zone {timeZoneId}, has {hals} hal units.", timeZoneId, hals);
 
+                List<string> halIds = halTimeZones.Select(h => h.HalId).ToList();
                 foreach (string halId in halIds)
                 {
-                    await _leadslyRecurringJobsManagerService.PublishMessagesAsync(halId);
+                    // Grab this Hal's start time and schedule the job shortly after the start time
+                    HalUnit halUnit = await _halRepository.GetByHalIdAsync(halId);
+                    if(halUnit != null)
+                    {
+                        _logger.LogInformation("Hal unit with id {halId} was found", halId);
+                        DateTimeOffset startDate = _timestampService.ParseDateTimeOffsetLocalized(halUnit.TimeZoneId, halUnit.StartHour);                        
+                        _logger.LogInformation($"Hal unit with id {halId}, has a start date of {startDate}");
+                        _hangfireService.Schedule<ILeadslyRecurringJobsManagerService>((x) => x.PublishHalPhasesAsync(halId), startDate);
+                    }
                 }
             }            
         }
@@ -133,6 +150,7 @@ namespace Leadsly.Domain
                         }
                         else
                         {
+                            _logger.LogInformation("Daily Cron job is about to execute. This will go through all supported time zones and triggers jobs for active campaigns");
                             TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
                             _hangfireService.AddOrUpdate<IRecurringJobsHandler>(jobName, (x) => x.PublishJobsAsync(timeZoneId), HangFireConstants.RecurringJobs.DailyCronSchedule, tzInfo);
                         }                        

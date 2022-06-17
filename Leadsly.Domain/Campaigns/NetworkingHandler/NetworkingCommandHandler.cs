@@ -88,7 +88,7 @@ namespace Leadsly.Domain.Campaigns.NetworkingHandler
             string halId = message.HalId;
 
             DateTimeOffset nowLocalized = await _timestampService.GetNowLocalizedAsync(halId);
-            DateTimeOffset phaseStartDateTimeOffset = await _timestampService.ParseDateTimeOffsetLocalizedAsync(halId, message.StartTime);
+            DateTimeOffset phaseStartDateTimeOffset = _timestampService.ParseDateTimeOffsetLocalized(message.TimeZoneId, message.StartTime);
 
             if (nowLocalized.TimeOfDay < phaseStartDateTimeOffset.TimeOfDay)
             {

@@ -4,6 +4,6 @@ namespace Leadsly.Domain.Services.Interfaces
 {
     public interface ILeadslyRecurringJobsManagerService
     {
-        public Task PublishMessagesAsync(string halId);
+        public Task PublishHalPhasesAsync(string halId);
     }
 }
