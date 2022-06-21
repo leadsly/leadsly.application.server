@@ -12,6 +12,7 @@ namespace Leadsly.Domain.Repositories
     {
         Task<SocialAccount> AddSocialAccountAsync(SocialAccount newSocialAccount, CancellationToken ct = default);
         Task<SocialAccount> GetByIdAsync(string id, CancellationToken ct = default);
+        Task<SocialAccount> GetByUserIdAsync(string userId, CancellationToken ct = default);
         Task<SocialAccount> GetByUserNameAsync(string email, CancellationToken ct = default);
         Task<SocialAccount> UpdateAsync(SocialAccount updatedSocialAccount, CancellationToken ct = default);
         Task<bool> RemoveSocialAccountAsync(string id, CancellationToken ct = default);

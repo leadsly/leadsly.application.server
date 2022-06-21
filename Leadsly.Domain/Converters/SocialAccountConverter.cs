@@ -19,7 +19,8 @@ namespace Leadsly.Domain.Converters
                 MonthlySearchLimitReached = model.MonthlySearchLimitReached,
                 SocialAccountId = model.SocialAccountId,
                 UserId = model.UserId,
-                Username = model.Username
+                Username = model.Username,
+                HalId = model.HalDetails.HalId
             };
         }
         public static SocialAccount Convert(SocialAccountDTO dto)

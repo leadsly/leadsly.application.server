@@ -483,10 +483,9 @@ namespace Leadsly.Application.Api.Controllers
         }
 
         [HttpPost]
-        [AllowAnonymous]
         public async Task<IActionResult> Create(CreateCampaignRequest request, CancellationToken ct = default)
         {
-            string userId = "8a255312-ed5c-4b81-9691-2c8f50a5b71a"; // User.FindFirst(ClaimTypes.NameIdentifier)?.Value; ;            
+            string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;           
             HalOperationResultViewModel<IOperationResponseViewModel> result = await _supervisor.CreateCampaignAsync<IOperationResponseViewModel>(request, userId, ct);
             if(result.OperationResults.Succeeded == false)
             {

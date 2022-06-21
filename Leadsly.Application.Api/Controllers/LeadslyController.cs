@@ -1,11 +1,14 @@
 ﻿using Leadsly.Application.Model.Requests;
 using Leadsly.Application.Model.ViewModels;
 using Leadsly.Application.Model.ViewModels.Cloud;
+using Leadsly.Application.Model.ViewModels.Response;
 using Leadsly.Application.Model.ViewModels.Response.Hal;
 using Leadsly.Domain.Supervisor;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Linq;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,6 +30,22 @@ namespace Leadsly.Application.Api.Controllers
 
         private readonly ISupervisor _supervisor;
         private readonly ILogger<LeadslyController> _logger;
+
+        /// <summary>
+        /// Gets applications name and version. If returned indicates api is successfully running.
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("connected-account")]
+        public async Task<IActionResult> GetConnectedAccountAsync()
+        {
+            _logger.LogTrace("ConnectedAccount action executed.");
+
+            string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            HalOperationResultViewModel<IOperationResponseViewModel> connectedAccount = await _supervisor.GetConnectedAccountAsync<IOperationResponseViewModel>(userId);
+
+            // TODO we need to handle situation when something fails and return Bad_Request();
+            return Ok(connectedAccount);
+        }
 
         [HttpPost("setup")]
         [AllowAnonymous]

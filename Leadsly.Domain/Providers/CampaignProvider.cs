@@ -446,6 +446,7 @@ namespace Leadsly.Domain.Providers
             }
 
             result.OperationResults.Succeeded = true;
+            result.Data = newCampaignWithPhases;
             return result;
         }
 

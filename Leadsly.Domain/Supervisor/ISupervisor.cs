@@ -75,5 +75,8 @@ namespace Leadsly.Domain.Supervisor
 
         Task<HalOperationResult<T>> UpdateSearchUrlProgressAsync<T>(string searchUrlProgressId, JsonPatchDocument<SearchUrlProgress> searchUrlProgressToUpdate, CancellationToken ct = default)
             where T : IOperationResponse;
+
+        Task<HalOperationResultViewModel<T>> GetConnectedAccountAsync<T>(string userId, CancellationToken ct = default)
+            where T : IOperationResponseViewModel;
     }
 }

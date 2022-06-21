@@ -134,5 +134,20 @@ namespace Leadsly.Infrastructure.Repositories
             }
             return allSocialAccounts;
         }
+
+        public async Task<SocialAccount> GetByUserIdAsync(string userId, CancellationToken ct = default)
+        {
+            SocialAccount socialAccount = default;
+            try
+            {
+                socialAccount = await _dbContext.SocialAccounts.Where(s => s.UserId == userId).Include(s => s.HalDetails).SingleAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve SocialAccount by user id {userId}", userId);
+                return null;
+            }
+            return socialAccount;
+        }
     }
 }

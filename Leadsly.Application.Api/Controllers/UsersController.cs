@@ -851,7 +851,7 @@ namespace Leadsly.Application.Api.Controllers
         [AllowAnonymous]
         [Route("emails/invited")]
         public async Task<IActionResult> EmailInvited([FromQuery] string email)
-        {
+            {
             _logger.LogTrace("EmailInvited action executed. Looking for: {email}", email);
 
             ApplicationUser user = await _userManager.FindByEmailAsync(email);
