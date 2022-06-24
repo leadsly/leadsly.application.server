@@ -100,6 +100,18 @@ namespace Leadsly.Application.Api
             });
         }
 
+        protected ObjectResult BadRequest_UserProspectList()
+        {
+            return ProblemDetailsResult(new ProblemDetails
+            {
+                Type = ProblemDetailsTypes.BadRequestType,
+                Status = StatusCodes.Status400BadRequest,
+                Title = ReasonPhrases.GetReasonPhrase(400),
+                Detail = ProblemDetailsDescriptions.ProspectListError,
+                Instance = HttpContext.Request.Path.Value
+            });
+        }
+
         /// <summary>
         /// Bad request when there is an issue updating prospect list phase.
         /// </summary>        

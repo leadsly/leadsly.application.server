@@ -122,25 +122,25 @@ namespace Leadsly.Infrastructure.Repositories
             return primaryProspectList;
         }
 
-        public async Task<PrimaryProspectList> GetListByUserIdAsync(string userId, CancellationToken ct = default)
+        public async Task<IList<PrimaryProspectList>> GetListsByUserIdAsync(string userId, CancellationToken ct = default)
         {
-            _logger.LogInformation("Retrieving PrimaryProspect by user id {userId}", userId);
-            PrimaryProspectList primaryProspectList = default;
+            _logger.LogInformation("Retrieving PrimaryProspectLists by user id {userId}", userId);
+            IList<PrimaryProspectList> primaryProspectLists = default;
             try
             {
-                primaryProspectList = await _dbContext.PrimaryProspectLists
+                primaryProspectLists = await _dbContext.PrimaryProspectLists
                     .Where(p => p.UserId == userId)
-                    .SingleAsync(ct);
+                    .ToListAsync(ct);
 
-                _logger.LogDebug("Successfully retrieved PrimaryProspectList by user id {userId}", userId);
+                _logger.LogDebug("Successfully retrieved PrimaryProspectLists by user id {userId}", userId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to retrieve PrimaryProspectList by user id {userId}. Returning an explicit null", userId);
+                _logger.LogError(ex, "Failed to retrieve PrimaryProspectLists by user id {userId}. Returning an explicit null", userId);
                 return null;
             }
 
-            return primaryProspectList;
+            return primaryProspectLists;
         }
     }
 }

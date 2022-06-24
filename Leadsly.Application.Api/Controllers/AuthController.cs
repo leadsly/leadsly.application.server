@@ -94,25 +94,25 @@ namespace Leadsly.Application.Api.Controllers
                 //await RequireConfirmedEmail(appUser);
             }
 
-            if (await _userManager.CheckPasswordAsync(appUser, signin.Password) == false)
-            {
-                _logger.LogDebug("Password validation failed.");
+            //if (await _userManager.CheckPasswordAsync(appUser, signin.Password) == false)
+            //{
+            //    _logger.LogDebug("Password validation failed.");
 
-                await _userManager.AccessFailedAsync(appUser);
+            //    await _userManager.AccessFailedAsync(appUser);
 
-                if (await _userManager.IsLockedOutAsync(appUser))
-                {
-                    _logger.LogDebug("User is locked out.");
+            //    if (await _userManager.IsLockedOutAsync(appUser))
+            //    {
+            //        _logger.LogDebug("User is locked out.");
 
-                    return Unauthorized_AccountLockedOut();
-                }
+            //        return Unauthorized_AccountLockedOut();
+            //    }
 
-                int failedAttempts = await _userManager.GetAccessFailedCountAsync(appUser);
+            //    int failedAttempts = await _userManager.GetAccessFailedCountAsync(appUser);
 
-                _logger.LogDebug("Failed sign in attempt number: '{failedAttempts}'.", failedAttempts);
+            //    _logger.LogDebug("Failed sign in attempt number: '{failedAttempts}'.", failedAttempts);
 
-                return Unauthorized_InvalidCredentials(failedAttempts);
-            }
+            //    return Unauthorized_InvalidCredentials(failedAttempts);
+            //}
 
             if (await _userManager.GetTwoFactorEnabledAsync(appUser) == true)
             {

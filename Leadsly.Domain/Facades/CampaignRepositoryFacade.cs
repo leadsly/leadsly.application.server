@@ -169,9 +169,9 @@ namespace Leadsly.Domain.Facades
             return await _primaryProspectRepository.GetListByNameAndUserIdAsync(prospectListName, userId, ct);
         }
 
-        public async Task<PrimaryProspectList> GetPrimaryProspectListByUserIdAsync(string userId, CancellationToken ct = default)
+        public async Task<IList<PrimaryProspectList>> GetPrimaryProspectListsByUserIdAsync(string userId, CancellationToken ct = default)
         {
-            return await _primaryProspectRepository.GetListByUserIdAsync(userId, ct);
+            return await _primaryProspectRepository.GetListsByUserIdAsync(userId, ct);
         }
 
         public async Task<ProspectListPhase> GetProspectListPhaseByCampaignIdAsync(string campaignId, CancellationToken ct = default)

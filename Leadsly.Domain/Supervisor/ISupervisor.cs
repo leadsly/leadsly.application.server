@@ -78,5 +78,8 @@ namespace Leadsly.Domain.Supervisor
 
         Task<HalOperationResultViewModel<T>> GetConnectedAccountAsync<T>(string userId, CancellationToken ct = default)
             where T : IOperationResponseViewModel;
+
+        Task<HalOperationResultViewModel<T>> GetProspectListsByUserIdAsync<T>(string userId, CancellationToken ct = default)
+            where T : IOperationResponseViewModel;
     }
 }

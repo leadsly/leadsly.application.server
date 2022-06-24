@@ -55,7 +55,7 @@ namespace Leadsly.Domain.Facades.Interfaces
         #region PrimaryProspect
 
         Task<PrimaryProspectList> GetPrimaryProspectListByNameAndUserIdAsync(string prospectListName, string userId, CancellationToken ct = default);
-        Task<PrimaryProspectList> GetPrimaryProspectListByUserIdAsync(string userId, CancellationToken ct = default);
+        Task<IList<PrimaryProspectList>> GetPrimaryProspectListsByUserIdAsync(string userId, CancellationToken ct = default);
         Task<PrimaryProspectList> CreatePrimaryProspectListAsync(PrimaryProspectList primaryProspectList, CancellationToken ct = default);
         Task<PrimaryProspectList> GetPrimaryProspectListByIdAsync(string primaryProspectListId, CancellationToken ct = default);
         Task<PrimaryProspect> GetPrimaryProspectByIdAsync(string primaryProspectId, CancellationToken ct = default);
