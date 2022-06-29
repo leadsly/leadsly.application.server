@@ -1,10 +1,5 @@
 ﻿using Amazon.ServiceDiscovery.Model;
-using Leadsly.Application.Model.Aws;
 using Leadsly.Application.Model.Aws.ServiceDiscovery;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,6 +16,8 @@ namespace Leadsly.Domain.Services.Interfaces
         Task<CreateServiceResponse> CreateServiceAsync(CreateServiceDiscoveryServiceRequest createServiceDiscoveryRequest, CancellationToken ct = default);
 
         Task<DeleteServiceResponse> DeleteServiceAsync(DeleteServiceDiscoveryServiceRequest deleteServiceDiscoveryRequest, CancellationToken ct = default);
+
+        Task<string> RollbackCloudMapDiscoveryServiceAsync(CancellationToken ct = default);
 
         Task<GetNamespaceResponse> GetNamespaceAsync(GetCloudMapNamespaceRequest getNamespaceRequest, CancellationToken ct = default);
     }

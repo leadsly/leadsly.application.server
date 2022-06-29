@@ -1,11 +1,7 @@
-﻿using Leadsly.Application.Model;
-using Leadsly.Application.Model.Aws.DTOs;
+﻿using Leadsly.Application.Model.Aws.DTOs;
 using Leadsly.Application.Model.Entities;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Converters
 {
@@ -28,7 +24,7 @@ namespace Leadsly.Domain.Converters
                 ServiceArn = dto.ServiceArn,
                 ServiceName = dto.ServiceName,
                 TaskDefinition = dto.TaskDefinition,
-                UserId = dto.UserId
+                VirtualAssistantId = dto.VirtualAssistantId,
             };
         }
     }

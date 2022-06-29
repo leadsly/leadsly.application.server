@@ -51,6 +51,177 @@ namespace Leadsly.Domain.Providers
         private readonly int DefaultTimeToWaitForEcsServicePendingTasks_InSeconds = 120;
         private readonly string HealthCheckEndpoint = "api/healthcheck";
 
+        public async Task<string> RollbackEcsServiceAsync(CancellationToken ct = default)
+        {
+            return await _awsElasticContainerService.RollbackServiceAsync(ct);
+        }
+
+        public async Task<string> RollbackCloudMapServiceAsync(CancellationToken ct = default)
+        {
+            return await _awsElasticContainerService.RollbackTaskDefinitionRegistrationAsync(ct);
+        }
+
+        public async Task<string> RolbackTaskDefinitionRegistrationAsync(CancellationToken ct = default)
+        {
+            return await _awsServiceDiscoveryService.RollbackCloudMapDiscoveryServiceAsync(ct);
+        }
+
+        public async Task<EcsServiceDTO> CreateEcsServiceInAwsAsync(string taskDefinition, string cloudMapServiceArn, LeadslyAccountSetupResult result, CancellationToken ct = default)
+        {
+            CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
+
+            EcsServiceDTO ecsService = CreateAwsEcsService(configuration, taskDefinition, cloudMapServiceArn);
+
+            Amazon.ECS.Model.CreateServiceResponse createEcsServiceResponse = await CreateEcsServiceAsync(ecsService, ct);
+            if (createEcsServiceResponse == null || createEcsServiceResponse.HttpStatusCode != HttpStatusCode.OK)
+            {
+                _logger.LogError("Failed to create ECS Service in AWS");
+                result.Succeeded = false;
+                result.Failures.Add(new()
+                {
+                    Reason = "Failed to create ECS Service in AWS"
+                });
+                return null;
+            }
+            else
+            {
+                _logger.LogInformation("Successfully created ECS Service in AWS");
+                ecsService.ServiceArn = createEcsServiceResponse.Service.ServiceArn;
+                ecsService.CreatedAt = createEcsServiceResponse.Service.CreatedAt;
+                ecsService.CreatedBy = createEcsServiceResponse.Service.CreatedBy;
+            }
+
+            return ecsService;
+        }
+
+        private EcsServiceDTO CreateAwsEcsService(CloudPlatformConfiguration configuration, string taskDefinition, string cloudMapServiceArn)
+        {
+            return new EcsServiceDTO
+            {
+                ClusterArn = configuration.EcsServiceConfig.ClusterArn,
+                ServiceName = $"hal-{Guid.NewGuid()}-service",
+                TaskDefinition = taskDefinition,
+                // UserId = userId,
+                AssignPublicIp = configuration.EcsServiceConfig.AssignPublicIp,
+                DesiredCount = configuration.EcsServiceConfig.DesiredCount,
+                SchedulingStrategy = configuration.EcsServiceConfig.SchedulingStrategy,
+                LaunchType = configuration.EcsServiceConfig.LaunchType,
+                Subnets = configuration.EcsServiceConfig.Subnets,
+                SecurityGroups = configuration.EcsServiceConfig.SecurityGroups,
+                Registries = new()
+                {
+                    new()
+                    {
+                        RegistryArn = cloudMapServiceArn
+                    }
+                }
+            };
+        }
+
+        public async Task<CloudMapServiceDiscoveryServiceDTO> CreateCloudMapDiscoveryServiceInAwsAsync(LeadslyAccountSetupResult result, CancellationToken ct = default)
+        {
+            CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
+
+            CloudMapServiceDiscoveryServiceDTO cloudMapServiceDiscoveryDTO = CreateAwsCloudMapService(configuration);
+
+            Amazon.ServiceDiscovery.Model.CreateServiceResponse createDiscoveryServiceResponse = await CreateServiceDiscoveryServiceAsync(cloudMapServiceDiscoveryDTO, ct);
+            if (createDiscoveryServiceResponse == null || createDiscoveryServiceResponse.HttpStatusCode != HttpStatusCode.OK)
+            {
+                _logger.LogError($"Failed to create Cloud Map service discovery service in AWS. HttpStatusCode: {createDiscoveryServiceResponse?.HttpStatusCode}");
+                result.Succeeded = false;
+                result.Failures.Add(new()
+                {
+                    Reason = "Failed to create Cloud Map service discovery service in AWS"
+                });
+                return null;
+            }
+            else
+            {
+                _logger.LogInformation($"Successfully created Cloud Map service discovery service in AWS. HttpStatusCode: {createDiscoveryServiceResponse?.HttpStatusCode}");
+                cloudMapServiceDiscoveryDTO.ServiceDiscoveryId = createDiscoveryServiceResponse.Service.Id;
+                cloudMapServiceDiscoveryDTO.Arn = createDiscoveryServiceResponse.Service.Arn;
+                cloudMapServiceDiscoveryDTO.CreateDate = createDiscoveryServiceResponse.Service.CreateDate;
+                cloudMapServiceDiscoveryDTO.Description = createDiscoveryServiceResponse.Service.Description;
+                cloudMapServiceDiscoveryDTO.CreateRequestId = createDiscoveryServiceResponse.Service.CreatorRequestId;
+            }
+
+            return cloudMapServiceDiscoveryDTO;
+        }
+
+        private CloudMapServiceDiscoveryServiceDTO CreateAwsCloudMapService(CloudPlatformConfiguration configuration)
+        {
+            return new CloudMapServiceDiscoveryServiceDTO
+            {
+                // name used to discover this service by in the future
+                Name = $"hal-{Guid.NewGuid()}-srv-disc",
+                NamespaceId = configuration.ServiceDiscoveryConfig.NamespaceId,
+                DnsConfig = new()
+                {
+                    CloudMapDnsRecords = new()
+                            {
+                                new()
+                                {
+                                    TTL = configuration.ServiceDiscoveryConfig.DnsRecordTTL,
+                                    Type = configuration.ServiceDiscoveryConfig.DnsRecordType
+                                }
+                            }
+                }
+            };
+        }
+
+        public async Task<EcsTaskDefinitionDTO> RegisterTaskDefinitionInAwsAsync(string halId, LeadslyAccountSetupResult result, CancellationToken ct = default)
+        {
+            CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
+
+            // Register the new task definition
+            EcsTaskDefinitionDTO ecsTaskDefinition = CreateAwsTaskDefinition(halId, configuration);
+            Amazon.ECS.Model.RegisterTaskDefinitionResponse registerTaskDefinitionResponse = await RegisterTaskDefinitionAsync(ecsTaskDefinition, ct);
+            if (registerTaskDefinitionResponse == null || registerTaskDefinitionResponse.HttpStatusCode != HttpStatusCode.OK)
+            {
+                _logger.LogError("Failed to register ECS task definition in AWS");
+                result.Succeeded = false;
+                result.Failures.Add(new()
+                {
+                    Reason = "Failed to register ECS task definition in AWS"
+                });
+
+                return null;
+            }
+            else
+            {
+                _logger.LogInformation("Successfully registered ECS task definition in AWS.");
+                ecsTaskDefinition.TaskDefinitionArn = registerTaskDefinitionResponse.TaskDefinition.TaskDefinitionArn;
+            }
+
+            return ecsTaskDefinition;
+        }
+
+        private EcsTaskDefinitionDTO CreateAwsTaskDefinition(string halId, CloudPlatformConfiguration configuration)
+        {
+            string taskDefinition = $"{Guid.NewGuid()}-task-def";
+            string containerName = $"hal-{Guid.NewGuid()}-container";
+            return new EcsTaskDefinitionDTO
+            {
+                ContainerName = containerName,
+                Family = taskDefinition,
+                Cpu = configuration.EcsTaskDefinitionConfig.Cpu,
+                ContainerDefinitions = configuration.EcsTaskDefinitionConfig.ContainerDefinitions.Select(c => new ContainerDefinitionDTO
+                {
+                    Image = c.Image,
+                    Name = taskDefinition,
+                    EnviornmentVariables = new()
+                            {
+                                new KeyValuePair<string, string>(Enum.GetName(DockerEnvironmentVariables.HAL_ID), halId)
+                            }
+                }).ToList(),
+                ExecutionRoleArn = configuration.EcsTaskDefinitionConfig.ExecutionRoleArn,
+                TaskRoleArn = configuration.EcsTaskDefinitionConfig.TaskRoleArn,
+                Memory = configuration.EcsTaskDefinitionConfig.Memory,
+                NetworkMode = configuration.EcsTaskDefinitionConfig.NetworkMode,
+                RequiresCompatibilities = configuration.EcsTaskDefinitionConfig.RequiresCompatibilities
+            };
+        }
+
         public async Task<NewSocialAccountSetupResult> SetupNewCloudResourceForUserSocialAccountAsync(string userId, CancellationToken ct = default)
         {
             CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
@@ -145,6 +316,20 @@ namespace Leadsly.Domain.Providers
             result.Succeeded = true;
             return result;
         }
+
+        public async Task<bool> AreAwsResourcesHealthyAsync(string cloudMapServiceName, CancellationToken ct = default)
+        {
+            CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
+
+            HalHealthCheckResponse healthCheckResponse = await RunHalsHealthCheckAsync(cloudMapServiceName, configuration, ct);
+            if (healthCheckResponse.Succeeded == false)
+            {
+                _logger.LogInformation("Running initial hals health check did not succeeded");
+                return false;
+            }
+            return true;
+        }
+
         private async Task<HalHealthCheckResponse> RunHalsHealthCheckAsync(string serviceDiscoveryName, CloudPlatformConfiguration configuration, CancellationToken ct = default)
         {
             HealthCheckRequest halHealthCheckRequest = new()
@@ -156,6 +341,7 @@ namespace Leadsly.Domain.Providers
 
             return await PerformHalsHealthCheckAsync(halHealthCheckRequest, ct);
         }
+
         public async Task RollbackCloudResourcesAsync(NewSocialAccountSetupResult setupToRollback, string userId, CancellationToken ct = default)
         {
             _logger.LogInformation("Aws resource cleanup started.");
@@ -208,7 +394,7 @@ namespace Leadsly.Domain.Providers
 
             // then Service Discovery Service
             _logger.LogInformation("Starting to delete service discovery service.");
-            await DeleteServiceDiscoveryServiceAsync(awsCloudDetailsToRemove.CloudMapServiceDiscoveryService, socialAccount.UserId, ct);
+            //await DeleteServiceDiscoveryServiceAsync(awsCloudDetailsToRemove.CloudMapServiceDiscoveryService, socialAccount.UserId, ct);
             _logger.LogInformation("Finished deleting service discovery service.");
 
             // then deregister task definition            
@@ -275,7 +461,7 @@ namespace Leadsly.Domain.Providers
                         ClusterArn = configuration.EcsServiceConfig.ClusterArn,
                         ServiceName = $"hal-{Guid.NewGuid()}-service",
                         TaskDefinition = taskDefinition,
-                        UserId = userId,
+                        //UserId = userId,
                         AssignPublicIp = configuration.EcsServiceConfig.AssignPublicIp,
                         DesiredCount = configuration.EcsServiceConfig.DesiredCount,
                         SchedulingStrategy = configuration.EcsServiceConfig.SchedulingStrategy,
@@ -292,7 +478,7 @@ namespace Leadsly.Domain.Providers
 
             return userSetup;
         }
-        private async Task<ExistingSocialAccountSetupResultDTO> PerformHalsHealthCheckWithPrivateIpAsync(CloudMapServiceDiscoveryConfig serviceDiscoveryConfig, CloudMapServiceDiscoveryService usersCloudDiscoveryService, CancellationToken ct = default)
+        private async Task<ExistingSocialAccountSetupResultDTO> PerformHalsHealthCheckWithPrivateIpAsync(CloudMapServiceDiscoveryConfig serviceDiscoveryConfig, CloudMapDiscoveryService usersCloudDiscoveryService, CancellationToken ct = default)
         {
             ExistingSocialAccountSetupResultDTO result = new()
             {
@@ -737,6 +923,8 @@ namespace Leadsly.Domain.Providers
 
             return failuresDTO;
         }
+
+        [Obsolete("This is no longer being used")]
         private async Task<Amazon.ECS.Model.DescribeServicesResponse> DescribeServicesAsync(SocialAccount socialAccount, CancellationToken ct = default)
         {
             DescribeEcsServicesRequest request = new()
@@ -750,6 +938,22 @@ namespace Leadsly.Domain.Providers
 
             return await _awsElasticContainerService.DescribeServicesAsync(request, ct);
         }
+
+        private async Task<Amazon.ECS.Model.DescribeServicesResponse> DescribeServicesAsync(string serviceName, string clusterArn, CancellationToken ct = default)
+        {
+            DescribeEcsServicesRequest request = new()
+            {
+                Cluster = clusterArn,
+                Services = new()
+                {
+                    serviceName
+                }
+            };
+
+            return await _awsElasticContainerService.DescribeServicesAsync(request, ct);
+        }
+
+        [Obsolete("This is no longer in use")]
         private async Task<Amazon.ECS.Model.DescribeServicesResponse> DescribeServicesAsync(Amazon.ECS.Model.Service ecsService, CancellationToken ct = default)
         {
             DescribeEcsServicesRequest request = new()
@@ -786,6 +990,7 @@ namespace Leadsly.Domain.Providers
 
             return await _awsElasticContainerService.DescribeTasksAsync(request, ct);
         }
+
         private async Task<NewSocialAccountSetupResult> SetupNewContainerAsync(SocialAccountCloudResourceDTO userSetup, CancellationToken ct = default)
         {
             NewSocialAccountSetupResult result = new()
@@ -909,6 +1114,7 @@ namespace Leadsly.Domain.Providers
             // return updatedEcsService;
             return ecsServiceDTO;
         }
+        [Obsolete("This is no longer in use")]
         private async Task<CloudPlatformOperationResult> EnsureEcsServiceTasksAreRunningAsync(SocialAccountCloudResourceDTO userSetup, CancellationToken ct = default)
         {
             CloudPlatformOperationResult result = new()
@@ -966,6 +1172,7 @@ namespace Leadsly.Domain.Providers
 
             return result;
         }
+        [Obsolete("This is no longer used")]
         private async Task<CloudPlatformOperationResult> AreEcsServiceTasksRunningAsync(SocialAccountCloudResourceDTO userSetup, CancellationToken ct = default)
         {
             CloudPlatformOperationResult result = new()
@@ -997,6 +1204,86 @@ namespace Leadsly.Domain.Providers
             result.Value = response.Services.First().PendingCount == 0 && response.Services.First().RunningCount > 0;
             return result;
         }
+        public async Task<bool> EnsureEcsServiceTasksAreRunningAsync(string ecsServiceName, string clusterArn, CancellationToken ct = default)
+        {
+            Stopwatch mainStopWatch = new Stopwatch();
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            mainStopWatch.Start();
+            _logger.LogInformation("Ensuring ecs service tasks are running. Waiting 20 seconds before checking.");
+            while (mainStopWatch.Elapsed.TotalSeconds <= DefaultTimeToWaitForEcsServicePendingTasks_InSeconds)
+            {
+                // Check elapsed time w/o stopping/resetting the stopwatch                
+                if (stopwatch.Elapsed.TotalSeconds >= 20)
+                {
+                    double timeout = (DefaultTimeToWaitForEcsServicePendingTasks_InSeconds - mainStopWatch.Elapsed.TotalSeconds);
+                    _logger.LogInformation("Checking if ecs service tasks are running... Times out in: {timeout}", timeout);
+                    // At least 5 seconds elapsed, restart stopwatch.
+                    stopwatch.Stop();
+                    CloudPlatformOperationResult checkTaskStatusResult = await AreEcsServiceTasksRunningAsync(ecsServiceName, clusterArn, ct);
+                    if (checkTaskStatusResult.Succeeded)
+                    {
+                        if (((bool)checkTaskStatusResult.Value) == true)
+                        {
+                            _logger.LogInformation("Successfully verified ecs service tasks are running");
+                            mainStopWatch.Stop();
+                            stopwatch.Stop();
+                            return true;
+                        }
+                        else
+                        {
+                            _logger.LogInformation("Ecs service tasks are not running yet. Checking again in 20 seconds...");
+                        }
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                    stopwatch.Restart();
+                }
+
+                if (mainStopWatch.Elapsed.TotalSeconds == DefaultTimeToWaitForEcsServicePendingTasks_InSeconds)
+                {
+                    _logger.LogWarning("Failed to find out if ecs service tasks are running in the alotted time.");
+                    return false;
+                }
+            }
+
+            return true;
+        }
+        private async Task<CloudPlatformOperationResult> AreEcsServiceTasksRunningAsync(string ecsServiceName, string clusternArn, CancellationToken ct = default)
+        {
+            CloudPlatformOperationResult result = new()
+            {
+                Succeeded = false
+            };
+
+            Amazon.ECS.Model.DescribeServicesResponse response = await DescribeServicesAsync(ecsServiceName, clusternArn, ct);
+
+            if (response == null || response.Services == null || response.HttpStatusCode != HttpStatusCode.OK)
+            {
+                result.Value = false;
+                result.Failures.Add(new()
+                {
+                    Arn = ecsServiceName,
+                    Code = Codes.AWS_API_ERROR,
+                    Detail = "Aws API returned null, services were null or status code did not equal 200",
+                    Reason = "Failed to get number of pending tasks for this service"
+                });
+                return result;
+            }
+
+            if (response.Services.Count() > 1)
+            {
+                _logger.LogWarning("Expected to find a single service in the response but more than one were found. Using first service in the collection to check if all tasks are running");
+            }
+
+            result.Succeeded = true;
+            result.Value = response.Services.First().PendingCount == 0 && response.Services.First().RunningCount > 0;
+            return result;
+        }
+
+
         private async Task DeleteServiceDiscoveryServiceAsync(CloudMapServiceDiscoveryServiceDTO serviceDiscovery, string userId, CancellationToken ct = default)
         {
             DeleteServiceDiscoveryServiceRequest request = new()
@@ -1064,7 +1351,7 @@ namespace Leadsly.Domain.Providers
             }
             return response;
         }
-        private async Task DeleteServiceDiscoveryServiceAsync(CloudMapServiceDiscoveryService serviceDiscovery, string userId, CancellationToken ct = default)
+        private async Task DeleteServiceDiscoveryServiceAsync(CloudMapDiscoveryService serviceDiscovery, string userId, CancellationToken ct = default)
         {
             DeleteServiceDiscoveryServiceRequest request = new()
             {
@@ -1275,6 +1562,21 @@ namespace Leadsly.Domain.Providers
             };
 
             return await _awsElasticContainerService.UpdateServiceAsync(request, ct);
+        }
+
+        public async Task<EcsTaskDefinition> AddEcsTaskDefinitionAsync(EcsTaskDefinition newEcsTaskDefinition, CancellationToken ct = default)
+        {
+            return await _cloudPlatformRepository.AddEcsTaskDefinitionAsync(newEcsTaskDefinition, ct);
+        }
+
+        public async Task<EcsService> AddEcsServiceAsync(EcsService newEcsService, CancellationToken ct = default)
+        {
+            return await _cloudPlatformRepository.AddEcsServiceAsync(newEcsService, ct);
+        }
+
+        public async Task<CloudMapDiscoveryService> AddCloudMapDiscoveryServiceAsync(CloudMapDiscoveryService newService, CancellationToken ct = default)
+        {
+            return await _cloudPlatformRepository.AddServiceDiscoveryAsync(newService, ct);
         }
     }
 }

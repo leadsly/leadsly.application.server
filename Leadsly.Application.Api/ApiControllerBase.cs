@@ -1,17 +1,17 @@
-﻿using Leadsly.Application.Model.Entities;
+﻿using Leadsly.Application.Model;
+using Leadsly.Application.Model.Entities;
+using Leadsly.Application.Model.ViewModels;
+using Leadsly.Domain;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Leadsly.Domain;
-using Leadsly.Application.Model;
-using System;
-using Leadsly.Application.Model.ViewModels;
 
 namespace Leadsly.Application.Api
 {
@@ -398,6 +398,25 @@ namespace Leadsly.Application.Api
         }
 
         /// <summary>
+        /// Bad request when an error occurs setting up user with leadsly with errors list.
+        /// </summary>
+        /// <param name="errors"></param>
+        /// <returns></returns>
+        protected ObjectResult BadRequest_LeadslySetup(List<Failure> errors)
+        {
+            Dictionary<string, string[]> errorsDictionary = errors.ToDictionary(x => Enum.GetName(x.Code ?? Codes.ERROR), x => new[] { x.Reason ?? "Error occured", x.Detail ?? "Operation failed to successfully complete" });
+
+            return ProblemDetailsResult(new ValidationProblemDetails(errorsDictionary)
+            {
+                Type = ProblemDetailsTypes.BadRequest,
+                Status = StatusCodes.Status400BadRequest,
+                Title = ReasonPhrases.GetReasonPhrase(400),
+                Detail = ProblemDetailsDescriptions.LeadslySetup,
+                Instance = HttpContext.Request.Path.Value
+            });
+        }
+
+        /// <summary>
         /// Bad request when an error occurs creating selenium web driver.
         /// </summary>
         /// <param name="errors"></param>
@@ -736,7 +755,7 @@ namespace Leadsly.Application.Api
                 Type = ProblemDetailsTypes.Unauthorized,
                 Status = StatusCodes.Status401Unauthorized,
                 Title = ReasonPhrases.GetReasonPhrase(401),
-                Detail = $"{ ProblemDetailsDescriptions.UnauthorizedDetail } Failed attempt: {failedAttempts}.",
+                Detail = $"{ProblemDetailsDescriptions.UnauthorizedDetail} Failed attempt: {failedAttempts}.",
                 Instance = HttpContext.Request.Path.Value
             });
         }

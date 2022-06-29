@@ -1,12 +1,12 @@
 ﻿using Amazon.ECS;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Amazon.ECS.Model;
 using Leadsly.Application.Model.Aws.ElasticContainerService;
-using System.Linq;
 using Leadsly.Domain.Services.Interfaces;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Services
 {
@@ -14,10 +14,13 @@ namespace Leadsly.Domain.Services
     {
         public AwsElasticContainerService(AmazonECSClient amazonEcsClient, ILogger<AwsElasticContainerService> logger)
         {
-            _amazonEcsClient = amazonEcsClient;            
+            _amazonEcsClient = amazonEcsClient;
             _logger = logger;
         }
 
+        private string ServiceName { get; set; } = string.Empty;
+        private string ClusterName { get; set; } = string.Empty;
+        private string TaskDefinitionFamily { get; set; } = string.Empty;
         private readonly AmazonECSClient _amazonEcsClient;
         private readonly ILogger<AwsElasticContainerService> _logger;
 
@@ -30,7 +33,7 @@ namespace Leadsly.Domain.Services
                 {
                     DesiredCount = createEcsServiceRequest.DesiredCount,
                     ServiceName = createEcsServiceRequest.ServiceName,
-                    TaskDefinition = createEcsServiceRequest.TaskDefinition,                    
+                    TaskDefinition = createEcsServiceRequest.TaskDefinition,
                     Cluster = createEcsServiceRequest.Cluster,
                     LaunchType = createEcsServiceRequest.LaunchType,
                     ServiceRegistries = createEcsServiceRequest.EcsServiceRegistries.Select(r => new ServiceRegistry
@@ -43,12 +46,14 @@ namespace Leadsly.Domain.Services
                         {
                             AssignPublicIp = createEcsServiceRequest.AssignPublicIp,
                             Subnets = createEcsServiceRequest.Subnets,
-                            SecurityGroups = createEcsServiceRequest.SecurityGroups                            
+                            SecurityGroups = createEcsServiceRequest.SecurityGroups
                         }
                     },
-                    SchedulingStrategy = createEcsServiceRequest.SchedulingStrategy                                   
+                    SchedulingStrategy = createEcsServiceRequest.SchedulingStrategy
                 }, ct);
-                
+
+                ServiceName = resp.Service?.ServiceName;
+                ClusterName = resp.Service?.ClusterArn;
             }
             catch (Exception ex)
             {
@@ -58,6 +63,23 @@ namespace Leadsly.Domain.Services
             return resp;
         }
 
+        public async Task<string> RollbackServiceAsync(CancellationToken ct = default)
+        {
+            if (string.IsNullOrEmpty(ServiceName) == false && string.IsNullOrEmpty(ClusterName) == false)
+            {
+                Amazon.ECS.Model.DeleteServiceResponse response = await DeleteServiceAsync(new DeleteEcsServiceRequest
+                {
+                    Service = ServiceName,
+                    Cluster = ClusterName,
+                    Force = true
+                }, ct);
+
+                ServiceName = response == null ? ServiceName : string.Empty;
+            }
+
+            return ServiceName;
+        }
+
         public async Task<RunTaskResponse> RunTaskAsync(RunEcsTaskRequest runTaskRequest, CancellationToken ct = default)
         {
             RunTaskResponse resp = default;
@@ -65,7 +87,7 @@ namespace Leadsly.Domain.Services
             {
                 resp = await _amazonEcsClient.RunTaskAsync(new RunTaskRequest
                 {
-                    Cluster = runTaskRequest.ClusterArn,                    
+                    Cluster = runTaskRequest.ClusterArn,
                     Count = runTaskRequest.Count,
                     NetworkConfiguration = new()
                     {
@@ -119,7 +141,7 @@ namespace Leadsly.Domain.Services
                     Service = updateServiceRequest.ServiceName
                 });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to update AWS service.");
             }
@@ -135,7 +157,7 @@ namespace Leadsly.Domain.Services
                 resp = await _amazonEcsClient.DescribeServicesAsync(new DescribeServicesRequest
                 {
                     Cluster = describeServiceRequest.Cluster,
-                    Services = describeServiceRequest.Services                    
+                    Services = describeServiceRequest.Services
                 });
             }
             catch (Exception ex)
@@ -145,7 +167,7 @@ namespace Leadsly.Domain.Services
 
             return resp;
         }
-        
+
         public async Task<RegisterTaskDefinitionResponse> RegisterTaskDefinitionAsync(RegisterEcsTaskDefinitionRequest registerTaskDefinitionRequest, CancellationToken ct = default)
         {
             RegisterTaskDefinitionResponse resp = default;
@@ -159,7 +181,7 @@ namespace Leadsly.Domain.Services
                     {
                         Name = c.Name,
                         Image = c.Image,
-                        Environment = c.EnviornmentVariables.Select(var => new KeyValuePair 
+                        Environment = c.EnviornmentVariables.Select(var => new KeyValuePair
                         {
                             Name = var.Key,
                             Value = var.Value
@@ -171,6 +193,8 @@ namespace Leadsly.Domain.Services
                     ExecutionRoleArn = registerTaskDefinitionRequest.ExecutionRoleArn,
                     NetworkMode = registerTaskDefinitionRequest.NetworkMode,
                 }, ct);
+
+                TaskDefinitionFamily = resp.TaskDefinition != null ? $"{resp.TaskDefinition?.Family}:1" : string.Empty;
             }
             catch (Exception ex)
             {
@@ -180,6 +204,21 @@ namespace Leadsly.Domain.Services
             return resp;
         }
 
+        public async Task<string> RollbackTaskDefinitionRegistrationAsync(CancellationToken ct = default)
+        {
+            if (string.IsNullOrEmpty(TaskDefinitionFamily) == false)
+            {
+                DeregisterTaskDefinitionResponse response = await DeregisterTaskDefinitionAsync(new DeregisterEcsTaskDefinitionRequest
+                {
+                    TaskDefinition = TaskDefinitionFamily
+                }, ct);
+
+                TaskDefinitionFamily = response == null ? TaskDefinitionFamily : string.Empty;
+            }
+
+            return TaskDefinitionFamily;
+        }
+
         public async Task<DeregisterTaskDefinitionResponse> DeregisterTaskDefinitionAsync(DeregisterEcsTaskDefinitionRequest deregisterTaskDefinitionRequest, CancellationToken ct = default)
         {
             DeregisterTaskDefinitionResponse resp = default;
@@ -187,7 +226,7 @@ namespace Leadsly.Domain.Services
             {
                 resp = await _amazonEcsClient.DeregisterTaskDefinitionAsync(new DeregisterTaskDefinitionRequest
                 {
-                    TaskDefinition = deregisterTaskDefinitionRequest.TaskDefinition                    
+                    TaskDefinition = deregisterTaskDefinitionRequest.TaskDefinition
                 }, ct);
             }
             catch (Exception ex)

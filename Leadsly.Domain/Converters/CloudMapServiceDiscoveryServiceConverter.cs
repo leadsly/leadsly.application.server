@@ -11,9 +11,9 @@ namespace Leadsly.Domain.Converters
 {
     public class CloudMapServiceDiscoveryServiceConverter
     {
-        public static CloudMapServiceDiscoveryService Convert(CloudMapServiceDiscoveryServiceDTO dto)
+        public static CloudMapDiscoveryService Convert(CloudMapServiceDiscoveryServiceDTO dto)
         {
-            return new CloudMapServiceDiscoveryService
+            return new CloudMapDiscoveryService
             {
                 Arn = dto.Arn,
                 ServiceDiscoveryId = dto.ServiceDiscoveryId,

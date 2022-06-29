@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Leadsly.Infrastructure.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20220610060648_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20220629220238_UpdateEcsServiceColumns")]
+    partial class UpdateEcsServiceColumns
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -778,9 +778,9 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("SendConnectionsStages");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.CloudMapServiceDiscoveryService", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.CloudMapDiscoveryService", b =>
                 {
-                    b.Property<string>("CloudMapServiceDiscoveryServiceId")
+                    b.Property<string>("CloudMapDiscoveryServiceId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
@@ -807,7 +807,7 @@ namespace Leadsly.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("CloudMapServiceDiscoveryServiceId");
+                    b.HasKey("CloudMapDiscoveryServiceId");
 
                     b.HasIndex("EcsServiceId")
                         .IsUnique();
@@ -866,20 +866,17 @@ namespace Leadsly.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("SocialAccountCloudResourceId")
-                        .HasColumnType("text");
-
                     b.Property<string>("TaskDefinition")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("UserId")
+                    b.Property<string>("VirtualAssistantId")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("EcsServiceId");
 
-                    b.HasIndex("SocialAccountCloudResourceId")
+                    b.HasIndex("VirtualAssistantId")
                         .IsUnique();
 
                     b.ToTable("EcsServices");
@@ -967,7 +964,6 @@ namespace Leadsly.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("SocialAccountId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("StartHour")
@@ -1079,6 +1075,12 @@ namespace Leadsly.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("VirtualAssistant")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("VirtualAssistantLinked")
+                        .HasColumnType("boolean");
+
                     b.HasKey("SocialAccountId");
 
                     b.HasIndex("ApplicationUserId");
@@ -1094,7 +1096,11 @@ namespace Leadsly.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
-                    b.Property<string>("CloudMapServiceDiscoveryServiceId")
+                    b.Property<string>("CloudMapDiscoveryServiceId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("EcsServiceId")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -1111,7 +1117,9 @@ namespace Leadsly.Infrastructure.Migrations
 
                     b.HasKey("SocialAccountCloudResourceId");
 
-                    b.HasIndex("CloudMapServiceDiscoveryServiceId");
+                    b.HasIndex("CloudMapDiscoveryServiceId");
+
+                    b.HasIndex("EcsServiceId");
 
                     b.HasIndex("EcsTaskDefinitionId");
 
@@ -1119,6 +1127,38 @@ namespace Leadsly.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("SocialAccountResources");
+                });
+
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.VirtualAssistant", b =>
+                {
+                    b.Property<string>("VirtualAssistantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ApplicationUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CloudMapDiscoveryServiceId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("EcsTaskDefinitionId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("HalId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("VirtualAssistantId");
+
+                    b.HasIndex("ApplicationUserId");
+
+                    b.HasIndex("CloudMapDiscoveryServiceId");
+
+                    b.HasIndex("EcsTaskDefinitionId");
+
+                    b.ToTable("VirtualAssistants");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -1525,11 +1565,11 @@ namespace Leadsly.Infrastructure.Migrations
                     b.Navigation("Campaign");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.CloudMapServiceDiscoveryService", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.CloudMapDiscoveryService", b =>
                 {
                     b.HasOne("Leadsly.Application.Model.Entities.EcsService", "EcsService")
                         .WithOne("CloudMapServiceDiscoveryService")
-                        .HasForeignKey("Leadsly.Application.Model.Entities.CloudMapServiceDiscoveryService", "EcsServiceId")
+                        .HasForeignKey("Leadsly.Application.Model.Entities.CloudMapDiscoveryService", "EcsServiceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1538,11 +1578,13 @@ namespace Leadsly.Infrastructure.Migrations
 
             modelBuilder.Entity("Leadsly.Application.Model.Entities.EcsService", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.SocialAccountCloudResource", "SocialAccountCloudResource")
+                    b.HasOne("Leadsly.Application.Model.Entities.VirtualAssistant", "VirtualAssistant")
                         .WithOne("EcsService")
-                        .HasForeignKey("Leadsly.Application.Model.Entities.EcsService", "SocialAccountCloudResourceId");
+                        .HasForeignKey("Leadsly.Application.Model.Entities.EcsService", "VirtualAssistantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("SocialAccountCloudResource");
+                    b.Navigation("VirtualAssistant");
                 });
 
             modelBuilder.Entity("Leadsly.Application.Model.Entities.EcsServiceRegistry", b =>
@@ -1566,9 +1608,7 @@ namespace Leadsly.Infrastructure.Migrations
 
                     b.HasOne("Leadsly.Application.Model.Entities.SocialAccount", "SocialAccount")
                         .WithOne("HalDetails")
-                        .HasForeignKey("Leadsly.Application.Model.Entities.HalUnit", "SocialAccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Leadsly.Application.Model.Entities.HalUnit", "SocialAccountId");
 
                     b.Navigation("ApplicationUser");
 
@@ -1592,9 +1632,15 @@ namespace Leadsly.Infrastructure.Migrations
 
             modelBuilder.Entity("Leadsly.Application.Model.Entities.SocialAccountCloudResource", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.CloudMapServiceDiscoveryService", "CloudMapServiceDiscoveryService")
+                    b.HasOne("Leadsly.Application.Model.Entities.CloudMapDiscoveryService", "CloudMapDiscoveryService")
                         .WithMany()
-                        .HasForeignKey("CloudMapServiceDiscoveryServiceId")
+                        .HasForeignKey("CloudMapDiscoveryServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Leadsly.Application.Model.Entities.EcsService", "EcsService")
+                        .WithMany()
+                        .HasForeignKey("EcsServiceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1610,11 +1656,38 @@ namespace Leadsly.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("CloudMapServiceDiscoveryService");
+                    b.Navigation("CloudMapDiscoveryService");
+
+                    b.Navigation("EcsService");
 
                     b.Navigation("EcsTaskDefinition");
 
                     b.Navigation("SocialAccount");
+                });
+
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.VirtualAssistant", b =>
+                {
+                    b.HasOne("Leadsly.Application.Model.Entities.ApplicationUser", "ApplicationUser")
+                        .WithMany("VirtualAssistants")
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Leadsly.Application.Model.Entities.CloudMapDiscoveryService", "CloudMapDiscoveryService")
+                        .WithMany()
+                        .HasForeignKey("CloudMapDiscoveryServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Leadsly.Application.Model.Entities.EcsTaskDefinition", "EcsTaskDefinition")
+                        .WithMany()
+                        .HasForeignKey("EcsTaskDefinitionId");
+
+                    b.Navigation("ApplicationUser");
+
+                    b.Navigation("CloudMapDiscoveryService");
+
+                    b.Navigation("EcsTaskDefinition");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -1677,6 +1750,8 @@ namespace Leadsly.Infrastructure.Migrations
                     b.Navigation("ProspectLists");
 
                     b.Navigation("SocialAccounts");
+
+                    b.Navigation("VirtualAssistants");
                 });
 
             modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.Campaign", b =>
@@ -1753,7 +1828,7 @@ namespace Leadsly.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.SocialAccountCloudResource", b =>
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.VirtualAssistant", b =>
                 {
                     b.Navigation("EcsService")
                         .IsRequired();

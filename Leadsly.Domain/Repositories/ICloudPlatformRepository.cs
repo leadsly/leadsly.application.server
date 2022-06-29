@@ -18,6 +18,6 @@ namespace Leadsly.Domain.Repositories
         public Task<bool> RemoveEcsTaskDefinitionAsync(string ecsTaskDefinitionId, CancellationToken ct = default);
         public Task<bool> RemoveEcsServiceAsync(string ecsServiceId, CancellationToken ct = default);
         public Task<bool> RemoveCloudMapServiceDiscoveryServiceAsync(string discoveryServiceId, CancellationToken ct = default);
-        public Task<CloudMapServiceDiscoveryService> AddServiceDiscoveryAsync(CloudMapServiceDiscoveryService newCloudMapServiceDiscovery, CancellationToken ct = default);
+        public Task<CloudMapDiscoveryService> AddServiceDiscoveryAsync(CloudMapDiscoveryService newCloudMapServiceDiscovery, CancellationToken ct = default);
     }
 }

@@ -1,13 +1,11 @@
 ﻿using Amazon.ServiceDiscovery;
 using Amazon.ServiceDiscovery.Model;
-using Leadsly.Application.Model.Aws;
 using Leadsly.Application.Model.Aws.ServiceDiscovery;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,6 +19,8 @@ namespace Leadsly.Domain.Services
             _awsServiceDiscoveryClient = awsServiceDiscoveryClient;
         }
 
+        private string ServiceDiscoveryId { get; set; } = string.Empty;
+        private readonly int DefaultTimeToWait_InSeconds = 120;
         private readonly ILogger<AwsServiceDiscoveryService> _logger;
         private readonly AmazonServiceDiscoveryClient _awsServiceDiscoveryClient;
 
@@ -42,6 +42,8 @@ namespace Leadsly.Domain.Services
                         }).ToList()
                     }
                 });
+
+                ServiceDiscoveryId = resp.Service != null ? resp.Service.Id : string.Empty;
             }
             catch (Exception ex)
             {
@@ -66,7 +68,7 @@ namespace Leadsly.Domain.Services
                 _logger.LogWarning(ex, "Failed to delete service discovery service. Aws resource is in use. Rethrowing this exception");
                 throw ex;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError("Failed to delete service discovery service. Returning an empty response.");
             }
@@ -90,6 +92,61 @@ namespace Leadsly.Domain.Services
             }
 
             return resp;
+        }
+
+        public async Task<string> RollbackCloudMapDiscoveryServiceAsync(CancellationToken ct = default)
+        {
+            if (string.IsNullOrEmpty(ServiceDiscoveryId) == false)
+            {
+                DeleteServiceDiscoveryServiceRequest request = new DeleteServiceDiscoveryServiceRequest
+                {
+                    Id = ServiceDiscoveryId
+                };
+                Amazon.ServiceDiscovery.Model.DeleteServiceResponse response;
+                try
+                {
+                    response = await DeleteServiceAsync(request);
+                }
+                catch (Amazon.ServiceDiscovery.Model.ResourceInUseException ex)
+                {
+                    response = await RollbackCloudMapDiscoveryServiceRetryAsync(request, ct);
+                }
+
+                ServiceDiscoveryId = response == null ? ServiceDiscoveryId : string.Empty;
+            }
+
+            return ServiceDiscoveryId;
+        }
+
+        private async Task<Amazon.ServiceDiscovery.Model.DeleteServiceResponse> RollbackCloudMapDiscoveryServiceRetryAsync(DeleteServiceDiscoveryServiceRequest request, CancellationToken ct)
+        {
+            Amazon.ServiceDiscovery.Model.DeleteServiceResponse response = default;
+            Stopwatch mainStopwatch = new Stopwatch();
+            Stopwatch intervalStopWatch = new Stopwatch();
+            mainStopwatch.Start();
+            intervalStopWatch.Start();
+            while (mainStopwatch.Elapsed.TotalSeconds <= DefaultTimeToWait_InSeconds)
+            {
+                if (intervalStopWatch.Elapsed.TotalSeconds > 15)
+                {
+                    intervalStopWatch.Stop();
+                    try
+                    {
+                        response = await DeleteServiceAsync(request, ct);
+
+                        mainStopwatch.Stop();
+                        intervalStopWatch.Stop();
+                        _logger.LogInformation("Successfully deleted Service Discovery Service after retries.");
+                        break;
+                    }
+                    catch (Amazon.ServiceDiscovery.Model.ResourceInUseException ex)
+                    {
+                        _logger.LogError(ex, ex.Message);
+                        intervalStopWatch.Restart();
+                    }
+                }
+            }
+            return response;
         }
     }
 }

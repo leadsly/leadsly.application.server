@@ -1,17 +1,13 @@
-﻿using Leadsly.Domain.OptionsJsonModels;
+﻿using Leadsly.Application.Model.Entities;
+using Leadsly.Domain.OptionsJsonModels;
 using Leadsly.Domain.Repositories;
-using Leadsly.Application.Model.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Leadsly.Application.Model;
 
 namespace Leadsly.Infrastructure.Repositories
 {
@@ -25,7 +21,7 @@ namespace Leadsly.Infrastructure.Repositories
 
         }
 
-        private readonly CloudPlatformConfigurationOptions _cloudPlatformConfigurationOptions;        
+        private readonly CloudPlatformConfigurationOptions _cloudPlatformConfigurationOptions;
         private readonly DatabaseContext _dbContext;
         private readonly ILogger<CloudPlatformRepository> _logger;
 
@@ -41,7 +37,7 @@ namespace Leadsly.Infrastructure.Repositories
 
         private async Task<bool> ServiceDiscoveryServiceExists(string id, CancellationToken ct = default)
         {
-            return await _dbContext.CloudMapServiceDiscoveryServices.AnyAsync(def => def.CloudMapServiceDiscoveryServiceId == id, ct);
+            return await _dbContext.CloudMapServiceDiscoveryServices.AnyAsync(def => def.CloudMapDiscoveryServiceId == id, ct);
         }
 
         public CloudPlatformConfiguration GetCloudPlatformConfiguration()
@@ -94,7 +90,7 @@ namespace Leadsly.Infrastructure.Repositories
                 _dbContext.EcsTaskDefinitions.Add(newEcsTaskDefinition);
                 await _dbContext.SaveChangesAsync(ct);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to save ecs task definition to the database");
                 return null;
@@ -117,7 +113,7 @@ namespace Leadsly.Infrastructure.Repositories
             return newEcsService;
         }
 
-        public async Task<CloudMapServiceDiscoveryService> AddServiceDiscoveryAsync(CloudMapServiceDiscoveryService newCloudMapServiceDiscovery, CancellationToken ct = default)
+        public async Task<CloudMapDiscoveryService> AddServiceDiscoveryAsync(CloudMapDiscoveryService newCloudMapServiceDiscovery, CancellationToken ct = default)
         {
             try
             {
@@ -127,7 +123,7 @@ namespace Leadsly.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to save ecs task definition to the database");
-                return null;                
+                return null;
             }
             return newCloudMapServiceDiscovery;
         }
@@ -180,7 +176,7 @@ namespace Leadsly.Infrastructure.Repositories
                 {
                     return false;
                 }
-                CloudMapServiceDiscoveryService toRemove = _dbContext.CloudMapServiceDiscoveryServices.Find(discoveryServiceId);
+                CloudMapDiscoveryService toRemove = _dbContext.CloudMapServiceDiscoveryServices.Find(discoveryServiceId);
                 _dbContext.CloudMapServiceDiscoveryServices.Remove(toRemove);
                 await _dbContext.SaveChangesAsync(ct);
             }

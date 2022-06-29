@@ -9,6 +9,7 @@ using Leadsly.Application.Model.ViewModels;
 using Leadsly.Application.Model.ViewModels.Campaigns;
 using Leadsly.Application.Model.ViewModels.Cloud;
 using Leadsly.Application.Model.ViewModels.Response;
+using Leadsly.Domain.ViewModels;
 using Microsoft.AspNetCore.JsonPatch;
 using System;
 using System.Threading;
@@ -28,6 +29,8 @@ namespace Leadsly.Domain.Supervisor
 
         Task<HalOperationResultViewModel<T>> LeadslyAccountSetupAsync<T>(SetupAccountViewModel setup, CancellationToken ct = default)
             where T : IOperationResponseViewModel;
+
+        Task<VirtualAssistantViewModel> CreateVirtualAssistantAsync(SetupAccountViewModel setup, LeadslyAccountSetupResult result, CancellationToken ct = default);
 
         [Obsolete("This method is not longer used. We are not creating new chrome instances per campaign, we're using new tabs instead")]
         Task<HalOperationResultViewModel<T>> LeadslyRequestNewWebDriverAsync<T>(NewWebDriverRequest request, CancellationToken ct = default)

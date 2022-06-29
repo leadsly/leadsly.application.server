@@ -77,12 +77,12 @@ namespace Leadsly.Application.Api.Configurations
 
             services.AddDbContext<DatabaseContext>(options =>
             {
-                options.UseNpgsql(dbInfo.ConnectionString);                
+                options.UseNpgsql(dbInfo.ConnectionString);
                 if (env.IsDevelopment())
                 {
                     Log.Information("Enabling SQL sensitive data logging.");
                     options.EnableSensitiveDataLogging(env.IsDevelopment());
-                    options.EnableDetailedErrors(env.IsDevelopment());                    
+                    options.EnableDetailedErrors(env.IsDevelopment());
                 }
             }, ServiceLifetime.Scoped);
 
@@ -114,7 +114,7 @@ namespace Leadsly.Application.Api.Configurations
                 {
                     DatabaseConnectionInformation dbConnectionInfo = AwsSecretsFetcher.GetSecret<DatabaseConnectionInformation>(databaseConnections.AuthCredentials.Key, databaseConnections.AuthCredentials.AwsRegion);
                     defaultConnection = $"Host={dbConnectionInfo.Host};User Id={dbConnectionInfo.UserName};Password={dbConnectionInfo.Password};Database={databaseConnections.Database};Include Error Detail=true";
-                }                
+                }
             }
 
             services.AddSingleton(options =>
@@ -130,7 +130,7 @@ namespace Leadsly.Application.Api.Configurations
         {
             Log.Information("Registering supervisor services.");
 
-            services.AddScoped<ISupervisor, Supervisor>();            
+            services.AddScoped<ISupervisor, Supervisor>();
 
             return services;
         }
@@ -176,7 +176,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ISocialAccountRepository, SocialAccountRepository>();
             services.AddScoped<IOrphanedCloudResourcesRepository, OrphanedCloudResourcesRepository>();
             services.AddScoped<ICampaignRepository, CampaignRepository>();
-            services.AddScoped<IRabbitMQRepository, RabbitMQRepository>();            
+            services.AddScoped<IRabbitMQRepository, RabbitMQRepository>();
             services.AddScoped<IHalRepository, HalRepository>();
             services.AddScoped<IProspectListPhaseRepository, ProspectListPhaseRepository>();
             services.AddScoped<IMonitorForNewConnectionsPhaseRepository, MonitorForNewConnectionsPhaseRepository>();
@@ -190,6 +190,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ISearchUrlProgressRepository, SearchUrlProgressRepository>();
             services.AddScoped<IFollowUpMessageJobsRepository, FollowUpMessageJobsRepository>();
             services.AddScoped<ITimeZoneRepository, TimeZoneRepository>();
+            services.AddScoped<IVirtualAssistantRepository, VirtualAssistantRepository>();
 
             return services;
         }
@@ -233,13 +234,13 @@ namespace Leadsly.Application.Api.Configurations
 
             services.AddScoped(typeof(AmazonECSClient));
             services.AddScoped(typeof(AmazonServiceDiscoveryClient));
-            services.AddScoped(typeof(AmazonRoute53Client));            
+            services.AddScoped(typeof(AmazonRoute53Client));
             services.AddScoped<IConnectAccountResponseSerializer, ConnectAccountResponseSerializer>();
             services.AddScoped<IEnterTwoFactorAuthCodeResponseSerializer, EnterTwoFactorAuthCodeResponseSerializer>();
             services.AddScoped<ICampaignPhaseSerializer, CampaignPhaseSerializer>();
             services.AddScoped<IPhaseManager, PhaseManager>();
             services.AddScoped<IFollowUpMessagePublisher, FollowUpMessagePublisher>();
-            
+
             return services;
         }
         public static IServiceCollection AddProvidersConfiguration(this IServiceCollection services)
@@ -252,7 +253,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ICampaignProvider, CampaignProvider>();
             services.AddScoped<IRabbitMQProvider, RabbitMQProvider>();
             services.AddScoped<ISendFollowUpMessageProvider, SendFollowUpMessageProvider>();
-            services.AddScoped<ICampaignPhaseProcessorProvider, CampaignPhaseProcessorProvider>();            
+            services.AddScoped<ICampaignPhaseProcessorProvider, CampaignPhaseProcessorProvider>();
 
             return services;
         }
@@ -263,7 +264,7 @@ namespace Leadsly.Application.Api.Configurations
 
             services.AddScoped<ISerializerFacade, SerializerFacade>();
             services.AddScoped<ICampaignRepositoryFacade, CampaignRepositoryFacade>();
-            
+
             return services;
         }
 
@@ -284,7 +285,7 @@ namespace Leadsly.Application.Api.Configurations
             // recurring jobs handlers
             services.AddScoped<HalWorkCommandHandlerDecorator<MonitorForNewConnectionsAllCommand>>();
             services.AddScoped<HalWorkCommandHandlerDecorator<ProspectListsCommand>>();
-            services.AddScoped<HalWorkCommandHandlerDecorator<UncontactedFollowUpMessageCommand>>();            
+            services.AddScoped<HalWorkCommandHandlerDecorator<UncontactedFollowUpMessageCommand>>();
             services.AddScoped<HalWorkCommandHandlerDecorator<DeepScanProspectsForRepliesCommand>>();
             services.AddScoped<HalWorkCommandHandlerDecorator<CheckOffHoursNewConnectionsCommand>>();
 
@@ -319,8 +320,8 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<IRabbitMQManager, RabbitMQManager>();
             services.AddScoped<IUrlService, UrlService>();
             services.AddScoped<IAccessTokenService, AccessTokenService>();
-            
-            services.AddScoped<IRecurringJobsHandler, RecurringJobsHandler>();                      
+
+            services.AddScoped<IRecurringJobsHandler, RecurringJobsHandler>();
 
             return services;
         }
@@ -381,7 +382,7 @@ namespace Leadsly.Application.Api.Configurations
 
             return services;
         }
-        
+
         public static IServiceCollection AddIdentityConfiguration(this IServiceCollection services, IConfiguration configuration)
         {
             Log.Information("Adding identity services.");
@@ -408,7 +409,7 @@ namespace Leadsly.Application.Api.Configurations
             .AddTokenProvider<GoogleDataProtectorTokenProvider<ApplicationUser>>(ApiConstants.DataTokenProviders.ExternalLoginProviders.Google)
             .AddTokenProvider<SignUpDataProtectorTokenProvider<ApplicationUser>>(ApiConstants.DataTokenProviders.RegisterNewUserProvider.ProviderName)
             .AddTokenProvider<EmailConfirmationDataProtectorTokenProvider<ApplicationUser>>(TokenOptions.DefaultEmailProvider)
-            .AddRoles<IdentityRole>()            
+            .AddRoles<IdentityRole>()
             .AddRoleManager<RoleManager<IdentityRole>>()
             .AddSignInManager()
             .AddUserManager<LeadslyUserManager>()
@@ -486,7 +487,7 @@ namespace Leadsly.Application.Api.Configurations
             {
                 // remove formatter that turns nulls into 204 - Angular http client treats 204s as failed requests
                 HttpNoContentOutputFormatter noContentFormatter = opt.OutputFormatters.OfType<HttpNoContentOutputFormatter>().FirstOrDefault();
-                if(noContentFormatter != null)
+                if (noContentFormatter != null)
                 {
                     noContentFormatter.TreatNullValueAsNoContent = false;
                 }
@@ -569,7 +570,7 @@ namespace Leadsly.Application.Api.Configurations
 
             Log.Information("Configuring Stripe.");
             StripeConfiguration.ApiKey = configuration[nameof(ApiConstants.VaultKeys.StripeSecretKey)] ?? throw new ArgumentNullException("You must provide Stripe Secret Key.");
-            services.AddScoped(typeof(CustomerService));           
+            services.AddScoped(typeof(CustomerService));
 
             return services;
         }

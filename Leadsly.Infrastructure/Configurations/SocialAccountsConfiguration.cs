@@ -1,11 +1,6 @@
 ﻿using Leadsly.Application.Model.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Leadsly.Infrastructure.Configurations
 {
@@ -22,18 +17,25 @@ namespace Leadsly.Infrastructure.Configurations
                     .WithOne(res => res.SocialAccount)
                     .HasForeignKey<SocialAccountCloudResource>(res => res.SocialAccountId);
             });
-                    
 
-            builder.Entity<SocialAccountCloudResource>(res =>
+
+            //builder.Entity<SocialAccountCloudResource>(res =>
+            //{
+            //    res.HasOne(res => res.EcsService).WithOne(ser => ser.SocialAccountCloudResource);
+            //    res.HasOne(res => res.EcsTaskDefinition);
+            //    res.HasOne(res => res.CloudMapDiscoveryService);
+            //});
+
+            builder.Entity<VirtualAssistant>(res =>
             {
-                res.HasOne(res => res.EcsService).WithOne(ser => ser.SocialAccountCloudResource);
+                res.HasOne(res => res.EcsService).WithOne(ser => ser.VirtualAssistant);
                 res.HasOne(res => res.EcsTaskDefinition);
-                res.HasOne(res => res.CloudMapServiceDiscoveryService);
+                res.HasOne(res => res.CloudMapDiscoveryService);
             });
 
-            builder.Entity<CloudMapServiceDiscoveryService>()
+            builder.Entity<CloudMapDiscoveryService>()
                     .HasOne(map => map.EcsService)
-                    .WithOne(ser => ser.CloudMapServiceDiscoveryService);                
+                    .WithOne(ser => ser.CloudMapServiceDiscoveryService);
 
             builder.Entity<EcsService>(s =>
             {
@@ -44,9 +46,9 @@ namespace Leadsly.Infrastructure.Configurations
 
                 s.HasOne(s => s.CloudMapServiceDiscoveryService)
                     .WithOne(map => map.EcsService)
-                    .HasForeignKey<CloudMapServiceDiscoveryService>(map => map.EcsServiceId);
+                    .HasForeignKey<CloudMapDiscoveryService>(map => map.EcsServiceId);
             });
-                    
+
         }
     }
 }

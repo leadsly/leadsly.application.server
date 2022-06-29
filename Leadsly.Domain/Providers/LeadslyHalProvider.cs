@@ -1,43 +1,38 @@
-﻿using Leadsly.Domain.Repositories;
-using Leadsly.Domain.Services;
-using Leadsly.Application.Model;
+﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Entities;
 using Leadsly.Application.Model.Requests;
+using Leadsly.Application.Model.Requests.Hal;
+using Leadsly.Application.Model.Requests.Hal.Interfaces;
+using Leadsly.Application.Model.Responses;
+using Leadsly.Application.Model.Responses.Hal;
+using Leadsly.Application.Model.Responses.Hal.Interfaces;
+using Leadsly.Domain.Facades.Interfaces;
+using Leadsly.Domain.Providers.Interfaces;
+using Leadsly.Domain.Repositories;
+using Leadsly.Domain.Services.Interfaces;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
+using System.Net.Http.Formatting;
 using System.Threading;
 using System.Threading.Tasks;
-using Leadsly.Application.Model.Requests.Hal;
 using ConnectAccountRequest = Leadsly.Application.Model.Requests.Hal.ConnectAccountRequest;
 using NewWebDriverRequest = Leadsly.Application.Model.Requests.Hal.NewWebDriverRequest;
-using Leadsly.Domain.Converters;
-using Leadsly.Application.Model.ViewModels.Response;
-using Leadsly.Application.Model.Responses.Hal;
-using Leadsly.Application.Model.Responses;
-using Microsoft.AspNetCore.Mvc;
-using Leadsly.Domain.Exceptions;
-using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
-using System.Net.Http.Formatting;
-using Leadsly.Domain.Services.Interfaces;
-using Leadsly.Domain.Providers.Interfaces;
-using Leadsly.Domain.Facades.Interfaces;
-using Leadsly.Application.Model.Responses.Hal.Interfaces;
-using Leadsly.Application.Model.Requests.Hal.Interfaces;
 
 namespace Leadsly.Domain.Providers
 {
     public class LeadslyHalProvider : ILeadslyHalProvider
     {
         public LeadslyHalProvider(
-            ILeadslyHalApiService leadslyHalApiService, 
-            ICloudPlatformRepository cloudPlatformRepository, 
-            ISerializerFacade serializerFacade, 
-            IHalRepository halRepository, 
+            ILeadslyHalApiService leadslyHalApiService,
+            ICloudPlatformRepository cloudPlatformRepository,
+            ISerializerFacade serializerFacade,
+            IHalRepository halRepository,
             ILogger<LeadslyHalProvider> logger)
         {
             _leadslyHalApiService = leadslyHalApiService;
@@ -66,7 +61,7 @@ namespace Leadsly.Domain.Providers
                 Succeeded = false
             };
 
-            if (resource.CloudMapServiceDiscoveryService == null)
+            if (resource.CloudMapDiscoveryService == null)
             {
                 _logger.LogError("Service discovery name is null");
                 result.Failures.Add(new()
@@ -84,7 +79,7 @@ namespace Leadsly.Domain.Providers
             {
                 NamespaceName = configuration.ServiceDiscoveryConfig.Name,
                 RequestUrl = RequestNewWebDriverUrl,
-                ServiceDiscoveryName = resource.CloudMapServiceDiscoveryService.Name,
+                ServiceDiscoveryName = resource.CloudMapDiscoveryService.Name,
                 DefaultTimeoutInSeconds = DefaultTimeoutInSeconds_WebDriver
             };
 
@@ -112,18 +107,18 @@ namespace Leadsly.Domain.Providers
                     Code = Codes.HAL_INTERNAL_SERVER_ERROR,
                     Reason = response?.StatusCode == System.Net.HttpStatusCode.InternalServerError ? await response.Content.ReadAsStringAsync() : "Response to get new webdriver is null",
                     Detail = $"Failed to send new web driver request to hal {values?.FirstOrDefault()}",
-                });                
+                });
                 return result;
             }
 
-            if(response.IsSuccessStatusCode == false)
+            if (response.IsSuccessStatusCode == false)
             {
                 return await HandleFailedHalResponseAsync<T>(response);
             }
 
             result = await DeserializeNewWebDriverResponse<T>(response);
-            
-            if(result.Succeeded == false)
+
+            if (result.Succeeded == false)
             {
                 return result;
             }
@@ -172,7 +167,7 @@ namespace Leadsly.Domain.Providers
                 Succeeded = false
             };
 
-            if (resource.CloudMapServiceDiscoveryService == null)
+            if (resource.CloudMapDiscoveryService == null)
             {
                 _logger.LogError("Service discovery name is null");
                 result.Failures.Add(new()
@@ -189,9 +184,9 @@ namespace Leadsly.Domain.Providers
             IConnectAccountRequest request = new ConnectAccountRequest()
             {
                 NamespaceName = configuration.ServiceDiscoveryConfig.Name,
-                ServiceDiscoveryName = resource.CloudMapServiceDiscoveryService.Name,
+                ServiceDiscoveryName = resource.CloudMapDiscoveryService.Name,
                 RequestUrl = AuthenticateUserSocialAccount,
-                Password = connect.Password,                
+                Password = connect.Password,
                 Username = connect.Username,
                 BrowserPurpose = connect.BrowserPurpose,
                 AttemptNumber = connect.AttemptNumber,
@@ -214,7 +209,7 @@ namespace Leadsly.Domain.Providers
             HttpResponseMessage response = await _leadslyHalApiService.AuthenticateUserSocialAccountAsync(request, ct);
 
             if (response == null || response?.StatusCode == System.Net.HttpStatusCode.InternalServerError)
-            {                
+            {
                 _logger.LogError("Failed to send request to authenticate user's social account. The response is null or status code is not successful");
                 IEnumerable<string> values = default;
                 response?.Headers.TryGetValues(CustomHeaderKeys.Origin, out values);
@@ -227,15 +222,15 @@ namespace Leadsly.Domain.Providers
                 return result;
             }
 
-            if(response.IsSuccessStatusCode == false)
-            {                
+            if (response.IsSuccessStatusCode == false)
+            {
                 return await HandleFailedHalResponseAsync<T>(response);
             }
 
             result = await _serializerFacade.DeserializeConnectAccountResponseAsync<T>(response);
 
             // check if deserialization succeeded
-            if(result.Succeeded == false)
+            if (result.Succeeded == false)
             {
                 return result;
             }
@@ -263,7 +258,7 @@ namespace Leadsly.Domain.Providers
                         }
                     });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to deserialize problem details response");
             }
@@ -279,7 +274,7 @@ namespace Leadsly.Domain.Providers
                 Succeeded = false
             };
 
-            if (resource.CloudMapServiceDiscoveryService == null)
+            if (resource.CloudMapDiscoveryService == null)
             {
                 _logger.LogError("Service discovery name is null");
                 result.Failures.Add(new()
@@ -299,7 +294,7 @@ namespace Leadsly.Domain.Providers
             {
                 RequestUrl = AuthenticateUserSocialAccount2Fa,
                 NamespaceName = configuration.ServiceDiscoveryConfig.Name,
-                ServiceDiscoveryName = resource.CloudMapServiceDiscoveryService.Name,
+                ServiceDiscoveryName = resource.CloudMapDiscoveryService.Name,
                 Code = twoFactorAuth.Code,
                 WindowHandleId = twoFactorAuth.WindowHandleId,
                 BrowserPurpose = twoFactorAuth.BrowserPurpose,
@@ -335,13 +330,13 @@ namespace Leadsly.Domain.Providers
                 return result;
             }
 
-            if(response.IsSuccessStatusCode == false)
+            if (response.IsSuccessStatusCode == false)
             {
                 return await HandleFailedHalResponseAsync<T>(response);
             }
 
             result = await _serializerFacade.DeserializeEnterTwoFactorAuthCodeResponseAsync<T>(response);
-            if(result.Succeeded == false)
+            if (result.Succeeded == false)
             {
                 return result;
             }

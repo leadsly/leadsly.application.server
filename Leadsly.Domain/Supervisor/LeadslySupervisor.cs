@@ -112,7 +112,6 @@ namespace Leadsly.Domain.Supervisor
 
         }
 
-
         public async Task<HalOperationResultViewModel<T>> LeadslyAccountSetupAsync<T>(SetupAccountViewModel setup, CancellationToken ct = default)
             where T : IOperationResponseViewModel
         {

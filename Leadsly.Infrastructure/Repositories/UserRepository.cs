@@ -1,14 +1,12 @@
-﻿using Leadsly.Domain.Repositories;
-using Leadsly.Application.Model;
-using Leadsly.Application.Model.Entities;
+﻿using Leadsly.Application.Model.Entities;
+using Leadsly.Domain.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 
 namespace Leadsly.Infrastructure.Repositories
 {
@@ -29,7 +27,7 @@ namespace Leadsly.Infrastructure.Repositories
             try
             {
                 appUser = await _dbContext.Users.FindAsync(userId);
-                if(appUser == null)
+                if (appUser == null)
                 {
                     _logger.LogError("Failed to get application user by id");
                     return null;
@@ -50,7 +48,7 @@ namespace Leadsly.Infrastructure.Repositories
 
         public async Task<IEnumerable<SocialAccount>> GetSocialAccountsByUserIdAsync(string userId, CancellationToken ct = default)
         {
-            ApplicationUser applicationUser = await GetByIdAsync(userId);            
+            ApplicationUser applicationUser = await GetByIdAsync(userId);
             if (applicationUser == null)
             {
                 _logger.LogError("Could not find application user. Something went wrong.");
@@ -63,10 +61,10 @@ namespace Leadsly.Infrastructure.Repositories
                 .Include(sa => sa.SocialAccountCloudResource.EcsService)
                     .ThenInclude(ecsSer => ecsSer.EcsServiceRegistries)
                 .Include(sa => sa.SocialAccountCloudResource.EcsTaskDefinition)
-                .Include(sa => sa.SocialAccountCloudResource.CloudMapServiceDiscoveryService)
+                .Include(sa => sa.SocialAccountCloudResource.CloudMapDiscoveryService)
                 .ToListAsync();
 
-            return socialAccounts;            
+            return socialAccounts;
         }
 
         public async Task<IList<SocialAccount>> GetAllSocialAccountsAsync(CancellationToken ct = default)
@@ -78,7 +76,7 @@ namespace Leadsly.Infrastructure.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to get all social accounts");                
+                _logger.LogError(ex, "Failed to get all social accounts");
             }
             return socialAccounts;
 
@@ -97,6 +95,6 @@ namespace Leadsly.Infrastructure.Repositories
             }
             return socialAccount;
 
-        }        
+        }
     }
 }

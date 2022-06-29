@@ -5,8 +5,11 @@ using Leadsly.Application.Model.ViewModels.Cloud;
 using Leadsly.Application.Model.ViewModels.Response;
 using Leadsly.Application.Model.ViewModels.Response.Hal;
 using Leadsly.Domain.Supervisor;
+using Leadsly.Domain.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,9 +50,9 @@ namespace Leadsly.Application.Api.Controllers
         }
 
         [HttpPost("setup")]
-        public async Task<IActionResult> SetupAccountWithLeadsly(SetupAccountViewModel setupLeasdsly, CancellationToken ct = default)
+        public async Task<IActionResult> AccountSetupAsync(SetupAccountViewModel setupLeasdsly, CancellationToken ct = default)
         {
-            _logger.LogTrace("SetupUserWithLeadsly action executed.");
+            _logger.LogTrace("CreateVirtualAssistantAsync action executed.");
 
             HalOperationResultViewModel<IOperationResponseViewModel> result = await _supervisor.LeadslyAccountSetupAsync<IOperationResponseViewModel>(setupLeasdsly, ct);
             LeadslySetup setup = result.Data as LeadslySetup;
@@ -69,6 +72,29 @@ namespace Leadsly.Application.Api.Controllers
 
             return Ok(result);
         }
+
+        [HttpPost("create-virtual-assistant")]
+        [AllowAnonymous]
+        public async Task<IActionResult> CreateVirtualAssistantAsync(SetupAccountViewModel setupLeadsly, CancellationToken ct = default)
+        {
+            _logger.LogTrace("CreateVirtualAssistantAsync action executed.");
+
+            LeadslyAccountSetupResult result = new(false, new List<Failure>());
+
+            VirtualAssistantViewModel virtualAssistant = await _supervisor.CreateVirtualAssistantAsync(setupLeadsly, result, ct);
+
+            if (result.Succeeded == false)
+            {
+                if (result.Failures.Count > 0)
+                {
+                    return BadRequest_LeadslySetup(result.Failures);
+                }
+                return BadRequest_LeadslySetup();
+            }
+
+            return Ok(virtualAssistant);
+        }
+
 
         [HttpPost("webdriver")]
         public async Task<IActionResult> RequestNewDriver(NewWebDriverRequest request, CancellationToken ct = default)

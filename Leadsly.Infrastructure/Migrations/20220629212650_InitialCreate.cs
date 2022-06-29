@@ -245,6 +245,8 @@ namespace Leadsly.Infrastructure.Migrations
                     RunProspectListFirst = table.Column<bool>(type: "boolean", nullable: false),
                     MonthlySearchLimitReached = table.Column<bool>(type: "boolean", nullable: false),
                     ConfiguredWithUsersLeadslyAccount = table.Column<bool>(type: "boolean", nullable: false),
+                    VirtualAssistantLinked = table.Column<bool>(type: "boolean", nullable: false),
+                    VirtualAssistant = table.Column<string>(type: "text", nullable: true),
                     ApplicationUserId = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
@@ -421,7 +423,7 @@ namespace Leadsly.Infrastructure.Migrations
                     EndHour = table.Column<string>(type: "text", nullable: false),
                     TimeZoneId = table.Column<string>(type: "text", nullable: false),
                     HalTimeZoneId = table.Column<string>(type: "text", nullable: false),
-                    SocialAccountId = table.Column<string>(type: "text", nullable: false),
+                    SocialAccountId = table.Column<string>(type: "text", nullable: true),
                     ApplicationUserId = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
@@ -431,8 +433,7 @@ namespace Leadsly.Infrastructure.Migrations
                         name: "FK_HalUnits_SocialAccounts_SocialAccountId",
                         column: x => x.SocialAccountId,
                         principalTable: "SocialAccounts",
-                        principalColumn: "SocialAccountId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "SocialAccountId");
                     table.ForeignKey(
                         name: "FK_HalUnits_Users_ApplicationUserId",
                         column: x => x.ApplicationUserId,
@@ -911,6 +912,44 @@ namespace Leadsly.Infrastructure.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "VirtualAssistants",
+                columns: table => new
+                {
+                    VirtualAssistantId = table.Column<string>(type: "text", nullable: false),
+                    ApplicationUserId = table.Column<string>(type: "text", nullable: false),
+                    HalId = table.Column<string>(type: "text", nullable: false),
+                    EcsServiceId = table.Column<string>(type: "text", nullable: true),
+                    EcsTaskDefinitionId = table.Column<string>(type: "text", nullable: true),
+                    CloudMapDiscoveryServiceCloudMapServiceDiscoveryServiceId = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VirtualAssistants", x => x.VirtualAssistantId);
+                    table.ForeignKey(
+                        name: "FK_VirtualAssistants_CloudMapServiceDiscoveryServices_CloudMap~",
+                        column: x => x.CloudMapDiscoveryServiceCloudMapServiceDiscoveryServiceId,
+                        principalTable: "CloudMapServiceDiscoveryServices",
+                        principalColumn: "CloudMapServiceDiscoveryServiceId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_VirtualAssistants_EcsServices_EcsServiceId",
+                        column: x => x.EcsServiceId,
+                        principalTable: "EcsServices",
+                        principalColumn: "EcsServiceId");
+                    table.ForeignKey(
+                        name: "FK_VirtualAssistants_EcsTaskDefinitions_EcsTaskDefinitionId",
+                        column: x => x.EcsTaskDefinitionId,
+                        principalTable: "EcsTaskDefinitions",
+                        principalColumn: "EcsTaskDefinitionId");
+                    table.ForeignKey(
+                        name: "FK_VirtualAssistants_Users_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_ApplicationUserOrganization_OrganizationsOrganizationId",
                 table: "ApplicationUserOrganization",
@@ -1146,6 +1185,26 @@ namespace Leadsly.Infrastructure.Migrations
                 column: "NormalizedUserName",
                 unique: true);
 
+            migrationBuilder.CreateIndex(
+                name: "IX_VirtualAssistants_ApplicationUserId",
+                table: "VirtualAssistants",
+                column: "ApplicationUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VirtualAssistants_CloudMapDiscoveryServiceCloudMapServiceDi~",
+                table: "VirtualAssistants",
+                column: "CloudMapDiscoveryServiceCloudMapServiceDiscoveryServiceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VirtualAssistants_EcsServiceId",
+                table: "VirtualAssistants",
+                column: "EcsServiceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VirtualAssistants_EcsTaskDefinitionId",
+                table: "VirtualAssistants",
+                column: "EcsTaskDefinitionId");
+
             migrationBuilder.AddForeignKey(
                 name: "FK_CloudMapServiceDiscoveryServices_EcsServices_EcsServiceId",
                 table: "CloudMapServiceDiscoveryServices",
@@ -1249,6 +1308,9 @@ namespace Leadsly.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "UserTokens");
+
+            migrationBuilder.DropTable(
+                name: "VirtualAssistants");
 
             migrationBuilder.DropTable(
                 name: "Organizations");

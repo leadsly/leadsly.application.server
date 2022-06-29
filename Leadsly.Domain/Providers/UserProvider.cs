@@ -1,27 +1,25 @@
-﻿using Leadsly.Domain.Converters;
-using Leadsly.Domain.Repositories;
-using Leadsly.Application.Model;
+﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Entities;
+using Leadsly.Application.Model.Entities.Campaigns.Phases;
+using Leadsly.Domain.Converters;
+using Leadsly.Domain.Providers.Interfaces;
+using Leadsly.Domain.Repositories;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Leadsly.Domain.Providers.Interfaces;
-using Leadsly.Application.Model.Entities.Campaigns.Phases;
 
 namespace Leadsly.Domain.Providers
 {
     public class UserProvider : IUserProvider
     {
         public UserProvider(
-            ILogger<UserProvider> logger, 
-            ICloudPlatformRepository cloudPlatformRepository, 
-            IUserRepository userRepository, 
+            ILogger<UserProvider> logger,
+            ICloudPlatformRepository cloudPlatformRepository,
+            IUserRepository userRepository,
             IScanProspectsForRepliesPhaseRepository scanProspectsForRepliesPhaseRepository,
-            ISocialAccountRepository socialAccountRepository, 
+            ISocialAccountRepository socialAccountRepository,
             IConnectionWithdrawPhaseRepository connectionWithdrawPhaseRepository,
             IMonitorForNewConnectionsPhaseRepository monitorForNewConnectionsPhaseRepository,
             ICampaignRepository campaignRepository)
@@ -48,7 +46,7 @@ namespace Leadsly.Domain.Providers
         public async Task<SocialAccount> GetRegisteredSocialAccountAsync(SocialAccountDTO socialAccountDTO, CancellationToken ct = default)
         {
             IEnumerable<SocialAccount> socialAccounts = await _userRepository.GetSocialAccountsByUserIdAsync(socialAccountDTO.UserId, ct);
-            if(socialAccounts == null)
+            if (socialAccounts == null)
             {
                 return null;
             }
@@ -58,7 +56,7 @@ namespace Leadsly.Domain.Providers
         }
 
         public async Task<bool> RemoveSocialAccountAndResourcesAsync(SocialAccount socialAccount, CancellationToken ct = default)
-        {            
+        {
             bool removeSocialAccountResourcesDelete = await RemoveSocialAccountResourcesAsync(socialAccount.SocialAccountCloudResource, ct);
 
             bool removeSocialAccountDelete = await RemoveSocialAccountAsync(socialAccount.SocialAccountId, ct);
@@ -74,14 +72,14 @@ namespace Leadsly.Domain.Providers
         }
 
         private async Task<bool> RemoveSocialAccountResourcesAsync(SocialAccountCloudResource resources, CancellationToken ct = default)
-        {            
+        {
             bool ecsTaskDefinitionDelete = await _cloudPlatformRepository.RemoveEcsTaskDefinitionAsync(resources.EcsTaskDefinition.EcsTaskDefinitionId, ct);
 
-            bool serviceDiscoveryDelete = await _cloudPlatformRepository.RemoveCloudMapServiceDiscoveryServiceAsync(resources.CloudMapServiceDiscoveryService.CloudMapServiceDiscoveryServiceId, ct);
+            //bool serviceDiscoveryDelete = await _cloudPlatformRepository.RemoveCloudMapServiceDiscoveryServiceAsync(resources.CloudMapServiceDiscoveryService.CloudMapServiceDiscoveryServiceId, ct);
 
             bool ecsServiceDelete = await _cloudPlatformRepository.RemoveEcsServiceAsync(resources.EcsService.EcsServiceId, ct);
 
-            return ecsServiceDelete && ecsTaskDefinitionDelete && serviceDiscoveryDelete;
+            return ecsServiceDelete && ecsTaskDefinitionDelete; // && serviceDiscoveryDelete;
         }
 
         public async Task<NewSocialAccountResult> AddUsersSocialAccountAsync(SocialAccountAndResourcesDTO newSocialAccountSetup, CancellationToken ct = default)
@@ -93,21 +91,21 @@ namespace Leadsly.Domain.Providers
 
             EcsTaskDefinition newEcsTaskDefinition = await AddEcsTaskDefinitionAsync(EcsTaskDefinitionConverter.Convert(newSocialAccountSetup.Value.EcsTaskDefinition), ct);
 
-            if(newEcsTaskDefinition == null)
+            if (newEcsTaskDefinition == null)
             {
                 result.Failures.Add(new()
                 {
                     Code = Codes.DATABASE_OPERATION_ERROR,
                     Arn = newSocialAccountSetup.Value.EcsTaskDefinition.TaskDefinitionArn,
                     Detail = "Something went wrong adding ecs task definition to the database",
-                    Reason = "Failed to add ecs task definition to the database",                    
+                    Reason = "Failed to add ecs task definition to the database",
                 });
                 return result;
             }
 
             EcsService ecsService = await AddEcsServiceAsync(EcsServiceConverter.Convert(newSocialAccountSetup.Value.EcsService), ct);
 
-            if(ecsService == null)
+            if (ecsService == null)
             {
                 result.Failures.Add(new()
                 {
@@ -119,11 +117,11 @@ namespace Leadsly.Domain.Providers
                 return result;
             }
 
-            CloudMapServiceDiscoveryService newServiceDiscovery = CloudMapServiceDiscoveryServiceConverter.Convert(newSocialAccountSetup.Value.CloudMapServiceDiscovery);
+            CloudMapDiscoveryService newServiceDiscovery = CloudMapServiceDiscoveryServiceConverter.Convert(newSocialAccountSetup.Value.CloudMapServiceDiscovery);
             newServiceDiscovery.EcsService = ecsService;
             newServiceDiscovery = await AddServiceDiscoveryServiceAsync(newServiceDiscovery, ct);
 
-            if(newServiceDiscovery == null)
+            if (newServiceDiscovery == null)
             {
                 result.Failures.Add(new()
                 {
@@ -138,7 +136,7 @@ namespace Leadsly.Domain.Providers
             SocialAccountCloudResource resource = new()
             {
                 EcsService = ecsService,
-                CloudMapServiceDiscoveryService = newServiceDiscovery,
+                //CloudMapServiceDiscoveryService = newServiceDiscovery,
                 EcsTaskDefinition = newEcsTaskDefinition,
                 HalId = newSocialAccountSetup.Value.HalId
             };
@@ -152,7 +150,7 @@ namespace Leadsly.Domain.Providers
             };
             newSocialAccount = await AddSocialAccountAsync(newSocialAccount, ct);
 
-            if(newSocialAccount == null)
+            if (newSocialAccount == null)
             {
                 result.Failures.Add(new()
                 {
@@ -170,7 +168,7 @@ namespace Leadsly.Domain.Providers
             };
 
             scanForProspectRepliesPhase = await _scanProspectsForRepliesPhaseRepository.CreateAsync(scanForProspectRepliesPhase, ct);
-            if(scanForProspectRepliesPhase == null)
+            if (scanForProspectRepliesPhase == null)
             {
                 return result;
             }
@@ -221,7 +219,7 @@ namespace Leadsly.Domain.Providers
 
             return newEcsService;
         }
-        private async Task<CloudMapServiceDiscoveryService> AddServiceDiscoveryServiceAsync(CloudMapServiceDiscoveryService newCloudMapServiceDiscovery, CancellationToken ct = default)
+        private async Task<CloudMapDiscoveryService> AddServiceDiscoveryServiceAsync(CloudMapDiscoveryService newCloudMapServiceDiscovery, CancellationToken ct = default)
         {
             newCloudMapServiceDiscovery = await _cloudPlatformRepository.AddServiceDiscoveryAsync(newCloudMapServiceDiscovery, ct);
 
