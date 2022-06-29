@@ -16,7 +16,7 @@ namespace Leadsly.Domain.Supervisor
 
             SocialAccount socialAccount = await _socialAccountRepository.GetByUserIdAsync(userId, ct);
 
-            if(socialAccount != null)
+            if (socialAccount != null)
             {
                 SocialAccountViewModel socialAccountViewModel = SocialAccountConverter.Convert(socialAccount);
 

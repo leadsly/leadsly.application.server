@@ -1,13 +1,12 @@
-﻿using Leadsly.Application.Model.Requests;
+﻿using Leadsly.Application.Model;
+using Leadsly.Application.Model.Requests;
 using Leadsly.Application.Model.ViewModels;
 using Leadsly.Application.Model.ViewModels.Cloud;
 using Leadsly.Application.Model.ViewModels.Response;
 using Leadsly.Application.Model.ViewModels.Response.Hal;
 using Leadsly.Domain.Supervisor;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,19 +47,19 @@ namespace Leadsly.Application.Api.Controllers
         }
 
         [HttpPost("setup")]
-        [AllowAnonymous]
         public async Task<IActionResult> SetupAccountWithLeadsly(SetupAccountViewModel setupLeasdsly, CancellationToken ct = default)
         {
             _logger.LogTrace("SetupUserWithLeadsly action executed.");
 
-            SetupAccountResultViewModel result = await _supervisor.LeadslyAccountSetupAsync(setupLeasdsly, ct);
+            HalOperationResultViewModel<IOperationResponseViewModel> result = await _supervisor.LeadslyAccountSetupAsync<IOperationResponseViewModel>(setupLeasdsly, ct);
+            LeadslySetup setup = result.Data as LeadslySetup;
 
-            if(result.Succeeded == false && result.RequiresNewCloudResource == false)
+            if (result.OperationResults.Succeeded == false && setup.RequiresNewCloudResource == false)
             {
                 _logger.LogTrace("[SetupLeadslyForUserAsync] did not succeeded.");
-                if (result.Failures.Count > 0)
+                if (result.OperationResults.Failures.Count > 0)
                 {
-                    return BadRequest_LeadslySetup(result.Failures);
+                    return BadRequest_LeadslySetup(result.OperationResults.Failures);
                 }
                 else
                 {
@@ -72,7 +71,6 @@ namespace Leadsly.Application.Api.Controllers
         }
 
         [HttpPost("webdriver")]
-        [AllowAnonymous]
         public async Task<IActionResult> RequestNewDriver(NewWebDriverRequest request, CancellationToken ct = default)
         {
             _logger.LogTrace("RequestNewDriver action executed.");
@@ -88,7 +86,6 @@ namespace Leadsly.Application.Api.Controllers
         }
 
         [HttpPost("connect")]
-        [AllowAnonymous]
         public async Task<IActionResult> Connect(ConnectAccountRequest request, CancellationToken ct = default)
         {
             _logger.LogTrace("Connect action executed.");
@@ -102,7 +99,7 @@ namespace Leadsly.Application.Api.Controllers
             }
 
             if (result.OperationResults.Succeeded == false)
-            {   
+            {
                 return BadRequest_LeadslyAuthenticationError(result.OperationResults.Failures);
             }
 
@@ -110,7 +107,6 @@ namespace Leadsly.Application.Api.Controllers
         }
 
         [HttpPost("connect/2fa")]
-        [AllowAnonymous]
         public async Task<IActionResult> TwoFactorAuth(TwoFactorAuthRequest request, CancellationToken ct = default)
         {
             _logger.LogTrace("TwoFactorAuth action executed");

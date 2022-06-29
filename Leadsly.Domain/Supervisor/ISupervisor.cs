@@ -1,20 +1,18 @@
-﻿using Microsoft.AspNetCore.Identity;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Entities;
-using Leadsly.Application.Model;
-using Leadsly.Application.Model.ViewModels.Cloud;
+using Leadsly.Application.Model.Entities.Campaigns;
+using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Application.Model.Requests;
-using Leadsly.Application.Model.ViewModels.Response;
+using Leadsly.Application.Model.Requests.FromHal;
 using Leadsly.Application.Model.Responses;
 using Leadsly.Application.Model.ViewModels;
-using System;
-using Leadsly.Application.Model.Requests.FromHal;
-using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Application.Model.ViewModels.Campaigns;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Leadsly.Application.Model.ViewModels.Cloud;
+using Leadsly.Application.Model.ViewModels.Response;
 using Microsoft.AspNetCore.JsonPatch;
-using Leadsly.Application.Model.Entities.Campaigns.Phases;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Supervisor
 {
@@ -24,7 +22,12 @@ namespace Leadsly.Domain.Supervisor
         Task<CampaignViewModel> PatchUpdateCampaignAsync(string campaignId, JsonPatchDocument<Campaign> campaignUpdate, CancellationToken ct = default);
         Task<HalOperationResultViewModel<T>> PatchUpdateSocialAccountAsync<T>(string socialAccountId, JsonPatchDocument<SocialAccount> socialAccountUpdate, CancellationToken ct = default)
             where T : IOperationResponseViewModel;
+
+        [Obsolete("No longer in use")]
         Task<SetupAccountResultViewModel> LeadslyAccountSetupAsync(SetupAccountViewModel setup, CancellationToken ct = default);
+
+        Task<HalOperationResultViewModel<T>> LeadslyAccountSetupAsync<T>(SetupAccountViewModel setup, CancellationToken ct = default)
+            where T : IOperationResponseViewModel;
 
         [Obsolete("This method is not longer used. We are not creating new chrome instances per campaign, we're using new tabs instead")]
         Task<HalOperationResultViewModel<T>> LeadslyRequestNewWebDriverAsync<T>(NewWebDriverRequest request, CancellationToken ct = default)
@@ -80,6 +83,9 @@ namespace Leadsly.Domain.Supervisor
             where T : IOperationResponseViewModel;
 
         Task<HalOperationResultViewModel<T>> GetProspectListsByUserIdAsync<T>(string userId, CancellationToken ct = default)
+            where T : IOperationResponseViewModel;
+
+        Task<HalOperationResultViewModel<T>> GetSupportedTimeZonesAsync<T>(CancellationToken ct = default)
             where T : IOperationResponseViewModel;
     }
 }

@@ -1,24 +1,44 @@
 ﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Entities;
+using Leadsly.Application.Model.Requests;
+using Leadsly.Application.Model.Responses.Hal.Interfaces;
+using Leadsly.Application.Model.ViewModels;
+using Leadsly.Application.Model.ViewModels.Cloud;
+using Leadsly.Application.Model.ViewModels.Response;
+using Leadsly.Domain.Converters;
+using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using Leadsly.Domain.Converters;
-using Leadsly.Application.Model.ViewModels.Cloud;
-using Microsoft.Extensions.Caching.Memory;
-using Leadsly.Application.Model.Requests;
 using NewWebDriverRequest = Leadsly.Application.Model.Requests.NewWebDriverRequest;
-using Leadsly.Application.Model.ViewModels.Response;
-using Leadsly.Application.Model.Responses.Hal;
-using Leadsly.Application.Model.ViewModels;
-using Leadsly.Application.Model.ViewModels.Response.Hal;
-using Leadsly.Application.Model.Responses.Hal.Interfaces;
 
 namespace Leadsly.Domain.Supervisor
 {
     public partial class Supervisor : ISupervisor
-    {        
+    {
+        public async Task<HalOperationResultViewModel<T>> GetSupportedTimeZonesAsync<T>(CancellationToken ct = default)
+            where T : IOperationResponseViewModel
+        {
+            HalOperationResultViewModel<T> result = new();
+
+            IList<LeadslyTimeZone> supportedTimeZones = await _timeZoneRepository.GetAllSupportedTimeZonesAsync(ct);
+
+            if (supportedTimeZones == null)
+            {
+                result.OperationResults.Succeeded = false;
+                result.OperationResults.Failures.Add(new()
+                {
+                    Reason = "No supported time zones found."
+                });
+                return result;
+            }
+
+            result.Data = supportedTimeZones;
+            result.OperationResults.Succeeded = true;
+            return result;
+        }
+
         public async Task<HalOperationResultViewModel<T>> LeadslyTwoFactorAuthAsync<T>(TwoFactorAuthRequest request, CancellationToken ct = default)
             where T : IOperationResponseViewModel
         {
@@ -44,7 +64,7 @@ namespace Leadsly.Domain.Supervisor
                 return result;
             }
 
-            return await EnterTwofactorAuthCodeAsync<T>(socialAccount.SocialAccountCloudResource, request, ct);        
+            return await EnterTwofactorAuthCodeAsync<T>(socialAccount.SocialAccountCloudResource, request, ct);
         }
         private async Task<HalOperationResultViewModel<T>> EnterTwofactorAuthCodeAsync<T>(SocialAccountCloudResource resource, TwoFactorAuthRequest request, CancellationToken ct = default)
             where T : IOperationResponseViewModel
@@ -89,8 +109,47 @@ namespace Leadsly.Domain.Supervisor
             }
 
             return await AuthenticateUserAsync<T>(socialAccount.SocialAccountCloudResource, request, "", ct);
-            
+
         }
+
+
+        public async Task<HalOperationResultViewModel<T>> LeadslyAccountSetupAsync<T>(SetupAccountViewModel setup, CancellationToken ct = default)
+            where T : IOperationResponseViewModel
+        {
+            HalOperationResultViewModel<T> result = new();
+
+            SocialAccountDTO socialAccountDTO = new()
+            {
+                AccountType = setup.SocialAccountType,
+                Username = setup.Username,
+                UserId = setup.UserId
+            };
+
+            // Check if this social account has been registered for this user before
+            SocialAccount socialAccount = await _userProvider.GetRegisteredSocialAccountAsync(socialAccountDTO, ct);
+
+            LeadslySetupResultDTO setupResult;
+            LeadslySetup leadslySetup = new();
+            // if null social account hasn't been registered before for this user
+            if (socialAccount == null)
+            {
+                setupResult = await SetupCloudResourcesForNewSocialAccountAsync(socialAccountDTO, setup.TimeZoneId, ct);
+                leadslySetup.NewUser = true;
+                leadslySetup.RequiresNewCloudResource = setupResult.RequiresNewCloudResource;
+            }
+            // social account has been registered before check the ecs service task status and get connection info
+            else
+            {
+                setupResult = await ConnectUserToExistingCloudResourcesAsync(socialAccount, ct);
+                leadslySetup.NewUser = false;
+                leadslySetup.RequiresNewCloudResource = setupResult.RequiresNewCloudResource;
+            }
+
+            result.Data = leadslySetup;
+            result.OperationResults.Succeeded = setupResult.Succeeded;
+            return result;
+        }
+
         public async Task<SetupAccountResultViewModel> LeadslyAccountSetupAsync(SetupAccountViewModel setup, CancellationToken ct = default)
         {
             SetupAccountResultViewModel result = new()
@@ -132,7 +191,7 @@ namespace Leadsly.Domain.Supervisor
             result = HalOperationConverter.Convert<T>(halResult);
 
             if (halResult.Succeeded == false)
-            {   
+            {
                 return result;
             }
 
@@ -198,7 +257,7 @@ namespace Leadsly.Domain.Supervisor
             result.Value = (T)WebDriverConverter.Convert(halResult.Value);
             //result.Succeeded = true;
             return result;
-        }           
+        }
         /// <summary>
         /// This methods, handles the set up of user's env in aws.
         /// </summary>
@@ -215,7 +274,7 @@ namespace Leadsly.Domain.Supervisor
 
             ExistingSocialAccountSetupResultDTO connectingToExistingCloudResourceResult = await _cloudPlatformProvider.ConnectToExistingCloudResourceAsync(socialAccount, ct);
 
-            if(connectingToExistingCloudResourceResult.Succeeded == false)
+            if (connectingToExistingCloudResourceResult.Succeeded == false)
             {
                 await HandleFailedConnectionAttemptToExistingCloudResourceAsync(connectingToExistingCloudResourceResult, socialAccount, ct);
                 result.RequiresNewCloudResource = true;
@@ -239,7 +298,7 @@ namespace Leadsly.Domain.Supervisor
             {
                 // this should happen very rarely
                 _logger.LogWarning("[EDGE CASE]: Ecs service has no running tasks but has a pending task. There is no logic created for this scenario yet.");
-               // its possible that the ecs service has no tasks running but it has a task in pending state even after the default timeout time. Just log as warning for now
+                // its possible that the ecs service has no tasks running but it has a task in pending state even after the default timeout time. Just log as warning for now
             }
         }
         private async Task RemoveUsersSocialAccountCloudResourcesAsync(SocialAccount socialAccount, CancellationToken ct = default)
@@ -249,7 +308,7 @@ namespace Leadsly.Domain.Supervisor
         private async Task RemoveUsersSocialAccountAndResourcesAsync(SocialAccount socialAccount, CancellationToken ct = default)
         {
             bool removeSocialAccountAndResources = await _userProvider.RemoveSocialAccountAndResourcesAsync(socialAccount, ct);
-            if(removeSocialAccountAndResources == false)
+            if (removeSocialAccountAndResources == false)
             {
                 _logger.LogError("Failed to remove users social account and the associated cloud resources. Manual intervention may be required to remove the resource.");
             }
@@ -280,7 +339,7 @@ namespace Leadsly.Domain.Supervisor
             cloudResourceSetupResult.AccountType = socialAccountDTO.AccountType;
 
             NewSocialAccountSetupResult saveNewSocialAccountResult = await SaveNewSocialAccountAsync(cloudResourceSetupResult, ct);
-            if(saveNewSocialAccountResult.Succeeded == false)
+            if (saveNewSocialAccountResult.Succeeded == false)
             {
                 await _cloudPlatformProvider.RollbackCloudResourcesAsync(cloudResourceSetupResult, socialAccountDTO.UserId, ct);
                 result.Failures = saveNewSocialAccountResult.Failures;
@@ -299,14 +358,14 @@ namespace Leadsly.Domain.Supervisor
 
             HalUnit halUnit = result.Value as HalUnit;
             result = await AddHalToRecurringTimeZoneJob(halUnit, ct);
-            if(result.Succeeded == false)
+            if (result.Succeeded == false)
             {
                 await _cloudPlatformProvider.RollbackCloudResourcesAsync(cloudResourceSetupResult, socialAccountDTO.UserId, ct);
                 return result;
             }
 
             result.Succeeded = true;
-            return result;     
+            return result;
         }
 
         private async Task<LeadslySetupResultDTO> AddHalToRecurringTimeZoneJob(HalUnit halUnit, CancellationToken ct = default)
@@ -316,7 +375,7 @@ namespace Leadsly.Domain.Supervisor
                 Succeeded = false
             };
 
-            if(halUnit == null)
+            if (halUnit == null)
             {
                 return result;
             }
@@ -338,7 +397,7 @@ namespace Leadsly.Domain.Supervisor
             LeadslySetupResultDTO result = new();
 
             ApplicationUser applicationUser = await _userProvider.GetUserByIdAsync(userId, ct);
-            if(applicationUser == null)
+            if (applicationUser == null)
             {
                 result.Failures.Add(new()
                 {
@@ -354,11 +413,11 @@ namespace Leadsly.Domain.Supervisor
                 HalId = newSocialAccountSetupResult.SocialAccount.SocialAccountCloudResource.HalId,
                 TimeZoneId = timeZoneId,
                 SocialAccount = newSocialAccountSetupResult.SocialAccount,
-                ApplicationUser = applicationUser                
+                ApplicationUser = applicationUser
             };
 
             halDetails = await _halRepository.CreateAsync(halDetails, ct);
-            if(halDetails == null)
+            if (halDetails == null)
             {
                 result.Failures.Add(new()
                 {
@@ -389,8 +448,8 @@ namespace Leadsly.Domain.Supervisor
                 Username = newSocialAccountSetup.Username,
                 Value = newSocialAccountSetup.Value
             };
-            
-            NewSocialAccountResult newSocialAndResourcesResult = await _userProvider.AddUsersSocialAccountAsync(newSocialAccountAndCloudResources, ct);            
+
+            NewSocialAccountResult newSocialAndResourcesResult = await _userProvider.AddUsersSocialAccountAsync(newSocialAccountAndCloudResources, ct);
             if (newSocialAndResourcesResult.Succeeded == false)
             {
                 result.Failures = newSocialAndResourcesResult.Failures;
@@ -400,6 +459,6 @@ namespace Leadsly.Domain.Supervisor
             result.SocialAccount = newSocialAndResourcesResult.Value;
             result.Succeeded = true;
             return result;
-        }        
+        }
     }
 }

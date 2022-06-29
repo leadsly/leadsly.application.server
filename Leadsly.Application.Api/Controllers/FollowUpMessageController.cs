@@ -1,28 +1,12 @@
-﻿using Leadsly.Domain.Models;
+﻿using Leadsly.Application.Model;
+using Leadsly.Application.Model.Requests.FromHal;
+using Leadsly.Application.Model.Responses;
 using Leadsly.Domain.Supervisor;
-using Leadsly.Application.Model.ViewModels.Campaigns;
-using Leadsly.Application.Model.ViewModels.Reports;
-using Leadsly.Application.Model.ViewModels.Reports.ApexCharts;
-using Leadsly.Application.Model.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Leadsly.Application.Model.Requests;
-using Leadsly.Application.Model.ViewModels.Response;
-using Microsoft.AspNetCore.Authorization;
-using Leadsly.Application.Model.ViewModels.Response.Hal;
-using System.Security.Claims;
-using Leadsly.Application.Model.Requests.FromHal;
-using Leadsly.Application.Model;
-using Leadsly.Application.Model.Responses;
-using Leadsly.Application.Model.Campaigns.Interfaces;
-using Leadsly.Application.Model.ViewModels;
-using Microsoft.AspNetCore.JsonPatch;
-using Leadsly.Application.Model.Entities.Campaigns;
 
 namespace Leadsly.Application.Api.Controllers
 {
