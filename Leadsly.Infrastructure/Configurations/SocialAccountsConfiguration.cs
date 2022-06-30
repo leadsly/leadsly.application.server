@@ -28,14 +28,14 @@ namespace Leadsly.Infrastructure.Configurations
 
             builder.Entity<VirtualAssistant>(res =>
             {
-                res.HasOne(res => res.EcsService).WithOne(ser => ser.VirtualAssistant);
+                res.HasOne(res => res.EcsService);
                 res.HasOne(res => res.EcsTaskDefinition);
                 res.HasOne(res => res.CloudMapDiscoveryService);
             });
 
             builder.Entity<CloudMapDiscoveryService>()
                     .HasOne(map => map.EcsService)
-                    .WithOne(ser => ser.CloudMapServiceDiscoveryService);
+                    .WithOne(ser => ser.CloudMapDiscoveryService);
 
             builder.Entity<EcsService>(s =>
             {
@@ -44,7 +44,7 @@ namespace Leadsly.Infrastructure.Configurations
                  .HasForeignKey(reg => reg.EcsServiceId)
                  .OnDelete(DeleteBehavior.Cascade);
 
-                s.HasOne(s => s.CloudMapServiceDiscoveryService)
+                s.HasOne(s => s.CloudMapDiscoveryService)
                     .WithOne(map => map.EcsService)
                     .HasForeignKey<CloudMapDiscoveryService>(map => map.EcsServiceId);
             });

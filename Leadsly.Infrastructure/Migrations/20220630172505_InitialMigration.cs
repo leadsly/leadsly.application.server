@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Leadsly.Infrastructure.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class InitialMigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -22,6 +22,26 @@ namespace Leadsly.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ChromeProfileNames", x => x.ChromeProfileId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "EcsServices",
+                columns: table => new
+                {
+                    EcsServiceId = table.Column<string>(type: "text", nullable: false),
+                    ServiceName = table.Column<string>(type: "text", nullable: false),
+                    ServiceArn = table.Column<string>(type: "text", nullable: false),
+                    ClusterArn = table.Column<string>(type: "text", nullable: false),
+                    CreatedAt = table.Column<long>(type: "bigint", nullable: false),
+                    CreatedBy = table.Column<string>(type: "text", nullable: false),
+                    TaskDefinition = table.Column<string>(type: "text", nullable: false),
+                    DesiredCount = table.Column<int>(type: "integer", nullable: false),
+                    SchedulingStrategy = table.Column<string>(type: "text", nullable: false),
+                    AssignPublicIp = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EcsServices", x => x.EcsServiceId);
                 });
 
             migrationBuilder.CreateTable(
@@ -132,6 +152,48 @@ namespace Leadsly.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "CloudMapDiscoveryServices",
+                columns: table => new
+                {
+                    CloudMapDiscoveryServiceId = table.Column<string>(type: "text", nullable: false),
+                    ServiceDiscoveryId = table.Column<string>(type: "text", nullable: false),
+                    Arn = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    NamespaceId = table.Column<string>(type: "text", nullable: false),
+                    CreateDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    EcsServiceId = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CloudMapDiscoveryServices", x => x.CloudMapDiscoveryServiceId);
+                    table.ForeignKey(
+                        name: "FK_CloudMapDiscoveryServices_EcsServices_EcsServiceId",
+                        column: x => x.EcsServiceId,
+                        principalTable: "EcsServices",
+                        principalColumn: "EcsServiceId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "EcsServiceRegistries",
+                columns: table => new
+                {
+                    EcsServiceRegistryId = table.Column<string>(type: "text", nullable: false),
+                    EcsServiceId = table.Column<string>(type: "text", nullable: false),
+                    RegistryArn = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EcsServiceRegistries", x => x.EcsServiceRegistryId);
+                    table.ForeignKey(
+                        name: "FK_EcsServiceRegistries_EcsServices_EcsServiceId",
+                        column: x => x.EcsServiceId,
+                        principalTable: "EcsServices",
+                        principalColumn: "EcsServiceId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "RoleClaims",
                 columns: table => new
                 {
@@ -215,6 +277,29 @@ namespace Leadsly.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "HalUnits",
+                columns: table => new
+                {
+                    HalUnitId = table.Column<string>(type: "text", nullable: false),
+                    HalId = table.Column<string>(type: "text", nullable: false),
+                    StartHour = table.Column<string>(type: "text", nullable: false),
+                    EndHour = table.Column<string>(type: "text", nullable: false),
+                    TimeZoneId = table.Column<string>(type: "text", nullable: false),
+                    HalTimeZoneId = table.Column<string>(type: "text", nullable: false),
+                    ApplicationUserId = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HalUnits", x => x.HalUnitId);
+                    table.ForeignKey(
+                        name: "FK_HalUnits_Users_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PrimaryProspectLists",
                 columns: table => new
                 {
@@ -228,37 +313,6 @@ namespace Leadsly.Infrastructure.Migrations
                     table.PrimaryKey("PK_PrimaryProspectLists", x => x.PrimaryProspectListId);
                     table.ForeignKey(
                         name: "FK_PrimaryProspectLists_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "SocialAccounts",
-                columns: table => new
-                {
-                    SocialAccountId = table.Column<string>(type: "text", nullable: false),
-                    UserId = table.Column<string>(type: "text", nullable: false),
-                    AccountType = table.Column<int>(type: "integer", nullable: false),
-                    Username = table.Column<string>(type: "text", nullable: false),
-                    RunProspectListFirst = table.Column<bool>(type: "boolean", nullable: false),
-                    MonthlySearchLimitReached = table.Column<bool>(type: "boolean", nullable: false),
-                    ConfiguredWithUsersLeadslyAccount = table.Column<bool>(type: "boolean", nullable: false),
-                    VirtualAssistantLinked = table.Column<bool>(type: "boolean", nullable: false),
-                    VirtualAssistant = table.Column<string>(type: "text", nullable: true),
-                    ApplicationUserId = table.Column<string>(type: "text", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_SocialAccounts", x => x.SocialAccountId);
-                    table.ForeignKey(
-                        name: "FK_SocialAccounts_Users_ApplicationUserId",
-                        column: x => x.ApplicationUserId,
-                        principalTable: "Users",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_SocialAccounts_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -351,6 +405,49 @@ namespace Leadsly.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "VirtualAssistants",
+                columns: table => new
+                {
+                    VirtualAssistantId = table.Column<string>(type: "text", nullable: false),
+                    ApplicationUserId = table.Column<string>(type: "text", nullable: false),
+                    HalId = table.Column<string>(type: "text", nullable: false),
+                    HalUnitId = table.Column<string>(type: "text", nullable: true),
+                    EcsServiceId = table.Column<string>(type: "text", nullable: true),
+                    EcsTaskDefinitionId = table.Column<string>(type: "text", nullable: true),
+                    CloudMapDiscoveryServiceId = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VirtualAssistants", x => x.VirtualAssistantId);
+                    table.ForeignKey(
+                        name: "FK_VirtualAssistants_CloudMapDiscoveryServices_CloudMapDiscove~",
+                        column: x => x.CloudMapDiscoveryServiceId,
+                        principalTable: "CloudMapDiscoveryServices",
+                        principalColumn: "CloudMapDiscoveryServiceId");
+                    table.ForeignKey(
+                        name: "FK_VirtualAssistants_EcsServices_EcsServiceId",
+                        column: x => x.EcsServiceId,
+                        principalTable: "EcsServices",
+                        principalColumn: "EcsServiceId");
+                    table.ForeignKey(
+                        name: "FK_VirtualAssistants_EcsTaskDefinitions_EcsTaskDefinitionId",
+                        column: x => x.EcsTaskDefinitionId,
+                        principalTable: "EcsTaskDefinitions",
+                        principalColumn: "EcsTaskDefinitionId");
+                    table.ForeignKey(
+                        name: "FK_VirtualAssistants_HalUnits_HalUnitId",
+                        column: x => x.HalUnitId,
+                        principalTable: "HalUnits",
+                        principalColumn: "HalUnitId");
+                    table.ForeignKey(
+                        name: "FK_VirtualAssistants_Users_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "CampaignProspectLists",
                 columns: table => new
                 {
@@ -394,91 +491,46 @@ namespace Leadsly.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ConnectionWithdrawPhases",
+                name: "SocialAccounts",
                 columns: table => new
                 {
-                    ConnectionWithdrawPhaseId = table.Column<string>(type: "text", nullable: false),
-                    PhaseType = table.Column<int>(type: "integer", nullable: false),
-                    PageUrl = table.Column<string>(type: "text", nullable: false),
-                    SocialAccountId = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ConnectionWithdrawPhases", x => x.ConnectionWithdrawPhaseId);
-                    table.ForeignKey(
-                        name: "FK_ConnectionWithdrawPhases_SocialAccounts_SocialAccountId",
-                        column: x => x.SocialAccountId,
-                        principalTable: "SocialAccounts",
-                        principalColumn: "SocialAccountId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "HalUnits",
-                columns: table => new
-                {
+                    SocialAccountId = table.Column<string>(type: "text", nullable: false),
+                    UserId = table.Column<string>(type: "text", nullable: false),
+                    VirtualAssistantId = table.Column<string>(type: "text", nullable: false),
                     HalUnitId = table.Column<string>(type: "text", nullable: false),
-                    HalId = table.Column<string>(type: "text", nullable: false),
-                    StartHour = table.Column<string>(type: "text", nullable: false),
-                    EndHour = table.Column<string>(type: "text", nullable: false),
-                    TimeZoneId = table.Column<string>(type: "text", nullable: false),
-                    HalTimeZoneId = table.Column<string>(type: "text", nullable: false),
-                    SocialAccountId = table.Column<string>(type: "text", nullable: true),
-                    ApplicationUserId = table.Column<string>(type: "text", nullable: false)
+                    AccountType = table.Column<int>(type: "integer", nullable: false),
+                    Username = table.Column<string>(type: "text", nullable: false),
+                    RunProspectListFirst = table.Column<bool>(type: "boolean", nullable: false),
+                    MonthlySearchLimitReached = table.Column<bool>(type: "boolean", nullable: false),
+                    Linked = table.Column<bool>(type: "boolean", nullable: false),
+                    ConfiguredWithUsersLeadslyAccount = table.Column<bool>(type: "boolean", nullable: false),
+                    ApplicationUserId = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_HalUnits", x => x.HalUnitId);
+                    table.PrimaryKey("PK_SocialAccounts", x => x.SocialAccountId);
                     table.ForeignKey(
-                        name: "FK_HalUnits_SocialAccounts_SocialAccountId",
-                        column: x => x.SocialAccountId,
-                        principalTable: "SocialAccounts",
-                        principalColumn: "SocialAccountId");
+                        name: "FK_SocialAccounts_HalUnits_HalUnitId",
+                        column: x => x.HalUnitId,
+                        principalTable: "HalUnits",
+                        principalColumn: "HalUnitId",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_HalUnits_Users_ApplicationUserId",
+                        name: "FK_SocialAccounts_Users_ApplicationUserId",
                         column: x => x.ApplicationUserId,
+                        principalTable: "Users",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_SocialAccounts_Users_UserId",
+                        column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "MonitorForNewConnectionsPhases",
-                columns: table => new
-                {
-                    MonitorForNewConnectionsPhaseId = table.Column<string>(type: "text", nullable: false),
-                    PageUrl = table.Column<string>(type: "text", nullable: false),
-                    PhaseType = table.Column<int>(type: "integer", nullable: false),
-                    SocialAccountId = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_MonitorForNewConnectionsPhases", x => x.MonitorForNewConnectionsPhaseId);
                     table.ForeignKey(
-                        name: "FK_MonitorForNewConnectionsPhases_SocialAccounts_SocialAccount~",
-                        column: x => x.SocialAccountId,
-                        principalTable: "SocialAccounts",
-                        principalColumn: "SocialAccountId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ScanProspectsForRepliesPhase",
-                columns: table => new
-                {
-                    ScanProspectsForRepliesPhaseId = table.Column<string>(type: "text", nullable: false),
-                    PhaseType = table.Column<int>(type: "integer", nullable: false),
-                    PageUrl = table.Column<string>(type: "text", nullable: false),
-                    SocialAccountId = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ScanProspectsForRepliesPhase", x => x.ScanProspectsForRepliesPhaseId);
-                    table.ForeignKey(
-                        name: "FK_ScanProspectsForRepliesPhase_SocialAccounts_SocialAccountId",
-                        column: x => x.SocialAccountId,
-                        principalTable: "SocialAccounts",
-                        principalColumn: "SocialAccountId",
+                        name: "FK_SocialAccounts_VirtualAssistants_VirtualAssistantId",
+                        column: x => x.VirtualAssistantId,
+                        principalTable: "VirtualAssistants",
+                        principalColumn: "VirtualAssistantId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -538,6 +590,106 @@ namespace Leadsly.Infrastructure.Migrations
                         column: x => x.PrimaryProspectListId,
                         principalTable: "PrimaryProspectLists",
                         principalColumn: "PrimaryProspectListId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ConnectionWithdrawPhases",
+                columns: table => new
+                {
+                    ConnectionWithdrawPhaseId = table.Column<string>(type: "text", nullable: false),
+                    PhaseType = table.Column<int>(type: "integer", nullable: false),
+                    PageUrl = table.Column<string>(type: "text", nullable: false),
+                    SocialAccountId = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ConnectionWithdrawPhases", x => x.ConnectionWithdrawPhaseId);
+                    table.ForeignKey(
+                        name: "FK_ConnectionWithdrawPhases_SocialAccounts_SocialAccountId",
+                        column: x => x.SocialAccountId,
+                        principalTable: "SocialAccounts",
+                        principalColumn: "SocialAccountId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MonitorForNewConnectionsPhases",
+                columns: table => new
+                {
+                    MonitorForNewConnectionsPhaseId = table.Column<string>(type: "text", nullable: false),
+                    PageUrl = table.Column<string>(type: "text", nullable: false),
+                    PhaseType = table.Column<int>(type: "integer", nullable: false),
+                    SocialAccountId = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MonitorForNewConnectionsPhases", x => x.MonitorForNewConnectionsPhaseId);
+                    table.ForeignKey(
+                        name: "FK_MonitorForNewConnectionsPhases_SocialAccounts_SocialAccount~",
+                        column: x => x.SocialAccountId,
+                        principalTable: "SocialAccounts",
+                        principalColumn: "SocialAccountId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ScanProspectsForRepliesPhase",
+                columns: table => new
+                {
+                    ScanProspectsForRepliesPhaseId = table.Column<string>(type: "text", nullable: false),
+                    PhaseType = table.Column<int>(type: "integer", nullable: false),
+                    PageUrl = table.Column<string>(type: "text", nullable: false),
+                    SocialAccountId = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ScanProspectsForRepliesPhase", x => x.ScanProspectsForRepliesPhaseId);
+                    table.ForeignKey(
+                        name: "FK_ScanProspectsForRepliesPhase_SocialAccounts_SocialAccountId",
+                        column: x => x.SocialAccountId,
+                        principalTable: "SocialAccounts",
+                        principalColumn: "SocialAccountId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SocialAccountResources",
+                columns: table => new
+                {
+                    SocialAccountCloudResourceId = table.Column<string>(type: "text", nullable: false),
+                    SocialAccountId = table.Column<string>(type: "text", nullable: false),
+                    HalId = table.Column<string>(type: "text", nullable: true),
+                    EcsServiceId = table.Column<string>(type: "text", nullable: false),
+                    EcsTaskDefinitionId = table.Column<string>(type: "text", nullable: false),
+                    CloudMapDiscoveryServiceId = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SocialAccountResources", x => x.SocialAccountCloudResourceId);
+                    table.ForeignKey(
+                        name: "FK_SocialAccountResources_CloudMapDiscoveryServices_CloudMapDi~",
+                        column: x => x.CloudMapDiscoveryServiceId,
+                        principalTable: "CloudMapDiscoveryServices",
+                        principalColumn: "CloudMapDiscoveryServiceId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SocialAccountResources_EcsServices_EcsServiceId",
+                        column: x => x.EcsServiceId,
+                        principalTable: "EcsServices",
+                        principalColumn: "EcsServiceId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SocialAccountResources_EcsTaskDefinitions_EcsTaskDefinition~",
+                        column: x => x.EcsTaskDefinitionId,
+                        principalTable: "EcsTaskDefinitions",
+                        principalColumn: "EcsTaskDefinitionId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SocialAccountResources_SocialAccounts_SocialAccountId",
+                        column: x => x.SocialAccountId,
+                        principalTable: "SocialAccounts",
+                        principalColumn: "SocialAccountId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -816,140 +968,6 @@ namespace Leadsly.Infrastructure.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "CloudMapServiceDiscoveryServices",
-                columns: table => new
-                {
-                    CloudMapServiceDiscoveryServiceId = table.Column<string>(type: "text", nullable: false),
-                    ServiceDiscoveryId = table.Column<string>(type: "text", nullable: false),
-                    Arn = table.Column<string>(type: "text", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    NamespaceId = table.Column<string>(type: "text", nullable: false),
-                    CreateDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    EcsServiceId = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_CloudMapServiceDiscoveryServices", x => x.CloudMapServiceDiscoveryServiceId);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "SocialAccountResources",
-                columns: table => new
-                {
-                    SocialAccountCloudResourceId = table.Column<string>(type: "text", nullable: false),
-                    SocialAccountId = table.Column<string>(type: "text", nullable: false),
-                    HalId = table.Column<string>(type: "text", nullable: true),
-                    EcsTaskDefinitionId = table.Column<string>(type: "text", nullable: false),
-                    CloudMapServiceDiscoveryServiceId = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_SocialAccountResources", x => x.SocialAccountCloudResourceId);
-                    table.ForeignKey(
-                        name: "FK_SocialAccountResources_CloudMapServiceDiscoveryServices_Clo~",
-                        column: x => x.CloudMapServiceDiscoveryServiceId,
-                        principalTable: "CloudMapServiceDiscoveryServices",
-                        principalColumn: "CloudMapServiceDiscoveryServiceId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_SocialAccountResources_EcsTaskDefinitions_EcsTaskDefinition~",
-                        column: x => x.EcsTaskDefinitionId,
-                        principalTable: "EcsTaskDefinitions",
-                        principalColumn: "EcsTaskDefinitionId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_SocialAccountResources_SocialAccounts_SocialAccountId",
-                        column: x => x.SocialAccountId,
-                        principalTable: "SocialAccounts",
-                        principalColumn: "SocialAccountId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "EcsServices",
-                columns: table => new
-                {
-                    EcsServiceId = table.Column<string>(type: "text", nullable: false),
-                    SocialAccountCloudResourceId = table.Column<string>(type: "text", nullable: true),
-                    UserId = table.Column<string>(type: "text", nullable: false),
-                    ServiceName = table.Column<string>(type: "text", nullable: false),
-                    ServiceArn = table.Column<string>(type: "text", nullable: false),
-                    ClusterArn = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<long>(type: "bigint", nullable: false),
-                    CreatedBy = table.Column<string>(type: "text", nullable: false),
-                    TaskDefinition = table.Column<string>(type: "text", nullable: false),
-                    DesiredCount = table.Column<int>(type: "integer", nullable: false),
-                    SchedulingStrategy = table.Column<string>(type: "text", nullable: false),
-                    AssignPublicIp = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_EcsServices", x => x.EcsServiceId);
-                    table.ForeignKey(
-                        name: "FK_EcsServices_SocialAccountResources_SocialAccountCloudResour~",
-                        column: x => x.SocialAccountCloudResourceId,
-                        principalTable: "SocialAccountResources",
-                        principalColumn: "SocialAccountCloudResourceId");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "EcsServiceRegistries",
-                columns: table => new
-                {
-                    EcsServiceRegistryId = table.Column<string>(type: "text", nullable: false),
-                    EcsServiceId = table.Column<string>(type: "text", nullable: false),
-                    RegistryArn = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_EcsServiceRegistries", x => x.EcsServiceRegistryId);
-                    table.ForeignKey(
-                        name: "FK_EcsServiceRegistries_EcsServices_EcsServiceId",
-                        column: x => x.EcsServiceId,
-                        principalTable: "EcsServices",
-                        principalColumn: "EcsServiceId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "VirtualAssistants",
-                columns: table => new
-                {
-                    VirtualAssistantId = table.Column<string>(type: "text", nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "text", nullable: false),
-                    HalId = table.Column<string>(type: "text", nullable: false),
-                    EcsServiceId = table.Column<string>(type: "text", nullable: true),
-                    EcsTaskDefinitionId = table.Column<string>(type: "text", nullable: true),
-                    CloudMapDiscoveryServiceCloudMapServiceDiscoveryServiceId = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_VirtualAssistants", x => x.VirtualAssistantId);
-                    table.ForeignKey(
-                        name: "FK_VirtualAssistants_CloudMapServiceDiscoveryServices_CloudMap~",
-                        column: x => x.CloudMapDiscoveryServiceCloudMapServiceDiscoveryServiceId,
-                        principalTable: "CloudMapServiceDiscoveryServices",
-                        principalColumn: "CloudMapServiceDiscoveryServiceId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_VirtualAssistants_EcsServices_EcsServiceId",
-                        column: x => x.EcsServiceId,
-                        principalTable: "EcsServices",
-                        principalColumn: "EcsServiceId");
-                    table.ForeignKey(
-                        name: "FK_VirtualAssistants_EcsTaskDefinitions_EcsTaskDefinitionId",
-                        column: x => x.EcsTaskDefinitionId,
-                        principalTable: "EcsTaskDefinitions",
-                        principalColumn: "EcsTaskDefinitionId");
-                    table.ForeignKey(
-                        name: "FK_VirtualAssistants_Users_ApplicationUserId",
-                        column: x => x.ApplicationUserId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_ApplicationUserOrganization_OrganizationsOrganizationId",
                 table: "ApplicationUserOrganization",
@@ -996,8 +1014,8 @@ namespace Leadsly.Infrastructure.Migrations
                 column: "CampaignId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CloudMapServiceDiscoveryServices_EcsServiceId",
-                table: "CloudMapServiceDiscoveryServices",
+                name: "IX_CloudMapDiscoveryServices_EcsServiceId",
+                table: "CloudMapDiscoveryServices",
                 column: "EcsServiceId",
                 unique: true);
 
@@ -1011,12 +1029,6 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "IX_EcsServiceRegistries_EcsServiceId",
                 table: "EcsServiceRegistries",
                 column: "EcsServiceId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_EcsServices_SocialAccountCloudResourceId",
-                table: "EcsServices",
-                column: "SocialAccountCloudResourceId",
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_FollowUpMessageDelay_FollowUpMessageId",
@@ -1039,12 +1051,6 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "IX_HalUnits_ApplicationUserId",
                 table: "HalUnits",
                 column: "ApplicationUserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_HalUnits_SocialAccountId",
-                table: "HalUnits",
-                column: "SocialAccountId",
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_MonitorForNewConnectionsPhases_SocialAccountId",
@@ -1123,9 +1129,14 @@ namespace Leadsly.Infrastructure.Migrations
                 column: "CampaignId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SocialAccountResources_CloudMapServiceDiscoveryServiceId",
+                name: "IX_SocialAccountResources_CloudMapDiscoveryServiceId",
                 table: "SocialAccountResources",
-                column: "CloudMapServiceDiscoveryServiceId");
+                column: "CloudMapDiscoveryServiceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SocialAccountResources_EcsServiceId",
+                table: "SocialAccountResources",
+                column: "EcsServiceId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SocialAccountResources_EcsTaskDefinitionId",
@@ -1144,9 +1155,20 @@ namespace Leadsly.Infrastructure.Migrations
                 column: "ApplicationUserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_SocialAccounts_HalUnitId",
+                table: "SocialAccounts",
+                column: "HalUnitId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_SocialAccounts_UserId",
                 table: "SocialAccounts",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SocialAccounts_VirtualAssistantId",
+                table: "SocialAccounts",
+                column: "VirtualAssistantId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SupportedTimeZones_TimeZoneId",
@@ -1191,9 +1213,9 @@ namespace Leadsly.Infrastructure.Migrations
                 column: "ApplicationUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_VirtualAssistants_CloudMapDiscoveryServiceCloudMapServiceDi~",
+                name: "IX_VirtualAssistants_CloudMapDiscoveryServiceId",
                 table: "VirtualAssistants",
-                column: "CloudMapDiscoveryServiceCloudMapServiceDiscoveryServiceId");
+                column: "CloudMapDiscoveryServiceId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_VirtualAssistants_EcsServiceId",
@@ -1205,29 +1227,14 @@ namespace Leadsly.Infrastructure.Migrations
                 table: "VirtualAssistants",
                 column: "EcsTaskDefinitionId");
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_CloudMapServiceDiscoveryServices_EcsServices_EcsServiceId",
-                table: "CloudMapServiceDiscoveryServices",
-                column: "EcsServiceId",
-                principalTable: "EcsServices",
-                principalColumn: "EcsServiceId",
-                onDelete: ReferentialAction.Cascade);
+            migrationBuilder.CreateIndex(
+                name: "IX_VirtualAssistants_HalUnitId",
+                table: "VirtualAssistants",
+                column: "HalUnitId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_SocialAccounts_Users_ApplicationUserId",
-                table: "SocialAccounts");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_SocialAccounts_Users_UserId",
-                table: "SocialAccounts");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_CloudMapServiceDiscoveryServices_EcsServices_EcsServiceId",
-                table: "CloudMapServiceDiscoveryServices");
-
             migrationBuilder.DropTable(
                 name: "ApplicationUserOrganization");
 
@@ -1257,9 +1264,6 @@ namespace Leadsly.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "HalTimeZones");
-
-            migrationBuilder.DropTable(
-                name: "HalUnits");
 
             migrationBuilder.DropTable(
                 name: "MonitorForNewConnectionsPhases");
@@ -1295,6 +1299,9 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "SentConnectionsStatuses");
 
             migrationBuilder.DropTable(
+                name: "SocialAccountResources");
+
+            migrationBuilder.DropTable(
                 name: "SupportedTimeZones");
 
             migrationBuilder.DropTable(
@@ -1310,9 +1317,6 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "UserTokens");
 
             migrationBuilder.DropTable(
-                name: "VirtualAssistants");
-
-            migrationBuilder.DropTable(
                 name: "Organizations");
 
             migrationBuilder.DropTable(
@@ -1320,6 +1324,9 @@ namespace Leadsly.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "FollowUpMessages");
+
+            migrationBuilder.DropTable(
+                name: "SocialAccounts");
 
             migrationBuilder.DropTable(
                 name: "Roles");
@@ -1331,31 +1338,31 @@ namespace Leadsly.Infrastructure.Migrations
                 name: "Campaigns");
 
             migrationBuilder.DropTable(
+                name: "VirtualAssistants");
+
+            migrationBuilder.DropTable(
                 name: "CampaignProspectLists");
 
             migrationBuilder.DropTable(
+                name: "CloudMapDiscoveryServices");
+
+            migrationBuilder.DropTable(
+                name: "EcsTaskDefinitions");
+
+            migrationBuilder.DropTable(
+                name: "HalUnits");
+
+            migrationBuilder.DropTable(
                 name: "PrimaryProspectLists");
+
+            migrationBuilder.DropTable(
+                name: "EcsServices");
 
             migrationBuilder.DropTable(
                 name: "Users");
 
             migrationBuilder.DropTable(
                 name: "StripeCustomers");
-
-            migrationBuilder.DropTable(
-                name: "EcsServices");
-
-            migrationBuilder.DropTable(
-                name: "SocialAccountResources");
-
-            migrationBuilder.DropTable(
-                name: "CloudMapServiceDiscoveryServices");
-
-            migrationBuilder.DropTable(
-                name: "EcsTaskDefinitions");
-
-            migrationBuilder.DropTable(
-                name: "SocialAccounts");
         }
     }
 }

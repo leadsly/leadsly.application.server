@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,7 +38,7 @@ namespace Leadsly.Infrastructure.Repositories
 
         private async Task<bool> ServiceDiscoveryServiceExists(string id, CancellationToken ct = default)
         {
-            return await _dbContext.CloudMapServiceDiscoveryServices.AnyAsync(def => def.CloudMapDiscoveryServiceId == id, ct);
+            return await _dbContext.CloudMapDiscoveryServices.AnyAsync(def => def.CloudMapDiscoveryServiceId == id, ct);
         }
 
         public CloudPlatformConfiguration GetCloudPlatformConfiguration()
@@ -117,7 +118,7 @@ namespace Leadsly.Infrastructure.Repositories
         {
             try
             {
-                _dbContext.CloudMapServiceDiscoveryServices.Add(newCloudMapServiceDiscovery);
+                _dbContext.CloudMapDiscoveryServices.Add(newCloudMapServiceDiscovery);
                 await _dbContext.SaveChangesAsync(ct);
             }
             catch (Exception ex)
@@ -176,8 +177,8 @@ namespace Leadsly.Infrastructure.Repositories
                 {
                     return false;
                 }
-                CloudMapDiscoveryService toRemove = _dbContext.CloudMapServiceDiscoveryServices.Find(discoveryServiceId);
-                _dbContext.CloudMapServiceDiscoveryServices.Remove(toRemove);
+                CloudMapDiscoveryService toRemove = _dbContext.CloudMapDiscoveryServices.Find(discoveryServiceId);
+                _dbContext.CloudMapDiscoveryServices.Remove(toRemove);
                 await _dbContext.SaveChangesAsync(ct);
             }
             catch (Exception ex)
@@ -186,6 +187,34 @@ namespace Leadsly.Infrastructure.Repositories
                 return false;
             }
             return true;
+        }
+
+        public async Task<VirtualAssistant> CreateVirtualAssistantAsync(VirtualAssistant newVirtualAssistant, CancellationToken ct = default)
+        {
+            try
+            {
+                _dbContext.VirtualAssistants.Add(newVirtualAssistant);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to add new virtual assistant");
+            }
+            return newVirtualAssistant;
+        }
+
+        public async Task<IList<VirtualAssistant>> GetAllVirtualAssistantByUserIdAsync(string userId, CancellationToken ct = default)
+        {
+            IList<VirtualAssistant> virtualAssistants;
+            try
+            {
+                virtualAssistants = await _dbContext.VirtualAssistants.Where(v => v.ApplicationUserId == userId).Include(v => v.SocialAccount).ToListAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve all virtual assistants by user id {userId}", userId);
+            }
+            return virtualAssistants;
         }
     }
 }

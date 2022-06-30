@@ -21,7 +21,7 @@ namespace Leadsly.Infrastructure
         public DbSet<Customer_Stripe> StripeCustomers { get; set; }
         public DbSet<EcsService> EcsServices { get; set; }
         public DbSet<EcsTaskDefinition> EcsTaskDefinitions { get; set; }
-        public DbSet<CloudMapDiscoveryService> CloudMapServiceDiscoveryServices { get; set; }
+        public DbSet<CloudMapDiscoveryService> CloudMapDiscoveryServices { get; set; }
         public DbSet<EcsServiceRegistry> EcsServiceRegistries { get; set; }
         public DbSet<SocialAccount> SocialAccounts { get; set; }
         public DbSet<SocialAccountCloudResource> SocialAccountResources { get; set; }
