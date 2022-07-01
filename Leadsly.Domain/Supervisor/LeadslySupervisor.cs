@@ -8,7 +8,6 @@ using Leadsly.Application.Model.ViewModels.Response;
 using Leadsly.Domain.Converters;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using NewWebDriverRequest = Leadsly.Application.Model.Requests.NewWebDriverRequest;
@@ -17,27 +16,6 @@ namespace Leadsly.Domain.Supervisor
 {
     public partial class Supervisor : ISupervisor
     {
-        public async Task<HalOperationResultViewModel<T>> GetSupportedTimeZonesAsync<T>(CancellationToken ct = default)
-            where T : IOperationResponseViewModel
-        {
-            HalOperationResultViewModel<T> result = new();
-
-            IList<LeadslyTimeZone> supportedTimeZones = await _timeZoneRepository.GetAllSupportedTimeZonesAsync(ct);
-
-            if (supportedTimeZones == null)
-            {
-                result.OperationResults.Succeeded = false;
-                result.OperationResults.Failures.Add(new()
-                {
-                    Reason = "No supported time zones found."
-                });
-                return result;
-            }
-
-            result.Data = supportedTimeZones;
-            result.OperationResults.Succeeded = true;
-            return result;
-        }
 
         public async Task<HalOperationResultViewModel<T>> LeadslyTwoFactorAuthAsync<T>(TwoFactorAuthRequest request, CancellationToken ct = default)
             where T : IOperationResponseViewModel

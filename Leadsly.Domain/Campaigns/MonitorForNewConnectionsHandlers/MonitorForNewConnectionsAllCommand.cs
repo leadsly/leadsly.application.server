@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandler
+namespace Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers
 {
     public class MonitorForNewConnectionsAllCommand : ICommand
     {

@@ -117,7 +117,7 @@ namespace Leadsly.Domain.Providers
                 return result;
             }
 
-            CloudMapDiscoveryService newServiceDiscovery = CloudMapServiceDiscoveryServiceConverter.Convert(newSocialAccountSetup.Value.CloudMapServiceDiscovery);
+            CloudMapDiscoveryService newServiceDiscovery = CloudMapDiscoveryServiceConverter.Convert(newSocialAccountSetup.Value.CloudMapServiceDiscovery);
             newServiceDiscovery.EcsService = ecsService;
             newServiceDiscovery = await AddServiceDiscoveryServiceAsync(newServiceDiscovery, ct);
 

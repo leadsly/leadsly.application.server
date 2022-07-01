@@ -1,4 +1,4 @@
-﻿namespace Leadsly.Application.Domain.OptionsJsonModels
+﻿namespace Leadsly.Domain.OptionsJsonModels
 {
     public class ClientOptions
     {

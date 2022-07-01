@@ -1,10 +1,10 @@
 ﻿using Leadsly.Application.Api.Authentication;
 using Leadsly.Application.Api.Extensions;
 using Leadsly.Application.Api.Services;
-using Leadsly.Application.Domain.OptionsJsonModels;
 using Leadsly.Application.Model.Entities;
 using Leadsly.Application.Model.ViewModels;
 using Leadsly.Domain;
+using Leadsly.Domain.OptionsJsonModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

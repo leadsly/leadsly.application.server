@@ -1,8 +1,6 @@
 ﻿using Leadsly.Application.Model.Entities.Campaigns;
-using Leadsly.Domain.Campaigns;
 using Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessage;
 using Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages;
-using Leadsly.Domain.Campaigns.Handlers;
 using Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers;
 using Leadsly.Domain.Campaigns.NetworkingHandler;
 using Leadsly.Domain.Campaigns.ProspectListsHandlers.ProspectList;
@@ -63,7 +61,7 @@ namespace Leadsly.Domain
             {
                 ProspectListCommand prospectListCommand = new ProspectListCommand(campaign.ProspectListPhase.ProspectListPhaseId, campaign.ApplicationUserId);
                 await _prospectListHandler.HandleAsync(prospectListCommand);
-            }            
+            }
         }
 
         /// <summary>
@@ -100,7 +98,7 @@ namespace Leadsly.Domain
         public async Task ProduceFollowUpMessagesPhaseAsync(string halId, string userId, CancellationToken ct = default)
         {
             FollowUpMessagesCommand followUpCommand = new FollowUpMessagesCommand(halId);
-            await _followUpMessagesHandler.HandleAsync(followUpCommand);            
+            await _followUpMessagesHandler.HandleAsync(followUpCommand);
         }
 
         public async Task ProduceSendFollowUpMessagesAsync(IDictionary<CampaignProspectFollowUpMessage, DateTimeOffset> messagesGoingOut, CancellationToken ct = default)
@@ -114,6 +112,6 @@ namespace Leadsly.Domain
                 FollowUpMessageCommand followUpCommand = new FollowUpMessageCommand(campaignId, messageId, scheduleTime);
                 await _followUpMessageHandler.HandleAsync(followUpCommand);
             }
-        }        
+        }
     }
 }

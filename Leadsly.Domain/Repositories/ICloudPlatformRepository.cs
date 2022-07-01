@@ -1,12 +1,7 @@
-﻿using Leadsly.Domain.OptionsJsonModels;
-using Leadsly.Application.Model.Entities;
-using System;
+﻿using Leadsly.Application.Model.Entities;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Leadsly.Application.Model;
 
 namespace Leadsly.Domain.Repositories
 {
@@ -19,5 +14,7 @@ namespace Leadsly.Domain.Repositories
         public Task<bool> RemoveEcsServiceAsync(string ecsServiceId, CancellationToken ct = default);
         public Task<bool> RemoveCloudMapServiceDiscoveryServiceAsync(string discoveryServiceId, CancellationToken ct = default);
         public Task<CloudMapDiscoveryService> AddServiceDiscoveryAsync(CloudMapDiscoveryService newCloudMapServiceDiscovery, CancellationToken ct = default);
+        public Task<VirtualAssistant> CreateVirtualAssistantAsync(VirtualAssistant newVirtualAssistant, CancellationToken ct = default);
+        public Task<IList<VirtualAssistant>> GetAllVirtualAssistantByUserIdAsync(string userId, CancellationToken ct = default);
     }
 }

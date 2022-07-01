@@ -1,6 +1,7 @@
 ﻿using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.RabbitMQ;
 using Leadsly.Domain.Facades.Interfaces;
+using Leadsly.Domain.RabbitMQ;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;

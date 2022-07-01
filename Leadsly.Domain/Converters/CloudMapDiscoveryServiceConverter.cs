@@ -1,17 +1,11 @@
-﻿using Leadsly.Application.Model;
-using Leadsly.Application.Model.Aws.DTOs;
+﻿using Leadsly.Application.Model.Aws.DTOs;
 using Leadsly.Application.Model.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Converters
 {
-    public class CloudMapServiceDiscoveryServiceConverter
+    public class CloudMapDiscoveryServiceConverter
     {
-        public static CloudMapDiscoveryService Convert(CloudMapServiceDiscoveryServiceDTO dto)
+        public static CloudMapDiscoveryService Convert(CloudMapDiscoveryServiceDTO dto)
         {
             return new CloudMapDiscoveryService
             {

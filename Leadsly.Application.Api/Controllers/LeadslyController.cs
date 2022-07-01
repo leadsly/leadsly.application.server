@@ -5,12 +5,8 @@ using Leadsly.Application.Model.ViewModels.Cloud;
 using Leadsly.Application.Model.ViewModels.Response;
 using Leadsly.Application.Model.ViewModels.Response.Hal;
 using Leadsly.Domain.Supervisor;
-using Leadsly.Domain.ViewModels;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
-using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -37,17 +33,17 @@ namespace Leadsly.Application.Api.Controllers
         /// Gets applications name and version. If returned indicates api is successfully running.
         /// </summary>
         /// <returns></returns>
-        [HttpGet("connected-account")]
-        public async Task<IActionResult> GetConnectedAccountAsync()
-        {
-            _logger.LogTrace("ConnectedAccount action executed.");
+        //[HttpGet("connected-account")]
+        //public async Task<IActionResult> GetConnectedAccountAsync()
+        //{
+        //    _logger.LogTrace("ConnectedAccount action executed.");
 
-            string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            HalOperationResultViewModel<IOperationResponseViewModel> connectedAccount = await _supervisor.GetConnectedAccountAsync<IOperationResponseViewModel>(userId);
+        //    string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        //    HalOperationResultViewModel<IOperationResponseViewModel> connectedAccount = await _supervisor.GetConnectedAccountAsync<IOperationResponseViewModel>(userId);
 
-            // TODO we need to handle situation when something fails and return Bad_Request();
-            return Ok(connectedAccount);
-        }
+        //    // TODO we need to handle situation when something fails and return Bad_Request();
+        //    return Ok(connectedAccount);
+        //}
 
         [HttpPost("setup")]
         public async Task<IActionResult> AccountSetupAsync(SetupAccountViewModel setupLeasdsly, CancellationToken ct = default)
@@ -64,36 +60,24 @@ namespace Leadsly.Application.Api.Controllers
                 {
                     return BadRequest_LeadslySetup(result.OperationResults.Failures);
                 }
-                else
-                {
-                    return BadRequest_LeadslySetup();
-                }
+                //else
+                //{
+                //    return BadRequest_LeadslySetup();
+                //}
             }
 
             return Ok(result);
         }
 
-        [HttpPost("create-virtual-assistant")]
-        [AllowAnonymous]
-        public async Task<IActionResult> CreateVirtualAssistantAsync(SetupAccountViewModel setupLeadsly, CancellationToken ct = default)
-        {
-            _logger.LogTrace("CreateVirtualAssistantAsync action executed.");
+        //[HttpPost("create-virtual-assistant")]
+        //public async Task<IActionResult> CreateVirtualAssistantAsync(SetupAccountViewModel setupLeadsly, CancellationToken ct = default)
+        //{
+        //    _logger.LogTrace("CreateVirtualAssistantAsync action executed.");
 
-            LeadslyAccountSetupResult result = new(false, new List<Failure>());
+        //    VirtualAssistantViewModel virtualAssistant = await _supervisor.CreateVirtualAssistantAsync(setupLeadsly, ct);
 
-            VirtualAssistantViewModel virtualAssistant = await _supervisor.CreateVirtualAssistantAsync(setupLeadsly, result, ct);
-
-            if (result.Succeeded == false)
-            {
-                if (result.Failures.Count > 0)
-                {
-                    return BadRequest_LeadslySetup(result.Failures);
-                }
-                return BadRequest_LeadslySetup();
-            }
-
-            return Ok(virtualAssistant);
-        }
+        //    return virtualAssistant == null ? BadRequest_LeadslySetup() : Ok(virtualAssistant);
+        //}
 
 
         [HttpPost("webdriver")]

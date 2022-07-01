@@ -2,8 +2,6 @@
 using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.Entities;
 using Leadsly.Application.Model.Entities.Campaigns.Phases;
-using Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandler;
-using Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Factories.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
@@ -17,7 +15,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.Campaigns.Handlers
+namespace Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers
 {
     public class MonitorForNewConnectionsAllCommandHandler : ICommandHandler<MonitorForNewConnectionsAllCommand>
     {
@@ -25,7 +23,7 @@ namespace Leadsly.Domain.Campaigns.Handlers
             IMessageBrokerOutlet messageBrokerOutlet,
             IMonitorForNewConnectionsMessagesFactory messagesFactory,
             ILogger<MonitorForNewConnectionsAllCommandHandler> logger)
-        {           
+        {
             _messageBrokerOutlet = messageBrokerOutlet;
             _messagesFactory = messagesFactory;
             _logger = logger;

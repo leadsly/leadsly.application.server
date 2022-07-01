@@ -1,5 +1,5 @@
 ﻿using Leadsly.Application.Model.Entities;
-using Leadsly.Domain.ViewModels;
+using Leadsly.Domain.Models.ViewModels.VirtualAssistant;
 
 namespace Leadsly.Domain.Converters
 {
@@ -9,7 +9,8 @@ namespace Leadsly.Domain.Converters
         {
             return new VirtualAssistantViewModel
             {
-                HalId = virtualAssistant.HalId
+                HalId = virtualAssistant.HalId,
+                TimezoneId = virtualAssistant.HalUnit.TimeZoneId
             };
         }
     }

@@ -1,17 +1,27 @@
-﻿using System;
+﻿using Leadsly.Application.Model.Entities;
+using Leadsly.Domain.Models.ViewModels.LinkedInAccount;
+using System;
 using System.Collections.Generic;
 
 namespace Leadsly.Domain
 {
     public static class Extensions
     {
+        public static AccountViewModel ToConnectedAccountViewModel(this VirtualAssistant virtualAssistant)
+        {
+            return new AccountViewModel
+            {
+                Email = virtualAssistant.SocialAccount.Username
+            };
+        }
+
         public static string Capitalize(this string str)
         {
             if (string.IsNullOrEmpty(str))
             {
                 return string.Empty;
             }
-                
+
             return char.ToUpper(str[0]) + str.Substring(1).ToLower();
         }
 
@@ -23,9 +33,9 @@ namespace Leadsly.Domain
                 foreach (var x in dict)
                 {
                     result[x.Key] = x.Value;
-                }   
+                }
             }
-                
+
             return result;
         }
 

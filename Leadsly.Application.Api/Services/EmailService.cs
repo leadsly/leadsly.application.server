@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 using MimeKit;
 using System;
 using System.Threading.Tasks;
-using Leadsly.Application.Domain.OptionsJsonModels;
+using Leadsly.Domain.OptionsJsonModels;
 
 namespace Leadsly.Application.Api.Services
 {

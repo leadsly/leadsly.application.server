@@ -29,6 +29,7 @@ namespace Leadsly.Domain.Providers
             IAwsServiceDiscoveryService awsServiceDiscoveryService,
             IAwsRoute53Service awsRoute53Service,
             ILeadslyHalApiService leadslyBotApiService,
+            IHalRepository halRepository,
             IOrphanedCloudResourcesRepository orphanedCloudResourcesRepository,
             ILogger<CloudPlatformProvider> logger)
         {
@@ -38,10 +39,12 @@ namespace Leadsly.Domain.Providers
             _orphanedCloudResourcesRepository = orphanedCloudResourcesRepository;
             _awsRoute53Service = awsRoute53Service;
             _leadslyBotApiService = leadslyBotApiService;
+            _halRepository = halRepository;
             _logger = logger;
         }
 
         private readonly ILeadslyHalApiService _leadslyBotApiService;
+        private readonly IHalRepository _halRepository;
         private readonly IAwsElasticContainerService _awsElasticContainerService;
         private readonly IAwsRoute53Service _awsRoute53Service;
         private readonly IAwsServiceDiscoveryService _awsServiceDiscoveryService;
@@ -51,19 +54,46 @@ namespace Leadsly.Domain.Providers
         private readonly int DefaultTimeToWaitForEcsServicePendingTasks_InSeconds = 120;
         private readonly string HealthCheckEndpoint = "api/healthcheck";
 
-        public async Task<string> RollbackEcsServiceAsync(CancellationToken ct = default)
+        public async Task RollbackEcsServiceAsync(string userId, CancellationToken ct = default)
         {
-            return await _awsElasticContainerService.RollbackServiceAsync(ct);
+            string resource = await _awsElasticContainerService.RollbackServiceAsync(ct);
+            if (resource != string.Empty)
+            {
+                _logger.LogDebug("Delete operation for ecs service failed. Adding ecs service to orphaned cloud resources table for manual clean up.");
+                await SaveOrphanedResourcesAsync(userId, resource, ct);
+            }
         }
 
-        public async Task<string> RollbackCloudMapServiceAsync(CancellationToken ct = default)
+        public async Task RollbackCloudMapServiceAsync(string userId, CancellationToken ct = default)
         {
-            return await _awsElasticContainerService.RollbackTaskDefinitionRegistrationAsync(ct);
+            string resource = await _awsElasticContainerService.RollbackTaskDefinitionRegistrationAsync(ct);
+            if (resource != string.Empty)
+            {
+                _logger.LogDebug("Operation to remove aws cloud map discovery service failed. Adding cloud map discovery service to orphaned cloud resources table for manual clean up.");
+                await SaveOrphanedResourcesAsync(userId, resource, ct);
+            }
         }
 
-        public async Task<string> RolbackTaskDefinitionRegistrationAsync(CancellationToken ct = default)
+        public async Task RolbackTaskDefinitionRegistrationAsync(string userId, CancellationToken ct = default)
         {
-            return await _awsServiceDiscoveryService.RollbackCloudMapDiscoveryServiceAsync(ct);
+            string resource = await _awsServiceDiscoveryService.RollbackCloudMapDiscoveryServiceAsync(ct);
+            if (resource != string.Empty)
+            {
+                _logger.LogDebug("Deregister operation for ecs task definition failed. Adding task definition to orphaned cloud resources table for manual clean up.");
+                await SaveOrphanedResourcesAsync(userId, resource, ct);
+            }
+        }
+
+        private async Task SaveOrphanedResourcesAsync(string userId, string resource, CancellationToken ct = default)
+        {
+            OrphanedCloudResource orphanedCloudResource = new()
+            {
+                UserId = userId,
+                FriendlyName = "Task definition",
+                ResourceId = resource
+            };
+
+            await _orphanedCloudResourcesRepository.AddOrphanedCloudResourceAsync(orphanedCloudResource, ct);
         }
 
         public async Task<EcsServiceDTO> CreateEcsServiceInAwsAsync(string taskDefinition, string cloudMapServiceArn, LeadslyAccountSetupResult result, CancellationToken ct = default)
@@ -77,10 +107,10 @@ namespace Leadsly.Domain.Providers
             {
                 _logger.LogError("Failed to create ECS Service in AWS");
                 result.Succeeded = false;
-                result.Failures.Add(new()
+                result.Failure = new()
                 {
                     Reason = "Failed to create ECS Service in AWS"
-                });
+                };
                 return null;
             }
             else
@@ -118,21 +148,21 @@ namespace Leadsly.Domain.Providers
             };
         }
 
-        public async Task<CloudMapServiceDiscoveryServiceDTO> CreateCloudMapDiscoveryServiceInAwsAsync(LeadslyAccountSetupResult result, CancellationToken ct = default)
+        public async Task<CloudMapDiscoveryServiceDTO> CreateCloudMapDiscoveryServiceInAwsAsync(LeadslyAccountSetupResult result, CancellationToken ct = default)
         {
             CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
 
-            CloudMapServiceDiscoveryServiceDTO cloudMapServiceDiscoveryDTO = CreateAwsCloudMapService(configuration);
+            CloudMapDiscoveryServiceDTO cloudMapServiceDiscoveryDTO = CreateAwsCloudMapService(configuration);
 
             Amazon.ServiceDiscovery.Model.CreateServiceResponse createDiscoveryServiceResponse = await CreateServiceDiscoveryServiceAsync(cloudMapServiceDiscoveryDTO, ct);
             if (createDiscoveryServiceResponse == null || createDiscoveryServiceResponse.HttpStatusCode != HttpStatusCode.OK)
             {
                 _logger.LogError($"Failed to create Cloud Map service discovery service in AWS. HttpStatusCode: {createDiscoveryServiceResponse?.HttpStatusCode}");
                 result.Succeeded = false;
-                result.Failures.Add(new()
+                result.Failure = new()
                 {
                     Reason = "Failed to create Cloud Map service discovery service in AWS"
-                });
+                };
                 return null;
             }
             else
@@ -148,9 +178,9 @@ namespace Leadsly.Domain.Providers
             return cloudMapServiceDiscoveryDTO;
         }
 
-        private CloudMapServiceDiscoveryServiceDTO CreateAwsCloudMapService(CloudPlatformConfiguration configuration)
+        private CloudMapDiscoveryServiceDTO CreateAwsCloudMapService(CloudPlatformConfiguration configuration)
         {
-            return new CloudMapServiceDiscoveryServiceDTO
+            return new CloudMapDiscoveryServiceDTO
             {
                 // name used to discover this service by in the future
                 Name = $"hal-{Guid.NewGuid()}-srv-disc",
@@ -180,10 +210,10 @@ namespace Leadsly.Domain.Providers
             {
                 _logger.LogError("Failed to register ECS task definition in AWS");
                 result.Succeeded = false;
-                result.Failures.Add(new()
+                result.Failure = new()
                 {
                     Reason = "Failed to register ECS task definition in AWS"
-                });
+                };
 
                 return null;
             }
@@ -1094,7 +1124,7 @@ namespace Leadsly.Domain.Providers
             taskDefinitionDTO.TaskDefinitionArn = registerTaskDefinitionResponse.TaskDefinition.TaskDefinitionArn;
             return taskDefinitionDTO;
         }
-        private CloudMapServiceDiscoveryServiceDTO UpdateCloudMapServiceDiscoveryValues(Amazon.ServiceDiscovery.Model.CreateServiceResponse createServiceDiscoveryService, CloudMapServiceDiscoveryServiceDTO cloudMapDiscoveryDTO)
+        private CloudMapDiscoveryServiceDTO UpdateCloudMapServiceDiscoveryValues(Amazon.ServiceDiscovery.Model.CreateServiceResponse createServiceDiscoveryService, CloudMapDiscoveryServiceDTO cloudMapDiscoveryDTO)
         {
             // response
             cloudMapDiscoveryDTO.ServiceDiscoveryId = createServiceDiscoveryService.Service?.Id;
@@ -1284,7 +1314,7 @@ namespace Leadsly.Domain.Providers
         }
 
 
-        private async Task DeleteServiceDiscoveryServiceAsync(CloudMapServiceDiscoveryServiceDTO serviceDiscovery, string userId, CancellationToken ct = default)
+        private async Task DeleteServiceDiscoveryServiceAsync(CloudMapDiscoveryServiceDTO serviceDiscovery, string userId, CancellationToken ct = default)
         {
             DeleteServiceDiscoveryServiceRequest request = new()
             {
@@ -1500,7 +1530,7 @@ namespace Leadsly.Domain.Providers
 
             return await _awsElasticContainerService.CreateServiceAsync(createEcsServiceRequest, ct);
         }
-        private async Task<Amazon.ServiceDiscovery.Model.CreateServiceResponse> CreateServiceDiscoveryServiceAsync(CloudMapServiceDiscoveryServiceDTO cloudMapServiceDiscovery, CancellationToken ct = default)
+        private async Task<Amazon.ServiceDiscovery.Model.CreateServiceResponse> CreateServiceDiscoveryServiceAsync(CloudMapDiscoveryServiceDTO cloudMapServiceDiscovery, CancellationToken ct = default)
         {
             CreateServiceDiscoveryServiceRequest createServiceDiscoveryServiceRequest = new()
             {
@@ -1564,19 +1594,44 @@ namespace Leadsly.Domain.Providers
             return await _awsElasticContainerService.UpdateServiceAsync(request, ct);
         }
 
-        public async Task<EcsTaskDefinition> AddEcsTaskDefinitionAsync(EcsTaskDefinition newEcsTaskDefinition, CancellationToken ct = default)
+        public async Task<VirtualAssistant> GetVirtualAssistantAsync(string userId, CancellationToken ct = default)
         {
-            return await _cloudPlatformRepository.AddEcsTaskDefinitionAsync(newEcsTaskDefinition, ct);
+            IList<VirtualAssistant> virtualAssistants = await _cloudPlatformRepository.GetAllVirtualAssistantByUserIdAsync(userId, ct);
+
+            // for now we only expect users to have only one assistant.
+            return virtualAssistants.FirstOrDefault();
         }
 
-        public async Task<EcsService> AddEcsServiceAsync(EcsService newEcsService, CancellationToken ct = default)
+        public async Task<VirtualAssistant> CreateVirtualAssistantAsync(
+            EcsTaskDefinition newEcsTaskDefinition,
+            EcsService newEcsService,
+            CloudMapDiscoveryService newCloudMapService,
+            string halId,
+            string userId,
+            string timezoneId,
+            CancellationToken ct = default)
         {
-            return await _cloudPlatformRepository.AddEcsServiceAsync(newEcsService, ct);
-        }
+            HalUnit newHalUnit = new()
+            {
+                HalId = halId,
+                TimeZoneId = timezoneId,
+                ApplicationUserId = userId
+            };
 
-        public async Task<CloudMapDiscoveryService> AddCloudMapDiscoveryServiceAsync(CloudMapDiscoveryService newService, CancellationToken ct = default)
-        {
-            return await _cloudPlatformRepository.AddServiceDiscoveryAsync(newService, ct);
+            newCloudMapService.EcsService = newEcsService;
+            newEcsService.CloudMapDiscoveryService = newCloudMapService;
+
+            VirtualAssistant virtualAssistant = new VirtualAssistant
+            {
+                EcsTaskDefinition = newEcsTaskDefinition,
+                EcsService = newEcsService,
+                CloudMapDiscoveryService = newCloudMapService,
+                ApplicationUserId = userId,
+                HalUnit = newHalUnit,
+                HalId = halId,
+            };
+
+            return await _cloudPlatformRepository.CreateVirtualAssistantAsync(virtualAssistant, ct);
         }
     }
 }

@@ -8,7 +8,7 @@ using RabbitMQ.Client;
 using System;
 using System.Collections.Generic;
 
-namespace Leadsly.Domain
+namespace Leadsly.Domain.RabbitMQ
 {
     public class RabbitMQManager : IRabbitMQManager
     {
@@ -30,11 +30,11 @@ namespace Leadsly.Domain
         {
             RabbitMQOptions options = GetRabbitMQOptions();
 
-            string exchangeName = options.ExchangeOptions.Name;            
+            string exchangeName = options.ExchangeOptions.Name;
             string exchangeType = options.ExchangeOptions.ExchangeType;
 
             IModel channel = _pool.Get();
-            channel.ExchangeDeclare(exchangeName, exchangeType);            
+            channel.ExchangeDeclare(exchangeName, exchangeType);
 
             string queueName = options.QueueConfigOptions.Name.Replace("{halId}", halId);
             queueName = queueName.Replace("{queueName}", queueNameIn);
@@ -50,7 +50,7 @@ namespace Leadsly.Domain
             channel.QueueBind(queueName, exchangeName, routingKey, null);
 
             IBasicProperties basicProperties = channel.CreateBasicProperties();
-            basicProperties.MessageId = Guid.NewGuid().ToString();            
+            basicProperties.MessageId = Guid.NewGuid().ToString();
             basicProperties.Expiration = TimeSpan.FromHours(3).TotalMilliseconds.ToString();
             if (headers != default)
             {
@@ -61,7 +61,7 @@ namespace Leadsly.Domain
                         "\r\nThe queueName is: {queueName} " +
                         "\r\nThe routingKey is: {routingKey} " +
                         "\r\nThe exchangeName is: {exchangeName} " +
-                        "\r\nThe exchangeType is: {exchangeType} ",                        
+                        "\r\nThe exchangeType is: {exchangeType} ",
                         halId,
                         queueName,
                         routingKey,

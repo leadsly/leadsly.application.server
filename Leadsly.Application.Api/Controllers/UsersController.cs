@@ -19,7 +19,7 @@ using Leadsly.Application.Api.Services;
 using Leadsly.Application.Model.ViewModels.Reports;
 using System;
 using Leadsly.Application.Model.ViewModels.Reports.ApexCharts;
-using Leadsly.Application.Domain.OptionsJsonModels;
+using Leadsly.Domain.OptionsJsonModels;
 
 namespace Leadsly.Application.Api.Controllers
 {

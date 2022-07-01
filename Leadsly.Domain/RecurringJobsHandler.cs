@@ -1,7 +1,6 @@
 ﻿using Hangfire;
 using Leadsly.Application.Model;
 using Leadsly.Application.Model.Entities;
-using Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandler;
 using Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;

@@ -30,4 +30,8 @@
       <ProjectReference Include="..\..\Leadsly.Application.Model\Leadsly.Application.Model.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="ViewModels\" />
+    </ItemGroup>
+
 </Project>

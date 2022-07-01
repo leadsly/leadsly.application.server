@@ -1,8 +1,8 @@
-﻿using Leadsly.Application.Model.ViewModels;
-using Leadsly.Application.Model.ViewModels.Response;
+﻿using Leadsly.Domain.Models.ViewModels;
 using Leadsly.Domain.Supervisor;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,7 +36,11 @@ namespace Leadsly.Application.Api.Controllers
             _logger.LogTrace("Get supported time zones action executed.");
 
             string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            HalOperationResultViewModel<IOperationResponseViewModel> supportedTimeZones = await _supervisor.GetSupportedTimeZonesAsync<IOperationResponseViewModel>(ct);
+            IList<TimeZoneViewModel> supportedTimeZones = await _supervisor.GetSupportedTimeZonesAsync(ct);
+            if (supportedTimeZones == null)
+            {
+                return BadRequest_GetResource();
+            }
 
             return Ok(supportedTimeZones);
         }

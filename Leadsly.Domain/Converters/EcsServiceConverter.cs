@@ -23,8 +23,7 @@ namespace Leadsly.Domain.Converters
                 SchedulingStrategy = dto.SchedulingStrategy,
                 ServiceArn = dto.ServiceArn,
                 ServiceName = dto.ServiceName,
-                TaskDefinition = dto.TaskDefinition,
-                VirtualAssistantId = dto.VirtualAssistantId,
+                TaskDefinition = dto.TaskDefinition
             };
         }
     }

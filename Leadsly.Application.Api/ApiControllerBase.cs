@@ -342,6 +342,18 @@ namespace Leadsly.Application.Api
             });
         }
 
+        protected ObjectResult BadRequest_GetResource()
+        {
+            return ProblemDetailsResult(new ProblemDetails
+            {
+                Type = ProblemDetailsTypes.BadRequestType,
+                Status = StatusCodes.Status400BadRequest,
+                Title = ReasonPhrases.GetReasonPhrase(400),
+                Detail = ProblemDetailsDescriptions.FailedGetResource,
+                Instance = HttpContext.Request.Path.Value
+            });
+        }
+
         /// <summary>
         /// Bad request when there is an issue updating user's password.
         /// </summary>        
@@ -392,7 +404,7 @@ namespace Leadsly.Application.Api
                 Type = ProblemDetailsTypes.BadRequest,
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
-                Detail = ProblemDetailsDescriptions.LeadslySetup,
+                Detail = ProblemDetailsDescriptions.VirtualAssistant,
                 Instance = HttpContext.Request.Path.Value
             });
         }
@@ -411,7 +423,7 @@ namespace Leadsly.Application.Api
                 Type = ProblemDetailsTypes.BadRequest,
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
-                Detail = ProblemDetailsDescriptions.LeadslySetup,
+                Detail = ProblemDetailsDescriptions.VirtualAssistant,
                 Instance = HttpContext.Request.Path.Value
             });
         }
@@ -554,14 +566,14 @@ namespace Leadsly.Application.Api
         /// Bad request when an error occurs setting up user with leadsly without errors list.
         /// </summary>
         /// <returns></returns>
-        protected ObjectResult BadRequest_LeadslySetup()
+        protected ObjectResult BadRequest_CreateVirtualAssistant()
         {
             return ProblemDetailsResult(new ProblemDetails
             {
                 Type = ProblemDetailsTypes.BadRequestType,
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
-                Detail = ProblemDetailsDescriptions.LeadslySetup,
+                Detail = ProblemDetailsDescriptions.VirtualAssistant,
                 Instance = HttpContext.Request.Path.Value
             });
         }

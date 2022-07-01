@@ -205,10 +205,14 @@ namespace Leadsly.Infrastructure.Repositories
 
         public async Task<IList<VirtualAssistant>> GetAllVirtualAssistantByUserIdAsync(string userId, CancellationToken ct = default)
         {
-            IList<VirtualAssistant> virtualAssistants;
+            IList<VirtualAssistant> virtualAssistants = null;
             try
             {
-                virtualAssistants = await _dbContext.VirtualAssistants.Where(v => v.ApplicationUserId == userId).Include(v => v.SocialAccount).ToListAsync(ct);
+                virtualAssistants = await _dbContext.VirtualAssistants
+                    .Where(v => v.ApplicationUserId == userId)
+                    .Include(v => v.SocialAccount)
+                    .Include(v => v.HalUnit)
+                    .ToListAsync(ct);
             }
             catch (Exception ex)
             {

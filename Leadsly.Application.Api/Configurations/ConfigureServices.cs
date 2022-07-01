@@ -8,15 +8,12 @@ using Hangfire.PostgreSql;
 using Leadsly.Application.Api.Authentication;
 using Leadsly.Application.Api.DataProtectorTokenProviders;
 using Leadsly.Application.Api.Services;
-using Leadsly.Application.Domain.OptionsJsonModels;
 using Leadsly.Application.Model;
 using Leadsly.Application.Model.Entities;
 using Leadsly.Domain;
 using Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessage;
 using Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages;
 using Leadsly.Domain.Campaigns.FollowUpMessagesHandler.UncontactedFollowUpMessages;
-using Leadsly.Domain.Campaigns.Handlers;
-using Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandler;
 using Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers;
 using Leadsly.Domain.Campaigns.NetworkingHandler;
 using Leadsly.Domain.Campaigns.ProspectListsHandlers.ProspectList;
@@ -190,7 +187,6 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ISearchUrlProgressRepository, SearchUrlProgressRepository>();
             services.AddScoped<IFollowUpMessageJobsRepository, FollowUpMessageJobsRepository>();
             services.AddScoped<ITimeZoneRepository, TimeZoneRepository>();
-            services.AddScoped<IVirtualAssistantRepository, VirtualAssistantRepository>();
 
             return services;
         }

@@ -17,16 +17,13 @@ namespace Leadsly.Domain.Supervisor
             ILeadslyHalProvider leadslyHalProvider,
             ISearchUrlProgressRepository searchUrlProgressRepository,
             ICampaignProvider campaignProvider,
-            IVirtualAssistantRepository virtualAssistantRepository,
             ISocialAccountRepository socialAccountRepository,
             ICampaignPhaseClient campaignPhaseClient,
-            IOrphanedCloudResourcesRepository orphanedCloudResourcesRepository,
             ITimeZoneRepository timeZoneRepository,
             ICampaignPhaseProcessorProvider campaignPhaseProcessorProvider,
             IMemoryCache memoryCache,
             ILogger<Supervisor> logger)
         {
-            _virtualAssistantRepository = virtualAssistantRepository;
             _timeZoneRepository = timeZoneRepository;
             _campaignProvider = campaignProvider;
             _socialAccountRepository = socialAccountRepository;
@@ -41,11 +38,9 @@ namespace Leadsly.Domain.Supervisor
             _campaignPhaseProcessorProvider = campaignPhaseProcessorProvider;
             _userProvider = userProvider;
             _logger = logger;
-            _orphanedCloudResourcesRepository = orphanedCloudResourcesRepository;
         }
 
         private readonly ICampaignPhaseProcessorProvider _campaignPhaseProcessorProvider;
-        private readonly IVirtualAssistantRepository _virtualAssistantRepository;
         private readonly ITimeZoneRepository _timeZoneRepository;
         private readonly ICampaignProvider _campaignProvider;
         private readonly ISocialAccountRepository _socialAccountRepository;
@@ -58,7 +53,6 @@ namespace Leadsly.Domain.Supervisor
         private readonly ICloudPlatformProvider _cloudPlatformProvider;
         private readonly IStripeRepository _stripeRepository;
         private readonly ILogger<Supervisor> _logger;
-        private readonly IOrphanedCloudResourcesRepository _orphanedCloudResourcesRepository;
         private readonly IMemoryCache _memoryCache;
     }
 }

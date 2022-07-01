@@ -9,9 +9,13 @@ using Leadsly.Application.Model.ViewModels;
 using Leadsly.Application.Model.ViewModels.Campaigns;
 using Leadsly.Application.Model.ViewModels.Cloud;
 using Leadsly.Application.Model.ViewModels.Response;
-using Leadsly.Domain.ViewModels;
+using Leadsly.Domain.Models.Requests;
+using Leadsly.Domain.Models.ViewModels;
+using Leadsly.Domain.Models.ViewModels.LinkedInAccount;
+using Leadsly.Domain.Models.ViewModels.VirtualAssistant;
 using Microsoft.AspNetCore.JsonPatch;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -30,7 +34,8 @@ namespace Leadsly.Domain.Supervisor
         Task<HalOperationResultViewModel<T>> LeadslyAccountSetupAsync<T>(SetupAccountViewModel setup, CancellationToken ct = default)
             where T : IOperationResponseViewModel;
 
-        Task<VirtualAssistantViewModel> CreateVirtualAssistantAsync(SetupAccountViewModel setup, LeadslyAccountSetupResult result, CancellationToken ct = default);
+        Task<VirtualAssistantViewModel> CreateVirtualAssistantAsync(CreateVirtualAssistantRequest request, CancellationToken ct = default);
+        Task<VirtualAssistantInfoViewModel> GetVirtualAssistantInfoAsync(string userId, CancellationToken ct = default);
 
         [Obsolete("This method is not longer used. We are not creating new chrome instances per campaign, we're using new tabs instead")]
         Task<HalOperationResultViewModel<T>> LeadslyRequestNewWebDriverAsync<T>(NewWebDriverRequest request, CancellationToken ct = default)
@@ -82,13 +87,11 @@ namespace Leadsly.Domain.Supervisor
         Task<HalOperationResult<T>> UpdateSearchUrlProgressAsync<T>(string searchUrlProgressId, JsonPatchDocument<SearchUrlProgress> searchUrlProgressToUpdate, CancellationToken ct = default)
             where T : IOperationResponse;
 
-        Task<HalOperationResultViewModel<T>> GetConnectedAccountAsync<T>(string userId, CancellationToken ct = default)
-            where T : IOperationResponseViewModel;
+        Task<ConnectedViewModel> GetConnectedAccountAsync(string userId, CancellationToken ct = default);
 
         Task<HalOperationResultViewModel<T>> GetProspectListsByUserIdAsync<T>(string userId, CancellationToken ct = default)
             where T : IOperationResponseViewModel;
 
-        Task<HalOperationResultViewModel<T>> GetSupportedTimeZonesAsync<T>(CancellationToken ct = default)
-            where T : IOperationResponseViewModel;
+        Task<IList<TimeZoneViewModel>> GetSupportedTimeZonesAsync(CancellationToken ct = default);
     }
 }

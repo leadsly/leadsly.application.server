@@ -3,7 +3,6 @@ using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Application.Model.Entities.Campaigns.Phases;
-using Leadsly.Domain.Campaigns.Handlers;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Factories.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;

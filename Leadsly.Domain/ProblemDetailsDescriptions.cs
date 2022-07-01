@@ -40,6 +40,7 @@
         public const string FailedToUpdateEmail = "Failed to update e-mail.";
         public const string FailedToUpdateResource = "Failed to update resource.";
         public const string FailedToConfirmUsersEmail = "Failed to confirm user's e-mail.";
+        public const string FailedGetResource = "Failed to get resource.";
         public const string FailedToGenerateToken = "Failed to generate token.";
         public const string TokenNotFound = "Token was not found in the request.";
         public const string StripeCustomerDoesNotExist = "Customer does not exist.";
@@ -50,7 +51,7 @@
         public const string FailedToDeserialize = "Failed to deserialize object.";
         public const string CampaignNotFound = "Campaign not found.";
         public const string CampaignPhaseProcessing = "Failed to process campaign phase.";
-        public const string LeadslySetup = "Failed to setup leadsly cloud resources";
+        public const string VirtualAssistant = "Failed to create Virtual Assistant";
         public const string WebDriverCreationError = "Failed to create web driver";
         public const string CreateCampaignError = "Failed to create new campaign";
         public const string UpdateContactedCampaignProspects = "Failed to update contacted campaign prospects";
