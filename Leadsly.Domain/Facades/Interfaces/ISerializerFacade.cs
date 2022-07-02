@@ -1,12 +1,7 @@
 ﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
-using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Application.Model.Responses;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Facades.Interfaces

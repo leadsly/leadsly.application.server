@@ -506,7 +506,9 @@ namespace Leadsly.Application.Api.Configurations
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
             {
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                Converters = new[] { new StringEnumConverter() }
+                Converters = new[] { new StringEnumConverter() },
+                NullValueHandling = NullValueHandling.Ignore,
+                MissingMemberHandling = MissingMemberHandling.Ignore
             };
 
             return builder;

@@ -410,6 +410,22 @@ namespace Leadsly.Application.Api
         }
 
         /// <summary>
+        /// Bad request when an error occurs connecting linked in account.
+        /// </summary>
+        /// <returns></returns>
+        protected ObjectResult BadRequest_ConnectLinkedInAccount()
+        {
+            return ProblemDetailsResult(new ProblemDetails
+            {
+                Type = ProblemDetailsTypes.BadRequestType,
+                Status = StatusCodes.Status400BadRequest,
+                Title = ReasonPhrases.GetReasonPhrase(400),
+                Detail = ProblemDetailsDescriptions.ConnectLinkedInAccount,
+                Instance = HttpContext.Request.Path.Value
+            });
+        }
+
+        /// <summary>
         /// Bad request when an error occurs setting up user with leadsly with errors list.
         /// </summary>
         /// <param name="errors"></param>

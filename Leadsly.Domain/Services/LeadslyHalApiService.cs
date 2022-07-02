@@ -1,5 +1,6 @@
 ﻿using Leadsly.Application.Model.Requests.Hal;
 using Leadsly.Application.Model.Requests.Hal.Interfaces;
+using Leadsly.Domain.Models.Requests;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
@@ -34,7 +35,7 @@ namespace Leadsly.Domain.Services
                 RequestUri = new Uri($"{url}/{halRequest.RequestUrl}", UriKind.Absolute)
             };
 
-            HttpResponseMessage response = default;           
+            HttpResponseMessage response = default;
             try
             {
                 _logger.LogInformation("Performing health check to {url}", url);
@@ -101,6 +102,37 @@ namespace Leadsly.Domain.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to send request to instantiate new web driver instance");
+            }
+
+            return response;
+        }
+
+        public async Task<HttpResponseMessage> SignInAsync(AuthenticateLinkedInAccountRequest request, CancellationToken ct = default)
+        {
+            string url = _urlService.GetHalsBaseUrl(request.NamespaceName);
+            HttpRequestMessage req = new()
+            {
+                Method = HttpMethod.Post,
+                RequestUri = new Uri($"{url}/{request.RequestUrl}", UriKind.Absolute),
+                Content = JsonContent.Create(new
+                {
+                    Username = request.Username,
+                    Password = request.Password,
+                    ConnectAuthUrl = request.ConnectAuthUrl,
+                    BrowserPurpose = request.BrowserPurpose,
+                    AttemptNumber = request.AttemptNumber
+                })
+            };
+
+            HttpResponseMessage response = default;
+            try
+            {
+                _logger.LogInformation("Request has been sent to sign user in", url);
+                response = await _httpClient.SendAsync(req, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send request to sign user into their linked in account");
             }
 
             return response;

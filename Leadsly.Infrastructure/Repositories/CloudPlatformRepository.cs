@@ -212,6 +212,7 @@ namespace Leadsly.Infrastructure.Repositories
                     .Where(v => v.ApplicationUserId == userId)
                     .Include(v => v.SocialAccount)
                     .Include(v => v.HalUnit)
+                    .Include(v => v.CloudMapDiscoveryService)
                     .ToListAsync(ct);
             }
             catch (Exception ex)

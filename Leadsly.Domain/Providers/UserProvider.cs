@@ -240,5 +240,62 @@ namespace Leadsly.Domain.Providers
         {
             return await _userRepository.GetSocialAccountByHalIdAsync(halId, ct);
         }
+
+        public async Task<SocialAccount> CreateSocialAccountAsync(VirtualAssistant virtualAssistant, string userId, string email, CancellationToken ct = default)
+        {
+            SocialAccount newSocialAccount = new()
+            {
+                Username = email,
+                UserId = userId,
+                HalDetails = virtualAssistant.HalUnit,
+                VirtualAssistant = virtualAssistant,
+                Linked = true,
+                AccountType = SocialAccountType.LinkedIn
+            };
+
+            newSocialAccount = await _socialAccountRepository.AddSocialAccountAsync(newSocialAccount, ct);
+            if (newSocialAccount == null)
+            {
+                _logger.LogError("Failed to create user's social account");
+                return null;
+            }
+
+            await CreateSocialAccountPhasesAsync(newSocialAccount, ct);
+
+            return newSocialAccount;
+        }
+
+        /// <summary>
+        /// TODO CONSIDER REMOVING THIS IN THE FUTURE. 
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async Task CreateSocialAccountPhasesAsync(SocialAccount newSocialAccount, CancellationToken ct = default)
+        {
+            ScanProspectsForRepliesPhase scanForProspectRepliesPhase = new()
+            {
+                SocialAccount = newSocialAccount,
+                PhaseType = PhaseType.ScanForReplies
+            };
+
+            await _scanProspectsForRepliesPhaseRepository.CreateAsync(scanForProspectRepliesPhase, ct);
+
+            MonitorForNewConnectionsPhase monitorForNewConnectionsPhase = new()
+            {
+                SocialAccount = newSocialAccount,
+                PhaseType = PhaseType.MonitorNewConnections
+            };
+
+            await _monitorForNewConnectionsPhaseRepository.CreateAsync(monitorForNewConnectionsPhase, ct);
+
+
+            ConnectionWithdrawPhase connectionWithdrawPhase = new()
+            {
+                PhaseType = PhaseType.ConnectionWithdraw,
+                SocialAccount = newSocialAccount
+            };
+
+            await _connectionWithdrawPhaseRepository.CreateAsync(connectionWithdrawPhase, ct);
+        }
     }
 }

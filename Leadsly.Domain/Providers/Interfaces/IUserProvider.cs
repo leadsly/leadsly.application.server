@@ -1,9 +1,6 @@
 ﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Entities;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,5 +14,6 @@ namespace Leadsly.Domain.Providers.Interfaces
         Task<ApplicationUser> GetUserByIdAsync(string userId, CancellationToken ct = default);
         Task<IList<SocialAccount>> GetAllSocialAccounts(CancellationToken ct = default);
         Task<SocialAccount> GetSocialAccountByHalIdAsync(string halId, CancellationToken ct = default);
+        Task<SocialAccount> CreateSocialAccountAsync(VirtualAssistant virtualAssistant, string userId, string email, CancellationToken ct = default);
     }
 }

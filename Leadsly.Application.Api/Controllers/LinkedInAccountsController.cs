@@ -1,7 +1,9 @@
-﻿using Leadsly.Domain.Models.ViewModels.LinkedInAccount;
+﻿using Leadsly.Domain.Models.Requests;
+using Leadsly.Domain.Models.ViewModels.LinkedInAccount;
 using Leadsly.Domain.Supervisor;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -38,7 +40,16 @@ namespace Leadsly.Application.Api.Controllers
             return Ok(connected);
         }
 
-        // "connect"
+        [HttpPost("connect")]
+        public async Task<IActionResult> Connect(ConnectLinkedInAccountRequest request, CancellationToken ct = default)
+        {
+            _logger.LogTrace("Connect action executed."); 
+
+            string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            ConnectLinkedInAccountResultViewModel result = await _supervisor.LinkLinkedInAccount(request, userId, ct);
+
+            return result == null ? BadRequest_ConnectLinkedInAccount() : Ok(result);
+        }
 
         // "disconnect" 
 

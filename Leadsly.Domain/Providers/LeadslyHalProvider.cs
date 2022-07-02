@@ -7,6 +7,8 @@ using Leadsly.Application.Model.Responses;
 using Leadsly.Application.Model.Responses.Hal;
 using Leadsly.Application.Model.Responses.Hal.Interfaces;
 using Leadsly.Domain.Facades.Interfaces;
+using Leadsly.Domain.Models.Requests;
+using Leadsly.Domain.Models.Responses;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
@@ -17,6 +19,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Formatting;
 using System.Threading;
@@ -348,6 +351,46 @@ namespace Leadsly.Domain.Providers
         public async Task<HalUnit> GetHalDetailsByConnectedAccountUsernameAsync(string connectedAccountUsername, CancellationToken ct = default)
         {
             return await _halRepository.GetBySocialAccountUsernameAsync(connectedAccountUsername, ct);
+        }
+
+        public async Task<ConnectLinkedInAccountResponse> ConnectAccountAsync(string email, string password, string resourceDiscoveryServiceName, CancellationToken ct = default)
+        {
+            CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
+
+            AuthenticateLinkedInAccountRequest request = new()
+            {
+                NamespaceName = configuration.ServiceDiscoveryConfig.Name,
+                ServiceDiscoveryName = resourceDiscoveryServiceName,
+                RequestUrl = AuthenticateUserSocialAccount,
+                Password = password,
+                Username = email,
+                AttemptNumber = 1
+            };
+
+            HttpResponseMessage resp = await SignInUserAsync(request, ct);
+            string content = string.Empty;
+            if (resp != null)
+            {
+                content = await resp.Content?.ReadAsStringAsync();
+            }
+
+            ConnectLinkedInAccountResponse response = JsonConvert.DeserializeObject<ConnectLinkedInAccountResponse>(content);
+            return response;
+        }
+
+        private async Task<HttpResponseMessage> SignInUserAsync(AuthenticateLinkedInAccountRequest request, CancellationToken ct = default)
+        {
+            HttpResponseMessage response = await _leadslyHalApiService.SignInAsync(request, ct);
+
+            if (response == null || response.StatusCode == HttpStatusCode.InternalServerError || response.IsSuccessStatusCode == false)
+            {
+                IEnumerable<string> values = default;
+                response?.Headers.TryGetValues(CustomHeaderKeys.Origin, out values);
+                _logger.LogError($"Failed to send request to sign in user for hal id {values?.FirstOrDefault()}. The response is null or status code is not successful");
+                return null;
+            }
+
+            return response;
         }
     }
 }
