@@ -1,4 +1,5 @@
-﻿using Leadsly.Domain.Models.Requests;
+﻿using Leadsly.Domain;
+using Leadsly.Domain.Models.Requests;
 using Leadsly.Domain.Models.ViewModels.VirtualAssistant;
 using Leadsly.Domain.Supervisor;
 using Microsoft.AspNetCore.Mvc;
@@ -44,6 +45,16 @@ namespace Leadsly.Application.Api.Controllers
             VirtualAssistantInfoViewModel virtualAssistant = await _supervisor.GetVirtualAssistantInfoAsync(userId, ct);
 
             return virtualAssistant == null ? BadRequest_GetResource() : Ok(virtualAssistant);
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> DeleteAsync(CancellationToken ct)
+        {
+            _logger.LogTrace("Delete action executed.");
+            string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            DeleteVirtualAssistantViewModel deleteVirtualAssistant = await _supervisor.DeleteVirtualAssistantAsync(userId, ct);
+
+            return deleteVirtualAssistant == null ? BadRequest(ProblemDetailsDescriptions.DeleteVirtualAssistant) : Ok(deleteVirtualAssistant);
         }
 
     }

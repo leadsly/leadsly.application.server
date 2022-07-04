@@ -19,7 +19,6 @@ namespace Leadsly.Domain.Services
             _awsServiceDiscoveryClient = awsServiceDiscoveryClient;
         }
 
-        private string ServiceDiscoveryId { get; set; } = string.Empty;
         private readonly int DefaultTimeToWait_InSeconds = 120;
         private readonly ILogger<AwsServiceDiscoveryService> _logger;
         private readonly AmazonServiceDiscoveryClient _awsServiceDiscoveryClient;
@@ -42,8 +41,6 @@ namespace Leadsly.Domain.Services
                         }).ToList()
                     }
                 });
-
-                ServiceDiscoveryId = resp.Service != null ? resp.Service.Id : string.Empty;
             }
             catch (Exception ex)
             {
@@ -94,13 +91,14 @@ namespace Leadsly.Domain.Services
             return resp;
         }
 
-        public async Task<string> RollbackCloudMapDiscoveryServiceAsync(CancellationToken ct = default)
+        public async Task<bool> DeleteCloudMapDiscoveryServiceAsync(string serviceDiscoveryId, CancellationToken ct = default)
         {
-            if (string.IsNullOrEmpty(ServiceDiscoveryId) == false)
+            bool result = false;
+            if (string.IsNullOrEmpty(serviceDiscoveryId) == false)
             {
                 DeleteServiceDiscoveryServiceRequest request = new DeleteServiceDiscoveryServiceRequest
                 {
-                    Id = ServiceDiscoveryId
+                    Id = serviceDiscoveryId
                 };
                 Amazon.ServiceDiscovery.Model.DeleteServiceResponse response;
                 try
@@ -112,10 +110,10 @@ namespace Leadsly.Domain.Services
                     response = await RollbackCloudMapDiscoveryServiceRetryAsync(request, ct);
                 }
 
-                ServiceDiscoveryId = response == null ? ServiceDiscoveryId : string.Empty;
+                result = response != null;
             }
 
-            return ServiceDiscoveryId;
+            return result;
         }
 
         private async Task<Amazon.ServiceDiscovery.Model.DeleteServiceResponse> RollbackCloudMapDiscoveryServiceRetryAsync(DeleteServiceDiscoveryServiceRequest request, CancellationToken ct)

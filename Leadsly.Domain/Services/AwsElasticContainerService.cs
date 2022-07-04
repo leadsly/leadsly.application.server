@@ -17,10 +17,6 @@ namespace Leadsly.Domain.Services
             _amazonEcsClient = amazonEcsClient;
             _logger = logger;
         }
-
-        private string ServiceName { get; set; } = string.Empty;
-        private string ClusterName { get; set; } = string.Empty;
-        private string TaskDefinitionFamily { get; set; } = string.Empty;
         private readonly AmazonECSClient _amazonEcsClient;
         private readonly ILogger<AwsElasticContainerService> _logger;
 
@@ -51,9 +47,6 @@ namespace Leadsly.Domain.Services
                     },
                     SchedulingStrategy = createEcsServiceRequest.SchedulingStrategy
                 }, ct);
-
-                ServiceName = resp.Service?.ServiceName;
-                ClusterName = resp.Service?.ClusterArn;
             }
             catch (Exception ex)
             {
@@ -63,21 +56,22 @@ namespace Leadsly.Domain.Services
             return resp;
         }
 
-        public async Task<string> RollbackServiceAsync(CancellationToken ct = default)
+        public async Task<bool> DeleteServiceAsync(string serviceName, string clusterName, CancellationToken ct = default)
         {
-            if (string.IsNullOrEmpty(ServiceName) == false && string.IsNullOrEmpty(ClusterName) == false)
+            bool result = false;
+            if (string.IsNullOrEmpty(serviceName) == false && string.IsNullOrEmpty(clusterName) == false)
             {
                 Amazon.ECS.Model.DeleteServiceResponse response = await DeleteServiceAsync(new DeleteEcsServiceRequest
                 {
-                    Service = ServiceName,
-                    Cluster = ClusterName,
+                    Service = serviceName,
+                    Cluster = clusterName,
                     Force = true
                 }, ct);
 
-                ServiceName = response == null ? ServiceName : string.Empty;
+                result = response != null;
             }
 
-            return ServiceName;
+            return result;
         }
 
         public async Task<RunTaskResponse> RunTaskAsync(RunEcsTaskRequest runTaskRequest, CancellationToken ct = default)
@@ -193,8 +187,6 @@ namespace Leadsly.Domain.Services
                     ExecutionRoleArn = registerTaskDefinitionRequest.ExecutionRoleArn,
                     NetworkMode = registerTaskDefinitionRequest.NetworkMode,
                 }, ct);
-
-                TaskDefinitionFamily = resp.TaskDefinition != null ? $"{resp.TaskDefinition?.Family}:1" : string.Empty;
             }
             catch (Exception ex)
             {
@@ -204,19 +196,20 @@ namespace Leadsly.Domain.Services
             return resp;
         }
 
-        public async Task<string> RollbackTaskDefinitionRegistrationAsync(CancellationToken ct = default)
+        public async Task<bool> DeleteTaskDefinitionRegistrationAsync(string taskDefinitionFamily, CancellationToken ct = default)
         {
-            if (string.IsNullOrEmpty(TaskDefinitionFamily) == false)
+            bool result = false;
+            if (string.IsNullOrEmpty(taskDefinitionFamily) == false)
             {
                 DeregisterTaskDefinitionResponse response = await DeregisterTaskDefinitionAsync(new DeregisterEcsTaskDefinitionRequest
                 {
-                    TaskDefinition = TaskDefinitionFamily
+                    TaskDefinition = taskDefinitionFamily
                 }, ct);
 
-                TaskDefinitionFamily = response == null ? TaskDefinitionFamily : string.Empty;
+                result = response == null;
             }
 
-            return TaskDefinitionFamily;
+            return result;
         }
 
         public async Task<DeregisterTaskDefinitionResponse> DeregisterTaskDefinitionAsync(DeregisterEcsTaskDefinitionRequest deregisterTaskDefinitionRequest, CancellationToken ct = default)

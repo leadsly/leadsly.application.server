@@ -14,5 +14,14 @@ namespace Leadsly.Domain.Converters
                 UnexpectedErrorOccured = resp.UnexpectedErrorOccured
             };
         }
+
+        public static TwoFactorAuthResultViewModel Convert(EnterTwoFactorAuthResponse resp)
+        {
+            return new TwoFactorAuthResultViewModel
+            {
+                InvalidOrExpiredCode = resp.InvalidOrExpiredCode,
+                UnexpectedErrorOccured = resp.UnexpectedErrorOccured
+            };
+        }
     }
 }

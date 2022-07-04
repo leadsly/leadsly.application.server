@@ -9,6 +9,7 @@ namespace Leadsly.Domain.Converters
         {
             return new VirtualAssistantViewModel
             {
+                VirtualAssistantId = virtualAssistant.VirtualAssistantId,
                 HalId = virtualAssistant.HalId,
                 TimezoneId = virtualAssistant.HalUnit.TimeZoneId
             };

@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -201,25 +200,6 @@ namespace Leadsly.Infrastructure.Repositories
                 _logger.LogError(ex, "Failed to add new virtual assistant");
             }
             return newVirtualAssistant;
-        }
-
-        public async Task<IList<VirtualAssistant>> GetAllVirtualAssistantByUserIdAsync(string userId, CancellationToken ct = default)
-        {
-            IList<VirtualAssistant> virtualAssistants = null;
-            try
-            {
-                virtualAssistants = await _dbContext.VirtualAssistants
-                    .Where(v => v.ApplicationUserId == userId)
-                    .Include(v => v.SocialAccount)
-                    .Include(v => v.HalUnit)
-                    .Include(v => v.CloudMapDiscoveryService)
-                    .ToListAsync(ct);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to retrieve all virtual assistants by user id {userId}", userId);
-            }
-            return virtualAssistants;
         }
     }
 }

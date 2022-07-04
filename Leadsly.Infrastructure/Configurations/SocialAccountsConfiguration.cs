@@ -13,24 +13,20 @@ namespace Leadsly.Infrastructure.Configurations
             builder.Entity<SocialAccount>(entity =>
             {
                 entity
-                    .HasOne(sAcc => sAcc.SocialAccountCloudResource)
+                    .HasOne(sAcc => sAcc.VirtualAssistant)
                     .WithOne(res => res.SocialAccount)
-                    .HasForeignKey<SocialAccountCloudResource>(res => res.SocialAccountId);
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
-
-            //builder.Entity<SocialAccountCloudResource>(res =>
-            //{
-            //    res.HasOne(res => res.EcsService).WithOne(ser => ser.SocialAccountCloudResource);
-            //    res.HasOne(res => res.EcsTaskDefinition);
-            //    res.HasOne(res => res.CloudMapDiscoveryService);
-            //});
-
-            builder.Entity<VirtualAssistant>(res =>
+            builder.Entity<VirtualAssistant>(entity =>
             {
-                res.HasOne(res => res.EcsService);
-                res.HasOne(res => res.EcsTaskDefinition);
-                res.HasOne(res => res.CloudMapDiscoveryService);
+                entity.HasOne(v => v.SocialAccount)
+                .WithOne(s => s.VirtualAssistant)
+                .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(v => v.EcsService);
+                entity.HasOne(v => v.EcsTaskDefinition);
+                entity.HasOne(v => v.CloudMapDiscoveryService);
             });
 
             builder.Entity<CloudMapDiscoveryService>()

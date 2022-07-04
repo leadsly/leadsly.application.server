@@ -15,6 +15,8 @@ namespace Leadsly.Domain.Providers.Interfaces
             where T : IOperationResponse;
         Task<HalOperationResult<T>> EnterTwoFactorAuthAsync<T>(SocialAccountCloudResource resource, Leadsly.Application.Model.Requests.TwoFactorAuthRequest twoFactorAuth, CancellationToken ct = default)
             where T : IOperationResponse;
+
+        Task<EnterTwoFactorAuthResponse> EnterTwoFactorAuthAsync(string code, string resourceDiscoveryName, CancellationToken ct = default);
         Task<HalUnit> GetHalDetailsByConnectedAccountUsernameAsync(string connectedAccountUsername, CancellationToken ct = default);
 
         Task<ConnectLinkedInAccountResponse> ConnectAccountAsync(string email, string password, string resourceDiscoveryServiceName, CancellationToken ct = default);

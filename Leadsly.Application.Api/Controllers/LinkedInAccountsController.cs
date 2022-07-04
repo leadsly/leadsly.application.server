@@ -1,4 +1,5 @@
-﻿using Leadsly.Domain.Models.Requests;
+﻿using Leadsly.Domain;
+using Leadsly.Domain.Models.Requests;
 using Leadsly.Domain.Models.ViewModels.LinkedInAccount;
 using Leadsly.Domain.Supervisor;
 using Microsoft.AspNetCore.Mvc;
@@ -43,12 +44,23 @@ namespace Leadsly.Application.Api.Controllers
         [HttpPost("connect")]
         public async Task<IActionResult> Connect(ConnectLinkedInAccountRequest request, CancellationToken ct = default)
         {
-            _logger.LogTrace("Connect action executed."); 
+            _logger.LogTrace("Connect action executed.");
 
             string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             ConnectLinkedInAccountResultViewModel result = await _supervisor.LinkLinkedInAccount(request, userId, ct);
 
             return result == null ? BadRequest_ConnectLinkedInAccount() : Ok(result);
+        }
+
+        [HttpPost("2fa")]
+        public async Task<IActionResult> TwoFactorAuth(TwoFactorAuthRequest request, CancellationToken ct = default)
+        {
+            _logger.LogTrace("TwoFactorAuth action executed");
+
+            string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            TwoFactorAuthResultViewModel result = await _supervisor.EnterTwoFactorAuthAsync(userId, request, ct);
+
+            return result == null ? BadRequest(ProblemDetailsDescriptions.EnterTwoFactorAuthCode) : Ok(result);
         }
 
         // "disconnect" 

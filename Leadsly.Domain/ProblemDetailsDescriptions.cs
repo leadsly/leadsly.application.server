@@ -53,6 +53,8 @@
         public const string CampaignPhaseProcessing = "Failed to process campaign phase.";
         public const string VirtualAssistant = "Failed to create Virtual Assistant";
         public const string ConnectLinkedInAccount = "Failed to link account to LinkedIn";
+        public const string EnterTwoFactorAuthCode = "Failed to enter two factor auth code";
+        public const string DeleteVirtualAssistant = "Failed to delete virtual assistant";
         public const string WebDriverCreationError = "Failed to create web driver";
         public const string CreateCampaignError = "Failed to create new campaign";
         public const string UpdateContactedCampaignProspects = "Failed to update contacted campaign prospects";

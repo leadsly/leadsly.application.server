@@ -36,6 +36,7 @@ namespace Leadsly.Domain.Supervisor
 
         Task<VirtualAssistantViewModel> CreateVirtualAssistantAsync(CreateVirtualAssistantRequest request, CancellationToken ct = default);
         Task<VirtualAssistantInfoViewModel> GetVirtualAssistantInfoAsync(string userId, CancellationToken ct = default);
+        Task<DeleteVirtualAssistantViewModel> DeleteVirtualAssistantAsync(string userId, CancellationToken ct = default);
 
         [Obsolete("This method is not longer used. We are not creating new chrome instances per campaign, we're using new tabs instead")]
         Task<HalOperationResultViewModel<T>> LeadslyRequestNewWebDriverAsync<T>(NewWebDriverRequest request, CancellationToken ct = default)
@@ -43,8 +44,10 @@ namespace Leadsly.Domain.Supervisor
         Task<HalOperationResultViewModel<T>> LeadslyAuthenticateUserAsync<T>(ConnectAccountRequest request, CancellationToken ct = default)
             where T : IOperationResponseViewModel;
         Task<ConnectLinkedInAccountResultViewModel> LinkLinkedInAccount(ConnectLinkedInAccountRequest request, string userId, CancellationToken ct = default);
-        Task<HalOperationResultViewModel<T>> LeadslyTwoFactorAuthAsync<T>(TwoFactorAuthRequest request, CancellationToken ct = default)
+        Task<HalOperationResultViewModel<T>> LeadslyTwoFactorAuthAsync<T>(Application.Model.Requests.TwoFactorAuthRequest request, CancellationToken ct = default)
             where T : IOperationResponseViewModel;
+
+        Task<TwoFactorAuthResultViewModel> EnterTwoFactorAuthAsync(string userId, Models.Requests.TwoFactorAuthRequest request, CancellationToken ct = default);
 
         Task<HalOperationResult<T>> ProcessProspectsAsync<T>(CollectedProspectsRequest request, CancellationToken ct = default)
             where T : IOperationResponse;

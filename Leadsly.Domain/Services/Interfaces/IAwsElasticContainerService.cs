@@ -9,12 +9,12 @@ namespace Leadsly.Domain.Services.Interfaces
     {
         Task<CreateServiceResponse> CreateServiceAsync(CreateEcsServiceRequest createServiceRequest, CancellationToken ct = default);
         Task<DeleteServiceResponse> DeleteServiceAsync(DeleteEcsServiceRequest deleteServiceRequest, CancellationToken ct = default);
-        Task<string> RollbackServiceAsync(CancellationToken ct = default);
+        Task<bool> DeleteServiceAsync(string serviceName, string clusterName, CancellationToken ct = default);
+        Task<bool> DeleteTaskDefinitionRegistrationAsync(string taskDefinitionFamily, CancellationToken ct = default);
         Task<RunTaskResponse> RunTaskAsync(RunEcsTaskRequest request, CancellationToken ct = default);
         Task<StopTaskResponse> StopTaskAsync(StopEcsTaskRequest request, CancellationToken ct = default);
         Task<RegisterTaskDefinitionResponse> RegisterTaskDefinitionAsync(RegisterEcsTaskDefinitionRequest registerTaskDefinitionRequest, CancellationToken ct = default);
         Task<DeregisterTaskDefinitionResponse> DeregisterTaskDefinitionAsync(DeregisterEcsTaskDefinitionRequest deregisterTaskDefinitionRequest, CancellationToken ct = default);
-        Task<string> RollbackTaskDefinitionRegistrationAsync(CancellationToken ct = default);
         Task<UpdateServiceResponse> UpdateServiceAsync(UpdateEcsServiceRequest updateServiceRequest, CancellationToken ct = default);
         Task<DescribeServicesResponse> DescribeServicesAsync(DescribeEcsServicesRequest describeService, CancellationToken ct = default);
         Task<ListTasksResponse> ListTasksAsync(ListEcsTasksRequest listEcsTasksRequest, CancellationToken ct = default);

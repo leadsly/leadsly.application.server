@@ -28,11 +28,13 @@ namespace Leadsly.Domain.Providers
             ICloudPlatformRepository cloudPlatformRepository,
             IAwsServiceDiscoveryService awsServiceDiscoveryService,
             IAwsRoute53Service awsRoute53Service,
+            IVirtualAssistantRepository virtualAssistantRepository,
             ILeadslyHalApiService leadslyBotApiService,
             IHalRepository halRepository,
             IOrphanedCloudResourcesRepository orphanedCloudResourcesRepository,
             ILogger<CloudPlatformProvider> logger)
         {
+            _virtualAssistantRepository = virtualAssistantRepository;
             _awsElasticContainerService = awsElasticContainerService;
             _awsServiceDiscoveryService = awsServiceDiscoveryService;
             _cloudPlatformRepository = cloudPlatformRepository;
@@ -45,6 +47,7 @@ namespace Leadsly.Domain.Providers
 
         private readonly ILeadslyHalApiService _leadslyBotApiService;
         private readonly IHalRepository _halRepository;
+        private readonly IVirtualAssistantRepository _virtualAssistantRepository;
         private readonly IAwsElasticContainerService _awsElasticContainerService;
         private readonly IAwsRoute53Service _awsRoute53Service;
         private readonly IAwsServiceDiscoveryService _awsServiceDiscoveryService;
@@ -54,42 +57,56 @@ namespace Leadsly.Domain.Providers
         private readonly int DefaultTimeToWaitForEcsServicePendingTasks_InSeconds = 120;
         private readonly string HealthCheckEndpoint = "api/healthcheck";
 
-        public async Task RollbackEcsServiceAsync(string userId, CancellationToken ct = default)
+        public async Task DeleteAwsEcsServiceAsync(string userId, string serviceName, string clusterName, CancellationToken ct = default)
         {
-            string resource = await _awsElasticContainerService.RollbackServiceAsync(ct);
-            if (resource != string.Empty)
+            bool succeeded = await _awsElasticContainerService.DeleteServiceAsync(serviceName, clusterName, ct);
+            if (succeeded == false)
             {
                 _logger.LogDebug("Delete operation for ecs service failed. Adding ecs service to orphaned cloud resources table for manual clean up.");
-                await SaveOrphanedResourcesAsync(userId, resource, ct);
+                await SaveOrphanedResourcesAsync(userId, serviceName, "Ecs Service", ct);
             }
         }
 
-        public async Task RollbackCloudMapServiceAsync(string userId, CancellationToken ct = default)
+        public async Task DeleteEcsServiceAsync(string ecsServiceId, CancellationToken ct = default)
         {
-            string resource = await _awsElasticContainerService.RollbackTaskDefinitionRegistrationAsync(ct);
-            if (resource != string.Empty)
+            await _cloudPlatformRepository.RemoveEcsServiceAsync(ecsServiceId, ct);
+        }
+
+        public async Task DeleteAwsTaskDefinitionRegistrationAsync(string userId, string taskDefinitionFamily, CancellationToken ct = default)
+        {
+            bool succeeded = await _awsElasticContainerService.DeleteTaskDefinitionRegistrationAsync(taskDefinitionFamily, ct);
+            if (succeeded == false)
             {
                 _logger.LogDebug("Operation to remove aws cloud map discovery service failed. Adding cloud map discovery service to orphaned cloud resources table for manual clean up.");
-                await SaveOrphanedResourcesAsync(userId, resource, ct);
+                await SaveOrphanedResourcesAsync(userId, taskDefinitionFamily, "Task Definition", ct);
             }
         }
-
-        public async Task RolbackTaskDefinitionRegistrationAsync(string userId, CancellationToken ct = default)
+        public async Task DeleteTaskDefinitionRegistrationAsync(string taskDefinitionId, CancellationToken ct = default)
         {
-            string resource = await _awsServiceDiscoveryService.RollbackCloudMapDiscoveryServiceAsync(ct);
-            if (resource != string.Empty)
+            await _cloudPlatformRepository.RemoveEcsTaskDefinitionAsync(taskDefinitionId, ct);
+        }
+
+        public async Task DeleteAwsCloudMapServiceAsync(string userId, string serviceDiscoveryId, CancellationToken ct = default)
+        {
+            bool succeeded = await _awsServiceDiscoveryService.DeleteCloudMapDiscoveryServiceAsync(serviceDiscoveryId, ct);
+            if (succeeded == false)
             {
                 _logger.LogDebug("Deregister operation for ecs task definition failed. Adding task definition to orphaned cloud resources table for manual clean up.");
-                await SaveOrphanedResourcesAsync(userId, resource, ct);
+                await SaveOrphanedResourcesAsync(userId, serviceDiscoveryId, "CloudMapDiscoveryService", ct);
             }
         }
 
-        private async Task SaveOrphanedResourcesAsync(string userId, string resource, CancellationToken ct = default)
+        public async Task DeleteCloudMapServiceAsync(string cloudMapServiceId, CancellationToken ct = default)
+        {
+            await _cloudPlatformRepository.RemoveCloudMapServiceDiscoveryServiceAsync(cloudMapServiceId, ct);
+        }
+
+        private async Task SaveOrphanedResourcesAsync(string userId, string resource, string friendslyName, CancellationToken ct = default)
         {
             OrphanedCloudResource orphanedCloudResource = new()
             {
                 UserId = userId,
-                FriendlyName = "Task definition",
+                FriendlyName = friendslyName,
                 ResourceId = resource
             };
 
@@ -1596,7 +1613,7 @@ namespace Leadsly.Domain.Providers
 
         public async Task<VirtualAssistant> GetVirtualAssistantAsync(string userId, CancellationToken ct = default)
         {
-            IList<VirtualAssistant> virtualAssistants = await _cloudPlatformRepository.GetAllVirtualAssistantByUserIdAsync(userId, ct);
+            IList<VirtualAssistant> virtualAssistants = await _virtualAssistantRepository.GetAllByUserIdAsync(userId, ct);
 
             // for now we only expect users to have only one assistant.
             return virtualAssistants.FirstOrDefault();
@@ -1631,7 +1648,23 @@ namespace Leadsly.Domain.Providers
                 HalId = halId,
             };
 
-            return await _cloudPlatformRepository.CreateVirtualAssistantAsync(virtualAssistant, ct);
+            return await _virtualAssistantRepository.CreateAsync(virtualAssistant, ct);
+        }
+
+        public async Task<bool> DeleteVirtualAssistantAsync(string virtualAssistantId, CancellationToken ct = default)
+        {
+            return await _virtualAssistantRepository.DeleteAsync(virtualAssistantId, ct);
+        }
+
+        public async Task<bool> RemoveCloudResourcesAsync(string ecsServiceId, string ecsTaskDefinitionId, string cloudMapDiscoveryServiceId, CancellationToken ct = default)
+        {
+            bool ecsTaskDefinitionDelete = await _cloudPlatformRepository.RemoveEcsTaskDefinitionAsync(ecsTaskDefinitionId, ct);
+
+            bool serviceDiscoveryDelete = await _cloudPlatformRepository.RemoveCloudMapServiceDiscoveryServiceAsync(cloudMapDiscoveryServiceId, ct);
+
+            bool ecsServiceDelete = await _cloudPlatformRepository.RemoveEcsServiceAsync(ecsServiceId, ct);
+
+            return ecsTaskDefinitionDelete && serviceDiscoveryDelete && ecsServiceDelete;
         }
     }
 }

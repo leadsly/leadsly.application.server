@@ -74,5 +74,36 @@ namespace Leadsly.Domain.Supervisor
             return viewModel;
 
         }
+
+        public async Task<TwoFactorAuthResultViewModel> EnterTwoFactorAuthAsync(string userId, TwoFactorAuthRequest request, CancellationToken ct = default)
+        {
+            VirtualAssistant virtualAssistant = await _cloudPlatformProvider.GetVirtualAssistantAsync(userId, ct);
+            if (virtualAssistant == null)
+            {
+                _logger.LogError("Couldn't process request to enter two factor auth because no virtual assistant has been created");
+                return null;
+            }
+
+            if (string.IsNullOrEmpty(request.Code))
+            {
+                _logger.LogError("Couldn't process request to enter two factor auth because two factor auth code is empty");
+                return null;
+            }
+
+            if (string.IsNullOrEmpty(virtualAssistant.CloudMapDiscoveryService?.Name))
+            {
+                _logger.LogError("Couldn't process request to link account because no cloud map discovery service has been found. This name is required to make a request to hal");
+                return null;
+            }
+
+            EnterTwoFactorAuthResponse response = await _leadslyHalProvider.EnterTwoFactorAuthAsync(request.Code, virtualAssistant.CloudMapDiscoveryService.Name, ct);
+            if (response == null)
+            {
+                return null;
+            }
+
+            TwoFactorAuthResultViewModel viewModel = LinkedInSetupConverter.Convert(response);
+            return viewModel;
+        }
     }
 }

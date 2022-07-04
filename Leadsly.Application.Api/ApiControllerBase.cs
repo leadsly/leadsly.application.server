@@ -426,6 +426,34 @@ namespace Leadsly.Application.Api
         }
 
         /// <summary>
+        /// Bad request when an error occurs entering two factor auth code.
+        /// </summary>
+        /// <returns></returns>
+        protected ObjectResult BadRequest_EnteringTwoFactorAuthCode()
+        {
+            return ProblemDetailsResult(new ProblemDetails
+            {
+                Type = ProblemDetailsTypes.BadRequestType,
+                Status = StatusCodes.Status400BadRequest,
+                Title = ReasonPhrases.GetReasonPhrase(400),
+                Detail = ProblemDetailsDescriptions.EnterTwoFactorAuthCode,
+                Instance = HttpContext.Request.Path.Value
+            });
+        }
+
+        protected ObjectResult BadRequest(string detail)
+        {
+            return ProblemDetailsResult(new ProblemDetails
+            {
+                Type = ProblemDetailsTypes.BadRequestType,
+                Status = StatusCodes.Status400BadRequest,
+                Title = ReasonPhrases.GetReasonPhrase(400),
+                Detail = detail,
+                Instance = HttpContext.Request.Path.Value
+            });
+        }
+
+        /// <summary>
         /// Bad request when an error occurs setting up user with leadsly with errors list.
         /// </summary>
         /// <param name="errors"></param>

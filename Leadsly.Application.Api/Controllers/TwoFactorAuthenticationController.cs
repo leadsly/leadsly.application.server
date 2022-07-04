@@ -1,4 +1,8 @@
-﻿using Leadsly.Application.Model.ViewModels;
+﻿using Leadsly.Application.Api.Authentication;
+using Leadsly.Application.Model;
+using Leadsly.Application.Model.Entities;
+using Leadsly.Application.Model.ViewModels;
+using Leadsly.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -8,12 +12,6 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
-using Leadsly.Application.Model.Entities;
-using Leadsly.Domain;
-using Leadsly.Application.Model;
-using Leadsly.Application.Api.Authentication;
-using Leadsly.Application.Model.Entities;
-using Leadsly.Application.Model.ViewModels;
 
 namespace Leadsly.Application.Api.Controllers
 {
@@ -25,15 +23,15 @@ namespace Leadsly.Application.Api.Controllers
     public class TwoFactorAuthenticationController : ApiControllerBase
     {
         public TwoFactorAuthenticationController(IConfiguration configuration,
-            LeadslyUserManager userManager,            
+            LeadslyUserManager userManager,
             IAccessTokenService tokenService,
             IClaimsIdentityService claimsIdentityService,
             UrlEncoder urlEncoder,
             ILogger<TwoFactorAuthenticationController> logger)
         {
             _userManager = userManager;
-            _configuration = configuration;        
-            _urlEncoder = urlEncoder;                        
+            _configuration = configuration;
+            _urlEncoder = urlEncoder;
             _logger = logger;
             _claimsIdentityService = claimsIdentityService;
             _tokenService = tokenService;
@@ -42,22 +40,22 @@ namespace Leadsly.Application.Api.Controllers
         private readonly IConfiguration _configuration;
         private readonly IAccessTokenService _tokenService;
         private readonly IClaimsIdentityService _claimsIdentityService;
-        private readonly LeadslyUserManager _userManager;        
-        private readonly UrlEncoder _urlEncoder;        
+        private readonly LeadslyUserManager _userManager;
+        private readonly UrlEncoder _urlEncoder;
         private readonly ILogger<TwoFactorAuthenticationController> _logger;
 
         /// <summary>
         /// Disables two factor authentication.
         /// </summary>
         /// <returns></returns>
-        [HttpPost]        
+        [HttpPost]
         [Route("disable")]
         public async Task<IActionResult> Disable2fa()
         {
             _logger.LogTrace("Disable2fa action executed.");
 
-            ApplicationUser appUser = await _userManager.GetUserAsync(User);            
-            if(appUser == null)
+            ApplicationUser appUser = await _userManager.GetUserAsync(User);
+            if (appUser == null)
             {
                 _logger.LogDebug("User not found or does not exist.");
 
@@ -70,7 +68,7 @@ namespace Leadsly.Application.Api.Controllers
             {
                 _logger.LogDebug("Two factor authentication is not setup, thus cannot be disabled.");
 
-                return BadRequest_CannotDisable2faWhenItsNotEnabled();                
+                return BadRequest_CannotDisable2faWhenItsNotEnabled();
             }
 
             // this operation changes user's security time stamp, custom token will have to be re-issued.
@@ -102,7 +100,7 @@ namespace Leadsly.Application.Api.Controllers
 
             ApplicationUser appUser = await _userManager.GetUserAsync(User);
 
-            if(appUser == null)
+            if (appUser == null)
             {
                 _logger.LogDebug("User not found.");
 
@@ -112,16 +110,16 @@ namespace Leadsly.Application.Api.Controllers
             // this operation changes user's security time stamp, custom token will have to be re-issued.
             IdentityResult disableTwoFactorAuthResult = await _userManager.SetTwoFactorEnabledAsync(appUser, false);
 
-            if(disableTwoFactorAuthResult.Succeeded == false)
+            if (disableTwoFactorAuthResult.Succeeded == false)
             {
                 _logger.LogDebug("Disabling two factor authentication encountered a problem when executing 'SetTwoFactorEnabledAsync(user, false)'.");
 
                 return BadRequest_FailedToDisable2fa();
             }
 
-            IdentityResult resetAuthenticatorKeysResult = await _userManager.ResetAuthenticatorKeyAsync(appUser);            
+            IdentityResult resetAuthenticatorKeysResult = await _userManager.ResetAuthenticatorKeyAsync(appUser);
 
-            if(resetAuthenticatorKeysResult.Succeeded == false)
+            if (resetAuthenticatorKeysResult.Succeeded == false)
             {
                 _logger.LogDebug("Resetting two factor authenticator key encountered a problem when executing 'ResetAuthenticatorKeyAsync(user)'.");
 
@@ -233,13 +231,13 @@ namespace Leadsly.Application.Api.Controllers
             _logger.LogTrace("GenerateRecoveryCodes action executed.");
 
             ApplicationUser appUser = await _userManager.GetUserAsync(User);
-            bool isTwoFactorEnabled = await _userManager.GetTwoFactorEnabledAsync(appUser);            
+            bool isTwoFactorEnabled = await _userManager.GetTwoFactorEnabledAsync(appUser);
             if (isTwoFactorEnabled == false)
             {
                 _logger.LogDebug("Two factor authentication is not enabled.");
                 return BadRequest_TwoFactorAuthenticationIsNotEnabled();
             }
-                        
+
             UserRecoveryCodesViewModel recoveryCodes = new UserRecoveryCodesViewModel
             {
                 Items = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(appUser, ApiConstants.TwoFactorAuthentication.NumberOfRecoveryCodes)
@@ -255,14 +253,14 @@ namespace Leadsly.Application.Api.Controllers
         /// </summary>
         /// <param name="verifyAuthenticatorCode"></param>
         /// <returns></returns>
-        [HttpPost]        
+        [HttpPost]
         [Route("verify-authenticator")]
         public async Task<IActionResult> VerifyAuthenticator([FromBody] TwoFactorAuthenticationVerificationCodeViewModel verifyAuthenticatorCode)
         {
             _logger.LogTrace("VerifyAuthenticator action executed.");
 
             ApplicationUser appUser = await _userManager.GetUserAsync(User);
-                       
+
             if (appUser == null)
             {
                 _logger.LogDebug("User not found.");
@@ -284,7 +282,7 @@ namespace Leadsly.Application.Api.Controllers
             // this operation changes user's security time stamp, custom token will have to be re-issued.
             IdentityResult result = await _userManager.SetTwoFactorEnabledAsync(appUser, true);
 
-            if(result.Succeeded == false)
+            if (result.Succeeded == false)
             {
                 _logger.LogDebug("Enabling two factor authentication encountered a problem when executing 'SetTwoFactorEnabledAsync(user, true)'.");
 
@@ -304,7 +302,7 @@ namespace Leadsly.Application.Api.Controllers
             await SetOrRefreshStaySignedInToken(appUser, _userManager, _logger);
 
             return Ok(model);
-        }        
+        }
 
         /// <summary>
         /// Gets authenticator setup key and QR code.

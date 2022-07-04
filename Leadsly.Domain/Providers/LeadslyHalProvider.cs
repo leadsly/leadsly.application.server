@@ -1,6 +1,5 @@
 ﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Entities;
-using Leadsly.Application.Model.Requests;
 using Leadsly.Application.Model.Requests.Hal;
 using Leadsly.Application.Model.Requests.Hal.Interfaces;
 using Leadsly.Application.Model.Responses;
@@ -269,7 +268,32 @@ namespace Leadsly.Domain.Providers
             return result;
         }
 
-        public async Task<HalOperationResult<T>> EnterTwoFactorAuthAsync<T>(SocialAccountCloudResource resource, TwoFactorAuthRequest twoFactorAuth, CancellationToken ct = default)
+        public async Task<EnterTwoFactorAuthResponse> EnterTwoFactorAuthAsync(string code, string resourceDiscoveryName, CancellationToken ct = default)
+        {
+            CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
+            EnterTwoFactorAuthRequest request = new()
+            {
+                RequestUrl = AuthenticateUserSocialAccount2Fa,
+                NamespaceName = configuration.ServiceDiscoveryConfig.Name,
+                ServiceDiscoveryName = resourceDiscoveryName,
+                Code = code
+            };
+
+            HttpResponseMessage resp = await _leadslyHalApiService.EnterTwoFactorAuthCodeAsync(request, ct);
+            if (resp == null || resp.StatusCode == HttpStatusCode.InternalServerError || resp.IsSuccessStatusCode == false)
+            {
+                IEnumerable<string> values = default;
+                resp?.Headers.TryGetValues(CustomHeaderKeys.Origin, out values);
+                _logger.LogError($"Failed to send request to enter two factor auth code for hal id {values?.FirstOrDefault()}. The response is null or status code is not successful");
+                return null;
+            }
+
+            string content = await resp.Content?.ReadAsStringAsync();
+            EnterTwoFactorAuthResponse response = JsonConvert.DeserializeObject<EnterTwoFactorAuthResponse>(content);
+            return response;
+        }
+
+        public async Task<HalOperationResult<T>> EnterTwoFactorAuthAsync<T>(SocialAccountCloudResource resource, Application.Model.Requests.TwoFactorAuthRequest twoFactorAuth, CancellationToken ct = default)
             where T : IOperationResponse
         {
             HalOperationResult<T> result = new()
