@@ -59,7 +59,7 @@ namespace Leadsly.Domain.Supervisor
                 return null;
             }
 
-            if (response.TwoFactorAuthRequired == false && response.UnexpectedErrorOccured == false)
+            if (response.TwoFactorAuthRequired == false && response.UnexpectedErrorOccured == false && response.InvalidCredentials == false)
             {
                 // assume we've successfully linked the account so now we can create new social account for the user
 
@@ -100,6 +100,16 @@ namespace Leadsly.Domain.Supervisor
             if (response == null)
             {
                 return null;
+            }
+
+            if (response.InvalidOrExpiredCode == false && response.UnexpectedErrorOccured == false && response.FailedToEnterCode == false)
+            {
+                // assume we've successfully linked the account so now we can create new social account for the user
+                SocialAccount socialAccount = await _userProvider.CreateSocialAccountAsync(virtualAssistant, userId, request.Code, ct);
+                if (socialAccount == null)
+                {
+                    return null;
+                }
             }
 
             TwoFactorAuthResultViewModel viewModel = LinkedInSetupConverter.Convert(response);

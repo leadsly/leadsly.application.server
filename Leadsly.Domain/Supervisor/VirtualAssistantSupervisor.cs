@@ -153,19 +153,19 @@ namespace Leadsly.Domain.Supervisor
             }
 
             // Healthcheck request to ensure all resources are running in the expected state
-            bool healthCheck = await _cloudPlatformProvider.AreAwsResourcesHealthyAsync(cloudMapServiceDiscoveryService.Name, ct);
-            if (healthCheck == false)
-            {
-                result.Succeeded = false;
-                result.Failure = new()
-                {
-                    Reason = "Aws resources are not healthy"
-                };
-                await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsService.ServiceName, ecsService.ClusterArn, ct);
-                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, cloudMapServiceDiscoveryService.ServiceDiscoveryId, ct);
-                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, ecsTaskDefinition.Family, ct);
-                return false;
-            }
+            //bool healthCheck = await _cloudPlatformProvider.AreAwsResourcesHealthyAsync(cloudMapServiceDiscoveryService.Name, ct);
+            //if (healthCheck == false)
+            //{
+            //    result.Succeeded = false;
+            //    result.Failure = new()
+            //    {
+            //        Reason = "Aws resources are not healthy"
+            //    };
+            //    await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsService.ServiceName, ecsService.ClusterArn, ct);
+            //    await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, cloudMapServiceDiscoveryService.ServiceDiscoveryId, ct);
+            //    await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, ecsTaskDefinition.Family, ct);
+            //    return false;
+            //}
 
             EcsTaskDefinitionDTO = ecsTaskDefinition;
             CloudMapDiscoveryServiceDTO = cloudMapServiceDiscoveryService;

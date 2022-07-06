@@ -273,7 +273,7 @@ namespace Leadsly.Domain.Providers
             CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
             EnterTwoFactorAuthRequest request = new()
             {
-                RequestUrl = AuthenticateUserSocialAccount2Fa,
+                RequestUrl = "linkedin/2fa",
                 NamespaceName = configuration.ServiceDiscoveryConfig.Name,
                 ServiceDiscoveryName = resourceDiscoveryName,
                 Code = code
@@ -385,7 +385,7 @@ namespace Leadsly.Domain.Providers
             {
                 NamespaceName = configuration.ServiceDiscoveryConfig.Name,
                 ServiceDiscoveryName = resourceDiscoveryServiceName,
-                RequestUrl = AuthenticateUserSocialAccount,
+                RequestUrl = "linkedin/signin",
                 Password = password,
                 Username = email,
                 AttemptNumber = 1
