@@ -11,7 +11,8 @@ namespace Leadsly.Domain.Converters
             {
                 TwoFactorAuthRequired = resp.TwoFactorAuthRequired,
                 TwoFactorAuthType = resp.TwoFactorAuthType,
-                InvalidCredentials = resp.InvalidCredentials,
+                InvalidEmail = resp.InvalidEmail,
+                InvalidPassword = resp.InvalidPassword,
                 UnexpectedErrorOccured = resp.UnexpectedErrorOccured
             };
         }

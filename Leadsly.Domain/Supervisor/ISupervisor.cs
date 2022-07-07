@@ -13,6 +13,7 @@ using Leadsly.Domain.Models.Requests;
 using Leadsly.Domain.Models.ViewModels;
 using Leadsly.Domain.Models.ViewModels.LinkedInAccount;
 using Leadsly.Domain.Models.ViewModels.VirtualAssistant;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using System;
 using System.Collections.Generic;
@@ -43,7 +44,7 @@ namespace Leadsly.Domain.Supervisor
             where T : IOperationResponseViewModel;
         Task<HalOperationResultViewModel<T>> LeadslyAuthenticateUserAsync<T>(ConnectAccountRequest request, CancellationToken ct = default)
             where T : IOperationResponseViewModel;
-        Task<ConnectLinkedInAccountResultViewModel> LinkLinkedInAccount(ConnectLinkedInAccountRequest request, string userId, CancellationToken ct = default);
+        Task<ConnectLinkedInAccountResultViewModel> LinkLinkedInAccount(ConnectLinkedInAccountRequest request, string userId, IHeaderDictionary responseHeaders, IHeaderDictionary requestHeaders, CancellationToken ct = default);
         Task<HalOperationResultViewModel<T>> LeadslyTwoFactorAuthAsync<T>(Application.Model.Requests.TwoFactorAuthRequest request, CancellationToken ct = default)
             where T : IOperationResponseViewModel;
 

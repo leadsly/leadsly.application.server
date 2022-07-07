@@ -7,5 +7,8 @@ namespace Leadsly.Domain.Models.Requests
     {
         [DataMember(IsRequired = true)]
         public string Code { get; set; }
+
+        [DataMember(IsRequired = true)]
+        public string Username { get; set; }
     }
 }

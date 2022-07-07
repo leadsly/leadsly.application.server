@@ -3,6 +3,7 @@ using Leadsly.Domain.Converters;
 using Leadsly.Domain.Models.Requests;
 using Leadsly.Domain.Models.Responses;
 using Leadsly.Domain.Models.ViewModels.LinkedInAccount;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,7 +33,7 @@ namespace Leadsly.Domain.Supervisor
             }
         }
 
-        public async Task<ConnectLinkedInAccountResultViewModel> LinkLinkedInAccount(ConnectLinkedInAccountRequest request, string userId, CancellationToken ct = default)
+        public async Task<ConnectLinkedInAccountResultViewModel> LinkLinkedInAccount(ConnectLinkedInAccountRequest request, string userId, IHeaderDictionary responseHeaders, IHeaderDictionary requestHeaders, CancellationToken ct = default)
         {
             VirtualAssistant virtualAssistant = await _cloudPlatformProvider.GetVirtualAssistantAsync(userId, ct);
             if (virtualAssistant == null)
@@ -53,16 +54,15 @@ namespace Leadsly.Domain.Supervisor
                 return null;
             }
 
-            ConnectLinkedInAccountResponse response = await _leadslyHalProvider.ConnectAccountAsync(request.Username, request.Password, virtualAssistant.CloudMapDiscoveryService.Name, ct);
+            ConnectLinkedInAccountResponse response = await _leadslyHalProvider.ConnectAccountAsync(request.Username, request.Password, virtualAssistant.CloudMapDiscoveryService.Name, responseHeaders, requestHeaders, ct);
             if (response == null)
             {
                 return null;
             }
 
-            if (response.TwoFactorAuthRequired == false && response.UnexpectedErrorOccured == false && response.InvalidCredentials == false)
+            if (response.TwoFactorAuthRequired == false && response.UnexpectedErrorOccured == false && response.InvalidEmail == false && response.InvalidEmail)
             {
                 // assume we've successfully linked the account so now we can create new social account for the user
-
                 SocialAccount socialAccount = await _userProvider.CreateSocialAccountAsync(virtualAssistant, userId, request.Username, ct);
                 if (socialAccount == null)
                 {
@@ -105,7 +105,7 @@ namespace Leadsly.Domain.Supervisor
             if (response.InvalidOrExpiredCode == false && response.UnexpectedErrorOccured == false && response.FailedToEnterCode == false)
             {
                 // assume we've successfully linked the account so now we can create new social account for the user
-                SocialAccount socialAccount = await _userProvider.CreateSocialAccountAsync(virtualAssistant, userId, request.Code, ct);
+                SocialAccount socialAccount = await _userProvider.CreateSocialAccountAsync(virtualAssistant, userId, request.Username, ct);
                 if (socialAccount == null)
                 {
                     return null;

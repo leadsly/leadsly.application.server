@@ -47,9 +47,14 @@ namespace Leadsly.Application.Api.Controllers
             _logger.LogTrace("Connect action executed.");
 
             string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            ConnectLinkedInAccountResultViewModel result = await _supervisor.LinkLinkedInAccount(request, userId, ct);
+            ConnectLinkedInAccountResultViewModel result = await _supervisor.LinkLinkedInAccount(request, userId, HttpContext.Response.Headers, HttpContext.Request.Headers, ct);
 
-            return result == null ? BadRequest_ConnectLinkedInAccount() : Ok(result);
+            if (result == null)
+            {
+                return BadRequest_ConnectLinkedInAccount();
+            }
+
+            return Ok(result);
         }
 
         [HttpPost("2fa")]

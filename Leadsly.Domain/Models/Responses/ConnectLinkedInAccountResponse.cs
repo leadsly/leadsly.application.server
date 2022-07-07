@@ -7,7 +7,10 @@ namespace Leadsly.Domain.Models.Responses
     public class ConnectLinkedInAccountResponse
     {
         [DataMember(IsRequired = true)]
-        public bool InvalidCredentials { get; set; }
+        public bool InvalidPassword { get; set; }
+
+        [DataMember(IsRequired = true)]
+        public bool InvalidEmail { get; set; }
 
         [DataMember(IsRequired = true)]
         public bool TwoFactorAuthRequired { get; set; }

@@ -2,7 +2,9 @@
 using Leadsly.Application.Model.Requests.Hal.Interfaces;
 using Leadsly.Domain.Models.Requests;
 using Leadsly.Domain.Services.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 using System;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -107,7 +109,7 @@ namespace Leadsly.Domain.Services
             return response;
         }
 
-        public async Task<HttpResponseMessage> SignInAsync(AuthenticateLinkedInAccountRequest request, CancellationToken ct = default)
+        public async Task<HttpResponseMessage> SignInAsync(AuthenticateLinkedInAccountRequest request, IHeaderDictionary requestHeaders, CancellationToken ct = default)
         {
             string url = _urlService.GetHalsBaseUrl(request.NamespaceName);
             HttpRequestMessage req = new()
@@ -123,6 +125,13 @@ namespace Leadsly.Domain.Services
                     AttemptNumber = request.AttemptNumber
                 })
             };
+
+            if (requestHeaders.ContainsKey("X-Auth-Attempt-Count") == true)
+            {
+                requestHeaders.TryGetValue("X-Auth-Attempt-Count", out StringValues attemptCount);
+                string headerValue = attemptCount.ToString();
+                req.Headers.Add("X-Auth-Attempt-Count", headerValue);
+            }
 
             HttpResponseMessage response = default;
             try

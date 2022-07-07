@@ -2,6 +2,7 @@
 using Leadsly.Application.Model.Entities;
 using Leadsly.Application.Model.Responses;
 using Leadsly.Domain.Models.Responses;
+using Microsoft.AspNetCore.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,6 +20,6 @@ namespace Leadsly.Domain.Providers.Interfaces
         Task<EnterTwoFactorAuthResponse> EnterTwoFactorAuthAsync(string code, string resourceDiscoveryName, CancellationToken ct = default);
         Task<HalUnit> GetHalDetailsByConnectedAccountUsernameAsync(string connectedAccountUsername, CancellationToken ct = default);
 
-        Task<ConnectLinkedInAccountResponse> ConnectAccountAsync(string email, string password, string resourceDiscoveryServiceName, CancellationToken ct = default);
+        Task<ConnectLinkedInAccountResponse> ConnectAccountAsync(string email, string password, string resourceDiscoveryServiceName, IHeaderDictionary responseHeaders, IHeaderDictionary requestHeaders, CancellationToken ct = default);
     }
 }

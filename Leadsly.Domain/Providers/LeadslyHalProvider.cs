@@ -11,6 +11,7 @@ using Leadsly.Domain.Models.Responses;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
 using Microsoft.Extensions.Logging;
@@ -377,7 +378,7 @@ namespace Leadsly.Domain.Providers
             return await _halRepository.GetBySocialAccountUsernameAsync(connectedAccountUsername, ct);
         }
 
-        public async Task<ConnectLinkedInAccountResponse> ConnectAccountAsync(string email, string password, string resourceDiscoveryServiceName, CancellationToken ct = default)
+        public async Task<ConnectLinkedInAccountResponse> ConnectAccountAsync(string email, string password, string resourceDiscoveryServiceName, IHeaderDictionary responseHeaders, IHeaderDictionary requestHeaders, CancellationToken ct = default)
         {
             CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
 
@@ -391,7 +392,8 @@ namespace Leadsly.Domain.Providers
                 AttemptNumber = 1
             };
 
-            HttpResponseMessage resp = await SignInUserAsync(request, ct);
+            HttpResponseMessage resp = await SignInUserAsync(request, requestHeaders, ct);
+
             string content = string.Empty;
             if (resp != null)
             {
@@ -399,12 +401,19 @@ namespace Leadsly.Domain.Providers
             }
 
             ConnectLinkedInAccountResponse response = JsonConvert.DeserializeObject<ConnectLinkedInAccountResponse>(content);
+
+            resp.Headers.TryGetValues("X-Auth-Attempt-Count", out IEnumerable<string> attemptCount);
+            if (attemptCount.Count() > 0)
+            {
+                responseHeaders.Add("X-Auth-Attempt-Count", attemptCount.First());
+            }
+
             return response;
         }
 
-        private async Task<HttpResponseMessage> SignInUserAsync(AuthenticateLinkedInAccountRequest request, CancellationToken ct = default)
+        private async Task<HttpResponseMessage> SignInUserAsync(AuthenticateLinkedInAccountRequest request, IHeaderDictionary requestHeaders, CancellationToken ct = default)
         {
-            HttpResponseMessage response = await _leadslyHalApiService.SignInAsync(request, ct);
+            HttpResponseMessage response = await _leadslyHalApiService.SignInAsync(request, requestHeaders, ct);
 
             if (response == null || response.StatusCode == HttpStatusCode.InternalServerError || response.IsSuccessStatusCode == false)
             {

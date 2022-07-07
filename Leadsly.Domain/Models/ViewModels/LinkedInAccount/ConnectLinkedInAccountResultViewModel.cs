@@ -7,6 +7,7 @@ namespace Leadsly.Domain.Models.ViewModels.LinkedInAccount
         public bool TwoFactorAuthRequired { get; set; }
         public TwoFactorAuthType TwoFactorAuthType { get; set; }
         public bool UnexpectedErrorOccured { get; set; }
-        public bool InvalidCredentials { get; set; }
+        public bool InvalidEmail { get; set; }
+        public bool InvalidPassword { get; set; }
     }
 }
