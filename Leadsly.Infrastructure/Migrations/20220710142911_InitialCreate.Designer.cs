@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Leadsly.Infrastructure.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20220630172505_InitialMigration")]
-    partial class InitialMigration
+    [Migration("20220710142911_InitialCreate")]
+    partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -168,6 +168,9 @@ namespace Leadsly.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Notes")
                         .HasColumnType("text");
 
                     b.Property<long>("StartTimestamp")
@@ -1049,7 +1052,6 @@ namespace Leadsly.Infrastructure.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("HalUnitId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("Linked")
@@ -1070,7 +1072,6 @@ namespace Leadsly.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("VirtualAssistantId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("SocialAccountId");
@@ -1082,7 +1083,8 @@ namespace Leadsly.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.HasIndex("VirtualAssistantId");
+                    b.HasIndex("VirtualAssistantId")
+                        .IsUnique();
 
                     b.ToTable("SocialAccounts");
                 });
@@ -1109,7 +1111,6 @@ namespace Leadsly.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("SocialAccountId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("SocialAccountCloudResourceId");
@@ -1612,9 +1613,7 @@ namespace Leadsly.Infrastructure.Migrations
 
                     b.HasOne("Leadsly.Application.Model.Entities.HalUnit", "HalDetails")
                         .WithOne("SocialAccount")
-                        .HasForeignKey("Leadsly.Application.Model.Entities.SocialAccount", "HalUnitId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Leadsly.Application.Model.Entities.SocialAccount", "HalUnitId");
 
                     b.HasOne("Leadsly.Application.Model.Entities.ApplicationUser", "User")
                         .WithMany()
@@ -1623,10 +1622,9 @@ namespace Leadsly.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("Leadsly.Application.Model.Entities.VirtualAssistant", "VirtualAssistant")
-                        .WithMany()
-                        .HasForeignKey("VirtualAssistantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .WithOne("SocialAccount")
+                        .HasForeignKey("Leadsly.Application.Model.Entities.SocialAccount", "VirtualAssistantId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("HalDetails");
 
@@ -1657,9 +1655,7 @@ namespace Leadsly.Infrastructure.Migrations
 
                     b.HasOne("Leadsly.Application.Model.Entities.SocialAccount", "SocialAccount")
                         .WithOne("SocialAccountCloudResource")
-                        .HasForeignKey("Leadsly.Application.Model.Entities.SocialAccountCloudResource", "SocialAccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Leadsly.Application.Model.Entities.SocialAccountCloudResource", "SocialAccountId");
 
                     b.Navigation("CloudMapDiscoveryService");
 
@@ -1843,6 +1839,11 @@ namespace Leadsly.Infrastructure.Migrations
 
                     b.Navigation("SocialAccountCloudResource")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Leadsly.Application.Model.Entities.VirtualAssistant", b =>
+                {
+                    b.Navigation("SocialAccount");
                 });
 #pragma warning restore 612, 618
         }

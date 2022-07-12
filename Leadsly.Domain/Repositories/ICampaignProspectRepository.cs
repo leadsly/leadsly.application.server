@@ -1,8 +1,5 @@
 ﻿using Leadsly.Application.Model.Entities.Campaigns;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,6 +13,6 @@ namespace Leadsly.Domain.Repositories
         Task<IList<CampaignProspect>> UpdateAllAsync(IList<CampaignProspect> campaignProspects, CancellationToken ct = default);
         Task<CampaignProspect> UpdateAsync(CampaignProspect updatedCampaignProspect, CancellationToken ct = default);
         Task<CampaignProspect> GetByIdAsync(string campaignProspectId, CancellationToken ct = default);
-        Task<CampaignProspectList> GetListByListIdAsync(string campaignProspectListId, CancellationToken ct = default);        
+        Task<CampaignProspectList> GetListByListIdAsync(string campaignProspectListId, CancellationToken ct = default);
     }
 }

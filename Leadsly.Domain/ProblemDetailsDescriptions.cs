@@ -56,7 +56,9 @@
         public const string EnterTwoFactorAuthCode = "Failed to enter two factor auth code";
         public const string DeleteVirtualAssistant = "Failed to delete virtual assistant";
         public const string WebDriverCreationError = "Failed to create web driver";
+        public const string AllActiveCampaigns = "Failed to retrieve active campaigns";
         public const string CreateCampaignError = "Failed to create new campaign";
+        public const string CloneCampaignError = "Failed to clone campaign";
         public const string UpdateContactedCampaignProspects = "Failed to update contacted campaign prospects";
         public const string SentConnectionsUrlStatuses = "Getting sent connections url statuses";
         public const string UpdatingSentConnectionsUrlStatuses = "Updating sent connections url statuses";
@@ -66,5 +68,6 @@
         public const string UpdateProspectListPhaseError = "Error occured updating Prospect List phase";
         public const string UpdateSocialAccountError = "Error occured updating SocialAccount";
         public const string RepliedCampaignProspects = "Error occured updating campaign prospects that replied";
+        public const string GeneralReportError = "Failed to retrieve general report data";
     }
 }

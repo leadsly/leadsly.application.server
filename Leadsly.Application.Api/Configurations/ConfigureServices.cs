@@ -317,7 +317,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<IRabbitMQManager, RabbitMQManager>();
             services.AddScoped<IUrlService, UrlService>();
             services.AddScoped<IAccessTokenService, AccessTokenService>();
-
+            services.AddScoped<ICreateCampaignService, CreateCampaignService>();
             services.AddScoped<IRecurringJobsHandler, RecurringJobsHandler>();
 
             return services;

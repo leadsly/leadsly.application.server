@@ -2,10 +2,7 @@
 using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Repositories;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -99,6 +96,11 @@ namespace Leadsly.Domain.Facades
             return await _campaignRepository.GetAllActiveByUserIdAsync(applicationUserId, ct);
         }
 
+        public async Task<IList<Campaign>> GetAllCampaignsByUserIdAsync(string userId, CancellationToken ct = default)
+        {
+            return await _campaignRepository.GetAllByUserIdAsync(userId, ct);
+        }
+
         public async Task<IList<Campaign>> GetAllActiveCampaignsByHalIdAsync(string halId, CancellationToken ct = default)
         {
             return await _campaignRepository.GetAllActiveByHalIdAsync(halId, ct);
@@ -123,7 +125,7 @@ namespace Leadsly.Domain.Facades
         {
             return await _campaignProspectRepository.GetAllActiveByHalIdAsync(halId, ct);
         }
-        
+
         public async Task<IList<MonitorForNewConnectionsPhase>> GetAllMonitorForNewConnectionsPhasesByUserIdAsync(string userId, CancellationToken ct = default)
         {
             return await _monitorForNewConnectionsPhaseRepository.GetAllByUserIdAsync(userId, ct);
@@ -161,7 +163,7 @@ namespace Leadsly.Domain.Facades
 
         public async Task<PrimaryProspectList> GetPrimaryProspectListByIdAsync(string primaryProspectListId, CancellationToken ct = default)
         {
-            return await _primaryProspectRepository.GetListByIdAsync(primaryProspectListId, ct);    
+            return await _primaryProspectRepository.GetListByIdAsync(primaryProspectListId, ct);
         }
 
         public async Task<PrimaryProspectList> GetPrimaryProspectListByNameAndUserIdAsync(string prospectListName, string userId, CancellationToken ct = default)
@@ -202,6 +204,11 @@ namespace Leadsly.Domain.Facades
         public async Task<Campaign> UpdateCampaignAsync(Campaign updatedCampaign, CancellationToken ct = default)
         {
             return await _campaignRepository.UpdateAsync(updatedCampaign, ct);
+        }
+
+        public async Task<bool> DeleteCampaignAsync(string campaignId, CancellationToken ct = default)
+        {
+            return await _campaignRepository.DeleteAsync(campaignId, ct);
         }
 
         public async Task<ProspectListPhase> UpdateProspectListPhaseAsync(ProspectListPhase prospectListPhase, CancellationToken ct = default)

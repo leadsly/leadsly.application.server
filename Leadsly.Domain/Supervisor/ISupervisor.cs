@@ -6,12 +6,13 @@ using Leadsly.Application.Model.Requests;
 using Leadsly.Application.Model.Requests.FromHal;
 using Leadsly.Application.Model.Responses;
 using Leadsly.Application.Model.ViewModels;
-using Leadsly.Application.Model.ViewModels.Campaigns;
 using Leadsly.Application.Model.ViewModels.Cloud;
 using Leadsly.Application.Model.ViewModels.Response;
 using Leadsly.Domain.Models.Requests;
 using Leadsly.Domain.Models.ViewModels;
+using Leadsly.Domain.Models.ViewModels.Campaigns;
 using Leadsly.Domain.Models.ViewModels.LinkedInAccount;
+using Leadsly.Domain.Models.ViewModels.Reports;
 using Leadsly.Domain.Models.ViewModels.VirtualAssistant;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
@@ -25,9 +26,17 @@ namespace Leadsly.Domain.Supervisor
     public interface ISupervisor
     {
         Task<Customer_Stripe> AddCustomerAsync_Stripe(Customer_Stripe stripeCustomerViewModel);
-        Task<CampaignViewModel> PatchUpdateCampaignAsync(string campaignId, JsonPatchDocument<Campaign> campaignUpdate, CancellationToken ct = default);
+        Task<CampaignViewModel> UpdateCampaignAsync(string campaignId, JsonPatchDocument<Campaign> campaignUpdate, CancellationToken ct = default);
         Task<HalOperationResultViewModel<T>> PatchUpdateSocialAccountAsync<T>(string socialAccountId, JsonPatchDocument<SocialAccount> socialAccountUpdate, CancellationToken ct = default)
             where T : IOperationResponseViewModel;
+
+        Task<CampaignViewModel> CloneCampaignAsync(string campaignId, CancellationToken ct = default);
+
+        Task<CampaignViewModel> GetCampaignByIdAsync(string campaignId, CancellationToken ct = default);
+
+        Task<bool> DeleteCampaignAsync(string campaignId, CancellationToken ct = default);
+
+        Task<GeneralReportViewModel> GetGeneralReportAsync(string userId, CancellationToken ct = default);
 
         [Obsolete("No longer in use")]
         Task<SetupAccountResultViewModel> LeadslyAccountSetupAsync(SetupAccountViewModel setup, CancellationToken ct = default);
@@ -80,6 +89,8 @@ namespace Leadsly.Domain.Supervisor
         Task<HalOperationResultViewModel<T>> CreateCampaignAsync<T>(CreateCampaignRequest request, string userId, CancellationToken ct = default)
             where T : IOperationResponseViewModel;
 
+        Task<CampaignViewModel> CreateCampaignAsync(CreateCampaignRequest request, string userId, CancellationToken ct = default);
+
         Task<HalOperationResult<T>> GetSentConnectionsUrlStatusesAsync<T>(string campaignId, CancellationToken ct = default)
             where T : IOperationResponse;
 
@@ -98,5 +109,7 @@ namespace Leadsly.Domain.Supervisor
             where T : IOperationResponseViewModel;
 
         Task<IList<TimeZoneViewModel>> GetSupportedTimeZonesAsync(CancellationToken ct = default);
+
+        Task<CampaignsViewModel> GetCampaignsByUserIdAsync(string userId, CancellationToken ct = default);
     }
 }

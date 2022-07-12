@@ -1,9 +1,6 @@
 ﻿using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Application.Model.Entities.Campaigns.Phases;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,8 +11,10 @@ namespace Leadsly.Domain.Facades.Interfaces
         #region Campaign
         Task<Campaign> CreateCampaignAsync(Campaign newCampaign, CancellationToken ct = default);
         Task<Campaign> UpdateCampaignAsync(Campaign updatedCampaign, CancellationToken ct = default);
+        Task<bool> DeleteCampaignAsync(string campaignId, CancellationToken ct = default);
         Task<Campaign> GetCampaignByIdAsync(string campaignId, CancellationToken ct = default);
         Task<IList<Campaign>> GetAllActiveCampaignsByUserIdAsync(string applicationUserId, CancellationToken ct = default);
+        Task<IList<Campaign>> GetAllCampaignsByUserIdAsync(string userId, CancellationToken ct = default);
         Task<IList<Campaign>> GetAllActiveCampaignsByHalIdAsync(string halId, CancellationToken ct = default);
         Task<IList<Campaign>> GetAllActiveCampaignsAsync(CancellationToken ct = default);
         Task<CampaignWarmUp> CreateCampaignWarmUpAsync(CampaignWarmUp warmUp, CancellationToken ct = default);

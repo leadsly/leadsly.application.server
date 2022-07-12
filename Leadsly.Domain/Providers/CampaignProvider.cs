@@ -1,29 +1,25 @@
-﻿using Hangfire;
-using Leadsly.Application.Model;
+﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.Campaigns.Interfaces;
 using Leadsly.Application.Model.Entities;
 using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Application.Model.Entities.Campaigns.Phases;
-using Leadsly.Application.Model.Requests;
 using Leadsly.Application.Model.Requests.FromHal;
 using Leadsly.Application.Model.Responses;
 using Leadsly.Application.Model.ViewModels;
 using Leadsly.Application.Model.ViewModels.Campaigns;
 using Leadsly.Application.Model.ViewModels.Response;
 using Leadsly.Domain.Campaigns;
-using Leadsly.Domain.Converters;
 using Leadsly.Domain.Facades.Interfaces;
+using Leadsly.Domain.Models.Requests;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
-using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -34,7 +30,7 @@ namespace Leadsly.Domain.Providers
         public CampaignProvider(
             ILogger<CampaignProvider> logger,
             ICampaignService campaignService,
-            ITimestampService timestampService,            
+            ITimestampService timestampService,
             ICampaignPhaseClient campaignPhaseClient,
             ICampaignRepositoryFacade campaignRepositoryFacade,
             IHangfireService hangfireService,
@@ -49,7 +45,7 @@ namespace Leadsly.Domain.Providers
             _socialAccountRepository = socialAccountRepository;
             _campaignPhaseClient = campaignPhaseClient;
             _timestampService = timestampService;
-            _campaignService = campaignService;            
+            _campaignService = campaignService;
             _logger = logger;
             _campaignRepositoryFacade = campaignRepositoryFacade;
         }
@@ -58,12 +54,13 @@ namespace Leadsly.Domain.Providers
         private readonly IFollowUpMessageJobsRepository _followUpMessageJobRepository;
         private readonly IMemoryCache _memoryCache;
         private readonly ISocialAccountRepository _socialAccountRepository;
-        private readonly ICampaignPhaseClient _campaignPhaseClient;        
+        private readonly ICampaignPhaseClient _campaignPhaseClient;
         private readonly ITimestampService _timestampService;
-        private readonly ILogger<CampaignProvider> _logger;   
-        private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;  
-        private readonly ICampaignService _campaignService;        
+        private readonly ILogger<CampaignProvider> _logger;
+        private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
+        private readonly ICampaignService _campaignService;
 
+        [Obsolete]
         public CampaignProspectList CreateCampaignProspectList(PrimaryProspectList primaryProspectList, string userId)
         {
             CampaignProspectList campaignProspectList = _campaignService.GenerateCampaignProspectList(primaryProspectList, userId);
@@ -144,7 +141,7 @@ namespace Leadsly.Domain.Providers
             {
                 // check if this hal has any prospects in active campaigns that match this prospect
                 List<CampaignProspect> campaignProspects = await GetActiveCampaignProspectsByHalIdAsync(halId, ct) as List<CampaignProspect>;
-                if(campaignProspects != null && campaignProspects.Count > 0)
+                if (campaignProspects != null && campaignProspects.Count > 0)
                 {
                     try
                     {
@@ -183,14 +180,14 @@ namespace Leadsly.Domain.Providers
             List<FollowUpMessageJob> followUpMessageJobs = await _followUpMessageJobRepository.GetAllByCampaignProspectIdAsync(campaignProspectId, ct) as List<FollowUpMessageJob>;
             followUpMessageJobs.ForEach(followUpMessageJob =>
             {
-                _logger.LogDebug($"Removing hangfire job with id {followUpMessageJob.HangfireJobId}");                
+                _logger.LogDebug($"Removing hangfire job with id {followUpMessageJob.HangfireJobId}");
                 _hangfireService.Delete(followUpMessageJob.HangfireJobId);
             });
         }
 
         private async Task<IList<CampaignProspect>> GetActiveCampaignProspectsByHalIdAsync(string halId, CancellationToken ct = default)
         {
-            if(_memoryCache.TryGetValue(halId, out IList<CampaignProspect> campaignProspects) == false)
+            if (_memoryCache.TryGetValue(halId, out IList<CampaignProspect> campaignProspects) == false)
             {
                 campaignProspects = await _campaignRepositoryFacade.GetAllActiveCampaignProspectsByHalIdAsync(halId, ct);
                 _memoryCache.Set(halId, campaignProspects, TimeSpan.FromMinutes(3));
@@ -226,23 +223,6 @@ namespace Leadsly.Domain.Providers
         public async Task<int> CreateDailyWarmUpLimitConfigurationAsync(long startDateTimestamp, CancellationToken ct = default)
         {
             return await _campaignService.CreateDailyWarmUpLimitConfigurationAsync(startDateTimestamp, ct);
-        }
-
-        public async Task<CampaignViewModel> PatchUpdateCampaignAsync(string campaignId, JsonPatchDocument<Campaign> patchDoc, CancellationToken ct = default)
-        {
-            Campaign campaignToUpdate = await _campaignRepositoryFacade.GetCampaignByIdAsync(campaignId, ct);
-
-            patchDoc.ApplyTo(campaignToUpdate);
-
-            campaignToUpdate = await _campaignRepositoryFacade.UpdateCampaignAsync(campaignToUpdate, ct);
-            if (campaignToUpdate == null)
-            {
-                return null;
-            }
-
-            CampaignViewModel campaignViewModel = CampaignConverter.Convert(campaignToUpdate);
-
-            return campaignViewModel;
         }
 
         public async Task<HalOperationResult<T>> UpdateSentConnectionsUrlStatusesAsync<T>(string campaignId, UpdateSearchUrlDetailsRequest request, CancellationToken ct = default)
@@ -312,7 +292,8 @@ namespace Leadsly.Domain.Providers
             return result;
         }
 
-        public async Task<HalOperationResultViewModel<T>> CreateCampaignAsync<T>(CreateCampaignRequest request, string userId, CancellationToken ct = default) 
+        [Obsolete]
+        public async Task<HalOperationResultViewModel<T>> CreateCampaignAsync<T>(CreateCampaignRequest request, string userId, CancellationToken ct = default)
             where T : IOperationResponseViewModel
         {
             HalOperationResultViewModel<T> result = new();
@@ -377,7 +358,7 @@ namespace Leadsly.Domain.Providers
 
                 newCampaign.FollowUpMessages.Add(followUpMessage);
             }
-            
+
             newCampaign.HalId = request.HalId;
 
             Campaign newCampaignWithPhases = CreateCampaignPhases(newCampaign, request.CampaignDetails.PrimaryProspectList.Existing, ct);
@@ -450,6 +431,7 @@ namespace Leadsly.Domain.Providers
             return result;
         }
 
+        [Obsolete]
         private IList<SendConnectionsStage> CreateSendConnectionsStages()
         {
             IList<SendConnectionsStage> connectionsStages = new List<SendConnectionsStage>();
@@ -487,6 +469,92 @@ namespace Leadsly.Domain.Providers
             return connectionsStages;
         }
 
+        public async Task<IList<Campaign>> GetAllByUserIdAsync(string userId, CancellationToken ct = default)
+        {
+            IList<Campaign> campaigns = await _campaignRepositoryFacade.GetAllCampaignsByUserIdAsync(userId, ct);
+
+            return campaigns;
+        }
+
+        public async Task<long> GetTotalConnectionsSentAsync(string campaignId, CancellationToken ct = default)
+        {
+            IList<CampaignProspect> campaignProspects = await GetCampaignProspectsAsync(campaignId, ct);
+            IList<CampaignProspect> setnConnectionsProspects = campaignProspects?.Where(p => p.ConnectionSent == true).ToList();
+
+            if (setnConnectionsProspects == null || setnConnectionsProspects.Count == 0)
+            {
+                _logger.LogInformation("Campaign {campaignId} has no sent connections", campaignId);
+                return 0;
+            }
+
+            return setnConnectionsProspects.Count;
+        }
+
+        public async Task<long> GetConnectionsAcceptedAsync(string campaignId, CancellationToken ct = default)
+        {
+            IList<CampaignProspect> campaignProspects = await GetCampaignProspectsAsync(campaignId, ct);
+            IList<CampaignProspect> connectionsAccepted = campaignProspects?.Where(p => p.Accepted == true).ToList();
+
+            if (connectionsAccepted == null || connectionsAccepted.Count == 0)
+            {
+                _logger.LogInformation("Campaign {campaignId} has no accepted connections", campaignId);
+                return 0;
+            }
+
+            return connectionsAccepted.Count;
+        }
+
+        public async Task<long> GetRepliesAsync(string campaignId, CancellationToken ct = default)
+        {
+            IList<CampaignProspect> campaignProspects = await GetCampaignProspectsAsync(campaignId, ct);
+            IList<CampaignProspect> connectionReplied = campaignProspects?.Where(p => p.Replied == true).ToList();
+
+            if (connectionReplied == null || connectionReplied.Count == 0)
+            {
+                _logger.LogInformation("Campaign {campaignId} has no prospects that replied to any of the messages yet.", campaignId);
+                return 0;
+            }
+
+            return connectionReplied.Count;
+        }
+
+        public async Task<Campaign> GetCampaignByIdAsync(string campaignId, CancellationToken ct = default)
+        {
+            return await _campaignRepositoryFacade.GetCampaignByIdAsync(campaignId, ct);
+        }
+
+        public async Task<Campaign> UpdateCampaignAsync(Campaign campaign, CancellationToken ct = default)
+        {
+            campaign = await _campaignRepositoryFacade.UpdateCampaignAsync(campaign, ct);
+            if (campaign == null)
+            {
+                _logger.LogError("Failed to update campaign {campaignId}", campaign.CampaignId);
+            }
+            return campaign;
+        }
+
+        public async Task<bool> DeleteCampaignAsync(string campaignId, CancellationToken ct = default)
+        {
+            return await _campaignRepositoryFacade.DeleteCampaignAsync(campaignId, ct);
+        }
+
+        public async Task<IList<Campaign>> GetAllActiveByUserIdAsync(string userId, CancellationToken ct = default)
+        {
+            return await _campaignRepositoryFacade.GetAllActiveCampaignsByUserIdAsync(userId, ct);
+        }
+
+        private async Task<IList<CampaignProspect>> GetCampaignProspectsAsync(string campaignId, CancellationToken ct = default)
+        {
+            if (_memoryCache.TryGetValue($"CampaignProspects-{campaignId}", out IList<CampaignProspect> campaignProspects) == false)
+            {
+                campaignProspects = await _campaignRepositoryFacade.GetAllCampaignProspectsByCampaignIdAsync(campaignId);
+                _memoryCache.Set($"CampaignProspects-{campaignId}", campaignProspects, TimeSpan.FromMinutes(3));
+            }
+
+            return campaignProspects;
+        }
+
+        [Obsolete]
         private Campaign CreateCampaignPhases(Campaign newCampaign, bool useExistingProspectList, CancellationToken ct = default)
         {
             CampaignType campaignType = default;

@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Leadsly.Infrastructure.Migrations
 {
-    public partial class InitialMigration : Migration
+    public partial class InitialCreate : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -496,8 +496,8 @@ namespace Leadsly.Infrastructure.Migrations
                 {
                     SocialAccountId = table.Column<string>(type: "text", nullable: false),
                     UserId = table.Column<string>(type: "text", nullable: false),
-                    VirtualAssistantId = table.Column<string>(type: "text", nullable: false),
-                    HalUnitId = table.Column<string>(type: "text", nullable: false),
+                    VirtualAssistantId = table.Column<string>(type: "text", nullable: true),
+                    HalUnitId = table.Column<string>(type: "text", nullable: true),
                     AccountType = table.Column<int>(type: "integer", nullable: false),
                     Username = table.Column<string>(type: "text", nullable: false),
                     RunProspectListFirst = table.Column<bool>(type: "boolean", nullable: false),
@@ -513,8 +513,7 @@ namespace Leadsly.Infrastructure.Migrations
                         name: "FK_SocialAccounts_HalUnits_HalUnitId",
                         column: x => x.HalUnitId,
                         principalTable: "HalUnits",
-                        principalColumn: "HalUnitId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "HalUnitId");
                     table.ForeignKey(
                         name: "FK_SocialAccounts_Users_ApplicationUserId",
                         column: x => x.ApplicationUserId,
@@ -546,6 +545,7 @@ namespace Leadsly.Infrastructure.Migrations
                     Expired = table.Column<bool>(type: "boolean", nullable: false),
                     StartTimestamp = table.Column<long>(type: "bigint", nullable: false),
                     EndTimestamp = table.Column<long>(type: "bigint", nullable: false),
+                    Notes = table.Column<string>(type: "text", nullable: true),
                     DailyInvites = table.Column<int>(type: "integer", nullable: false),
                     CampaignType = table.Column<int>(type: "integer", nullable: false),
                     IsWarmUpEnabled = table.Column<bool>(type: "boolean", nullable: false),
@@ -658,7 +658,7 @@ namespace Leadsly.Infrastructure.Migrations
                 columns: table => new
                 {
                     SocialAccountCloudResourceId = table.Column<string>(type: "text", nullable: false),
-                    SocialAccountId = table.Column<string>(type: "text", nullable: false),
+                    SocialAccountId = table.Column<string>(type: "text", nullable: true),
                     HalId = table.Column<string>(type: "text", nullable: true),
                     EcsServiceId = table.Column<string>(type: "text", nullable: false),
                     EcsTaskDefinitionId = table.Column<string>(type: "text", nullable: false),
@@ -689,8 +689,7 @@ namespace Leadsly.Infrastructure.Migrations
                         name: "FK_SocialAccountResources_SocialAccounts_SocialAccountId",
                         column: x => x.SocialAccountId,
                         principalTable: "SocialAccounts",
-                        principalColumn: "SocialAccountId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "SocialAccountId");
                 });
 
             migrationBuilder.CreateTable(
@@ -1168,7 +1167,8 @@ namespace Leadsly.Infrastructure.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_SocialAccounts_VirtualAssistantId",
                 table: "SocialAccounts",
-                column: "VirtualAssistantId");
+                column: "VirtualAssistantId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_SupportedTimeZones_TimeZoneId",

@@ -1,6 +1,7 @@
 ﻿using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
+using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
@@ -15,6 +16,8 @@ namespace Leadsly.Domain.Supervisor
             ICloudPlatformProvider cloudPlatformProvider,
             IUserProvider userProvider,
             ILeadslyHalProvider leadslyHalProvider,
+            ICreateCampaignService createCampaignService,
+            ITimestampService timestampService,
             ISearchUrlProgressRepository searchUrlProgressRepository,
             ICampaignProvider campaignProvider,
             ISocialAccountRepository socialAccountRepository,
@@ -24,6 +27,7 @@ namespace Leadsly.Domain.Supervisor
             IMemoryCache memoryCache,
             ILogger<Supervisor> logger)
         {
+            _timestampService = timestampService;
             _timeZoneRepository = timeZoneRepository;
             _campaignProvider = campaignProvider;
             _socialAccountRepository = socialAccountRepository;
@@ -37,9 +41,12 @@ namespace Leadsly.Domain.Supervisor
             _memoryCache = memoryCache;
             _campaignPhaseProcessorProvider = campaignPhaseProcessorProvider;
             _userProvider = userProvider;
+            _createCampaignService = createCampaignService;
             _logger = logger;
         }
 
+        private readonly ITimestampService _timestampService;
+        private readonly ICreateCampaignService _createCampaignService;
         private readonly ICampaignPhaseProcessorProvider _campaignPhaseProcessorProvider;
         private readonly ITimeZoneRepository _timeZoneRepository;
         private readonly ICampaignProvider _campaignProvider;

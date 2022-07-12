@@ -1,12 +1,10 @@
 ﻿using Leadsly.Application.Model.Entities.Campaigns;
-using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -22,6 +20,12 @@ namespace Leadsly.Infrastructure.Repositories
 
         private readonly DatabaseContext _dbContext;
         private readonly ILogger<CampaignRepository> _logger;
+
+        private async Task<bool> CampaignExists(string id, CancellationToken ct = default)
+        {
+            return await _dbContext.Campaigns.AnyAsync(c => c.CampaignId == id, ct);
+        }
+
 
         public async Task<IList<Campaign>> GetAllActiveAsync(CancellationToken ct = default)
         {
@@ -51,7 +55,7 @@ namespace Leadsly.Infrastructure.Repositories
                 string campaignId = newCampaign.CampaignId;
                 _logger.LogDebug("Successfully created new Campaign. New Campaign has id {campaignId}", campaignId);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to create Campaign. Returning an explicit null");
                 return null;
@@ -95,7 +99,7 @@ namespace Leadsly.Infrastructure.Repositories
                 return null;
             }
             return campaign;
-        }                     
+        }
 
         public async Task<CampaignWarmUp> GetCampaignWarmUpByIdAsync(string campaignId, CancellationToken ct = default)
         {
@@ -154,6 +158,28 @@ namespace Leadsly.Infrastructure.Repositories
             return campaigns;
         }
 
+        public async Task<IList<Campaign>> GetAllByUserIdAsync(string userId, CancellationToken ct = default)
+        {
+            _logger.LogInformation("Retrieving all campaigns by user id {userId}", userId);
+            IList<Campaign> campaigns = default;
+            try
+            {
+                campaigns = await _dbContext.Campaigns
+                    .Where(c => c.ApplicationUserId == userId)
+                    .Include(c => c.CampaignProspectList)
+                        .ThenInclude(c => c.CampaignProspects)
+                    .ToListAsync(ct);
+
+                _logger.LogDebug("Successfully retrieved all campaigns by user id {userId}", userId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve all campaigns by user id {userId}. Returning an explicit null", userId);
+                return null;
+            }
+            return campaigns;
+        }
+
         public async Task<IList<Campaign>> GetAllActiveByHalIdAsync(string halId, CancellationToken ct = default)
         {
             _logger.LogInformation("Retrieving all active campaigns by hal id {halId}", halId);
@@ -174,6 +200,27 @@ namespace Leadsly.Infrastructure.Repositories
                 return null;
             }
             return campaigns;
+        }
+
+        public async Task<bool> DeleteAsync(string campaignId, CancellationToken ct = default)
+        {
+            if (!await CampaignExists(campaignId, ct))
+            {
+                return false;
+            }
+
+            try
+            {
+                Campaign toRemove = _dbContext.Campaigns.Find(campaignId);
+                _dbContext.Campaigns.Remove(toRemove);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError(ex, "Failed to delete campaign with id: {campaignId}", campaignId);
+            }
+
+            return true;
         }
     }
 }

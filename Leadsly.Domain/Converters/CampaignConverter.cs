@@ -1,10 +1,5 @@
 ﻿using Leadsly.Application.Model.Entities.Campaigns;
-using Leadsly.Application.Model.ViewModels.Campaigns;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Leadsly.Domain.Models.ViewModels.Campaigns;
 
 namespace Leadsly.Domain.Converters
 {
@@ -18,8 +13,14 @@ namespace Leadsly.Domain.Converters
                 Active = campaign.Active,
                 Name = campaign.Name,
                 ConnectionsSentDaily = campaign.DailyInvites,
-                Expired = campaign.Expired
+                Expired = campaign.Expired,
+                ConnectionsAccepted = 0,
+                Notes = string.Empty,
+                ProfileViews = 0,
+                Replies = 0,
+                TotalConnectionsSent = 0
             };
         }
+
     }
 }

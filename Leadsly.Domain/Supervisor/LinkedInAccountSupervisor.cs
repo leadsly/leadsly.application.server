@@ -60,7 +60,7 @@ namespace Leadsly.Domain.Supervisor
                 return null;
             }
 
-            if (response.TwoFactorAuthRequired == false && response.UnexpectedErrorOccured == false && response.InvalidEmail == false && response.InvalidEmail)
+            if (response.TwoFactorAuthRequired == false && response.UnexpectedErrorOccured == false && response.InvalidEmail == false && response.InvalidPassword == false)
             {
                 // assume we've successfully linked the account so now we can create new social account for the user
                 SocialAccount socialAccount = await _userProvider.CreateSocialAccountAsync(virtualAssistant, userId, request.Username, ct);

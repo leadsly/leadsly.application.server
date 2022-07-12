@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -93,10 +92,10 @@ namespace Leadsly.Infrastructure.Repositories
             CampaignProspectList campaignProspectList = default;
             try
             {
-                 campaignProspectList = await _dbContext.CampaignProspectLists
-                    .Where(cpl => cpl.CampaignProspectListId == campaignProspectListId)
-                    .Include(cpl => cpl.CampaignProspects)
-                    .SingleAsync(ct);
+                campaignProspectList = await _dbContext.CampaignProspectLists
+                   .Where(cpl => cpl.CampaignProspectListId == campaignProspectListId)
+                   .Include(cpl => cpl.CampaignProspects)
+                   .SingleAsync(ct);
             }
             catch (Exception ex)
             {
@@ -152,7 +151,7 @@ namespace Leadsly.Infrastructure.Repositories
             try
             {
                 campaignProspect = await _dbContext.CampaignProspects
-                    .Where(c => c.CampaignProspectId == campaignProspectId)                    
+                    .Where(c => c.CampaignProspectId == campaignProspectId)
                     .SingleAsync(ct);
 
                 _logger.LogDebug("Successfully retrieved CampaignProspect by id {campaignProspectId}", campaignProspectId);

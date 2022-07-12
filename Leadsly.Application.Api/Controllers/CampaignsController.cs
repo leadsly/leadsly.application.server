@@ -1,431 +1,21 @@
-﻿using Leadsly.Domain.Models;
+﻿using Leadsly.Application.Model.Entities.Campaigns;
+using Leadsly.Domain;
+using Leadsly.Domain.Models.Requests;
+using Leadsly.Domain.Models.ViewModels.Campaigns;
 using Leadsly.Domain.Supervisor;
-using Leadsly.Application.Model.ViewModels.Campaigns;
-using Leadsly.Application.Model.ViewModels.Reports;
-using Leadsly.Application.Model.ViewModels.Reports.ApexCharts;
-using Leadsly.Application.Model.Entities;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
-using Leadsly.Application.Model.Requests;
-using Leadsly.Application.Model.ViewModels.Response;
-using Microsoft.AspNetCore.Authorization;
-using Leadsly.Application.Model.ViewModels.Response.Hal;
-using System.Security.Claims;
-using Leadsly.Application.Model.Requests.FromHal;
-using Leadsly.Application.Model;
-using Leadsly.Application.Model.Responses;
-using Leadsly.Application.Model.Campaigns.Interfaces;
-using Leadsly.Application.Model.ViewModels;
-using Microsoft.AspNetCore.JsonPatch;
-using Leadsly.Application.Model.Entities.Campaigns;
 
 namespace Leadsly.Application.Api.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("users/{userId}/[controller]")]
     public class CampaignsController : ApiControllerBase
     {
-        protected static List<CampaignViewModel> Campaigns { get; set; } = new()
-        {
-            new CampaignViewModel
-            {
-                Id = "1",
-                Active = true,
-                Name = "Lawyers",
-                ConnectionsSentDaily = 60,
-                ConnectionsAccepted = 231,
-                TotalConnectionsSent = 443,
-                ProfileViews = 192,
-                Replies = 136,
-                Expired = false,
-                Notes = "this is my note about this campaign because it was very successful and i love this app. WOW how could anyone have had such a great idea."
-            },
-            new CampaignViewModel
-            {
-                Id = "2",
-                Active = true,
-                Name = "FBI Agents",
-                ConnectionsSentDaily = 50,
-                ConnectionsAccepted = 351,
-                TotalConnectionsSent = 143,
-                ProfileViews = 192,
-                Replies = 636,
-                Expired = false,
-                Notes = ""
-            },
-            new CampaignViewModel
-            {
-                Id = "3",
-                Active = true,
-                Name = "Real Estate",
-                ConnectionsSentDaily = 60,
-                ConnectionsAccepted = 231,
-                TotalConnectionsSent = 443,
-                ProfileViews = 192,
-                Replies = 136,
-                Expired = false,
-                Notes = "this is my note about this campaign because it was very successful and i love this app. WOW how could anyone have had such a great idea."
-            },
-            new CampaignViewModel
-            {
-                Id = "4",
-                Active = true,
-                Name = "Rich Women",
-                ConnectionsSentDaily = 60,
-                ConnectionsAccepted = 231,
-                TotalConnectionsSent = 443,
-                ProfileViews = 192,
-                Replies = 136,
-                Expired = false,
-                Notes = "this is my note about this campaign because it was very successful and i love this app. WOW how could anyone have had such a great idea."
-            },
-            new CampaignViewModel
-            {
-                Id = "5",
-                Active = true,
-                Name = "Mushroom Lovers",
-                ConnectionsSentDaily = 60,
-                ProfileViews = 192,
-                ConnectionsAccepted = 231,
-                TotalConnectionsSent = 443,
-                Replies = 136,
-                Expired = false,
-                Notes = "this is my note about this campaign because it was very successful and i love this app. WOW how could anyone have had such a great idea."
-            }
-        };
-
-        private static Random rnd = new Random();
-
-        protected static CampaignsReportViewModel CampaignsEffectivenessReports { get; set; } = new CampaignsReportViewModel
-        {
-            SelectedCampaignId = "3",
-            Items = new List<ChartDataApexViewModel>
-            {
-                new ChartDataApexViewModel
-                {
-                    CampaignId = "1",
-                    XAxis = new ApexXAxisViewModel
-                        {
-                            Type = "datetime",
-                            Categories = new List<string>
-                            {
-                                "01/01/2022",
-                                "01/02/2022",
-                                "01/03/2022",
-                                "01/04/2022",
-                                "01/05/2022",
-                                "01/06/2022",
-                                "01/07/2022"
-                            }
-                        },
-                    Series = new List<ApexAxisChartSeriesViewModel>
-                    {
-                            new()
-                            {
-                                Name = "Connections Sent",
-                                Data = new List<object>
-                                {
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250)
-                                }
-                            },
-                            new()
-                            {
-                                Name = "Connections Accepted",
-                                Data = new List<object>
-                                {
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250)
-                                }
-                            },
-                            new()
-                            {
-                                Name = "Replies",
-                                Data = new List<object>
-                                {
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250)
-                                }
-                            },
-                            new()
-                            {
-                                Name = "Profile Visits",
-                                Data = new List<object>
-                                {
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250)
-                                }
-                            }
-                        }
-                },
-                new ChartDataApexViewModel
-                {
-                    CampaignId = "2",
-                    XAxis = new ApexXAxisViewModel
-                    {
-                        Type = "datetime",
-                        Categories = new List<string>
-                            {
-                                "01/08/2022",
-                                "01/09/2022",
-                                "01/10/2022",
-                                "01/11/2022",
-                                "01/12/2022",
-                                "01/13/2022",
-                                "01/14/2022"
-                            }
-                    },
-                    Series = new List<ApexAxisChartSeriesViewModel>
-                        {
-                            new()
-                            {
-                                Name = "Connections Sent",
-                                Data = new List<object>
-                                {
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250)
-                                }
-                            },
-                            new()
-                            {
-                                Name = "Connections Accepted",
-                                Data = new List<object>
-                                {
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250)
-                                }
-                            },
-                            new()
-                            {
-                                Name = "Replies",
-                                Data = new List<object>
-                                {
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250)
-                                }
-                            },
-                            new()
-                            {
-                                Name = "Profile Visits",
-                                Data = new List<object>
-                                {
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250)
-                                }
-                            },
-                        }
-                },
-                new ChartDataApexViewModel
-                {
-                    CampaignId = "3",
-                    XAxis = new ApexXAxisViewModel
-                    {
-                        Type = "datetime",
-                        Categories = new List<string>
-                            {
-                                "01/15/2022",
-                                "01/16/2022",
-                                "01/17/2022",
-                                "01/18/2022",
-                                "01/19/2022",
-                                "01/20/2022",
-                                "01/21/2022"
-                            }
-                    },
-                    Series = new List<ApexAxisChartSeriesViewModel>
-                        {
-                            new()
-                            {
-                                Name = "Connections Sent",
-                                Data = new List<object>
-                                {
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250)
-                                }
-                            },
-                            new()
-                            {
-                                Name = "Connections Accepted",
-                                Data = new List<object>
-                                {
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250)
-                                }
-                            },
-                            new()
-                            {
-                                Name = "Replies",
-                                Data = new List<object>
-                                {
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250)
-                                }
-                            },
-                            new()
-                            {
-                                Name = "Profile Visits",
-                                Data = new List<object>
-                                {
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250)
-                                }
-                            },
-                        }
-                },
-                new ChartDataApexViewModel
-                {
-                    CampaignId = "4",
-                    XAxis = new ApexXAxisViewModel
-                    {
-                        Type = "datetime",
-                        Categories = new List<string>
-                            {
-                                "01/22/2022",
-                                "01/23/2022",
-                                "01/24/2022",
-                                "01/25/2022",
-                                "01/26/2022",
-                                "01/27/2022",
-                                "01/28/2022"
-                            }
-                    },
-                    Series = new List<ApexAxisChartSeriesViewModel>
-                        {
-                            new()
-                            {
-                                Name = "Connections Sent",
-                                Data = new List<object>
-                                {
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250)
-                                }
-                            },
-                            new()
-                            {
-                                Name = "Connections Accepted",
-                                Data = new List<object>
-                                {
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250)
-                                }
-                            },
-                            new()
-                            {
-                                Name = "Replies",
-                                Data = new List<object>
-                                {
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250)
-                                }
-                            },
-                            new()
-                            {
-                                Name = "Profile Visits",
-                                Data = new List<object>
-                                {
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250),
-                                    rnd.Next(250)
-                                }
-                            },
-                        }
-                }
-            },
-            DateFilters = new DateRangeViewModel
-            {
-                PrepopulatedFilters = new Dictionary<string, long>
-                {
-                    { "Today", DateTimeOffset.Now.ToUnixTimeSeconds() },
-                    { "Yesterday", DateTimeOffset.Now.AddDays(-1).ToUnixTimeSeconds() },
-                    { "Last 3 Days", DateTimeOffset.Now.AddDays(-3).ToUnixTimeSeconds() },
-                    { "Last 7 Days", DateTimeOffset.Now.AddDays(-7).ToUnixTimeSeconds() }
-                }
-            }
-        };
         public CampaignsController(ILogger<CampaignsController> logger, ISupervisor supervisor)
         {
             _logger = logger;
@@ -435,46 +25,39 @@ namespace Leadsly.Application.Api.Controllers
         private readonly ISupervisor _supervisor;
         private readonly ILogger<CampaignsController> _logger;
 
-        [HttpGet("{id}")]
-        public IActionResult GetCampaign(string id)
+        [HttpGet]
+        public async Task<IActionResult> GetAllAsync(string _, CancellationToken ct = default)
         {
-            CampaignViewModel campaign = Campaigns.Find(c => c.Id == id);
+            string userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            CampaignsViewModel response = await _supervisor.GetCampaignsByUserIdAsync(userId, ct);
 
-            if(id == null)
+            if (response == null)
+            {
+                return BadRequest(ProblemDetailsDescriptions.AllActiveCampaigns);
+            }
+
+            return Ok(response);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetAsync(string id, CancellationToken ct = default)
+        {
+            CampaignViewModel response = await _supervisor.GetCampaignByIdAsync(id, ct);
+
+            if (response == null)
             {
                 BadRequest_CampaignNotFound();
             }
 
-            return Ok(campaign);
+            return Ok(response);
         }
-
-        [HttpPut]
-        public IActionResult UpdateCampaign([FromBody] CampaignViewModel updateCampaign, CancellationToken ct = default)
-        {
-            CampaignViewModel staleCampaign = Campaigns.Find((c) => c.Id == updateCampaign.Id);
-            int index = Campaigns.IndexOf(staleCampaign);
-            Campaigns.RemoveAt(index);
-            Campaigns.Insert(index, updateCampaign);            
-
-            return new JsonResult(updateCampaign);
-        }
-
-        //[HttpPatch]
-        //public IActionResult ToggleActiveCampaign([FromBody] ToggleCampaignViewModel toggleCampaign, CancellationToken ct = default)
-        //{
-        //    CampaignViewModel toggleCampaignStatus = Campaigns.Find((c) => c.Id == toggleCampaign.Id);
-        //    toggleCampaignStatus.Active = !toggleCampaignStatus.Active;
-
-        //    return new JsonResult(toggleCampaignStatus);
-        //}
 
         [HttpPatch("{id}")]
-        [AllowAnonymous]
-        public async Task<IActionResult> UpdateCampaign(string id, [FromBody] JsonPatchDocument<Campaign> patchDoc, CancellationToken ct = default)
+        public async Task<IActionResult> UpdateAsync(string id, [FromBody] JsonPatchDocument<Campaign> patchDoc, CancellationToken ct = default)
         {
-            CampaignViewModel patchedCampaign = await _supervisor.PatchUpdateCampaignAsync(id, patchDoc, ct);
+            CampaignViewModel patchedCampaign = await _supervisor.UpdateCampaignAsync(id, patchDoc, ct);
 
-            if(patchedCampaign == null)
+            if (patchedCampaign == null)
             {
                 return BadRequest_FailedToUpdateResource();
             }
@@ -483,48 +66,34 @@ namespace Leadsly.Application.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CreateCampaignRequest request, CancellationToken ct = default)
+        public async Task<IActionResult> CreateAsync(CreateCampaignRequest request, CancellationToken ct = default)
         {
-            string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;           
-            HalOperationResultViewModel<IOperationResponseViewModel> result = await _supervisor.CreateCampaignAsync<IOperationResponseViewModel>(request, userId, ct);
-            if(result.OperationResults.Succeeded == false)
+            string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            CampaignViewModel response = await _supervisor.CreateCampaignAsync(request, userId, ct);
+            if (response == null)
             {
-                return BadRequest_CreateCampaign(result.OperationResults.Failures);
+                return BadRequest(ProblemDetailsDescriptions.CreateCampaignError);
             }
 
-            return Ok(result);
+            return Ok(response);
         }
 
         [HttpPost("{id}/clone")]
-        public IActionResult CloneCampaign([FromBody] CloneCampaignViewModel cloneCampaign, CancellationToken ct = default)
+        public async Task<IActionResult> CloneAsync(string id, CancellationToken ct = default)
         {
-            CampaignViewModel campaignToClone = Campaigns.Find((c) => c.Id == cloneCampaign.Id);
-
-            // you must figure out a good way of performing deep cloning of objects.
-            CampaignViewModel clonedCampaign = new CampaignViewModel
+            CampaignViewModel response = await _supervisor.CloneCampaignAsync(id, ct);
+            if (response == null)
             {
-                Id = Guid.NewGuid().ToString(),
-                Active = false,
-                ConnectionsAccepted = campaignToClone.ConnectionsAccepted,
-                ConnectionsSentDaily = campaignToClone.ConnectionsSentDaily,
-                Expired = campaignToClone.Expired,
-                Name = campaignToClone.Name,
-                Notes = campaignToClone.Notes,
-                ProfileViews = campaignToClone.ProfileViews,
-                Replies = campaignToClone.Replies,
-                TotalConnectionsSent = campaignToClone.TotalConnectionsSent
-            };
+                return BadRequest(ProblemDetailsDescriptions.CloneCampaignError);
+            }
 
-            Campaigns.Add(clonedCampaign);
-
-            return new JsonResult(clonedCampaign);
+            return Ok(response);
         }
 
-        [HttpDelete]
-        public IActionResult DeleteCampaign([FromBody] DeleteCampaignViewModel deleteCampaign, CancellationToken ct = default)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteAsync(string id, CancellationToken ct = default)
         {
-            CampaignViewModel delete = Campaigns.Find((c) => c.Id == deleteCampaign.Id);
-            Campaigns.Remove(delete);
+            await _supervisor.DeleteCampaignAsync(id, ct);
 
             return NoContent();
         }
