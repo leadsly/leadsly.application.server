@@ -6,11 +6,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Services
 {
@@ -27,7 +22,7 @@ namespace Leadsly.Domain.Services
         private readonly HalConfigOptions _halConfigOptions;
         private readonly ILogger<UrlService> _logger;
         private readonly IWebHostEnvironment _env;
-        private readonly ICloudPlatformRepository _cloudPlatformRepository;        
+        private readonly ICloudPlatformRepository _cloudPlatformRepository;
 
         public string GetHalsBaseUrl(string namespaceName)
         {
@@ -37,7 +32,7 @@ namespace Leadsly.Domain.Services
             {
                 string hostName = _halConfigOptions.HostName;
                 long port = _halConfigOptions.Port;
-                url = $"http://{hostName}:{port}";
+                url = $"https://{hostName}:{port}";
             }
             else if (_env.IsStaging())
             {

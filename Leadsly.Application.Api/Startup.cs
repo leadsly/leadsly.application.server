@@ -1,23 +1,19 @@
+using Hangfire;
+using Leadsly.Application.Api.Configurations;
+using Leadsly.Application.Api.Filters;
+using Leadsly.Application.Api.Middlewares;
+using Leadsly.Domain;
+using Leadsly.Domain.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Serilog;
-using Microsoft.Extensions.FileProviders;
 using System.IO;
-using Microsoft.AspNetCore.Http;
-using Leadsly.Domain;
-using Leadsly.Application.Api.Configurations;
-using Hangfire;
-using Leadsly.Domain.OptionsJsonModels;
-using Amazon.RDS.Util;
-using Leadsly.Application.Model;
-using Leadsly.Domain.Supervisor;
-using Leadsly.Domain.Services;
-using Leadsly.Application.Api.Middlewares;
-using Leadsly.Application.Api.Filters;
 
 namespace Leadsly.Application.Api
 {
@@ -124,7 +120,7 @@ namespace Leadsly.Application.Api
 
             DashboardOptions options = new DashboardOptions()
             {
-                Authorization = new[] { new HangfireAuthFilter() }                
+                Authorization = new[] { new HangfireAuthFilter() }
             };
             app.UseHangfireDashboard("/hangfire", options);
 
@@ -133,7 +129,7 @@ namespace Leadsly.Application.Api
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-            });            
+            });
         }
     }
 }

@@ -133,6 +133,12 @@ namespace Leadsly.Domain.Services
                 req.Headers.Add("X-Auth-Attempt-Count", headerValue);
             }
 
+            if (requestHeaders.ContainsKey("Authorization"))
+            {
+                string access_token = requestHeaders["Authorization"];
+                req.Headers.Add("Authorization", access_token);
+            }
+
             HttpResponseMessage response = default;
             try
             {
