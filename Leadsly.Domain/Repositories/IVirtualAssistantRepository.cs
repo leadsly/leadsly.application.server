@@ -10,5 +10,6 @@ namespace Leadsly.Domain.Repositories
         Task<VirtualAssistant> CreateAsync(VirtualAssistant newVirtualAssistant, CancellationToken ct = default);
         Task<IList<VirtualAssistant>> GetAllByUserIdAsync(string userId, CancellationToken ct = default);
         Task<bool> DeleteAsync(string virtualAssistantId, CancellationToken ct = default);
+        Task<VirtualAssistant> GetByHalIdAsync(string halId, CancellationToken ct = default);
     }
 }

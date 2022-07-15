@@ -1,4 +1,5 @@
 ﻿using Leadsly.Domain.Models.Entities;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,11 +8,12 @@ namespace Leadsly.Domain.Providers.Interfaces
     public interface ICloudPlatformProvider
     {
         Task<VirtualAssistant> GetVirtualAssistantAsync(string userId, CancellationToken ct = default);
-        Task<VirtualAssistant> CreateVirtualAssistantAsync(EcsTaskDefinition newEcsTaskDefinition, EcsService newEcsService, CloudMapDiscoveryService newService, string halId, string userId, string timezoneId, CancellationToken ct = default);
+        Task<VirtualAssistant> CreateVirtualAssistantAsync(EcsTaskDefinition newEcsTaskDefinition, EcsService newEcsService, IList<EcsTask> ecsServiceTasks, CloudMapDiscoveryService newService, string halId, string userId, string timezoneId, CancellationToken ct = default);
         Task<bool> DeleteVirtualAssistantAsync(string virtualAssistantId, CancellationToken ct = default);
         Task<EcsTaskDefinition> RegisterTaskDefinitionInAwsAsync(string halId, CancellationToken ct = default);
         Task<CloudMapDiscoveryService> CreateCloudMapDiscoveryServiceInAwsAsync(CancellationToken ct = default);
         Task<EcsService> CreateEcsServiceInAwsAsync(string taskDefinition, string cloudMapServiceArn, CancellationToken ct = default);
+        Task<IList<EcsTask>> ListEcsServiceTasksAsync(string clusterArn, string serviceName, CancellationToken ct = default);
         public Task<bool> EnsureEcsServiceTasksAreRunningAsync(string ecsServiceName, string clusterArn, CancellationToken ct = default);
         Task DeleteAwsEcsServiceAsync(string userId, string serviceName, string clusterName, CancellationToken ct = default);
         Task DeleteAwsCloudMapServiceAsync(string userId, string serviceDiscoveryId, CancellationToken ct = default);

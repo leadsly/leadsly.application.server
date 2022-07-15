@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Leadsly.Infrastructure.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20220710142911_InitialCreate")]
+    [Migration("20220715183230_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,22 +25,7 @@ namespace Leadsly.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("ApplicationUserOrganization", b =>
-                {
-                    b.Property<string>("OrganizationUsersId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("OrganizationsOrganizationId")
-                        .HasColumnType("text");
-
-                    b.HasKey("OrganizationUsersId", "OrganizationsOrganizationId");
-
-                    b.HasIndex("OrganizationsOrganizationId");
-
-                    b.ToTable("ApplicationUserOrganization");
-                });
-
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.ApplicationUser", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("text");
@@ -130,7 +115,7 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.Campaign", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.Campaign", b =>
                 {
                     b.Property<string>("CampaignId")
                         .ValueGeneratedOnAdd()
@@ -140,15 +125,16 @@ namespace Leadsly.Infrastructure.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("ApplicationUserId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("CampaignProspectListId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("CampaignType")
                         .HasColumnType("integer");
+
+                    b.Property<long>("CreatedTimestamp")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("DailyInvites")
                         .HasColumnType("integer");
@@ -160,14 +146,12 @@ namespace Leadsly.Infrastructure.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("HalId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("IsWarmUpEnabled")
                         .HasColumnType("boolean");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Notes")
@@ -185,7 +169,7 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("Campaigns");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.CampaignProspect", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.CampaignProspect", b =>
                 {
                     b.Property<string>("CampaignProspectId")
                         .ValueGeneratedOnAdd()
@@ -198,11 +182,9 @@ namespace Leadsly.Infrastructure.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("CampaignId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("CampaignProspectListId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("ConnectionSent")
@@ -221,19 +203,19 @@ namespace Leadsly.Infrastructure.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("PrimaryProspectId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("ProfileUrl")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("Replied")
                         .HasColumnType("boolean");
+
+                    b.Property<long>("RepliedTimestamp")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("ResponseMessage")
                         .HasColumnType("text");
@@ -252,18 +234,16 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("CampaignProspects");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.CampaignProspectFollowUpMessage", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.CampaignProspectFollowUpMessage", b =>
                 {
                     b.Property<string>("CampaignProspectFollowUpMessageId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
                     b.Property<string>("CampaignProspectId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Content")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("Order")
@@ -276,18 +256,16 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("CampaignProspectFollowUpMessages");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.CampaignProspectList", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.CampaignProspectList", b =>
                 {
                     b.Property<string>("CampaignProspectListId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
                     b.Property<string>("PrimaryProspectListId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("ProspectListName")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("CampaignProspectListId");
@@ -297,14 +275,13 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("CampaignProspectLists");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.CampaignWarmUp", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.CampaignWarmUp", b =>
                 {
                     b.Property<string>("CampaignWarmUpId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
                     b.Property<string>("CampaignId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("DailyLimit")
@@ -320,18 +297,16 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("CampaignWarmUps");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.FollowUpMessage", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.FollowUpMessage", b =>
                 {
                     b.Property<string>("FollowUpMessageId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
                     b.Property<string>("CampaignId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Content")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("Order")
@@ -344,18 +319,16 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("FollowUpMessages");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.FollowUpMessageDelay", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.FollowUpMessageDelay", b =>
                 {
                     b.Property<string>("FollowUpMessageDelayId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
                     b.Property<string>("FollowUpMessageId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Unit")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<long>("Value")
@@ -369,22 +342,19 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("FollowUpMessageDelay");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.FollowUpMessageJob", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.FollowUpMessageJob", b =>
                 {
                     b.Property<string>("FollowUpMessageJobId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
                     b.Property<string>("CampaignProspectId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("FollowUpMessageId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("HangfireJobId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("FollowUpMessageJobId");
@@ -392,7 +362,7 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("FollowUpMessageJobs");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.Phases.ChromeProfile", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.Phases.ChromeProfile", b =>
                 {
                     b.Property<string>("ChromeProfileId")
                         .ValueGeneratedOnAdd()
@@ -402,7 +372,6 @@ namespace Leadsly.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("ChromeProfileId");
@@ -410,21 +379,19 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("ChromeProfileNames");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.Phases.ConnectionWithdrawPhase", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.Phases.ConnectionWithdrawPhase", b =>
                 {
                     b.Property<string>("ConnectionWithdrawPhaseId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
                     b.Property<string>("PageUrl")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("PhaseType")
                         .HasColumnType("integer");
 
                     b.Property<string>("SocialAccountId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("ConnectionWithdrawPhaseId");
@@ -435,18 +402,16 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("ConnectionWithdrawPhases");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.Phases.FollowUpMessagePhase", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.Phases.FollowUpMessagePhase", b =>
                 {
                     b.Property<string>("FollowUpMessagePhaseId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
                     b.Property<string>("CampaignId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("PageUrl")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("PhaseType")
@@ -460,21 +425,19 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("FollowUpMessagesPhases");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.Phases.MonitorForNewConnectionsPhase", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.Phases.MonitorForNewConnectionsPhase", b =>
                 {
                     b.Property<string>("MonitorForNewConnectionsPhaseId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
                     b.Property<string>("PageUrl")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("PhaseType")
                         .HasColumnType("integer");
 
                     b.Property<string>("SocialAccountId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("MonitorForNewConnectionsPhaseId");
@@ -485,14 +448,13 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("MonitorForNewConnectionsPhases");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.Phases.ProspectListPhase", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.Phases.ProspectListPhase", b =>
                 {
                     b.Property<string>("ProspectListPhaseId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
                     b.Property<string>("CampaignId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("Completed")
@@ -505,7 +467,6 @@ namespace Leadsly.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.Property<List<string>>("SearchUrls")
-                        .IsRequired()
                         .HasColumnType("text[]");
 
                     b.HasKey("ProspectListPhaseId");
@@ -516,21 +477,19 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("ProspectListPhases");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.Phases.ScanProspectsForRepliesPhase", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.Phases.ScanProspectsForRepliesPhase", b =>
                 {
                     b.Property<string>("ScanProspectsForRepliesPhaseId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
                     b.Property<string>("PageUrl")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("PhaseType")
                         .HasColumnType("integer");
 
                     b.Property<string>("SocialAccountId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("ScanProspectsForRepliesPhaseId");
@@ -541,14 +500,13 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("ScanProspectsForRepliesPhase");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.Phases.SendConnectionRequestPhase", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.Phases.SendConnectionRequestPhase", b =>
                 {
                     b.Property<string>("SendConnectionRequestPhaseId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
                     b.Property<string>("CampaignId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("PhaseType")
@@ -562,14 +520,13 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("SendConnectionRequestPhases");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.Phases.SendEmailInvitePhase", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.Phases.SendEmailInvitePhase", b =>
                 {
                     b.Property<string>("SendEmailInvitePhaseId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
                     b.Property<string>("CampaignId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("PhaseType")
@@ -583,7 +540,7 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("SendEmailInvitePhases");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.PrimaryProspect", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.PrimaryProspect", b =>
                 {
                     b.Property<string>("PrimaryProspectId")
                         .ValueGeneratedOnAdd()
@@ -593,27 +550,21 @@ namespace Leadsly.Infrastructure.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("Area")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("EmploymentInfo")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("PrimaryProspectListId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("ProfileUrl")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("SearchResultAvatarUrl")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("PrimaryProspectId");
@@ -623,7 +574,7 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("PrimaryProspects");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.PrimaryProspectList", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.PrimaryProspectList", b =>
                 {
                     b.Property<string>("PrimaryProspectListId")
                         .ValueGeneratedOnAdd()
@@ -633,11 +584,9 @@ namespace Leadsly.Infrastructure.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("UserId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("PrimaryProspectListId");
@@ -647,7 +596,7 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("PrimaryProspectLists");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.SearchUrl", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.SearchUrl", b =>
                 {
                     b.Property<string>("SearchUrlId")
                         .ValueGeneratedOnAdd()
@@ -657,11 +606,9 @@ namespace Leadsly.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("PrimaryProspectListId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Url")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("SearchUrlId");
@@ -673,18 +620,16 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("SearchUrls");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.SearchUrlDetails", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.SearchUrlDetails", b =>
                 {
                     b.Property<string>("SearchUrlDetailsId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
                     b.Property<string>("CampaignId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("CurrentUrl")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("FinishedCrawling")
@@ -694,14 +639,12 @@ namespace Leadsly.Infrastructure.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("OriginalUrl")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("StartedCrawling")
                         .HasColumnType("boolean");
 
                     b.Property<string>("WindowHandleId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("SearchUrlDetailsId");
@@ -711,14 +654,13 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("SentConnectionsStatuses");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.SearchUrlProgress", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.SearchUrlProgress", b =>
                 {
                     b.Property<string>("SearchUrlProgressId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
                     b.Property<string>("CampaignId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("Exhausted")
@@ -734,7 +676,6 @@ namespace Leadsly.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("SearchUrl")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("StartedCrawling")
@@ -744,7 +685,6 @@ namespace Leadsly.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("WindowHandleId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("SearchUrlProgressId");
@@ -754,14 +694,13 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("SearchUrlsProgress");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.SendConnectionsStage", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.SendConnectionsStage", b =>
                 {
                     b.Property<string>("SendConnectionsStageId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
                     b.Property<string>("CampaignId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("NumOfConnections")
@@ -771,7 +710,6 @@ namespace Leadsly.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("StartTime")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("SendConnectionsStageId");
@@ -781,33 +719,28 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("SendConnectionsStages");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.CloudMapDiscoveryService", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.CloudMapDiscoveryService", b =>
                 {
                     b.Property<string>("CloudMapDiscoveryServiceId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
                     b.Property<string>("Arn")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("EcsServiceId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("NamespaceId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("ServiceDiscoveryId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("CloudMapDiscoveryServiceId");
@@ -818,14 +751,13 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("CloudMapDiscoveryServices");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Customer_Stripe", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Customer_Stripe", b =>
                 {
                     b.Property<string>("Customer_StripeId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
                     b.Property<string>("Customer")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Customer_StripeId");
@@ -833,14 +765,10 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("StripeCustomers", (string)null);
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.EcsService", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.EcsService", b =>
                 {
                     b.Property<string>("EcsServiceId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("text");
-
-                    b.Property<string>("AssignPublicIp")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("ClusterArn")
@@ -853,9 +781,6 @@ namespace Leadsly.Infrastructure.Migrations
                     b.Property<string>("CreatedBy")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<int>("DesiredCount")
-                        .HasColumnType("integer");
 
                     b.Property<string>("SchedulingStrategy")
                         .IsRequired()
@@ -878,14 +803,13 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("EcsServices");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.EcsServiceRegistry", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.EcsServiceRegistry", b =>
                 {
                     b.Property<string>("EcsServiceRegistryId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
                     b.Property<string>("EcsServiceId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("RegistryArn")
@@ -899,18 +823,42 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("EcsServiceRegistries");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.EcsTaskDefinition", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.EcsTask", b =>
+                {
+                    b.Property<string>("EcsTaskId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ContainerName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ContainerPurpose")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("EcsServiceId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TaskArn")
+                        .HasColumnType("text");
+
+                    b.HasKey("EcsTaskId");
+
+                    b.HasIndex("EcsServiceId");
+
+                    b.ToTable("EcsTasks");
+                });
+
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.EcsTaskDefinition", b =>
                 {
                     b.Property<string>("EcsTaskDefinitionId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
-                    b.Property<string>("ContainerName")
-                        .IsRequired()
+                    b.Property<string>("Family")
                         .HasColumnType("text");
 
-                    b.Property<string>("Family")
-                        .IsRequired()
+                    b.Property<string>("TaskDefinitionArn")
                         .HasColumnType("text");
 
                     b.HasKey("EcsTaskDefinitionId");
@@ -918,53 +866,25 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("EcsTaskDefinitions");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.HalTimeZone", b =>
-                {
-                    b.Property<string>("HalTimeZoneId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text");
-
-                    b.Property<string>("HalId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("TimeZoneId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("HalTimeZoneId");
-
-                    b.ToTable("HalTimeZones");
-                });
-
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.HalUnit", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.HalUnit", b =>
                 {
                     b.Property<string>("HalUnitId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
                     b.Property<string>("ApplicationUserId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("EndHour")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("HalId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("HalTimeZoneId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("StartHour")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("TimeZoneId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("HalUnitId");
@@ -974,14 +894,13 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("HalUnits");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.LeadslyTimeZone", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.LeadslyTimeZone", b =>
                 {
                     b.Property<string>("LeadslyTimeZoneId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
                     b.Property<string>("TimeZoneId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("LeadslyTimeZoneId");
@@ -992,22 +911,7 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("SupportedTimeZones");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Organization", b =>
-                {
-                    b.Property<string>("OrganizationId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("OrganizationId");
-
-                    b.ToTable("Organizations");
-                });
-
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.OrphanedCloudResource", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.OrphanedCloudResource", b =>
                 {
                     b.Property<string>("OrphanedCloudResourceId")
                         .ValueGeneratedOnAdd()
@@ -1036,7 +940,7 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("OrphanedCloudResources");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.SocialAccount", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.SocialAccount", b =>
                 {
                     b.Property<string>("SocialAccountId")
                         .ValueGeneratedOnAdd()
@@ -1047,9 +951,6 @@ namespace Leadsly.Infrastructure.Migrations
 
                     b.Property<string>("ApplicationUserId")
                         .HasColumnType("text");
-
-                    b.Property<bool>("ConfiguredWithUsersLeadslyAccount")
-                        .HasColumnType("boolean");
 
                     b.Property<string>("HalUnitId")
                         .HasColumnType("text");
@@ -1089,45 +990,7 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("SocialAccounts");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.SocialAccountCloudResource", b =>
-                {
-                    b.Property<string>("SocialAccountCloudResourceId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CloudMapDiscoveryServiceId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("EcsServiceId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("EcsTaskDefinitionId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("HalId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("SocialAccountId")
-                        .HasColumnType("text");
-
-                    b.HasKey("SocialAccountCloudResourceId");
-
-                    b.HasIndex("CloudMapDiscoveryServiceId");
-
-                    b.HasIndex("EcsServiceId");
-
-                    b.HasIndex("EcsTaskDefinitionId");
-
-                    b.HasIndex("SocialAccountId")
-                        .IsUnique();
-
-                    b.ToTable("SocialAccountResources");
-                });
-
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.VirtualAssistant", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.VirtualAssistant", b =>
                 {
                     b.Property<string>("VirtualAssistantId")
                         .ValueGeneratedOnAdd()
@@ -1300,68 +1163,43 @@ namespace Leadsly.Infrastructure.Migrations
                     b.ToTable("UserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("ApplicationUserOrganization", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.ApplicationUser", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("OrganizationUsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Leadsly.Application.Model.Entities.Organization", null)
-                        .WithMany()
-                        .HasForeignKey("OrganizationsOrganizationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.ApplicationUser", b =>
-                {
-                    b.HasOne("Leadsly.Application.Model.Entities.Customer_Stripe", "Customer_Stripe")
+                    b.HasOne("Leadsly.Domain.Models.Entities.Customer_Stripe", "Customer_Stripe")
                         .WithMany()
                         .HasForeignKey("Customer_StripeId");
 
                     b.Navigation("Customer_Stripe");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.Campaign", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.Campaign", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.ApplicationUser", "ApplicationUser")
+                    b.HasOne("Leadsly.Domain.Models.Entities.ApplicationUser", "ApplicationUser")
                         .WithMany("Campaigns")
-                        .HasForeignKey("ApplicationUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ApplicationUserId");
 
-                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.CampaignProspectList", "CampaignProspectList")
+                    b.HasOne("Leadsly.Domain.Models.Entities.Campaigns.CampaignProspectList", "CampaignProspectList")
                         .WithMany()
-                        .HasForeignKey("CampaignProspectListId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CampaignProspectListId");
 
                     b.Navigation("ApplicationUser");
 
                     b.Navigation("CampaignProspectList");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.CampaignProspect", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.CampaignProspect", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.Campaign", "Campaign")
+                    b.HasOne("Leadsly.Domain.Models.Entities.Campaigns.Campaign", "Campaign")
                         .WithMany()
-                        .HasForeignKey("CampaignId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CampaignId");
 
-                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.CampaignProspectList", "CampaignProspectList")
+                    b.HasOne("Leadsly.Domain.Models.Entities.Campaigns.CampaignProspectList", "CampaignProspectList")
                         .WithMany("CampaignProspects")
-                        .HasForeignKey("CampaignProspectListId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CampaignProspectListId");
 
-                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.PrimaryProspect", "PrimaryProspect")
+                    b.HasOne("Leadsly.Domain.Models.Entities.Campaigns.PrimaryProspect", "PrimaryProspect")
                         .WithMany()
-                        .HasForeignKey("PrimaryProspectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("PrimaryProspectId");
 
                     b.Navigation("Campaign");
 
@@ -1370,260 +1208,228 @@ namespace Leadsly.Infrastructure.Migrations
                     b.Navigation("PrimaryProspect");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.CampaignProspectFollowUpMessage", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.CampaignProspectFollowUpMessage", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.CampaignProspect", "CampaignProspect")
+                    b.HasOne("Leadsly.Domain.Models.Entities.Campaigns.CampaignProspect", "CampaignProspect")
                         .WithMany("FollowUpMessages")
-                        .HasForeignKey("CampaignProspectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CampaignProspectId");
 
                     b.Navigation("CampaignProspect");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.CampaignProspectList", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.CampaignProspectList", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.PrimaryProspectList", "PrimaryProspectList")
+                    b.HasOne("Leadsly.Domain.Models.Entities.Campaigns.PrimaryProspectList", "PrimaryProspectList")
                         .WithMany()
-                        .HasForeignKey("PrimaryProspectListId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("PrimaryProspectListId");
 
                     b.Navigation("PrimaryProspectList");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.CampaignWarmUp", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.CampaignWarmUp", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.Campaign", "Campaign")
+                    b.HasOne("Leadsly.Domain.Models.Entities.Campaigns.Campaign", "Campaign")
                         .WithMany()
-                        .HasForeignKey("CampaignId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CampaignId");
 
                     b.Navigation("Campaign");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.FollowUpMessage", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.FollowUpMessage", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.Campaign", "Campaign")
+                    b.HasOne("Leadsly.Domain.Models.Entities.Campaigns.Campaign", "Campaign")
                         .WithMany("FollowUpMessages")
-                        .HasForeignKey("CampaignId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CampaignId");
 
                     b.Navigation("Campaign");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.FollowUpMessageDelay", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.FollowUpMessageDelay", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.FollowUpMessage", "FollowUpMessage")
+                    b.HasOne("Leadsly.Domain.Models.Entities.Campaigns.FollowUpMessage", "FollowUpMessage")
                         .WithOne("Delay")
-                        .HasForeignKey("Leadsly.Application.Model.Entities.Campaigns.FollowUpMessageDelay", "FollowUpMessageId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Leadsly.Domain.Models.Entities.Campaigns.FollowUpMessageDelay", "FollowUpMessageId");
 
                     b.Navigation("FollowUpMessage");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.Phases.ConnectionWithdrawPhase", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.Phases.ConnectionWithdrawPhase", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.SocialAccount", "SocialAccount")
+                    b.HasOne("Leadsly.Domain.Models.Entities.SocialAccount", "SocialAccount")
                         .WithOne("ConnectionWithdrawPhase")
-                        .HasForeignKey("Leadsly.Application.Model.Entities.Campaigns.Phases.ConnectionWithdrawPhase", "SocialAccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Leadsly.Domain.Models.Entities.Campaigns.Phases.ConnectionWithdrawPhase", "SocialAccountId");
 
                     b.Navigation("SocialAccount");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.Phases.FollowUpMessagePhase", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.Phases.FollowUpMessagePhase", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.Campaign", "Campaign")
+                    b.HasOne("Leadsly.Domain.Models.Entities.Campaigns.Campaign", "Campaign")
                         .WithOne("FollowUpMessagePhase")
-                        .HasForeignKey("Leadsly.Application.Model.Entities.Campaigns.Phases.FollowUpMessagePhase", "CampaignId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Leadsly.Domain.Models.Entities.Campaigns.Phases.FollowUpMessagePhase", "CampaignId");
 
                     b.Navigation("Campaign");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.Phases.MonitorForNewConnectionsPhase", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.Phases.MonitorForNewConnectionsPhase", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.SocialAccount", "SocialAccount")
+                    b.HasOne("Leadsly.Domain.Models.Entities.SocialAccount", "SocialAccount")
                         .WithOne("MonitorForNewProspectsPhase")
-                        .HasForeignKey("Leadsly.Application.Model.Entities.Campaigns.Phases.MonitorForNewConnectionsPhase", "SocialAccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Leadsly.Domain.Models.Entities.Campaigns.Phases.MonitorForNewConnectionsPhase", "SocialAccountId");
 
                     b.Navigation("SocialAccount");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.Phases.ProspectListPhase", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.Phases.ProspectListPhase", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.Campaign", "Campaign")
+                    b.HasOne("Leadsly.Domain.Models.Entities.Campaigns.Campaign", "Campaign")
                         .WithOne("ProspectListPhase")
-                        .HasForeignKey("Leadsly.Application.Model.Entities.Campaigns.Phases.ProspectListPhase", "CampaignId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Leadsly.Domain.Models.Entities.Campaigns.Phases.ProspectListPhase", "CampaignId");
 
                     b.Navigation("Campaign");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.Phases.ScanProspectsForRepliesPhase", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.Phases.ScanProspectsForRepliesPhase", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.SocialAccount", "SocialAccount")
+                    b.HasOne("Leadsly.Domain.Models.Entities.SocialAccount", "SocialAccount")
                         .WithOne("ScanProspectsForRepliesPhase")
-                        .HasForeignKey("Leadsly.Application.Model.Entities.Campaigns.Phases.ScanProspectsForRepliesPhase", "SocialAccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Leadsly.Domain.Models.Entities.Campaigns.Phases.ScanProspectsForRepliesPhase", "SocialAccountId");
 
                     b.Navigation("SocialAccount");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.Phases.SendConnectionRequestPhase", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.Phases.SendConnectionRequestPhase", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.Campaign", "Campaign")
+                    b.HasOne("Leadsly.Domain.Models.Entities.Campaigns.Campaign", "Campaign")
                         .WithOne("SendConnectionRequestPhase")
-                        .HasForeignKey("Leadsly.Application.Model.Entities.Campaigns.Phases.SendConnectionRequestPhase", "CampaignId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Leadsly.Domain.Models.Entities.Campaigns.Phases.SendConnectionRequestPhase", "CampaignId");
 
                     b.Navigation("Campaign");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.Phases.SendEmailInvitePhase", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.Phases.SendEmailInvitePhase", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.Campaign", "Campaign")
+                    b.HasOne("Leadsly.Domain.Models.Entities.Campaigns.Campaign", "Campaign")
                         .WithOne("SendEmailInvitePhase")
-                        .HasForeignKey("Leadsly.Application.Model.Entities.Campaigns.Phases.SendEmailInvitePhase", "CampaignId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Leadsly.Domain.Models.Entities.Campaigns.Phases.SendEmailInvitePhase", "CampaignId");
 
                     b.Navigation("Campaign");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.PrimaryProspect", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.PrimaryProspect", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.PrimaryProspectList", "PrimaryProspectList")
+                    b.HasOne("Leadsly.Domain.Models.Entities.Campaigns.PrimaryProspectList", "PrimaryProspectList")
                         .WithMany("PrimaryProspects")
-                        .HasForeignKey("PrimaryProspectListId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("PrimaryProspectListId");
 
                     b.Navigation("PrimaryProspectList");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.PrimaryProspectList", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.PrimaryProspectList", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.ApplicationUser", "User")
+                    b.HasOne("Leadsly.Domain.Models.Entities.ApplicationUser", "User")
                         .WithMany("ProspectLists")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("UserId");
 
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.SearchUrl", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.SearchUrl", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.CampaignProspectList", null)
+                    b.HasOne("Leadsly.Domain.Models.Entities.Campaigns.CampaignProspectList", null)
                         .WithMany("SearchUrls")
                         .HasForeignKey("CampaignProspectListId");
 
-                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.PrimaryProspectList", "PrimaryProspectList")
+                    b.HasOne("Leadsly.Domain.Models.Entities.Campaigns.PrimaryProspectList", "PrimaryProspectList")
                         .WithMany("SearchUrls")
-                        .HasForeignKey("PrimaryProspectListId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("PrimaryProspectListId");
 
                     b.Navigation("PrimaryProspectList");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.SearchUrlDetails", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.SearchUrlDetails", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.Campaign", "Campaign")
+                    b.HasOne("Leadsly.Domain.Models.Entities.Campaigns.Campaign", "Campaign")
                         .WithMany("SentConnectionsStatuses")
-                        .HasForeignKey("CampaignId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CampaignId");
 
                     b.Navigation("Campaign");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.SearchUrlProgress", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.SearchUrlProgress", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.Campaign", "Campaign")
+                    b.HasOne("Leadsly.Domain.Models.Entities.Campaigns.Campaign", "Campaign")
                         .WithMany("SearchUrlsProgress")
-                        .HasForeignKey("CampaignId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CampaignId");
 
                     b.Navigation("Campaign");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.SendConnectionsStage", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.SendConnectionsStage", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.Campaigns.Campaign", "Campaign")
+                    b.HasOne("Leadsly.Domain.Models.Entities.Campaigns.Campaign", "Campaign")
                         .WithMany("SendConnectionStages")
-                        .HasForeignKey("CampaignId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CampaignId");
 
                     b.Navigation("Campaign");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.CloudMapDiscoveryService", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.CloudMapDiscoveryService", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.EcsService", "EcsService")
+                    b.HasOne("Leadsly.Domain.Models.Entities.EcsService", "EcsService")
                         .WithOne("CloudMapDiscoveryService")
-                        .HasForeignKey("Leadsly.Application.Model.Entities.CloudMapDiscoveryService", "EcsServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Leadsly.Domain.Models.Entities.CloudMapDiscoveryService", "EcsServiceId");
 
                     b.Navigation("EcsService");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.EcsServiceRegistry", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.EcsServiceRegistry", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.EcsService", "EcsService")
+                    b.HasOne("Leadsly.Domain.Models.Entities.EcsService", "EcsService")
                         .WithMany("EcsServiceRegistries")
                         .HasForeignKey("EcsServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("EcsService");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.HalUnit", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.EcsTask", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.ApplicationUser", "ApplicationUser")
+                    b.HasOne("Leadsly.Domain.Models.Entities.EcsService", "EcsService")
+                        .WithMany("EcsTasks")
+                        .HasForeignKey("EcsServiceId");
+
+                    b.Navigation("EcsService");
+                });
+
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.HalUnit", b =>
+                {
+                    b.HasOne("Leadsly.Domain.Models.Entities.ApplicationUser", "ApplicationUser")
                         .WithMany("HalDetails")
-                        .HasForeignKey("ApplicationUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ApplicationUserId");
 
                     b.Navigation("ApplicationUser");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.SocialAccount", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.SocialAccount", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.ApplicationUser", null)
+                    b.HasOne("Leadsly.Domain.Models.Entities.ApplicationUser", null)
                         .WithMany("SocialAccounts")
                         .HasForeignKey("ApplicationUserId");
 
-                    b.HasOne("Leadsly.Application.Model.Entities.HalUnit", "HalDetails")
+                    b.HasOne("Leadsly.Domain.Models.Entities.HalUnit", "HalDetails")
                         .WithOne("SocialAccount")
-                        .HasForeignKey("Leadsly.Application.Model.Entities.SocialAccount", "HalUnitId");
+                        .HasForeignKey("Leadsly.Domain.Models.Entities.SocialAccount", "HalUnitId");
 
-                    b.HasOne("Leadsly.Application.Model.Entities.ApplicationUser", "User")
+                    b.HasOne("Leadsly.Domain.Models.Entities.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Leadsly.Application.Model.Entities.VirtualAssistant", "VirtualAssistant")
+                    b.HasOne("Leadsly.Domain.Models.Entities.VirtualAssistant", "VirtualAssistant")
                         .WithOne("SocialAccount")
-                        .HasForeignKey("Leadsly.Application.Model.Entities.SocialAccount", "VirtualAssistantId")
+                        .HasForeignKey("Leadsly.Domain.Models.Entities.SocialAccount", "VirtualAssistantId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("HalDetails");
@@ -1633,60 +1439,27 @@ namespace Leadsly.Infrastructure.Migrations
                     b.Navigation("VirtualAssistant");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.SocialAccountCloudResource", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.VirtualAssistant", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.CloudMapDiscoveryService", "CloudMapDiscoveryService")
-                        .WithMany()
-                        .HasForeignKey("CloudMapDiscoveryServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Leadsly.Application.Model.Entities.EcsService", "EcsService")
-                        .WithMany()
-                        .HasForeignKey("EcsServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Leadsly.Application.Model.Entities.EcsTaskDefinition", "EcsTaskDefinition")
-                        .WithMany()
-                        .HasForeignKey("EcsTaskDefinitionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Leadsly.Application.Model.Entities.SocialAccount", "SocialAccount")
-                        .WithOne("SocialAccountCloudResource")
-                        .HasForeignKey("Leadsly.Application.Model.Entities.SocialAccountCloudResource", "SocialAccountId");
-
-                    b.Navigation("CloudMapDiscoveryService");
-
-                    b.Navigation("EcsService");
-
-                    b.Navigation("EcsTaskDefinition");
-
-                    b.Navigation("SocialAccount");
-                });
-
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.VirtualAssistant", b =>
-                {
-                    b.HasOne("Leadsly.Application.Model.Entities.ApplicationUser", "ApplicationUser")
+                    b.HasOne("Leadsly.Domain.Models.Entities.ApplicationUser", "ApplicationUser")
                         .WithMany("VirtualAssistants")
                         .HasForeignKey("ApplicationUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Leadsly.Application.Model.Entities.CloudMapDiscoveryService", "CloudMapDiscoveryService")
+                    b.HasOne("Leadsly.Domain.Models.Entities.CloudMapDiscoveryService", "CloudMapDiscoveryService")
                         .WithMany()
                         .HasForeignKey("CloudMapDiscoveryServiceId");
 
-                    b.HasOne("Leadsly.Application.Model.Entities.EcsService", "EcsService")
+                    b.HasOne("Leadsly.Domain.Models.Entities.EcsService", "EcsService")
                         .WithMany()
                         .HasForeignKey("EcsServiceId");
 
-                    b.HasOne("Leadsly.Application.Model.Entities.EcsTaskDefinition", "EcsTaskDefinition")
+                    b.HasOne("Leadsly.Domain.Models.Entities.EcsTaskDefinition", "EcsTaskDefinition")
                         .WithMany()
                         .HasForeignKey("EcsTaskDefinitionId");
 
-                    b.HasOne("Leadsly.Application.Model.Entities.HalUnit", "HalUnit")
+                    b.HasOne("Leadsly.Domain.Models.Entities.HalUnit", "HalUnit")
                         .WithMany()
                         .HasForeignKey("HalUnitId");
 
@@ -1712,7 +1485,7 @@ namespace Leadsly.Infrastructure.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.ApplicationUser", null)
+                    b.HasOne("Leadsly.Domain.Models.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1721,7 +1494,7 @@ namespace Leadsly.Infrastructure.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.ApplicationUser", null)
+                    b.HasOne("Leadsly.Domain.Models.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1736,7 +1509,7 @@ namespace Leadsly.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Leadsly.Application.Model.Entities.ApplicationUser", null)
+                    b.HasOne("Leadsly.Domain.Models.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1745,14 +1518,14 @@ namespace Leadsly.Infrastructure.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("Leadsly.Application.Model.Entities.ApplicationUser", null)
+                    b.HasOne("Leadsly.Domain.Models.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.ApplicationUser", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.ApplicationUser", b =>
                 {
                     b.Navigation("Campaigns");
 
@@ -1765,83 +1538,73 @@ namespace Leadsly.Infrastructure.Migrations
                     b.Navigation("VirtualAssistants");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.Campaign", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.Campaign", b =>
                 {
-                    b.Navigation("FollowUpMessagePhase")
-                        .IsRequired();
+                    b.Navigation("FollowUpMessagePhase");
 
                     b.Navigation("FollowUpMessages");
 
-                    b.Navigation("ProspectListPhase")
-                        .IsRequired();
+                    b.Navigation("ProspectListPhase");
 
                     b.Navigation("SearchUrlsProgress");
 
-                    b.Navigation("SendConnectionRequestPhase")
-                        .IsRequired();
+                    b.Navigation("SendConnectionRequestPhase");
 
                     b.Navigation("SendConnectionStages");
 
-                    b.Navigation("SendEmailInvitePhase")
-                        .IsRequired();
+                    b.Navigation("SendEmailInvitePhase");
 
                     b.Navigation("SentConnectionsStatuses");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.CampaignProspect", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.CampaignProspect", b =>
                 {
                     b.Navigation("FollowUpMessages");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.CampaignProspectList", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.CampaignProspectList", b =>
                 {
                     b.Navigation("CampaignProspects");
 
                     b.Navigation("SearchUrls");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.FollowUpMessage", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.FollowUpMessage", b =>
                 {
-                    b.Navigation("Delay")
-                        .IsRequired();
+                    b.Navigation("Delay");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.Campaigns.PrimaryProspectList", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.Campaigns.PrimaryProspectList", b =>
                 {
                     b.Navigation("PrimaryProspects");
 
                     b.Navigation("SearchUrls");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.EcsService", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.EcsService", b =>
                 {
-                    b.Navigation("CloudMapDiscoveryService")
-                        .IsRequired();
+                    b.Navigation("CloudMapDiscoveryService");
 
                     b.Navigation("EcsServiceRegistries");
+
+                    b.Navigation("EcsTasks");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.HalUnit", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.HalUnit", b =>
                 {
                     b.Navigation("SocialAccount");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.SocialAccount", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.SocialAccount", b =>
                 {
-                    b.Navigation("ConnectionWithdrawPhase")
-                        .IsRequired();
+                    b.Navigation("ConnectionWithdrawPhase");
 
-                    b.Navigation("MonitorForNewProspectsPhase")
-                        .IsRequired();
+                    b.Navigation("MonitorForNewProspectsPhase");
 
-                    b.Navigation("ScanProspectsForRepliesPhase")
-                        .IsRequired();
-
-                    b.Navigation("SocialAccountCloudResource")
-                        .IsRequired();
+                    b.Navigation("ScanProspectsForRepliesPhase");
                 });
 
-            modelBuilder.Entity("Leadsly.Application.Model.Entities.VirtualAssistant", b =>
+            modelBuilder.Entity("Leadsly.Domain.Models.Entities.VirtualAssistant", b =>
                 {
                     b.Navigation("SocialAccount");
                 });

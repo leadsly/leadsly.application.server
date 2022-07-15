@@ -1,30 +1,51 @@
-﻿using Leadsly.Domain.Models.Entities;
+﻿using Leadsly.Application.Model.Aws.ElasticContainerService;
+using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.Repositories;
+using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Leadsly.Domain
 {
     public class RestartResourcesCommandHandler : ICommandHandler<RestartResourcesCommand>
     {
-        public RestartResourcesCommandHandler(IHalRepository halRepository, ICloudPlatformRepository cloudPlatformRepository, ILogger<RestartResourcesCommandHandler> logger)
+        public RestartResourcesCommandHandler(IAwsElasticContainerService awsEcsService, IVirtualAssistantRepository virtualAssistantRepository, ILogger<RestartResourcesCommandHandler> logger)
         {
-            _halRepository = halRepository;
-            _cloudPlatformRepository = cloudPlatformRepository;
+            _virtualAssistantRepository = virtualAssistantRepository;
             _logger = logger;
+            _awsEcsService = awsEcsService;
         }
 
-        private readonly IHalRepository _halRepository;
-        private readonly ICloudPlatformRepository _cloudPlatformRepository;
+        private readonly IAwsElasticContainerService _awsEcsService;
+        private readonly IVirtualAssistantRepository _virtualAssistantRepository;
         private readonly ILogger<RestartResourcesCommandHandler> _logger;
 
         public async Task HandleAsync(RestartResourcesCommand command)
         {
             string halId = command.HalId;
 
-            HalUnit halUnit = await _halRepository.GetByHalIdAsync(halId);
+            VirtualAssistant virtualAssistant = await _virtualAssistantRepository.GetByHalIdAsync(halId);
 
+            if (virtualAssistant != null)
+            {
+                if (virtualAssistant.EcsService != null)
+                {
+                    ICollection<EcsTask> ecsTasks = virtualAssistant.EcsService.EcsTasks;
 
+                    foreach (EcsTask task in ecsTasks)
+                    {
+                        StopEcsTaskRequest request = new()
+                        {
+                            Cluster = virtualAssistant.EcsService.ClusterArn,
+                            Reason = "Routine restart",
+                            Task = task.TaskArn
+                        };
+
+                        await _awsEcsService.StopTaskAsync(request);
+                    }
+                }
+            }
         }
     }
 }

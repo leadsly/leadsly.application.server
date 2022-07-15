@@ -6,7 +6,7 @@ namespace Leadsly.Domain.Models.Entities
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string EcsTaskId { get; set; }
-
+        public string TaskArn { get; set; }
         public string ContainerName { get; set; }
         public string EcsServiceId { get; set; }
         public ContainerPurpose ContainerPurpose { get; set; }

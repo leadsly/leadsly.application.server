@@ -17,7 +17,7 @@ namespace Leadsly.Domain.Services.Interfaces
         Task<DeregisterTaskDefinitionResponse> DeregisterTaskDefinitionAsync(DeregisterEcsTaskDefinitionRequest deregisterTaskDefinitionRequest, CancellationToken ct = default);
         Task<UpdateServiceResponse> UpdateServiceAsync(UpdateEcsServiceRequest updateServiceRequest, CancellationToken ct = default);
         Task<DescribeServicesResponse> DescribeServicesAsync(DescribeServicesRequest request, CancellationToken ct = default);
-        Task<ListTasksResponse> ListTasksAsync(ListEcsTasksRequest listEcsTasksRequest, CancellationToken ct = default);
+        Task<ListTasksResponse> ListTasksAsync(ListTasksRequest request, CancellationToken ct = default);
         Task<DescribeTasksResponse> DescribeTasksAsync(DescribeEcsTasksRequest describeEcsTasksRequest, CancellationToken ct = default);
         Task<DescribeServicesResponse> DescribeServices(DescribeEcsServicesRequest describeEcsServicesRequest, CancellationToken ct = default);
     }

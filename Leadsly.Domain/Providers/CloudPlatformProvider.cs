@@ -23,10 +23,7 @@ namespace Leadsly.Domain.Providers
             IAwsElasticContainerService awsElasticContainerService,
             ICloudPlatformRepository cloudPlatformRepository,
             IAwsServiceDiscoveryService awsServiceDiscoveryService,
-            IAwsRoute53Service awsRoute53Service,
             IVirtualAssistantRepository virtualAssistantRepository,
-            ILeadslyHalApiService leadslyBotApiService,
-            IHalRepository halRepository,
             IOrphanedCloudResourcesRepository orphanedCloudResourcesRepository,
             ILogger<CloudPlatformProvider> logger)
         {
@@ -35,23 +32,16 @@ namespace Leadsly.Domain.Providers
             _awsServiceDiscoveryService = awsServiceDiscoveryService;
             _cloudPlatformRepository = cloudPlatformRepository;
             _orphanedCloudResourcesRepository = orphanedCloudResourcesRepository;
-            _awsRoute53Service = awsRoute53Service;
-            _leadslyBotApiService = leadslyBotApiService;
-            _halRepository = halRepository;
             _logger = logger;
         }
 
-        private readonly ILeadslyHalApiService _leadslyBotApiService;
-        private readonly IHalRepository _halRepository;
         private readonly IVirtualAssistantRepository _virtualAssistantRepository;
         private readonly IAwsElasticContainerService _awsElasticContainerService;
-        private readonly IAwsRoute53Service _awsRoute53Service;
         private readonly IAwsServiceDiscoveryService _awsServiceDiscoveryService;
         private readonly IOrphanedCloudResourcesRepository _orphanedCloudResourcesRepository;
         private readonly ICloudPlatformRepository _cloudPlatformRepository;
         private readonly ILogger<CloudPlatformProvider> _logger;
-        private readonly int DefaultTimeToWaitForEcsServicePendingTasks_InSeconds = 120;
-        private readonly string HealthCheckEndpoint = "api/healthcheck";
+        private readonly int DefaultTimeToWaitForEcsServicePendingTasks_InSeconds = 160;
 
         public async Task DeleteAwsEcsServiceAsync(string userId, string serviceName, string clusterName, CancellationToken ct = default)
         {
@@ -220,18 +210,21 @@ namespace Leadsly.Domain.Providers
             {
                 RequiresCompatibilities = configuration.EcsTaskDefinitionConfig.RequiresCompatibilities,
                 Family = taskDefinition,
-                ContainerDefinitions = configuration.EcsTaskDefinitionConfig.ContainerDefinitions.Select(c => new ContainerDefinition
+                ContainerDefinitions = configuration.EcsTaskDefinitionConfig.ContainerDefinitions.Select(c =>
                 {
-                    Name = halContainerName,
-                    Image = c.Image,
-                    Environment = new List<Amazon.ECS.Model.KeyValuePair>()
+                    return new ContainerDefinition
                     {
-                        new Amazon.ECS.Model.KeyValuePair()
+                        Name = c.Name == "Hal" ? halContainerName : gridContainerName,
+                        Image = c.Image,
+                        Environment = new List<Amazon.ECS.Model.KeyValuePair>()
                         {
-                            Name = Enum.GetName(DockerEnvironmentVariables.HAL_ID),
-                            Value = halId
+                            new Amazon.ECS.Model.KeyValuePair()
+                            {
+                                Name = Enum.GetName(DockerEnvironmentVariables.HAL_ID),
+                                Value = halId
+                            }
                         }
-                    }
+                    };
                 }).ToList(),
                 Cpu = configuration.EcsTaskDefinitionConfig.Cpu,
                 Memory = configuration.EcsTaskDefinitionConfig.Memory,
@@ -359,6 +352,7 @@ namespace Leadsly.Domain.Providers
         public async Task<VirtualAssistant> CreateVirtualAssistantAsync(
             EcsTaskDefinition newEcsTaskDefinition,
             EcsService newEcsService,
+            IList<EcsTask> ecsServiceTasks,
             CloudMapDiscoveryService newCloudMapService,
             string halId,
             string userId,
@@ -374,6 +368,7 @@ namespace Leadsly.Domain.Providers
 
             newCloudMapService.EcsService = newEcsService;
             newEcsService.CloudMapDiscoveryService = newCloudMapService;
+            newEcsService.EcsTasks = ecsServiceTasks;
 
             VirtualAssistant virtualAssistant = new VirtualAssistant
             {
@@ -391,6 +386,30 @@ namespace Leadsly.Domain.Providers
         public async Task<bool> DeleteVirtualAssistantAsync(string virtualAssistantId, CancellationToken ct = default)
         {
             return await _virtualAssistantRepository.DeleteAsync(virtualAssistantId, ct);
+        }
+
+        public async Task<IList<EcsTask>> ListEcsServiceTasksAsync(string clusterArn, string serviceArn, CancellationToken ct = default)
+        {
+            ListTasksRequest request = new ListTasksRequest
+            {
+                Cluster = clusterArn,
+                ServiceName = serviceArn
+            };
+
+            ListTasksResponse response = await _awsElasticContainerService.ListTasksAsync(request, ct);
+            if (response == null || response.HttpStatusCode != HttpStatusCode.OK)
+            {
+                _logger.LogError("Failed to list ECS tasks in AWS");
+                return null;
+            }
+
+            _logger.LogInformation("Successfully listed ECS tasks in AWS.");
+            IList<EcsTask> tasks = response.TaskArns.Select(taskArn => new EcsTask
+            {
+                TaskArn = taskArn
+            }).ToList();
+
+            return tasks;
         }
 
     }

@@ -21,13 +21,10 @@ namespace Leadsly.Domain.Models.Entities
         [Required]
         public string TaskDefinition { get; set; }
         [Required]
-        public int DesiredCount { get; set; }
-        [Required]
         public string SchedulingStrategy { get; set; }
-        [Required]
-        public string AssignPublicIp { get; set; }
         public CloudMapDiscoveryService CloudMapDiscoveryService { get; set; }
         public ICollection<EcsServiceRegistry> EcsServiceRegistries { get; set; }
+        public ICollection<EcsTask> EcsTasks { get; set; }
 
     }
 }

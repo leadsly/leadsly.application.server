@@ -158,7 +158,7 @@ namespace Leadsly.Domain.Services
             {
                 DeregisterTaskDefinitionResponse response = await DeregisterTaskDefinitionAsync(new DeregisterEcsTaskDefinitionRequest
                 {
-                    TaskDefinition = taskDefinitionFamily
+                    TaskDefinition = $"{taskDefinitionFamily}:1"
                 }, ct);
 
                 result = response == null;
@@ -205,20 +205,12 @@ namespace Leadsly.Domain.Services
             return resp;
         }
 
-        public async Task<ListTasksResponse> ListTasksAsync(ListEcsTasksRequest listEcsTasksRequest, CancellationToken ct = default)
+        public async Task<ListTasksResponse> ListTasksAsync(ListTasksRequest request, CancellationToken ct = default)
         {
             ListTasksResponse resp = default;
             try
             {
-                resp = await _amazonEcsClient.ListTasksAsync(new ListTasksRequest
-                {
-                    Cluster = listEcsTasksRequest.Cluster,
-                    ContainerInstance = listEcsTasksRequest.ContainerInstance,
-                    DesiredStatus = listEcsTasksRequest.DesiredStatus,
-                    Family = listEcsTasksRequest.Family,
-                    LaunchType = listEcsTasksRequest.LaunchType,
-                    ServiceName = listEcsTasksRequest.ServiceName
-                }, ct);
+                resp = await _amazonEcsClient.ListTasksAsync(request, ct);
             }
             catch (Exception ex)
             {

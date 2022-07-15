@@ -4,6 +4,7 @@ using Leadsly.Domain.Models.Requests;
 using Leadsly.Domain.Models.ViewModels.VirtualAssistant;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,6 +15,7 @@ namespace Leadsly.Domain.Supervisor
         private EcsService EcsService { get; set; }
         private EcsTaskDefinition EcsTaskDefinition { get; set; }
         private CloudMapDiscoveryService CloudMapDiscoveryService { get; set; }
+        private IList<EcsTask> EcsServiceTasks { get; set; }
 
         public async Task<DeleteVirtualAssistantViewModel> DeleteVirtualAssistantAsync(string userId, CancellationToken ct = default)
         {
@@ -94,7 +96,7 @@ namespace Leadsly.Domain.Supervisor
                 return null;
             }
 
-            VirtualAssistant virtualAssistant = await _cloudPlatformProvider.CreateVirtualAssistantAsync(EcsTaskDefinition, EcsService, CloudMapDiscoveryService, halId, setup.UserId, setup.TimeZoneId, ct);
+            VirtualAssistant virtualAssistant = await _cloudPlatformProvider.CreateVirtualAssistantAsync(EcsTaskDefinition, EcsService, EcsServiceTasks, CloudMapDiscoveryService, halId, setup.UserId, setup.TimeZoneId, ct);
             VirtualAssistantViewModel virtualAssistantViewModel = VirtualAssistantConverter.Convert(virtualAssistant);
             return virtualAssistantViewModel;
         }
@@ -139,6 +141,17 @@ namespace Leadsly.Domain.Supervisor
                 return false;
             }
 
+            IList<EcsTask> ecsServiceTasks = await _cloudPlatformProvider.ListEcsServiceTasksAsync(ecsService.ClusterArn, ecsService.ServiceArn, ct);
+            if (ecsServiceTasks == null)
+            {
+                string ecsServiceName = ecsService.ServiceName;
+                _logger.LogError("Failed to retreive ecs tasks for service {ecsServiceName}", ecsServiceName);
+                await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsService.ServiceName, ecsService.ClusterArn, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, cloudMapServiceDiscoveryService.ServiceDiscoveryId, ct);
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, ecsTaskDefinition.Family, ct);
+                return false;
+            }
+
             // Healthcheck request to ensure all resources are running in the expected state
             //bool healthCheck = await _cloudPlatformProvider.AreAwsResourcesHealthyAsync(cloudMapServiceDiscoveryService.Name, ct);
             //if (healthCheck == false)
@@ -157,6 +170,7 @@ namespace Leadsly.Domain.Supervisor
             EcsTaskDefinition = ecsTaskDefinition;
             CloudMapDiscoveryService = cloudMapServiceDiscoveryService;
             EcsService = ecsService;
+            EcsServiceTasks = ecsServiceTasks;
 
             return true;
         }

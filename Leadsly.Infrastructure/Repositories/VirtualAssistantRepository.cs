@@ -72,5 +72,27 @@ namespace Leadsly.Infrastructure.Repositories
             await _dbContext.SaveChangesAsync(ct);
             return true;
         }
+
+        public async Task<VirtualAssistant> GetByHalIdAsync(string halId, CancellationToken ct = default)
+        {
+            VirtualAssistant virtualAssistant = null;
+            try
+            {
+                virtualAssistant = await _dbContext.VirtualAssistants
+                    .Include(v => v.SocialAccount)
+                    .Where(v => v.SocialAccount.Linked == true && v.HalUnit.HalId == halId)
+                    .Include(v => v.HalUnit)
+                    .Include(v => v.CloudMapDiscoveryService)
+                    .Include(v => v.EcsService)
+                        .ThenInclude(s => s.EcsTasks)
+                    .Include(v => v.EcsTaskDefinition)
+                    .FirstOrDefaultAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve virtual assistant by hal id {halId}", halId);
+            }
+            return virtualAssistant;
+        }
     }
 }
