@@ -1,12 +1,11 @@
-﻿using Leadsly.Application.Model.Entities;
-using Leadsly.Application.Model.Entities.Campaigns.Phases;
+﻿using Leadsly.Domain.Models.Entities;
+using Leadsly.Domain.Models.Entities.Campaigns.Phases;
 using Leadsly.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,7 +16,7 @@ namespace Leadsly.Infrastructure.Repositories
         public HalRepository(DatabaseContext dbContext, ILogger<HalRepository> logger)
         {
             _dbContext = dbContext;
-            _logger = logger;            
+            _logger = logger;
         }
 
         private readonly ILogger<HalRepository> _logger;
@@ -40,17 +39,17 @@ namespace Leadsly.Infrastructure.Repositories
             }
 
             return halDetails;
-        }   
-        
+        }
+
         public async Task<HalUnit> GetBySocialAccountUsernameAsync(string connectedAccountUsername, CancellationToken ct = default)
         {
             _logger.LogInformation("Retrieving HalUnit by socialaccount username {connectedAccountUserName}", connectedAccountUsername);
             HalUnit halDetails = null;
             try
-            {                
+            {
                 // should always be just one
                 halDetails = await _dbContext.HalUnits
-                    .Include(h => h.SocialAccount)                    
+                    .Include(h => h.SocialAccount)
                     .Where(h => h.SocialAccount.Username == connectedAccountUsername)
                     .SingleAsync(ct);
 
@@ -108,14 +107,14 @@ namespace Leadsly.Infrastructure.Repositories
             HalUnit halUnit = default;
             try
             {
-                halUnit = await _dbContext.HalUnits.Where(h => h.HalId == halId)                                                    
+                halUnit = await _dbContext.HalUnits.Where(h => h.HalId == halId)
                                                     .Include(h => h.SocialAccount)
                                                         .ThenInclude(s => s.ConnectionWithdrawPhase)
                                                      .Include(h => h.SocialAccount)
                                                         .ThenInclude(s => s.MonitorForNewProspectsPhase)
                                                     .Include(h => h.SocialAccount)
                                                         .ThenInclude(s => s.ScanProspectsForRepliesPhase)
-                                                    .SingleAsync(ct);                
+                                                    .SingleAsync(ct);
 
                 _logger.LogDebug("Successfully found HalUnit by hal id {halId}", halId);
             }
@@ -145,6 +144,24 @@ namespace Leadsly.Infrastructure.Repositories
             }
 
             return halIds;
+        }
+
+        public async Task<IList<HalUnit>> GetAllByTimeZoneIdAsync(string timezoneId, CancellationToken ct = default)
+        {
+            // get all HalUnit by timezoneId
+            _logger.LogInformation("Retrieving all HalUnits by timezone id {timezoneId}", timezoneId);
+            IList<HalUnit> halUnits = new List<HalUnit>();
+            try
+            {
+                halUnits = await _dbContext.HalUnits.Where(h => h.TimeZoneId == timezoneId).ToListAsync(ct);
+                _logger.LogDebug("Successfully found HalUnits by timezone id {timezoneId}", timezoneId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve HalUnits by timezone id {timezoneId}. Returning an explicit null", timezoneId);
+                return null;
+            }
+            return halUnits;
         }
     }
 }

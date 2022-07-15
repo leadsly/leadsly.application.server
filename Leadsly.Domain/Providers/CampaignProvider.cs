@@ -1,17 +1,11 @@
 ﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.Campaigns.Interfaces;
-using Leadsly.Application.Model.Entities;
-using Leadsly.Application.Model.Entities.Campaigns;
-using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Application.Model.Requests.FromHal;
 using Leadsly.Application.Model.Responses;
-using Leadsly.Application.Model.ViewModels;
-using Leadsly.Application.Model.ViewModels.Campaigns;
-using Leadsly.Application.Model.ViewModels.Response;
-using Leadsly.Domain.Campaigns;
 using Leadsly.Domain.Facades.Interfaces;
-using Leadsly.Domain.Models.Requests;
+using Leadsly.Domain.Models.Entities.Campaigns;
+using Leadsly.Domain.Models.Entities.Campaigns.Phases;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
@@ -29,23 +23,15 @@ namespace Leadsly.Domain.Providers
     {
         public CampaignProvider(
             ILogger<CampaignProvider> logger,
-            ICampaignService campaignService,
-            ITimestampService timestampService,
-            ICampaignPhaseClient campaignPhaseClient,
             ICampaignRepositoryFacade campaignRepositoryFacade,
             IHangfireService hangfireService,
             IMemoryCache memoryCache,
-            IFollowUpMessageJobsRepository followUpMessageJobRepository,
-            ISocialAccountRepository socialAccountRepository
+            IFollowUpMessageJobsRepository followUpMessageJobRepository
             )
         {
             _hangfireService = hangfireService;
             _followUpMessageJobRepository = followUpMessageJobRepository;
             _memoryCache = memoryCache;
-            _socialAccountRepository = socialAccountRepository;
-            _campaignPhaseClient = campaignPhaseClient;
-            _timestampService = timestampService;
-            _campaignService = campaignService;
             _logger = logger;
             _campaignRepositoryFacade = campaignRepositoryFacade;
         }
@@ -53,43 +39,8 @@ namespace Leadsly.Domain.Providers
         private readonly IHangfireService _hangfireService;
         private readonly IFollowUpMessageJobsRepository _followUpMessageJobRepository;
         private readonly IMemoryCache _memoryCache;
-        private readonly ISocialAccountRepository _socialAccountRepository;
-        private readonly ICampaignPhaseClient _campaignPhaseClient;
-        private readonly ITimestampService _timestampService;
         private readonly ILogger<CampaignProvider> _logger;
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
-        private readonly ICampaignService _campaignService;
-
-        [Obsolete]
-        public CampaignProspectList CreateCampaignProspectList(PrimaryProspectList primaryProspectList, string userId)
-        {
-            CampaignProspectList campaignProspectList = _campaignService.GenerateCampaignProspectList(primaryProspectList, userId);
-
-            return campaignProspectList;
-        }
-
-        private async Task<HalsProspectListPhasesPayload> GetActiveProspectListPhasesAsync(CancellationToken ct = default)
-        {
-            IList<ProspectListPhase> prospectListPhases = await _campaignRepositoryFacade.GetAllActiveProspectListPhasesAsync(ct);
-
-            IEnumerable<string> halIds = prospectListPhases.Select(phase => phase.Campaign.HalId).Distinct();
-
-            HalsProspectListPhasesPayload halsPhases = new();
-            foreach (string halId in halIds)
-            {
-                List<ProspectListBody> content = prospectListPhases.Where(p => p.Campaign.HalId == halId).Select(p =>
-                {
-                    return new ProspectListBody
-                    {
-                        SearchUrls = p.SearchUrls
-                    };
-                }).ToList();
-
-                halsPhases.ProspectListPayload.Add(halId, content);
-            }
-
-            return halsPhases;
-        }
 
         /// <summary>
         /// This is used by DeepScanProspectsForRepliesPhase
@@ -211,20 +162,6 @@ namespace Leadsly.Domain.Providers
             return incompleteProspectListPhases;
         }
 
-        public async Task<List<string>> GetHalIdsWithActiveCampaignsAsync(CancellationToken ct = default)
-        {
-            IList<Campaign> activeCampaigns = await _campaignRepositoryFacade.GetAllActiveCampaignsAsync(ct);
-
-            List<string> halIds = activeCampaigns.Select(c => c.HalId).ToList();
-
-            return halIds;
-        }
-
-        public async Task<int> CreateDailyWarmUpLimitConfigurationAsync(long startDateTimestamp, CancellationToken ct = default)
-        {
-            return await _campaignService.CreateDailyWarmUpLimitConfigurationAsync(startDateTimestamp, ct);
-        }
-
         public async Task<HalOperationResult<T>> UpdateSentConnectionsUrlStatusesAsync<T>(string campaignId, UpdateSearchUrlDetailsRequest request, CancellationToken ct = default)
             where T : IOperationResponse
         {
@@ -290,183 +227,6 @@ namespace Leadsly.Domain.Providers
             result.Value = (T)payload;
             result.Succeeded = true;
             return result;
-        }
-
-        [Obsolete]
-        public async Task<HalOperationResultViewModel<T>> CreateCampaignAsync<T>(CreateCampaignRequest request, string userId, CancellationToken ct = default)
-            where T : IOperationResponseViewModel
-        {
-            HalOperationResultViewModel<T> result = new();
-
-            Campaign newCampaign = new()
-            {
-                Name = request.CampaignDetails.Name,
-                StartTimestamp = request.CampaignDetails.StartTimestamp,
-                EndTimestamp = request.CampaignDetails.EndTimestamp,
-                DailyInvites = request.CampaignDetails.DailyInviteLimit,
-                IsWarmUpEnabled = request.CampaignDetails.WarmUp,
-                CampaignType = request.CampaignDetails.CampaignType,
-                FollowUpMessages = new List<FollowUpMessage>(),
-                ApplicationUserId = userId
-            };
-
-            // check if we're using existing prospect list or not
-            PrimaryProspectList primaryProspectList = default;
-            if (request.CampaignDetails.PrimaryProspectList.Existing == true)
-            {
-                // grab existing primary prospect list by prospect list name and user id
-                primaryProspectList = await _campaignRepositoryFacade.GetPrimaryProspectListByNameAndUserIdAsync(request.CampaignDetails.PrimaryProspectList.Name, userId, ct);
-            }
-            else
-            {
-                primaryProspectList = new()
-                {
-                    Name = request.CampaignDetails.PrimaryProspectList.Name,
-                    SearchUrls = new List<SearchUrl>(),
-                    UserId = userId,
-                    CreatedTimestamp = _timestampService.CreateNowTimestamp()
-                };
-
-                foreach (string searchUrl in request.CampaignDetails.PrimaryProspectList.SearchUrls)
-                {
-                    primaryProspectList.SearchUrls.Add(new()
-                    {
-                        PrimaryProspectList = primaryProspectList,
-                        Url = searchUrl
-                    });
-                }
-
-                primaryProspectList = await _campaignRepositoryFacade.CreatePrimaryProspectListAsync(primaryProspectList, ct);
-            }
-
-            CampaignProspectList campaignProspectList = CreateCampaignProspectList(primaryProspectList, userId);
-            newCampaign.CampaignProspectList = campaignProspectList;
-
-            foreach (FollowUpMessageViewModel followUpMsg in request.FollowUpMessages)
-            {
-                FollowUpMessage followUpMessage = new()
-                {
-                    Campaign = newCampaign,
-                    Content = followUpMsg.Content,
-                    Order = followUpMsg.Order,
-                    Delay = new()
-                    {
-                        Unit = followUpMsg.Delay.Unit,
-                        Value = followUpMsg.Delay.Value
-                    }
-                };
-
-                newCampaign.FollowUpMessages.Add(followUpMessage);
-            }
-
-            newCampaign.HalId = request.HalId;
-
-            Campaign newCampaignWithPhases = CreateCampaignPhases(newCampaign, request.CampaignDetails.PrimaryProspectList.Existing, ct);
-
-            IList<SearchUrlDetails> sentConnectionsSearchUrlStatuses = new List<SearchUrlDetails>();
-            IList<Application.Model.Entities.Campaigns.SearchUrlProgress> searchUrlsProgress = new List<Application.Model.Entities.Campaigns.SearchUrlProgress>();
-            IList<string> searchUrls = request.CampaignDetails.PrimaryProspectList.Existing ? primaryProspectList.SearchUrls.Select(s => s.Url).ToList() : request.CampaignDetails.PrimaryProspectList.SearchUrls;
-            foreach (string searchUrl in searchUrls)
-            {
-                SearchUrlDetails sentConnectionsSearchUrlStatus = new()
-                {
-                    Campaign = newCampaignWithPhases,
-                    CurrentUrl = searchUrl,
-                    FinishedCrawling = false,
-                    StartedCrawling = false,
-                    OriginalUrl = searchUrl,
-                    WindowHandleId = string.Empty,
-                    LastActivityTimestamp = 0
-                };
-                sentConnectionsSearchUrlStatuses.Add(sentConnectionsSearchUrlStatus);
-
-                Application.Model.Entities.Campaigns.SearchUrlProgress searchUrlProgress = new()
-                {
-                    Campaign = newCampaignWithPhases,
-                    LastPage = 1,
-                    LastProcessedProspect = 0,
-                    TotalSearchResults = 0,
-                    SearchUrl = searchUrl,
-                    WindowHandleId = string.Empty
-                };
-                searchUrlsProgress.Add(searchUrlProgress);
-            }
-            newCampaignWithPhases.SentConnectionsStatuses = sentConnectionsSearchUrlStatuses;
-            newCampaignWithPhases.SearchUrlsProgress = searchUrlsProgress;
-
-            if (request.CampaignDetails.WarmUp == true)
-            {
-                // create warmup configuration
-                await CreateDailyWarmUpLimitConfigurationAsync(request.CampaignDetails.StartTimestamp, ct);
-            }
-
-            // create send connections stages. For when each campaign will send out its connections
-            newCampaignWithPhases.SendConnectionStages = CreateSendConnectionsStages();
-
-            // create new ProspectList if we're not using an existing one
-            newCampaignWithPhases = await _campaignRepositoryFacade.CreateCampaignAsync(newCampaignWithPhases, ct);
-            if (newCampaignWithPhases == null)
-            {
-                result.OperationResults.Failures.Add(new()
-                {
-                    Code = Codes.DATABASE_OPERATION_ERROR,
-                    Reason = "Failed to create new campaign",
-                    Detail = "Error occured while saving the new campaign and it's phases"
-                });
-                return result;
-            }
-
-            SocialAccount socialAccount = await _socialAccountRepository.GetByUserNameAsync(request.ConnectedAccount, ct);
-            if (socialAccount.RunProspectListFirst)
-            {
-                await _campaignPhaseClient.HandleNewCampaignAsync(newCampaign);
-            }
-            else
-            {
-                await _campaignPhaseClient.HandleNewCampaignMergedAsync(newCampaign);
-            }
-
-            result.OperationResults.Succeeded = true;
-            result.Data = newCampaignWithPhases;
-            return result;
-        }
-
-        [Obsolete]
-        private IList<SendConnectionsStage> CreateSendConnectionsStages()
-        {
-            IList<SendConnectionsStage> connectionsStages = new List<SendConnectionsStage>();
-            for (int i = 0; i < 3; i++)
-            {
-                SendConnectionsStage sendConnectionsStage = new();
-                if (i == 0)
-                {
-                    sendConnectionsStage = new SendConnectionsStage
-                    {
-                        StartTime = "8:00 AM",
-                        Order = i + 1
-                    };
-                }
-                else if (i == 1)
-                {
-                    sendConnectionsStage = new SendConnectionsStage
-                    {
-                        StartTime = "12:00 PM",
-                        Order = i + 1
-                    };
-                }
-                else
-                {
-                    sendConnectionsStage = new SendConnectionsStage
-                    {
-                        StartTime = "5:00PM",
-                        Order = i + 1
-                    };
-                }
-
-                connectionsStages.Add(sendConnectionsStage);
-            }
-
-            return connectionsStages;
         }
 
         public async Task<IList<Campaign>> GetAllByUserIdAsync(string userId, CancellationToken ct = default)
@@ -538,11 +298,6 @@ namespace Leadsly.Domain.Providers
             return await _campaignRepositoryFacade.DeleteCampaignAsync(campaignId, ct);
         }
 
-        public async Task<IList<Campaign>> GetAllActiveByUserIdAsync(string userId, CancellationToken ct = default)
-        {
-            return await _campaignRepositoryFacade.GetAllActiveCampaignsByUserIdAsync(userId, ct);
-        }
-
         private async Task<IList<CampaignProspect>> GetCampaignProspectsAsync(string campaignId, CancellationToken ct = default)
         {
             if (_memoryCache.TryGetValue($"CampaignProspects-{campaignId}", out IList<CampaignProspect> campaignProspects) == false)
@@ -552,31 +307,6 @@ namespace Leadsly.Domain.Providers
             }
 
             return campaignProspects;
-        }
-
-        [Obsolete]
-        private Campaign CreateCampaignPhases(Campaign newCampaign, bool useExistingProspectList, CancellationToken ct = default)
-        {
-            CampaignType campaignType = default;
-            switch (newCampaign.CampaignType)
-            {
-                case CampaignTypeEnum.None:
-                    break;
-                case CampaignTypeEnum.Invitations:
-                    campaignType = new InvitationsCampaign();
-                    break;
-                case CampaignTypeEnum.FollowUp:
-                    campaignType = new FollowUpCampaign();
-                    break;
-                case CampaignTypeEnum.ProfileVisits:
-                    break;
-                default:
-                    break;
-            }
-
-            Campaign campaign = campaignType.GeneratePhases(newCampaign, useExistingProspectList);
-
-            return campaign;
         }
     }
 }

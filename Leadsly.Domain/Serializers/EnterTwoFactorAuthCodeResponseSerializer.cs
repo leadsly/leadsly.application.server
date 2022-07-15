@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Serializers
@@ -35,7 +34,7 @@ namespace Leadsly.Domain.Serializers
                 _logger.LogInformation("Attempting to deserialize response.");
                 string content = await response.Content.ReadAsStringAsync();
                 IEnterTwoFactorAuthCodeResponse resp = JsonConvert.DeserializeObject<EnterTwoFactorAuthCodeResponse>(content);
-                response.Headers.TryGetValues(CustomHeaderKeys.Origin, out IEnumerable<string> customOriginHeaders);
+                response.Headers.TryGetValues(Application.Model.CustomHeaderKeys.Origin, out IEnumerable<string> customOriginHeaders);
                 resp.OperationInformation.HalId = customOriginHeaders?.FirstOrDefault();
                 _logger.LogInformation("Successfully deserialized response into an object");
                 result.Value = (T)resp;

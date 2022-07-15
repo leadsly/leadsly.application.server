@@ -1,17 +1,13 @@
 ﻿using Leadsly.Application.Model.Campaigns;
-using Leadsly.Application.Model.Entities;
-using Leadsly.Application.Model.Entities.Campaigns;
-using Leadsly.Application.Model.Entities.Campaigns.Phases;
-using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Factories.Interfaces;
+using Leadsly.Domain.Models.Entities;
+using Leadsly.Domain.Models.Entities.Campaigns;
+using Leadsly.Domain.Models.Entities.Campaigns.Phases;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
-using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,9 +15,9 @@ namespace Leadsly.Domain.Factories
 {
     public class SendConnectionsToProspectsMessagesFactory : ISendConnectionsToProspectsMessagesFactory
     {
-        public SendConnectionsToProspectsMessagesFactory(            
-            ILogger<SendConnectionsToProspectsMessagesFactory> logger,            
-            IHalRepository halRepository,            
+        public SendConnectionsToProspectsMessagesFactory(
+            ILogger<SendConnectionsToProspectsMessagesFactory> logger,
+            IHalRepository halRepository,
             IRabbitMQProvider rabbitMQProvider
             )
         {
@@ -48,7 +44,7 @@ namespace Leadsly.Domain.Factories
             _logger.LogDebug("Daily connection request limit is {dailyConnectionsLimit}", dailyConnectionsLimit);
             if (campaign.IsWarmUpEnabled == true)
             {
-                _logger.LogDebug("Warm up is enabled. Retrieving warm up object from the database");                
+                _logger.LogDebug("Warm up is enabled. Retrieving warm up object from the database");
                 dailyConnectionsLimit = campaignWarmUp.DailyLimit;
                 _logger.LogDebug("Daily connection has been updated because warm up is enabled. Current daily warm up limit is {dailyConnectionsLimit}", dailyConnectionsLimit);
             }
@@ -94,7 +90,7 @@ namespace Leadsly.Domain.Factories
         private IList<SendConnectionsStageBody> GetSendConnectionsStages(IList<SendConnectionsStage> sendConnectionsStages, int dailyConnectionsLimit, CancellationToken ct = default)
         {
             _logger.LogInformation("Getting the number of connections each stage should send to stay within the daily limit");
-            IList<SendConnectionsStageBody> sendConnectionsStagesBody = new List<SendConnectionsStageBody>();            
+            IList<SendConnectionsStageBody> sendConnectionsStagesBody = new List<SendConnectionsStageBody>();
 
             decimal totalInvites = dailyConnectionsLimit;
             int divider = sendConnectionsStages.Count;

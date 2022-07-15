@@ -1,11 +1,8 @@
 ﻿using Leadsly.Application.Model;
-using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Application.Model.Requests.FromHal;
 using Leadsly.Application.Model.Responses;
-using Leadsly.Application.Model.ViewModels;
-using Leadsly.Application.Model.ViewModels.Response;
 using Leadsly.Domain.Converters;
-using Leadsly.Domain.Models.Requests;
+using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.Models.ViewModels.Campaigns;
 using Microsoft.AspNetCore.JsonPatch;
 using System;
@@ -81,12 +78,6 @@ namespace Leadsly.Domain.Supervisor
             where T : IOperationResponse
         {
             return await _campaignProvider.GetSentConnectionsUrlStatusesAsync<T>(campaignId, ct);
-        }
-
-        public async Task<HalOperationResultViewModel<T>> CreateCampaignAsync<T>(CreateCampaignRequest request, string userId, CancellationToken ct = default)
-            where T : IOperationResponseViewModel
-        {
-            return await _campaignProvider.CreateCampaignAsync<T>(request, userId, ct);
         }
 
         public async Task<HalOperationResult<T>> ProcessCampaignProspectsRepliedAsync<T>(ProspectsRepliedRequest request, CancellationToken ct = default)

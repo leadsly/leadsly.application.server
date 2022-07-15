@@ -1,9 +1,9 @@
 ﻿using Leadsly.Application.Api.Authentication;
 using Leadsly.Application.Api.Extensions;
 using Leadsly.Application.Api.Services;
-using Leadsly.Application.Model.Entities;
 using Leadsly.Application.Model.ViewModels;
 using Leadsly.Domain;
+using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.OptionsJsonModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -143,7 +143,7 @@ namespace Leadsly.Application.Api.Controllers
                 AccessToken = accessToken
             });
         }
-                
+
         /// <summary>
         /// Signs user up.
         /// </summary>
@@ -219,7 +219,7 @@ namespace Leadsly.Application.Api.Controllers
 
                     return Ok(accessToken);
                 }
-            }            
+            }
 
             _logger.LogDebug("Registration token was invalid.");
 
@@ -253,7 +253,7 @@ namespace Leadsly.Application.Api.Controllers
                 // request has token but it failed authentication. Attempt to renew the token
                 result = await _tokenService.TryRenewAccessToken(expiredAccessToken);
                 bool succeeded = result.Succeeded;
-                _logger.LogDebug("Attempted to rewnew jwt. Result: {succeeded}.", succeeded);                
+                _logger.LogDebug("Attempted to rewnew jwt. Result: {succeeded}.", succeeded);
             }
             catch (Exception ex)
             {

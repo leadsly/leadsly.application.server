@@ -9,7 +9,6 @@ using Leadsly.Application.Api.Authentication;
 using Leadsly.Application.Api.DataProtectorTokenProviders;
 using Leadsly.Application.Api.Services;
 using Leadsly.Application.Model;
-using Leadsly.Application.Model.Entities;
 using Leadsly.Domain;
 using Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessage;
 using Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages;
@@ -25,6 +24,7 @@ using Leadsly.Domain.Facades;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Factories;
 using Leadsly.Domain.Factories.Interfaces;
+using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.OptionsJsonModels;
 using Leadsly.Domain.Providers;
 using Leadsly.Domain.Providers.Interfaces;
@@ -285,6 +285,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<HalWorkCommandHandlerDecorator<UncontactedFollowUpMessageCommand>>();
             services.AddScoped<HalWorkCommandHandlerDecorator<DeepScanProspectsForRepliesCommand>>();
             services.AddScoped<HalWorkCommandHandlerDecorator<CheckOffHoursNewConnectionsCommand>>();
+            services.AddScoped<HalWorkCommandHandlerDecorator<RestartResourcesCommand>>();
 
             services.AddScoped<ICommandHandler<CheckOffHoursNewConnectionsCommand>, CheckOffHoursNewConnectionsCommandHandler>();
             services.AddScoped<ICommandHandler<FollowUpMessagesCommand>, FollowUpMessagesCommandHandler>();
@@ -298,6 +299,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ICommandHandler<ScanProspectsForRepliesCommand>, ScanProspectsForRepliesCommandHandler>();
             services.AddScoped<ICommandHandler<SendConnectionsToProspectsCommand>, SendConnectionsToProspectsCommandHandler>();
             services.AddScoped<ICommandHandler<NetworkingCommand>, NetworkingCommandHandler>();
+            services.AddScoped<ICommandHandler<RestartResourcesCommand>, RestartResourcesCommandHandler>();
 
             return services;
         }

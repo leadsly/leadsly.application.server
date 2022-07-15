@@ -1,11 +1,10 @@
-﻿using Leadsly.Application.Model.Entities.Campaigns;
+﻿using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -51,7 +50,7 @@ namespace Leadsly.Infrastructure.Repositories
                     .Where(status => status.CampaignId == campaignId)
                     .ToListAsync(ct);
 
-                _logger.LogDebug("Successfully retrieved all SearchUrlDetails for campaign id {campaignId}", campaignId);              
+                _logger.LogDebug("Successfully retrieved all SearchUrlDetails for campaign id {campaignId}", campaignId);
             }
             catch (Exception ex)
             {

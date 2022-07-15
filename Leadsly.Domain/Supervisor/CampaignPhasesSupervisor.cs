@@ -1,13 +1,13 @@
 ﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
 using Leadsly.Application.Model.Campaigns.Interfaces;
-using Leadsly.Application.Model.Entities;
-using Leadsly.Application.Model.Entities.Campaigns;
-using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Application.Model.Requests.FromHal;
 using Leadsly.Application.Model.Responses;
 using Leadsly.Application.Model.ViewModels;
 using Leadsly.Application.Model.ViewModels.Response;
+using Leadsly.Domain.Models.Entities;
+using Leadsly.Domain.Models.Entities.Campaigns;
+using Leadsly.Domain.Models.Entities.Campaigns.Phases;
 using Microsoft.AspNetCore.JsonPatch;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,14 +29,14 @@ namespace Leadsly.Domain.Supervisor
             string campaignId = request.CampaignId;
             string campaignProspectListId = request.CampaignProspectListId;
 
-            if(prospectsToProcess.Count > 0)
+            if (prospectsToProcess.Count > 0)
             {
                 result = await _campaignPhaseProcessorProvider.ProcessProspectsAsync<T>(prospectsToProcess, campaignId, campaignProspectListId, ct);
                 if (result.Succeeded == false)
                 {
                     return result;
                 }
-            }            
+            }
 
             result.Succeeded = true;
             return result;
@@ -50,7 +50,7 @@ namespace Leadsly.Domain.Supervisor
 
             patchDoc.ApplyTo(phaseToUpdate);
             phaseToUpdate = await _campaignRepositoryFacade.UpdateProspectListPhaseAsync(phaseToUpdate, ct);
-            if(phaseToUpdate == null)
+            if (phaseToUpdate == null)
             {
                 return result;
             }
@@ -65,7 +65,7 @@ namespace Leadsly.Domain.Supervisor
             HalOperationResultViewModel<T> result = new();
 
             SocialAccount socialAccountToUpdate = await _socialAccountRepository.GetByIdAsync(socialAccountId, ct);
-            if(socialAccountToUpdate == null)
+            if (socialAccountToUpdate == null)
             {
                 result.OperationResults.Failures.Add(new()
                 {
@@ -78,7 +78,7 @@ namespace Leadsly.Domain.Supervisor
 
             patchDoc.ApplyTo(socialAccountToUpdate);
             socialAccountToUpdate = await _socialAccountRepository.UpdateAsync(socialAccountToUpdate, ct);
-            if(socialAccountToUpdate == null)
+            if (socialAccountToUpdate == null)
             {
                 result.OperationResults.Failures.Add(new()
                 {
@@ -115,7 +115,7 @@ namespace Leadsly.Domain.Supervisor
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public async Task TriggerFollowUpMessagesPhaseAsync(TriggerFollowUpMessageRequest request, CancellationToken ct = default)            
+        public async Task TriggerFollowUpMessagesPhaseAsync(TriggerFollowUpMessageRequest request, CancellationToken ct = default)
         {
             await _campaignPhaseClient.ProduceFollowUpMessagesPhaseAsync(request.HalId, request.UserId, ct);
         }

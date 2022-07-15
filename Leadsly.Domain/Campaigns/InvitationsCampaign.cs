@@ -1,11 +1,6 @@
-﻿using Leadsly.Application.Model;
-using Leadsly.Application.Model.Entities.Campaigns;
-using Leadsly.Application.Model.Entities.Campaigns.Phases;
-using System;
-using System.Collections.Generic;
+﻿using Leadsly.Domain.Models.Entities.Campaigns;
+using Leadsly.Domain.Models.Entities.Campaigns.Phases;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Campaigns
 {
@@ -20,7 +15,7 @@ namespace Leadsly.Domain.Campaigns
             };
             campaign.SendConnectionRequestPhase = sendConnectionsPhase;
 
-            if(existingProspectList == false)
+            if (existingProspectList == false)
             {
                 ProspectListPhase prospectListPhase = new()
                 {

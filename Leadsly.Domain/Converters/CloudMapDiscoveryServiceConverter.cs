@@ -1,5 +1,6 @@
 ﻿using Leadsly.Application.Model.Aws.DTOs;
-using Leadsly.Application.Model.Entities;
+
+using Leadsly.Domain.Models.Entities;
 
 namespace Leadsly.Domain.Converters
 {

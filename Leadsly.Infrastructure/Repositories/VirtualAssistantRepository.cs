@@ -1,4 +1,4 @@
-﻿using Leadsly.Application.Model.Entities;
+﻿using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

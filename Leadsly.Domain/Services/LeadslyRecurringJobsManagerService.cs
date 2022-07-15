@@ -1,10 +1,10 @@
 ﻿using Leadsly.Application.Model;
-using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages;
 using Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers;
 using Leadsly.Domain.Campaigns.NetworkingHandler;
 using Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers;
 using Leadsly.Domain.Facades.Interfaces;
+using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -17,28 +17,30 @@ using System.Threading.Tasks;
 namespace Leadsly.Domain.Services
 {
     public class LeadslyRecurringJobsManagerService : ILeadslyRecurringJobsManagerService
-    {       
+    {
         public LeadslyRecurringJobsManagerService(
-            ILogger<LeadslyRecurringJobsManagerService> logger,             
+            ILogger<LeadslyRecurringJobsManagerService> logger,
             HalWorkCommandHandlerDecorator<CheckOffHoursNewConnectionsCommand> offHoursHandler,
+            HalWorkCommandHandlerDecorator<RestartResourcesCommand> restartResourcesHandler,
             HalWorkCommandHandlerDecorator<MonitorForNewConnectionsCommand> monitorHandler,
-            HalWorkCommandHandlerDecorator<DeepScanProspectsForRepliesCommand> deepHandler,            
+            HalWorkCommandHandlerDecorator<DeepScanProspectsForRepliesCommand> deepHandler,
             HalWorkCommandHandlerDecorator<FollowUpMessagesCommand> followUpHandler,
-            HalWorkCommandHandlerDecorator<ScanProspectsForRepliesCommand> scanProspectsHandler,            
+            HalWorkCommandHandlerDecorator<ScanProspectsForRepliesCommand> scanProspectsHandler,
             HalWorkCommandHandlerDecorator<NetworkingCommand> networkingCommandHandler,
-            ICampaignRepositoryFacade campaignRepositoryFacade,            
+            ICampaignRepositoryFacade campaignRepositoryFacade,
             IMemoryCache memoryCache
             )
         {
             _logger = logger;
-            _campaignRepositoryFacade = campaignRepositoryFacade;            
-            _memoryCache = memoryCache;            
+            _campaignRepositoryFacade = campaignRepositoryFacade;
+            _memoryCache = memoryCache;
             _networkingCommandHandler = networkingCommandHandler;
             _offHoursHandler = offHoursHandler;
             _monitorHandler = monitorHandler;
             _deepHandler = deepHandler;
-            _followUpHandler = followUpHandler;            
-            _scanProspectsHandler = scanProspectsHandler;                                    
+            _followUpHandler = followUpHandler;
+            _scanProspectsHandler = scanProspectsHandler;
+            _restartResourcesHandler = restartResourcesHandler;
         }
 
         private readonly ILogger<LeadslyRecurringJobsManagerService> _logger;
@@ -47,12 +49,19 @@ namespace Leadsly.Domain.Services
         private readonly HalWorkCommandHandlerDecorator<MonitorForNewConnectionsCommand> _monitorHandler;
         private readonly HalWorkCommandHandlerDecorator<CheckOffHoursNewConnectionsCommand> _offHoursHandler;
         private readonly HalWorkCommandHandlerDecorator<DeepScanProspectsForRepliesCommand> _deepHandler;
-        private readonly HalWorkCommandHandlerDecorator<FollowUpMessagesCommand> _followUpHandler;        
-        private readonly HalWorkCommandHandlerDecorator<ScanProspectsForRepliesCommand> _scanProspectsHandler;        
+        private readonly HalWorkCommandHandlerDecorator<FollowUpMessagesCommand> _followUpHandler;
+        private readonly HalWorkCommandHandlerDecorator<ScanProspectsForRepliesCommand> _scanProspectsHandler;
         private readonly HalWorkCommandHandlerDecorator<NetworkingCommand> _networkingCommandHandler;
+        private readonly HalWorkCommandHandlerDecorator<RestartResourcesCommand> _restartResourcesHandler;
 
         public async Task PublishHalPhasesAsync(string halId)
         {
+            //////////////////////////////////////////////////////////////////////////////////////
+            ///// Restart Hal and Selenium Grid task
+            //////////////////////////////////////////////////////////////////////////////////////
+            RestartResourcesCommand restartCommand = new RestartResourcesCommand(halId);
+            await _restartResourcesHandler.HandleAsync(restartCommand);
+
             //////////////////////////////////////////////////////////////////////////////////////
             ///// ScanForNewConnectionsOffHours
             //////////////////////////////////////////////////////////////////////////////////////

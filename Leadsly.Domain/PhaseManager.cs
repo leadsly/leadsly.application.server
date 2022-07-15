@@ -1,12 +1,12 @@
 ﻿using Leadsly.Application.Model;
-using Leadsly.Application.Model.Entities;
-using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages;
 using Leadsly.Domain.Campaigns.NetworkingHandler;
 using Leadsly.Domain.Campaigns.ProspectListsHandlers.ProspectLists;
 using Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers;
 using Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers;
 using Leadsly.Domain.Facades.Interfaces;
+using Leadsly.Domain.Models.Entities;
+using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.Repositories;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -21,7 +21,7 @@ namespace Leadsly.Domain
     public class PhaseManager : IPhaseManager
     {
         public PhaseManager(
-            ILogger<PhaseManager> logger,            
+            ILogger<PhaseManager> logger,
             HalWorkCommandHandlerDecorator<DeepScanProspectsForRepliesCommand> deepHandler,
             HalWorkCommandHandlerDecorator<ProspectListsCommand> prospectListsHandler,
             HalWorkCommandHandlerDecorator<FollowUpMessagesCommand> followUpHandler,
@@ -86,7 +86,7 @@ namespace Leadsly.Domain
             IList<SocialAccount> allSocialAccountsProspectListFirst = allSocialAccounts.Where(s => s.RunProspectListFirst == true).ToList();
 
             IList<string> halIdsProspectListPhaseFirst = allSocialAccountsProspectListFirst.Select(s => s.HalDetails.HalId).ToList();
-            if(halIdsProspectListPhaseFirst.Count > 0)
+            if (halIdsProspectListPhaseFirst.Count > 0)
             {
                 IList<string> incompleteHalIds = await GetHalIdsWithIncompleteProspectListPhases(halIdsProspectListPhaseFirst, ct);
 
@@ -112,7 +112,7 @@ namespace Leadsly.Domain
                     SendConnectionsToProspectsCommand sendConnectionsProspectsCommand = new SendConnectionsToProspectsCommand(halIds);
                     await _sendConnectionsHandler.HandleAsync(sendConnectionsProspectsCommand);
                 }
-            }            
+            }
         }
 
         private async Task<IList<string>> GetHalIdsForSendConnectionsPhaseAsync(CancellationToken ct = default)
@@ -164,14 +164,14 @@ namespace Leadsly.Domain
 
         private async Task<IList<SocialAccount>> GetAllSocialAccountsAsync(CancellationToken ct = default)
         {
-            if(_memoryCache.TryGetValue(CacheKeys.AllSocialAccounts, out IList<SocialAccount> socialAccounts) == false)
+            if (_memoryCache.TryGetValue(CacheKeys.AllSocialAccounts, out IList<SocialAccount> socialAccounts) == false)
             {
                 socialAccounts = await _socialAccountRepository.GetAllAsync(ct);
-                if(socialAccounts.Count > 0)
+                if (socialAccounts.Count > 0)
                 {
                     _memoryCache.Set(CacheKeys.AllSocialAccounts, socialAccounts, TimeSpan.FromMinutes(5));
                 }
-            }            
+            }
 
             return socialAccounts;
         }
@@ -181,7 +181,7 @@ namespace Leadsly.Domain
         #region ProspectingPhase
         public async Task ProspectingPhaseAsync(string halId, CancellationToken ct = default)
         {
-            if(await PublishDeepScanAsync(halId, ct) == true)
+            if (await PublishDeepScanAsync(halId, ct) == true)
             {
                 DeepScanProspectsForRepliesCommand deepScanCommand = new DeepScanProspectsForRepliesCommand(halId);
                 await _deepHandler.HandleAsync(deepScanCommand);
@@ -226,17 +226,17 @@ namespace Leadsly.Domain
             else
             {
                 directHalIds = halIds;
-            }            
+            }
 
             // trigger follow up message phase and then ScanProspectsForRepliesPhase            
-            if(directHalIds.Count > 0)
+            if (directHalIds.Count > 0)
             {
                 FollowUpMessagesCommand followUpMsgsCommand = new FollowUpMessagesCommand(directHalIds);
                 await _followUpHandler.HandleAsync(followUpMsgsCommand);
 
                 ScanProspectsForRepliesCommand scanProspectsCommand = new ScanProspectsForRepliesCommand(directHalIds);
                 await _scanProspectsHandler.HandleAsync(scanProspectsCommand);
-            }                     
+            }
         }
 
         private async Task<IList<string>> GetHalIdsForDeepScanPhaseAsync(CancellationToken ct = default)
@@ -277,7 +277,7 @@ namespace Leadsly.Domain
             if (_memoryCache.TryGetValue(CacheKeys.AllActiveCampaigns, out IList<Campaign> activeCampaigns) == false)
             {
                 activeCampaigns = await _campaignRepositoryFacade.GetAllActiveCampaignsAsync(ct);
-                if(activeCampaigns.Count > 0)
+                if (activeCampaigns.Count > 0)
                 {
                     _memoryCache.Set(CacheKeys.AllActiveCampaigns, activeCampaigns);
                 }

@@ -1,9 +1,9 @@
 ﻿using Leadsly.Application.Model.Campaigns;
-using Leadsly.Application.Model.Entities;
-using Leadsly.Application.Model.Entities.Campaigns;
-using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Factories.Interfaces;
+using Leadsly.Domain.Models.Entities;
+using Leadsly.Domain.Models.Entities.Campaigns;
+using Leadsly.Domain.Models.Entities.Campaigns.Phases;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Microsoft.Extensions.Logging;

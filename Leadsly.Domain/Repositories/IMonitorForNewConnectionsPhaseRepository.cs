@@ -1,8 +1,5 @@
-﻿using Leadsly.Application.Model.Entities.Campaigns.Phases;
-using System;
+﻿using Leadsly.Domain.Models.Entities.Campaigns.Phases;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 

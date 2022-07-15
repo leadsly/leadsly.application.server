@@ -1,19 +1,12 @@
-﻿using Hangfire;
-using Leadsly.Application.Model;
+﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
-using Leadsly.Application.Model.Entities;
-using Leadsly.Application.Model.Entities.Campaigns;
-using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Factories.Interfaces;
-using Leadsly.Domain.Providers.Interfaces;
-using Leadsly.Domain.Repositories;
+using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,17 +19,17 @@ namespace Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers
             ILogger<SendConnectionsToProspectsCommandHandler> logger,
             ICampaignRepositoryFacade campaignRepositoryFacade,
             IHangfireService hangfireService,
-            ITimestampService timestampService)            
+            ITimestampService timestampService)
         {
             _hangfireService = hangfireService;
-            _campaignRepositoryFacade = campaignRepositoryFacade; 
+            _campaignRepositoryFacade = campaignRepositoryFacade;
             _messagesFactory = messagesFactory;
             _timestampService = timestampService;
             _logger = logger;
         }
 
         private readonly IHangfireService _hangfireService;
-        private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;  
+        private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
         private readonly ISendConnectionsToProspectsMessagesFactory _messagesFactory;
         private readonly ITimestampService _timestampService;
         private readonly ILogger<SendConnectionsToProspectsCommandHandler> _logger;
@@ -50,12 +43,12 @@ namespace Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers
         public async Task HandleAsync(SendConnectionsToProspectsCommand command)
         {
             // triggered on recurring basis
-            if(command.HalIds != null && command.HalIds.Count > 0)
+            if (command.HalIds != null && command.HalIds.Count > 0)
             {
                 await HandleInternalAsync(command.HalIds);
             }
             // triggered on new campaign
-            else if(command.CampaignId != null && command.UserId != null)
+            else if (command.CampaignId != null && command.UserId != null)
             {
                 await HandleInternalAsync(command.CampaignId, command.UserId);
             }
@@ -72,7 +65,7 @@ namespace Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers
                     IList<SendConnectionsStage> sendConnectionStages = await _campaignRepositoryFacade.GetStagesByCampaignIdAsync(body.CampaignId);
                     IList<SendConnectionsStageBody> stages = _messagesFactory.CreateStages(sendConnectionStages, body.DailyLimit);
                     await SchedulePhaseMessagesAsync(body, stages);
-                }                
+                }
             }
         }
 
@@ -94,7 +87,7 @@ namespace Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers
             IList<SendConnectionsBody> messageBodies = new List<SendConnectionsBody>();
             IList<Campaign> campaigns = await _campaignRepositoryFacade.GetAllActiveCampaignsByHalIdAsync(halId);
             foreach (Campaign activeCampaign in campaigns)
-            {                
+            {
                 CampaignWarmUp campaignWarmUp = await _campaignRepositoryFacade.GetCampaignWarmUpByIdAsync(activeCampaign.CampaignId);
                 SendConnectionsBody messageBody = await _messagesFactory.CreateMessageAsync(activeCampaign, campaignWarmUp);
                 messageBodies.Add(messageBody);
@@ -123,11 +116,11 @@ namespace Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers
             messageBody.SendConnectionsStage = stage;
 
             DateTimeOffset nowLocalized = await _timestampService.GetNowLocalizedAsync(halId);
-            DateTimeOffset phaseStartDateTimeOffset = _timestampService.ParseDateTimeOffsetLocalized(messageBody.TimeZoneId, stage.StartTime);            
+            DateTimeOffset phaseStartDateTimeOffset = _timestampService.ParseDateTimeOffsetLocalized(messageBody.TimeZoneId, stage.StartTime);
 
             if (nowLocalized.TimeOfDay < phaseStartDateTimeOffset.TimeOfDay)
             {
-                _logger.LogInformation($"[SendConnectionsHandler]: Publishing message for {phaseStartDateTimeOffset}. Current local time is: {nowLocalized}");                
+                _logger.LogInformation($"[SendConnectionsHandler]: Publishing message for {phaseStartDateTimeOffset}. Current local time is: {nowLocalized}");
                 _hangfireService.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers), phaseStartDateTimeOffset);
             }
             else

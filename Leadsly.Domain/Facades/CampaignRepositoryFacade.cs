@@ -1,6 +1,6 @@
-﻿using Leadsly.Application.Model.Entities.Campaigns;
-using Leadsly.Application.Model.Entities.Campaigns.Phases;
-using Leadsly.Domain.Facades.Interfaces;
+﻿using Leadsly.Domain.Facades.Interfaces;
+using Leadsly.Domain.Models.Entities.Campaigns;
+using Leadsly.Domain.Models.Entities.Campaigns.Phases;
 using Leadsly.Domain.Repositories;
 using System.Collections.Generic;
 using System.Threading;

@@ -1,11 +1,8 @@
 ﻿using Leadsly.Application.Model;
-using Leadsly.Application.Model.Entities.Campaigns;
-using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Application.Model.Requests.FromHal;
 using Leadsly.Application.Model.Responses;
-using Leadsly.Application.Model.ViewModels;
-using Leadsly.Application.Model.ViewModels.Response;
-using Leadsly.Domain.Models.Requests;
+using Leadsly.Domain.Models.Entities.Campaigns;
+using Leadsly.Domain.Models.Entities.Campaigns.Phases;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,11 +12,6 @@ namespace Leadsly.Domain.Providers.Interfaces
     public interface ICampaignProvider
     {
         Task<IList<ProspectListPhase>> GetIncompleteProspectListPhasesAsync(string halId, CancellationToken ct = default);
-        Task<List<string>> GetHalIdsWithActiveCampaignsAsync(CancellationToken ct = default);
-        CampaignProspectList CreateCampaignProspectList(PrimaryProspectList primaryProspectList, string userId);
-        Task<int> CreateDailyWarmUpLimitConfigurationAsync(long startDateTimestamp, CancellationToken ct = default);
-        Task<IList<Campaign>> GetAllActiveByUserIdAsync(string userId, CancellationToken ct = default);
-
         Task<Campaign> GetCampaignByIdAsync(string campaignId, CancellationToken ct = default);
         Task<Campaign> UpdateCampaignAsync(Campaign campaign, CancellationToken ct = default);
 
@@ -30,9 +22,6 @@ namespace Leadsly.Domain.Providers.Interfaces
 
         Task<HalOperationResult<T>> GetSentConnectionsUrlStatusesAsync<T>(string campaignId, CancellationToken ct = default)
             where T : IOperationResponse;
-
-        Task<HalOperationResultViewModel<T>> CreateCampaignAsync<T>(CreateCampaignRequest request, string userId, CancellationToken ct = default)
-            where T : IOperationResponseViewModel;
 
         Task<HalOperationResult<T>> ProcessCampaignProspectsRepliedAsync<T>(ProspectsRepliedRequest request, CancellationToken ct = default)
            where T : IOperationResponse;

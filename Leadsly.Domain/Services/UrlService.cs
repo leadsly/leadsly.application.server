@@ -1,5 +1,6 @@
 ﻿using Leadsly.Application.Model;
-using Leadsly.Application.Model.Entities;
+
+using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.AspNetCore.Hosting;

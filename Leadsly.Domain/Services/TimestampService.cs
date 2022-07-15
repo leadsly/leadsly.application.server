@@ -1,4 +1,4 @@
-﻿using Leadsly.Application.Model.Entities;
+﻿using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
@@ -89,7 +89,7 @@ namespace Leadsly.Domain.Services
 
             return endDateTimeOffset;
         }
-        
+
         public DateTimeOffset ParseDateTimeOffsetLocalized(string timeZoneId, string timeOfDay)
         {
             DateTimeOffset targetDateTimeOffset = ParseLocalized(timeOfDay, timeZoneId);
@@ -126,7 +126,7 @@ namespace Leadsly.Domain.Services
 
             string timeZoneId = halUnit.TimeZoneId;
             _logger.LogDebug("HalUnit's time zone id is {timeZoneId}", timeZoneId);
-            TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);                        
+            TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
 
             DateTimeOffset targetTime = TimeZoneInfo.ConvertTime(dateTimeOffset, tzInfo);
 

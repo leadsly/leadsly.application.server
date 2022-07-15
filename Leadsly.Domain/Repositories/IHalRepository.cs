@@ -1,9 +1,6 @@
-﻿using Leadsly.Application.Model.Entities;
-using Leadsly.Application.Model.Entities.Campaigns.Phases;
-using System;
+﻿using Leadsly.Domain.Models.Entities;
+using Leadsly.Domain.Models.Entities.Campaigns.Phases;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -28,5 +25,6 @@ namespace Leadsly.Domain.Repositories
         public Task<HalUnit> GetByHalIdAsync(string halId, CancellationToken ct = default);
 
         public Task<IList<string>> GetAllHalIdsAsync(CancellationToken ct = default);
+        public Task<IList<HalUnit>> GetAllByTimeZoneIdAsync(string timezoneId, CancellationToken ct = default);
     }
 }

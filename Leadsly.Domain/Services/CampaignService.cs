@@ -1,11 +1,8 @@
-﻿using Leadsly.Application.Model.Entities.Campaigns;
+﻿using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,7 +20,7 @@ namespace Leadsly.Domain.Services
         private ICampaignRepository _campaignRepository;
 
         public async Task<int> CreateDailyWarmUpLimitConfigurationAsync(long startDateTimestamp, CancellationToken ct = default)
-        {            
+        {
             // this is a new campaign, create a new warm up configuration class configure it and save it to the database
             CampaignWarmUp warmUp = new()
             {
@@ -38,7 +35,7 @@ namespace Leadsly.Domain.Services
         {
             List<CampaignProspect> campaignProspects = new();
 
-            if(primaryProspectList.PrimaryProspects != null)
+            if (primaryProspectList.PrimaryProspects != null)
             {
                 foreach (PrimaryProspect primaryProspect in primaryProspectList.PrimaryProspects)
                 {
@@ -52,7 +49,7 @@ namespace Leadsly.Domain.Services
                         Name = primaryProspect.Name
                     });
                 }
-            }            
+            }
 
             List<SearchUrl> searchUrls = new();
             foreach (SearchUrl searchUrl in primaryProspectList.SearchUrls)
@@ -60,7 +57,7 @@ namespace Leadsly.Domain.Services
                 searchUrls.Add(new()
                 {
                     Url = searchUrl.Url,
-                    PrimaryProspectListId = searchUrl.PrimaryProspectListId                    
+                    PrimaryProspectListId = searchUrl.PrimaryProspectListId
                 });
             }
 
@@ -68,7 +65,7 @@ namespace Leadsly.Domain.Services
             {
                 CampaignProspects = campaignProspects,
                 PrimaryProspectList = primaryProspectList,
-                SearchUrls = searchUrls,                
+                SearchUrls = searchUrls,
                 // could be used to allow each campaign to modify its own prospect list name
                 ProspectListName = primaryProspectList.Name,
             };

@@ -1,8 +1,8 @@
 ﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
-using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Factories.Interfaces;
+using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -20,8 +20,8 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.UncontactedFollowUpMe
             IHangfireService hangfireService,
             IMessageBrokerOutlet messageBrokerOutlet,
             ICampaignRepositoryFacade campaignRepositoryFacade,
-            ILogger<UncontactedFollowUpMessageCommandHandler> logger,            
-            ISendFollowUpMessageProvider sendFollowUpMessageProvider            
+            ILogger<UncontactedFollowUpMessageCommandHandler> logger,
+            ISendFollowUpMessageProvider sendFollowUpMessageProvider
             )
         {
             _hangfireService = hangfireService;

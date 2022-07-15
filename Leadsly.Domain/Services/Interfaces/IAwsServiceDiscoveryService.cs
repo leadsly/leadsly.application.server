@@ -13,7 +13,7 @@ namespace Leadsly.Domain.Services.Interfaces
         /// <param name="createServiceDiscoveryRequest"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<CreateServiceResponse> CreateServiceAsync(CreateServiceDiscoveryServiceRequest createServiceDiscoveryRequest, CancellationToken ct = default);
+        Task<CreateServiceResponse> CreateServiceAsync(CreateServiceRequest request, CancellationToken ct = default);
 
         Task<DeleteServiceResponse> DeleteServiceAsync(DeleteServiceDiscoveryServiceRequest deleteServiceDiscoveryRequest, CancellationToken ct = default);
 

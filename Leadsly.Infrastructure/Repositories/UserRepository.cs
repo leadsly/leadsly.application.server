@@ -1,4 +1,4 @@
-﻿using Leadsly.Application.Model.Entities;
+﻿using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -57,11 +57,11 @@ namespace Leadsly.Infrastructure.Repositories
 
             List<SocialAccount> socialAccounts = await _dbContext.SocialAccounts
                 .Where(sa => sa.UserId == userId)
-                .Include(sa => sa.SocialAccountCloudResource)
-                .Include(sa => sa.SocialAccountCloudResource.EcsService)
+                .Include(sa => sa.VirtualAssistant)
+                .Include(sa => sa.VirtualAssistant.EcsService)
                     .ThenInclude(ecsSer => ecsSer.EcsServiceRegistries)
-                .Include(sa => sa.SocialAccountCloudResource.EcsTaskDefinition)
-                .Include(sa => sa.SocialAccountCloudResource.CloudMapDiscoveryService)
+                .Include(sa => sa.VirtualAssistant.EcsTaskDefinition)
+                .Include(sa => sa.VirtualAssistant.CloudMapDiscoveryService)
                 .ToListAsync();
 
             return socialAccounts;

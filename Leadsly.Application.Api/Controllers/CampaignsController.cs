@@ -1,5 +1,5 @@
-﻿using Leadsly.Application.Model.Entities.Campaigns;
-using Leadsly.Domain;
+﻿using Leadsly.Domain;
+using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.Models.Requests;
 using Leadsly.Domain.Models.ViewModels.Campaigns;
 using Leadsly.Domain.Supervisor;

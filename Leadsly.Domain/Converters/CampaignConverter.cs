@@ -1,4 +1,4 @@
-﻿using Leadsly.Application.Model.Entities.Campaigns;
+﻿using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.Models.ViewModels.Campaigns;
 
 namespace Leadsly.Domain.Converters

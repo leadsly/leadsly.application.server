@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Leadsly.Domain.Models.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -7,21 +8,20 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Leadsly.Application.Model.Entities;
 
 namespace Leadsly.Domain
 {
     public class LeadslyUserManager : UserManager<ApplicationUser>
     {
         public LeadslyUserManager(
-            IUserStore<ApplicationUser> store, 
+            IUserStore<ApplicationUser> store,
             IOptions<IdentityOptions> optionsAccessor,
-            IPasswordHasher<ApplicationUser> passwordHasher, 
+            IPasswordHasher<ApplicationUser> passwordHasher,
             IEnumerable<IUserValidator<ApplicationUser>> userValidators,
-            IEnumerable<IPasswordValidator<ApplicationUser>> passwordValidators, 
+            IEnumerable<IPasswordValidator<ApplicationUser>> passwordValidators,
             ILookupNormalizer keyNormalizer,
-            IdentityErrorDescriber errors, 
-            IServiceProvider services, 
+            IdentityErrorDescriber errors,
+            IServiceProvider services,
             ILogger<UserManager<ApplicationUser>> logger,
             IConfiguration configuration)
             : base(store, optionsAccessor, passwordHasher, userValidators, passwordValidators,
@@ -47,16 +47,16 @@ namespace Leadsly.Domain
 
             string decryptedToken = encryptedToken;
 
-            if(loginProvider == ApiConstants.DataTokenProviders.AspNetUserProvider.ProviderName && tokenName == ApiConstants.DataTokenProviders.AspNetUserProvider.TokenName)
+            if (loginProvider == ApiConstants.DataTokenProviders.AspNetUserProvider.ProviderName && tokenName == ApiConstants.DataTokenProviders.AspNetUserProvider.TokenName)
             {
-                if(encryptedToken != null)
+                if (encryptedToken != null)
                 {
                     if (encryptedToken != string.Empty)
                     {
                         decryptedToken = String.Join(';', encryptedToken.Split(';').Select(encryptedCode => EncryptProvider.AESDecrypt(encryptedCode, _configuration[ApiConstants.VaultKeys.TwoFactorAuthenticationEncryptionKey])));
                     }
-                }                
-            }               
+                }
+            }
 
             return decryptedToken;
         }
@@ -102,7 +102,7 @@ namespace Leadsly.Domain
             if (!string.IsNullOrEmpty(code))
             {
                 code = EncryptProvider.AESEncrypt(code, _configuration[ApiConstants.VaultKeys.TwoFactorAuthenticationEncryptionKey]);
-            }           
+            }
 
             return await base.RedeemTwoFactorRecoveryCodeAsync(user, code);
         }

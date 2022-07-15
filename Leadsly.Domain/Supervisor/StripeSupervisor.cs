@@ -1,10 +1,5 @@
-﻿using Leadsly.Domain.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Leadsly.Domain.Models.Entities;
 using System.Threading.Tasks;
-using Leadsly.Application.Model.Entities;
 
 namespace Leadsly.Domain.Supervisor
 {

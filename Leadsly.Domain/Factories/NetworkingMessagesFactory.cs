@@ -1,16 +1,15 @@
 ﻿using Leadsly.Application.Model.Campaigns;
-using Leadsly.Application.Model.Entities;
-using Leadsly.Application.Model.Entities.Campaigns;
-using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Factories.Interfaces;
+using Leadsly.Domain.Models.Entities;
+using Leadsly.Domain.Models.Entities.Campaigns;
+using Leadsly.Domain.Models.Entities.Campaigns.Phases;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,7 +18,7 @@ namespace Leadsly.Domain.Factories
     public class NetworkingMessagesFactory : INetworkingMessagesFactory
     {
         public NetworkingMessagesFactory(
-            ICampaignRepositoryFacade campaignRepositoryFacade, 
+            ICampaignRepositoryFacade campaignRepositoryFacade,
             IHalRepository halRepository,
             IRabbitMQProvider rabbitMQProvider,
             ILogger<NetworkingMessagesFactory> logger)
@@ -83,8 +82,8 @@ namespace Leadsly.Domain.Factories
                 IList<SendConnectionsStage> sendConnectionsStages = await _campaignRepositoryFacade.GetStagesByCampaignIdAsync(campaignId, ct);
 
                 int invitesPerStage = Math.DivRem(campaign.DailyInvites, sendConnectionsStages.Count, out int remainderInvites);
-                List<int> stagesConnectionsLimit = sendConnectionsStages.OrderBy(s => s.Order).Select(_ => invitesPerStage).ToList();                
-                if(remainderInvites != 0)
+                List<int> stagesConnectionsLimit = sendConnectionsStages.OrderBy(s => s.Order).Select(_ => invitesPerStage).ToList();
+                if (remainderInvites != 0)
                 {
                     int last = stagesConnectionsLimit.Last();
                     stagesConnectionsLimit.RemoveAt(stagesConnectionsLimit.Count - 1);

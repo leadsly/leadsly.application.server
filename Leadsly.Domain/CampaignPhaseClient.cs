@@ -1,11 +1,11 @@
-﻿using Leadsly.Application.Model.Entities.Campaigns;
-using Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessage;
+﻿using Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessage;
 using Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages;
 using Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers;
 using Leadsly.Domain.Campaigns.NetworkingHandler;
 using Leadsly.Domain.Campaigns.ProspectListsHandlers.ProspectList;
 using Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers;
 using Leadsly.Domain.Campaigns.SendConnectionsToProspectsHandlers;
+using Leadsly.Domain.Models.Entities.Campaigns;
 using System;
 using System.Collections.Generic;
 using System.Threading;

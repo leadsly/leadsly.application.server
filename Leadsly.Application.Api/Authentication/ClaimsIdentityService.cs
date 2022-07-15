@@ -1,12 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using Leadsly.Domain;
-using Leadsly.Application.Model.Entities;
+﻿using Leadsly.Domain;
+using Leadsly.Domain.Models.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
-
+using System.Collections.Generic;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace Leadsly.Application.Api.Authentication
 {

@@ -1,6 +1,6 @@
-﻿using Leadsly.Application.Model.Entities.Campaigns;
-using Leadsly.Application.Model.Entities.Campaigns.Phases;
-using Leadsly.Domain.Converters;
+﻿using Leadsly.Domain.Converters;
+using Leadsly.Domain.Models.Entities.Campaigns;
+using Leadsly.Domain.Models.Entities.Campaigns.Phases;
 using Leadsly.Domain.Models.Requests;
 using Leadsly.Domain.Models.ViewModels.Campaigns;
 using System;

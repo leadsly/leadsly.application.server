@@ -1,5 +1,4 @@
 ﻿using Leadsly.Application.Model;
-using Leadsly.Application.Model.Entities.Campaigns;
 using Leadsly.Application.Model.Requests.FromHal;
 using Leadsly.Application.Model.Responses;
 using Leadsly.Domain.Supervisor;
@@ -41,7 +40,7 @@ namespace Leadsly.Application.Api.Controllers
         }
 
         [HttpPatch("{searchUrlProgressId}/url")]
-        public async Task<IActionResult> UpdateSearchUrlProgress(string searchUrlProgressId, [FromBody] JsonPatchDocument<Application.Model.Entities.Campaigns.SearchUrlProgress> request, CancellationToken ct = default)
+        public async Task<IActionResult> UpdateSearchUrlProgress(string searchUrlProgressId, [FromBody] JsonPatchDocument<Domain.Models.Entities.Campaigns.SearchUrlProgress> request, CancellationToken ct = default)
         {
             _logger.LogInformation("Executing action UpdateSearchUrlProgress for SearchUrlPrgressId {searchUrlProgressId}", searchUrlProgressId);
             HalOperationResult<IOperationResponse> result = await _supervisor.UpdateSearchUrlProgressAsync<IOperationResponse>(searchUrlProgressId, request, ct);

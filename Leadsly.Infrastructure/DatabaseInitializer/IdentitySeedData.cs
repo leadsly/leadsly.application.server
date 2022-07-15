@@ -1,14 +1,13 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Leadsly.Domain;
+using Leadsly.Domain.Models.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using System.Security.Claims;
-using Leadsly.Application.Model.Entities;
-using Leadsly.Domain;
-using Leadsly.Application.Model.Entities.Campaigns;
+using System.Threading.Tasks;
 
 namespace Leadsly.Infrastructure.DatabaseInitializer
 {
@@ -23,9 +22,9 @@ namespace Leadsly.Infrastructure.DatabaseInitializer
             await Seed(userManager, roleManager, configuration, logger);
         }
 
-        private async static Task Seed(LeadslyUserManager userManager, 
-                                       RoleManager<IdentityRole> roleManager, 
-                                       IConfiguration configuration, 
+        private async static Task Seed(LeadslyUserManager userManager,
+                                       RoleManager<IdentityRole> roleManager,
+                                       IConfiguration configuration,
                                        ILogger<DatabaseInitializer> logger)
         {
             string[] roles = new string[] { "admin", "user" };
@@ -34,22 +33,22 @@ namespace Leadsly.Infrastructure.DatabaseInitializer
             {
                 if (!roleManager.Roles.Any(r => r.Name == role))
                 {
-                    logger.LogInformation($"No roles found matching '{ role }' role.");
+                    logger.LogInformation($"No roles found matching '{role}' role.");
 
                     IdentityRole newRole = new IdentityRole
                     {
                         Name = role,
                         NormalizedName = role.ToUpper()
                     };
-                    
+
                     try
                     {
-                        logger.LogInformation($"Creating '{ role }' role.");
-                        await roleManager.CreateAsync(newRole);                        
+                        logger.LogInformation($"Creating '{role}' role.");
+                        await roleManager.CreateAsync(newRole);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
-                        logger.LogError(ex, $"Error occured when creating { role } role.");
+                        logger.LogError(ex, $"Error occured when creating {role} role.");
                         throw;
                     }
 
@@ -58,18 +57,18 @@ namespace Leadsly.Infrastructure.DatabaseInitializer
                         try
                         {
                             await roleManager.AddClaimAsync(newRole, new Claim("permission", "create"));
-                            logger.LogInformation($"Successfully added { role } role claim 'permission': 'create'");
+                            logger.LogInformation($"Successfully added {role} role claim 'permission': 'create'");
 
                             await roleManager.AddClaimAsync(newRole, new Claim("permission", "update"));
-                            logger.LogInformation($"Successfully added  { role } role claim 'permission': 'update'");
+                            logger.LogInformation($"Successfully added  {role} role claim 'permission': 'update'");
 
                             await roleManager.AddClaimAsync(newRole, new Claim("permission", "retrieve"));
-                            logger.LogInformation($"Successfully added  { role } role claim 'permission': 'retrieve'");
+                            logger.LogInformation($"Successfully added  {role} role claim 'permission': 'retrieve'");
 
                             await roleManager.AddClaimAsync(newRole, new Claim("permission", "delete"));
-                            logger.LogInformation($"Successfully added  { role } role claim 'permission': 'delete'");
+                            logger.LogInformation($"Successfully added  {role} role claim 'permission': 'delete'");
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             logger.LogError(ex, $"Error occured when adding 'permission' claims.");
                             throw;
@@ -91,30 +90,30 @@ namespace Leadsly.Infrastructure.DatabaseInitializer
 
             if (!userManager.Users.Any(u => u.UserName == admin.UserName))
             {
-                logger.LogInformation($"No users found matching { admin.UserName } username.");
+                logger.LogInformation($"No users found matching {admin.UserName} username.");
 
                 try
                 {
-                    logger.LogInformation($"Hashing { admin.UserName } password.");
+                    logger.LogInformation($"Hashing {admin.UserName} password.");
                     string hashed = passwordHasher.HashPassword(admin, configuration[ApiConstants.VaultKeys.AdminPassword]);
-                    logger.LogInformation($"Successfully hashed { admin.UserName } password.");
-                    admin.PasswordHash = hashed;                    
+                    logger.LogInformation($"Successfully hashed {admin.UserName} password.");
+                    admin.PasswordHash = hashed;
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
-                    logger.LogError(ex, $"Error occured when hashing { admin.UserName } password or when retrieving password from 'configuration[Admin:Password]'");
+                    logger.LogError(ex, $"Error occured when hashing {admin.UserName} password or when retrieving password from 'configuration[Admin:Password]'");
                     throw;
                 }
 
                 try
                 {
                     await userManager.CreateAsync(admin);
-                    logger.LogInformation($"Successfully created { admin.UserName } user.");
+                    logger.LogInformation($"Successfully created {admin.UserName} user.");
 
                     await userManager.AddToRoleAsync(admin, "admin");
-                    logger.LogInformation($"Successfully added { admin.UserName } to 'admin' role.");
+                    logger.LogInformation($"Successfully added {admin.UserName} to 'admin' role.");
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     logger.LogError(ex, $"Error occured when when creating user or when adding user to role");
                     throw;

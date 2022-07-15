@@ -1,11 +1,6 @@
 ﻿using Leadsly.Application.Model;
-using Leadsly.Application.Model.Entities;
 using Leadsly.Application.Model.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Leadsly.Domain.Models.Entities;
 
 namespace Leadsly.Domain.Converters
 {

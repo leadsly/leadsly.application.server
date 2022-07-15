@@ -1,8 +1,8 @@
 ﻿using Leadsly.Application.Model.Campaigns;
-using Leadsly.Application.Model.Entities;
-using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Factories.Interfaces;
+using Leadsly.Domain.Models.Entities;
+using Leadsly.Domain.Models.Entities.Campaigns.Phases;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Microsoft.Extensions.Logging;
@@ -19,20 +19,20 @@ namespace Leadsly.Domain.Factories
             IUserProvider userProvider,
             ICampaignRepositoryFacade campaignRepositoryFacade,
             IRabbitMQProvider rabbitMQProvider,
-            IHalRepository halRepository,            
+            IHalRepository halRepository,
             ILogger<MonitorForNewConnectionsMessagesFactory> logger)
         {
             _userProvider = userProvider;
             _campaignRepositoryFacade = campaignRepositoryFacade;
             _rabbitMQProvider = rabbitMQProvider;
-            _halRepository = halRepository;            
+            _halRepository = halRepository;
             _logger = logger;
         }
 
         private readonly IUserProvider _userProvider;
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
         private readonly IRabbitMQProvider _rabbitMQProvider;
-        private readonly IHalRepository _halRepository;        
+        private readonly IHalRepository _halRepository;
         private readonly ILogger<MonitorForNewConnectionsMessagesFactory> _logger;
 
         public async Task<MonitorForNewAcceptedConnectionsBody> CreateMessageAsync(string halId, int numOfHoursAgo = 0, CancellationToken ct = default)
@@ -47,7 +47,7 @@ namespace Leadsly.Domain.Factories
             if (socialAccount.User.Campaigns.Any(c => c.Active == true))
             {
                 messageBody = await CreateMonitorForNewAcceptedConnectionsBodyAsync(socialAccount.HalDetails.HalId, socialAccount.UserId, socialAccount.SocialAccountId, numOfHoursAgo);
-            }            
+            }
 
             return messageBody;
         }

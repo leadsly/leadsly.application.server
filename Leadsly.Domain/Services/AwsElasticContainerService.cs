@@ -4,7 +4,6 @@ using Leadsly.Application.Model.Aws.ElasticContainerService;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,33 +19,12 @@ namespace Leadsly.Domain.Services
         private readonly AmazonECSClient _amazonEcsClient;
         private readonly ILogger<AwsElasticContainerService> _logger;
 
-        public async Task<CreateServiceResponse> CreateServiceAsync(CreateEcsServiceRequest createEcsServiceRequest, CancellationToken ct = default)
+        public async Task<CreateServiceResponse> CreateServiceAsync(CreateServiceRequest request, CancellationToken ct = default)
         {
             CreateServiceResponse resp = default;
             try
             {
-                resp = await _amazonEcsClient.CreateServiceAsync(new CreateServiceRequest
-                {
-                    DesiredCount = createEcsServiceRequest.DesiredCount,
-                    ServiceName = createEcsServiceRequest.ServiceName,
-                    TaskDefinition = createEcsServiceRequest.TaskDefinition,
-                    Cluster = createEcsServiceRequest.Cluster,
-                    LaunchType = createEcsServiceRequest.LaunchType,
-                    ServiceRegistries = createEcsServiceRequest.EcsServiceRegistries.Select(r => new ServiceRegistry
-                    {
-                        RegistryArn = r.RegistryArn
-                    }).ToList(),
-                    NetworkConfiguration = new()
-                    {
-                        AwsvpcConfiguration = new()
-                        {
-                            AssignPublicIp = createEcsServiceRequest.AssignPublicIp,
-                            Subnets = createEcsServiceRequest.Subnets,
-                            SecurityGroups = createEcsServiceRequest.SecurityGroups
-                        }
-                    },
-                    SchedulingStrategy = createEcsServiceRequest.SchedulingStrategy
-                }, ct);
+                resp = await _amazonEcsClient.CreateServiceAsync(request, ct);
             }
             catch (Exception ex)
             {
@@ -143,16 +121,12 @@ namespace Leadsly.Domain.Services
             return resp;
         }
 
-        public async Task<DescribeServicesResponse> DescribeServicesAsync(DescribeEcsServicesRequest describeServiceRequest, CancellationToken ct = default)
+        public async Task<DescribeServicesResponse> DescribeServicesAsync(DescribeServicesRequest request, CancellationToken ct = default)
         {
             DescribeServicesResponse resp = default;
             try
             {
-                resp = await _amazonEcsClient.DescribeServicesAsync(new DescribeServicesRequest
-                {
-                    Cluster = describeServiceRequest.Cluster,
-                    Services = describeServiceRequest.Services
-                });
+                resp = await _amazonEcsClient.DescribeServicesAsync(request, ct);
             }
             catch (Exception ex)
             {
@@ -162,31 +136,12 @@ namespace Leadsly.Domain.Services
             return resp;
         }
 
-        public async Task<RegisterTaskDefinitionResponse> RegisterTaskDefinitionAsync(RegisterEcsTaskDefinitionRequest registerTaskDefinitionRequest, CancellationToken ct = default)
+        public async Task<RegisterTaskDefinitionResponse> RegisterTaskDefinitionAsync(RegisterTaskDefinitionRequest request, CancellationToken ct = default)
         {
             RegisterTaskDefinitionResponse resp = default;
             try
             {
-                resp = await _amazonEcsClient.RegisterTaskDefinitionAsync(new RegisterTaskDefinitionRequest
-                {
-                    RequiresCompatibilities = registerTaskDefinitionRequest.RequiresCompatibilities,
-                    Family = registerTaskDefinitionRequest.Family,
-                    ContainerDefinitions = registerTaskDefinitionRequest.EcsContainerDefinitions.Select(c => new ContainerDefinition
-                    {
-                        Name = c.Name,
-                        Image = c.Image,
-                        Environment = c.EnviornmentVariables.Select(var => new KeyValuePair
-                        {
-                            Name = var.Key,
-                            Value = var.Value
-                        }).ToList()
-                    }).ToList(),
-                    Cpu = registerTaskDefinitionRequest.Cpu,
-                    Memory = registerTaskDefinitionRequest.Memory,
-                    TaskRoleArn = registerTaskDefinitionRequest.TaskRoleArn,
-                    ExecutionRoleArn = registerTaskDefinitionRequest.ExecutionRoleArn,
-                    NetworkMode = registerTaskDefinitionRequest.NetworkMode,
-                }, ct);
+                resp = await _amazonEcsClient.RegisterTaskDefinitionAsync(request, ct);
             }
             catch (Exception ex)
             {

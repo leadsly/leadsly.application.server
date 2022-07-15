@@ -1,11 +1,9 @@
-﻿using Leadsly.Application.Model.Entities.Campaigns.Phases;
+﻿using Leadsly.Domain.Models.Entities.Campaigns.Phases;
 using Leadsly.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -48,7 +46,7 @@ namespace Leadsly.Infrastructure.Repositories
                 phase = await _dbContext.ScanProspectsForRepliesPhase
                     .Where(p => p.ScanProspectsForRepliesPhaseId == scanProspectsForRepliesPhaseId)
                     .Include(p => p.SocialAccount)
-                    .SingleAsync(ct);                                
+                    .SingleAsync(ct);
 
                 _logger.LogDebug("Successfully retrieved ScanProspectsForRepliesPhase by id {scanProspectsForRepliesPhaseId}", scanProspectsForRepliesPhaseId);
             }

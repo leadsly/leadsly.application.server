@@ -1,10 +1,7 @@
-﻿using Leadsly.Application.Model.Entities.Campaigns;
-using Leadsly.Application.Model.ViewModels.Campaigns;
-using System;
+﻿using Leadsly.Application.Model.ViewModels.Campaigns;
+using Leadsly.Domain.Models.Entities.Campaigns;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Converters
 {

@@ -1,18 +1,18 @@
 ﻿using Amazon.SimpleEmailV2.Model;
+using Leadsly.Application.Api.Services;
+using Leadsly.Domain;
+using Leadsly.Domain.Models.Entities;
+using Leadsly.Domain.OptionsJsonModels;
+using Leadsly.Domain.Supervisor;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Stripe;
+using System.Collections.Generic;
 using System.IO;
-using Leadsly.Domain.Supervisor;
-using Leadsly.Application.Model.Entities;
-using Leadsly.Domain;
-using Leadsly.Application.Api.Services;
-using Leadsly.Domain.OptionsJsonModels;
+using System.Threading.Tasks;
 
 namespace Leadsly.Application.Api.Controllers
 {
@@ -20,18 +20,18 @@ namespace Leadsly.Application.Api.Controllers
     /// Stripe controller.
     /// </summary>
     [ApiController]
-    [Route("[controller]")]    
+    [Route("[controller]")]
     public class WebhookController : ApiControllerBase
     {
         public WebhookController(
-            IConfiguration configuration,                        
+            IConfiguration configuration,
             IEmailService emailService,
             IHtmlTemplateGenerator templateGenerator,
             LeadslyUserManager userManager,
             ISupervisor supervisor,
             ILogger<WebhookController> logger)
         {
-            _configuration = configuration;            
+            _configuration = configuration;
             _emailService = emailService;
             _templateGenerator = templateGenerator;
             _emailServiceOptions = configuration.GetSection(nameof(EmailServiceOptions));
@@ -41,7 +41,7 @@ namespace Leadsly.Application.Api.Controllers
             _logger = logger;
         }
 
-        
+
         private readonly IConfiguration _configuration;
         private readonly IEmailService _emailService;
         private readonly ISupervisor _supervisor;
@@ -62,9 +62,9 @@ namespace Leadsly.Application.Api.Controllers
                 json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
 
                 stripeEvent = EventUtility.ConstructEvent(json, Request.Headers["Stripe-Signature"], _configuration[ApiConstants.VaultKeys.StripeWebhookSecret]) ?? throw new StripeException();
-                
-            }            
-            catch(StripeException ex)
+
+            }
+            catch (StripeException ex)
             {
                 _logger.LogError(ex, "Error occured extracting event data from stripe request.");
 
@@ -72,7 +72,7 @@ namespace Leadsly.Application.Api.Controllers
             }
 
             string stripeEvt = stripeEvent.Type;
-            if(stripeEvent.Type == Events.CustomerCreated)
+            if (stripeEvent.Type == Events.CustomerCreated)
             {
                 _logger.LogInformation("Stripe responded with {stripeEvt}.", stripeEvt);
 

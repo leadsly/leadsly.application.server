@@ -1,5 +1,5 @@
-﻿using Leadsly.Application.Model.Entities;
-using Leadsly.Domain.Converters;
+﻿using Leadsly.Domain.Converters;
+using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.Models.Requests;
 using Leadsly.Domain.Models.Responses;
 using Leadsly.Domain.Models.ViewModels.LinkedInAccount;

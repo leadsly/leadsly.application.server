@@ -1,12 +1,9 @@
-﻿using Leadsly.Application.Model.Entities.Campaigns;
-using Leadsly.Application.Model.ViewModels;
+﻿using Leadsly.Application.Model.ViewModels;
 using Leadsly.Application.Model.ViewModels.Campaigns;
 using Leadsly.Application.Model.ViewModels.Response;
 using Leadsly.Domain.Converters;
-using System;
+using Leadsly.Domain.Models.Entities.Campaigns;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,7 +18,7 @@ namespace Leadsly.Domain.Supervisor
 
             IList<PrimaryProspectList> prospectLists = await _campaignRepositoryFacade.GetPrimaryProspectListsByUserIdAsync(userId, ct);
 
-            if(prospectLists == null)
+            if (prospectLists == null)
             {
                 return result;
             }

@@ -1,7 +1,6 @@
-﻿using Hangfire;
-using Leadsly.Application.Model.Campaigns;
-using Leadsly.Application.Model.Entities.Campaigns;
+﻿using Leadsly.Application.Model.Campaigns;
 using Leadsly.Domain.Facades.Interfaces;
+using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
@@ -10,7 +9,6 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,8 +17,8 @@ namespace Leadsly.Domain.Providers
     public class SendFollowUpMessageProvider : ISendFollowUpMessageProvider
     {
         public SendFollowUpMessageProvider(
-            ICampaignRepositoryFacade campaignRepositoryFacade, 
-            ITimestampService timestampService, 
+            ICampaignRepositoryFacade campaignRepositoryFacade,
+            ITimestampService timestampService,
             IHangfireService hangfireService,
             ILogger<SendFollowUpMessageProvider> logger,
             IFollowUpMessageJobsRepository followUpMessageRepository,
@@ -45,7 +43,7 @@ namespace Leadsly.Domain.Providers
         public async Task ScheduleFollowUpMessageAsync(FollowUpMessageBody followUpMessageBody, string queueNameIn, string routingKeyIn, string halId, DateTimeOffset scheduleTime, CancellationToken ct = default)
         {
             _logger.LogDebug($"Scheduling FollowUpMessage to be published at {scheduleTime}");
-            string jobId = _hangfireService.Schedule<IFollowUpMessagePublisher>(x => x.PublishPhaseAsync(followUpMessageBody, queueNameIn, routingKeyIn, halId), scheduleTime);            
+            string jobId = _hangfireService.Schedule<IFollowUpMessagePublisher>(x => x.PublishPhaseAsync(followUpMessageBody, queueNameIn, routingKeyIn, halId), scheduleTime);
             _logger.LogDebug($"Scheduled hangfire job id is {jobId}");
 
             FollowUpMessageJob followUpJob = new()
@@ -69,7 +67,7 @@ namespace Leadsly.Domain.Providers
                 if (messages != null)
                 {
                     IList<int> nextFollowUpMessageOrders = DetermineNextFollowUpMessages(campaignProspect, messages);
-                    if(nextFollowUpMessageOrders.Count == 0)
+                    if (nextFollowUpMessageOrders.Count == 0)
                     {
                         // this campaign prospect has received all of the follow up messages configured
                         // check if the last follow up message was sent 14 or more days ago, if yes mark this prospect as complete or fullfilled
@@ -91,7 +89,7 @@ namespace Leadsly.Domain.Providers
                             FollowUpMessage messageToGoOut = messages.SingleOrDefault(m => m.Order == nextFollowUpMessageOrder);
                             var messagesOut = await CreateFollowUpMessagesAsync(messageToGoOut, campaignProspect, ct);
                             goingOut.AddRange(messagesOut);
-                        }                        
+                        }
                     }
                 }
             }
@@ -101,7 +99,7 @@ namespace Leadsly.Domain.Providers
 
         private async Task<IList<FollowUpMessage>> GetFollowUpMessagesByCampaignIdAsync(string campaignId, CancellationToken ct = default)
         {
-            if(_memoryCache.TryGetValue(campaignId, out IList<FollowUpMessage> followUpMessages) == false)
+            if (_memoryCache.TryGetValue(campaignId, out IList<FollowUpMessage> followUpMessages) == false)
             {
                 followUpMessages = await _campaignRepositoryFacade.GetFollowUpMessagesByCampaignIdAsync(campaignId, ct);
                 _memoryCache.Set(campaignId, followUpMessages);
@@ -150,7 +148,7 @@ namespace Leadsly.Domain.Providers
 
         private async Task<CampaignProspectFollowUpMessage> CreateOrGetFollowUpMessageAsync(FollowUpMessage message, CampaignProspect campaignProspect, CancellationToken ct = default)
         {
-            if(campaignProspect.FollowUpMessages.Any(f => f.Order == message.Order) == true)
+            if (campaignProspect.FollowUpMessages.Any(f => f.Order == message.Order) == true)
             {
                 // if for whatever reason the server was restarted or we have already created a follow up message for this prospect
                 // with the given order id
@@ -236,7 +234,7 @@ namespace Leadsly.Domain.Providers
         {
             // the order ids of the next follow up messages.
             IList<int> followUpOrders = new List<int>();
-            if(followUpMessages.Count == 0)
+            if (followUpMessages.Count == 0)
             {
                 return followUpOrders;
             }

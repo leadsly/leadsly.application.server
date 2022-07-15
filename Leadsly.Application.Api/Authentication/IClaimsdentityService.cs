@@ -1,9 +1,6 @@
-﻿using Leadsly.Domain.Models;
-using Microsoft.AspNetCore.Identity;
+﻿using Leadsly.Domain.Models.Entities;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Leadsly.Domain;
-using Leadsly.Application.Model.Entities;
 
 namespace Leadsly.Application.Api.Authentication
 {

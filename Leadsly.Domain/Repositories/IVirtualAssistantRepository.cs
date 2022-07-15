@@ -1,4 +1,4 @@
-﻿using Leadsly.Application.Model.Entities;
+﻿using Leadsly.Domain.Models.Entities;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;

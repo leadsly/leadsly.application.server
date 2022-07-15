@@ -1,7 +1,5 @@
-﻿using Leadsly.Application.Model;
-using Leadsly.Application.Model.Aws.DTOs;
-using Leadsly.Application.Model.Entities;
-using Leadsly.Domain.Converters;
+﻿using Leadsly.Domain.Converters;
+using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.Models.Requests;
 using Leadsly.Domain.Models.ViewModels.VirtualAssistant;
 using Microsoft.Extensions.Logging;
@@ -13,15 +11,15 @@ namespace Leadsly.Domain.Supervisor
 {
     public partial class Supervisor : ISupervisor
     {
-        private EcsServiceDTO EcsServiceDTO { get; set; }
-        private EcsTaskDefinitionDTO EcsTaskDefinitionDTO { get; set; }
-        private CloudMapDiscoveryServiceDTO CloudMapDiscoveryServiceDTO { get; set; }
+        private EcsService EcsService { get; set; }
+        private EcsTaskDefinition EcsTaskDefinition { get; set; }
+        private CloudMapDiscoveryService CloudMapDiscoveryService { get; set; }
 
         public async Task<DeleteVirtualAssistantViewModel> DeleteVirtualAssistantAsync(string userId, CancellationToken ct = default)
         {
             DeleteVirtualAssistantViewModel viewModel = new DeleteVirtualAssistantViewModel
             {
-                Succeeded = true
+                Succeeded = false
             };
 
             VirtualAssistant virtualAssistant = await _cloudPlatformProvider.GetVirtualAssistantAsync(userId, ct);
@@ -61,6 +59,7 @@ namespace Leadsly.Domain.Supervisor
 
             await _cloudPlatformProvider.DeleteVirtualAssistantAsync(virtualAssistant.VirtualAssistantId, ct);
 
+            viewModel.Succeeded = true;
             return viewModel;
 
         }
@@ -88,29 +87,22 @@ namespace Leadsly.Domain.Supervisor
 
         public async Task<VirtualAssistantViewModel> CreateVirtualAssistantAsync(CreateVirtualAssistantRequest setup, CancellationToken ct = default)
         {
-            LeadslyAccountSetupResult result = new();
-
             string halId = GenerateHalId();
-            bool awsResourcesCreated = await CreateAwsResourcesAsync(halId, setup.UserId, result, ct);
+            bool awsResourcesCreated = await CreateAwsResourcesAsync(halId, setup.UserId, ct);
             if (awsResourcesCreated == false)
             {
-                result.Succeeded = false;
                 return null;
             }
 
-            EcsTaskDefinition newTaskDef = EcsTaskDefinitionConverter.Convert(EcsTaskDefinitionDTO);
-            EcsService newService = EcsServiceConverter.Convert(EcsServiceDTO);
-            CloudMapDiscoveryService newCloudMapService = CloudMapDiscoveryServiceConverter.Convert(CloudMapDiscoveryServiceDTO);
-
-            VirtualAssistant virtualAssistant = await _cloudPlatformProvider.CreateVirtualAssistantAsync(newTaskDef, newService, newCloudMapService, halId, setup.UserId, setup.TimeZoneId, ct);
+            VirtualAssistant virtualAssistant = await _cloudPlatformProvider.CreateVirtualAssistantAsync(EcsTaskDefinition, EcsService, CloudMapDiscoveryService, halId, setup.UserId, setup.TimeZoneId, ct);
             VirtualAssistantViewModel virtualAssistantViewModel = VirtualAssistantConverter.Convert(virtualAssistant);
             return virtualAssistantViewModel;
         }
 
-        private async Task<bool> CreateAwsResourcesAsync(string halId, string userId, LeadslyAccountSetupResult result, CancellationToken ct = default)
+        private async Task<bool> CreateAwsResourcesAsync(string halId, string userId, CancellationToken ct = default)
         {
             // Register the new task definition
-            EcsTaskDefinitionDTO ecsTaskDefinition = await _cloudPlatformProvider.RegisterTaskDefinitionInAwsAsync(halId, result, ct);
+            EcsTaskDefinition ecsTaskDefinition = await _cloudPlatformProvider.RegisterTaskDefinitionInAwsAsync(halId, ct);
             if (ecsTaskDefinition == null)
             {
                 await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, ecsTaskDefinition.Family, ct);
@@ -118,7 +110,7 @@ namespace Leadsly.Domain.Supervisor
             }
 
             // create cloud map service discovery service
-            CloudMapDiscoveryServiceDTO cloudMapServiceDiscoveryService = await _cloudPlatformProvider.CreateCloudMapDiscoveryServiceInAwsAsync(result, ct);
+            CloudMapDiscoveryService cloudMapServiceDiscoveryService = await _cloudPlatformProvider.CreateCloudMapDiscoveryServiceInAwsAsync(ct);
             if (cloudMapServiceDiscoveryService == null)
             {
                 await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, cloudMapServiceDiscoveryService.Name, ct);
@@ -127,7 +119,7 @@ namespace Leadsly.Domain.Supervisor
             }
 
             // create ecs service
-            EcsServiceDTO ecsService = await _cloudPlatformProvider.CreateEcsServiceInAwsAsync(ecsTaskDefinition.Family, cloudMapServiceDiscoveryService.Arn, result, ct);
+            EcsService ecsService = await _cloudPlatformProvider.CreateEcsServiceInAwsAsync(ecsTaskDefinition.Family, cloudMapServiceDiscoveryService.Arn, ct);
             if (ecsService == null)
             {
                 await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsService.ServiceName, ecsService.ClusterArn, ct);
@@ -141,11 +133,6 @@ namespace Leadsly.Domain.Supervisor
             if (running == false)
             {
                 _logger.LogError("Ecs Tasks are not running. Tear down resources and try again");
-                result.Succeeded = false;
-                result.Failure = new()
-                {
-                    Reason = "Ecs Tasks are not running. Tear down resources and try again"
-                };
                 await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsService.ServiceName, ecsService.ClusterArn, ct);
                 await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, cloudMapServiceDiscoveryService.ServiceDiscoveryId, ct);
                 await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, ecsTaskDefinition.Family, ct);
@@ -167,9 +154,9 @@ namespace Leadsly.Domain.Supervisor
             //    return false;
             //}
 
-            EcsTaskDefinitionDTO = ecsTaskDefinition;
-            CloudMapDiscoveryServiceDTO = cloudMapServiceDiscoveryService;
-            EcsServiceDTO = ecsService;
+            EcsTaskDefinition = ecsTaskDefinition;
+            CloudMapDiscoveryService = cloudMapServiceDiscoveryService;
+            EcsService = ecsService;
 
             return true;
         }

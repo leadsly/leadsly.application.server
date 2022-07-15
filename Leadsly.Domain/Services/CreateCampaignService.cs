@@ -1,6 +1,6 @@
-﻿using Leadsly.Application.Model.Entities.Campaigns;
-using Leadsly.Application.Model.ViewModels.Campaigns;
+﻿using Leadsly.Application.Model.ViewModels.Campaigns;
 using Leadsly.Domain.Facades.Interfaces;
+using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;

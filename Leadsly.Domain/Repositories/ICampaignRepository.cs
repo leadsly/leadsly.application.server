@@ -1,4 +1,4 @@
-﻿using Leadsly.Application.Model.Entities.Campaigns;
+﻿using Leadsly.Domain.Models.Entities.Campaigns;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;

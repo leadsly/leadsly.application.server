@@ -1,10 +1,6 @@
-﻿using Leadsly.Domain.Repositories;
-using Leadsly.Application.Model.Entities;
+﻿using Leadsly.Domain.Models.Entities;
+using Leadsly.Domain.Repositories;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 

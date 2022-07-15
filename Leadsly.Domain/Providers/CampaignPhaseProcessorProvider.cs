@@ -1,15 +1,12 @@
 ﻿using Leadsly.Application.Model;
-using Leadsly.Application.Model.Entities.Campaigns;
-using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Application.Model.Requests.FromHal;
 using Leadsly.Application.Model.Responses;
 using Leadsly.Domain.Facades.Interfaces;
+using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.Providers.Interfaces;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,7 +15,7 @@ namespace Leadsly.Domain.Providers
     public class CampaignPhaseProcessorProvider : ICampaignPhaseProcessorProvider
     {
         public CampaignPhaseProcessorProvider(
-            ICampaignRepositoryFacade campaignRepositoryFacade, 
+            ICampaignRepositoryFacade campaignRepositoryFacade,
             ILogger<CampaignPhaseProcessorProvider> logger,
             ISendFollowUpMessageProvider sendFollowUpMessageProvider,
             ICampaignPhaseClient campaignPhaseClient)
@@ -151,16 +148,16 @@ namespace Leadsly.Domain.Providers
 
             CampaignProspect campaignProspect = await _campaignRepositoryFacade.GetCampaignProspectByIdAsync(request.CampaignProspectId, ct);
 
-            if(campaignProspect.FollowUpMessageSent == false)
+            if (campaignProspect.FollowUpMessageSent == false)
             {
-                campaignProspect.FollowUpMessageSent = true;                
+                campaignProspect.FollowUpMessageSent = true;
             }
 
             campaignProspect.LastFollowUpMessageSentTimestamp = request.MessageSentTimestamp;
             campaignProspect.SentFollowUpMessageOrderNum = request.MessageOrderNum;
-            
+
             campaignProspect = await _campaignRepositoryFacade.UpdateCampaignProspectAsync(campaignProspect, ct);
-            if(campaignProspect == null)
+            if (campaignProspect == null)
             {
                 return result;
             }

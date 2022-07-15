@@ -1,6 +1,6 @@
-﻿using Leadsly.Application.Model.Entities;
-using Leadsly.Application.Model.Entities.Campaigns;
-using Leadsly.Application.Model.Entities.Campaigns.Phases;
+﻿using Leadsly.Domain.Models.Entities;
+using Leadsly.Domain.Models.Entities.Campaigns;
+using Leadsly.Domain.Models.Entities.Campaigns.Phases;
 using Leadsly.Infrastructure.Configurations;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -24,9 +24,7 @@ namespace Leadsly.Infrastructure
         public DbSet<CloudMapDiscoveryService> CloudMapDiscoveryServices { get; set; }
         public DbSet<EcsServiceRegistry> EcsServiceRegistries { get; set; }
         public DbSet<SocialAccount> SocialAccounts { get; set; }
-        public DbSet<SocialAccountCloudResource> SocialAccountResources { get; set; }
         public DbSet<OrphanedCloudResource> OrphanedCloudResources { get; set; }
-        public DbSet<Organization> Organizations { get; set; }
         public DbSet<Campaign> Campaigns { get; set; }
         public DbSet<ProspectListPhase> ProspectListPhases { get; set; }
         public DbSet<MonitorForNewConnectionsPhase> MonitorForNewConnectionsPhases { get; set; }
@@ -50,7 +48,7 @@ namespace Leadsly.Infrastructure
         public DbSet<SearchUrlProgress> SearchUrlsProgress { get; set; }
         public DbSet<FollowUpMessageJob> FollowUpMessageJobs { get; set; }
         public DbSet<LeadslyTimeZone> SupportedTimeZones { get; set; }
-        public DbSet<HalTimeZone> HalTimeZones { get; set; }
+        public DbSet<EcsTask> EcsTasks { get; set; }
         public DbSet<VirtualAssistant> VirtualAssistants { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -66,6 +64,8 @@ namespace Leadsly.Infrastructure
             SocialAccountsConfiguration.Configure(builder, _logger);
 
             LeadslyTimeZoneConfiguration.Configure(builder, _logger);
+
+            EcsResourcesConfiguration.Configure(builder, _logger);
         }
     }
 }

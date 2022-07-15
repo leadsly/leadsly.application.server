@@ -1,8 +1,10 @@
-﻿using Leadsly.Application.Model.ViewModels;
-using Leadsly.Domain.Models;
-using JWT;
+﻿using JWT;
 using JWT.Algorithms;
 using JWT.Serializers;
+using Leadsly.Application.Model.ViewModels;
+using Leadsly.Domain;
+using Leadsly.Domain.Exceptions;
+using Leadsly.Domain.Models.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
@@ -12,9 +14,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using Leadsly.Domain;
-using Leadsly.Application.Model.Entities;
-using Leadsly.Domain.Exceptions;
 
 namespace Leadsly.Application.Api.Authentication
 {
@@ -122,7 +121,7 @@ namespace Leadsly.Application.Api.Authentication
 
             IdentityResult settingNewTokenResult = await _userManager.SetAuthenticationTokenAsync(appUser, ApiConstants.DataTokenProviders.StaySignedInProvider.ProviderName, ApiConstants.DataTokenProviders.StaySignedInProvider.TokenName, newRefreshToken);
 
-            if(settingNewTokenResult.Succeeded == false)
+            if (settingNewTokenResult.Succeeded == false)
             {
                 return result;
             }
@@ -135,5 +134,5 @@ namespace Leadsly.Application.Api.Authentication
 
             return result;
         }
-    }    
+    }
 }

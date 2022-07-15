@@ -1,11 +1,10 @@
-﻿using Leadsly.Application.Model.Entities.Campaigns;
+﻿using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -42,7 +41,7 @@ namespace Leadsly.Infrastructure.Repositories
         public async Task<CampaignProspectFollowUpMessage> CreateAsync(CampaignProspectFollowUpMessage message, CancellationToken ct = default)
         {
             string campaignProspectId = message.CampaignProspectId;
-            _logger.LogInformation("Create CampaignProspectFollowUpMessage for campaign prospect id {campaignProspectId}", campaignProspectId);            
+            _logger.LogInformation("Create CampaignProspectFollowUpMessage for campaign prospect id {campaignProspectId}", campaignProspectId);
             try
             {
                 _dbContext.CampaignProspectFollowUpMessages.Add(message);
@@ -63,7 +62,7 @@ namespace Leadsly.Infrastructure.Repositories
             CampaignProspectFollowUpMessage message = default;
             try
             {
-                message = await _dbContext.CampaignProspectFollowUpMessages.Where(m => m.CampaignProspectFollowUpMessageId == campaignProspectFollowUpMessageId).Include(m => m.CampaignProspect).SingleAsync(ct);                
+                message = await _dbContext.CampaignProspectFollowUpMessages.Where(m => m.CampaignProspectFollowUpMessageId == campaignProspectFollowUpMessageId).Include(m => m.CampaignProspect).SingleAsync(ct);
                 _logger.LogDebug("Successfully retrieved CampaignProspectFollowUpMessage for campaign prospect follow up message id {campaignProspectFollowUpMessageId}", campaignProspectFollowUpMessageId);
             }
             catch (Exception ex)

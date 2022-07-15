@@ -5,7 +5,6 @@ using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,28 +22,16 @@ namespace Leadsly.Domain.Services
         private readonly ILogger<AwsServiceDiscoveryService> _logger;
         private readonly AmazonServiceDiscoveryClient _awsServiceDiscoveryClient;
 
-        public async Task<CreateServiceResponse> CreateServiceAsync(CreateServiceDiscoveryServiceRequest createServiceDiscoveryRequest, CancellationToken ct = default)
+        public async Task<CreateServiceResponse> CreateServiceAsync(CreateServiceRequest request, CancellationToken ct = default)
         {
             CreateServiceResponse resp = default;
             try
             {
-                resp = await _awsServiceDiscoveryClient.CreateServiceAsync(new CreateServiceRequest
-                {
-                    Name = createServiceDiscoveryRequest.Name,
-                    NamespaceId = createServiceDiscoveryRequest.NamespaceId,
-                    DnsConfig = new()
-                    {
-                        DnsRecords = createServiceDiscoveryRequest.DnsConfig.CloudMapDnsRecords.Select(record => new DnsRecord
-                        {
-                            TTL = record.TTL,
-                            Type = record.Type
-                        }).ToList()
-                    }
-                });
+                resp = await _awsServiceDiscoveryClient.CreateServiceAsync(request);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to create service discovery service.");
+                _logger.LogError(ex, "Failed to create cloud map discovery service.");
             }
 
             return resp;

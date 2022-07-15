@@ -1,11 +1,6 @@
-﻿using Leadsly.Application.Model;
-using Leadsly.Application.Model.Entities.Campaigns;
-using Leadsly.Application.Model.Entities.Campaigns.Phases;
-using System;
-using System.Collections.Generic;
+﻿using Leadsly.Domain.Models.Entities.Campaigns;
+using Leadsly.Domain.Models.Entities.Campaigns.Phases;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Campaigns
 {
@@ -14,14 +9,14 @@ namespace Leadsly.Domain.Campaigns
 
         public override Campaign GeneratePhases(Campaign campaign, bool existingProspectList)
         {
-            if(existingProspectList == false)
+            if (existingProspectList == false)
             {
                 ProspectListPhase prospectListPhase = new ProspectListPhase
                 {
                     Campaign = campaign,
                     Completed = false,
                     PhaseType = PhaseType.ProspectList,
-                    SearchUrls = campaign.CampaignProspectList.SearchUrls.Select(url => url.Url).ToList()                    
+                    SearchUrls = campaign.CampaignProspectList.SearchUrls.Select(url => url.Url).ToList()
                 };
                 campaign.ProspectListPhase = prospectListPhase;
             }

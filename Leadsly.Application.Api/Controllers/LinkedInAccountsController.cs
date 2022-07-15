@@ -18,14 +18,14 @@ namespace Leadsly.Application.Api.Controllers
     [Route("linkedin-accounts/{userId}")]
     public class LinkedInAccountsController : ApiControllerBase
     {
-        public LinkedInAccountsController(ISupervisor supervisor, ILogger<LeadslyController> logger)
+        public LinkedInAccountsController(ISupervisor supervisor, ILogger<LinkedInAccountsController> logger)
         {
             _supervisor = supervisor;
             _logger = logger;
         }
 
         private readonly ISupervisor _supervisor;
-        private readonly ILogger<LeadslyController> _logger;
+        private readonly ILogger<LinkedInAccountsController> _logger;
 
         /// <summary>
         /// Whether user is connected to LinkedIn.

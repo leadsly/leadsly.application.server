@@ -1,10 +1,7 @@
-﻿using Leadsly.Domain.Repositories;
-using Leadsly.Application.Model.Entities;
+﻿using Leadsly.Domain.Models.Entities;
+using Leadsly.Domain.Repositories;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -28,11 +25,11 @@ namespace Leadsly.Infrastructure.Repositories
                 _dbContext.OrphanedCloudResources.Add(orphanedResource);
                 await _dbContext.SaveChangesAsync(ct);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to add orphaned cloud resources to the database.");
             }
-            
+
             return orphanedResource;
         }
     }

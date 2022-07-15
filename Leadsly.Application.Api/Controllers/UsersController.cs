@@ -1,8 +1,8 @@
 ﻿using Amazon.SimpleEmailV2.Model;
 using Leadsly.Application.Api.Services;
-using Leadsly.Application.Model.Entities;
 using Leadsly.Application.Model.ViewModels;
 using Leadsly.Domain;
+using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.Models.ViewModels.Campaigns;
 using Leadsly.Domain.Models.ViewModels.Reports;
 using Leadsly.Domain.Models.ViewModels.Reports.ApexCharts;

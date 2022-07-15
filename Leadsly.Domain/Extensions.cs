@@ -1,4 +1,5 @@
-﻿using Leadsly.Application.Model.Entities;
+﻿
+using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.Models.ViewModels.LinkedInAccount;
 using System;
 using System.Collections.Generic;

@@ -1,17 +1,13 @@
-﻿using Hangfire;
-using Leadsly.Application.Model;
+﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
-using Leadsly.Application.Model.Entities.Campaigns;
-using Leadsly.Application.Model.Entities.Campaigns.Phases;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Factories.Interfaces;
+using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.Providers.Interfaces;
-using Leadsly.Domain.Repositories;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages
@@ -49,17 +45,17 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages
         /// <returns></returns>
         public async Task HandleAsync(FollowUpMessagesCommand command)
         {
-            if(command.HalId != null)
+            if (command.HalId != null)
             {
                 await InternalHandleAsync(command.HalId);
             }
 
-            if(command.HalIds != null)
+            if (command.HalIds != null)
             {
                 await InternalExecuteListAsync(command.HalIds);
             }
         }
-        
+
         private async Task InternalHandleAsync(string halId)
         {
             IList<Campaign> campaigns = await _campaignRepositoryFacade.GetAllActiveCampaignsByHalIdAsync(halId);
@@ -70,7 +66,7 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages
                 // grab all campaign prospects for each campaign
                 IList<CampaignProspect> campaignProspects = await _campaignRepositoryFacade.GetAllCampaignProspectsByCampaignIdAsync(activeCampaign.CampaignId);
                 List<CampaignProspect> prospectsForFollowUpMessage = campaignProspects.Where(p => p.Accepted == true && p.Replied == false && p.FollowUpComplete == false).ToList();
-                if(prospectsForFollowUpMessage.Count > 0)
+                if (prospectsForFollowUpMessage.Count > 0)
                 {
                     // await campaignProvider.SendFollowUpMessagesAsync(uncontactedProspects);
                     Dictionary<CampaignProspectFollowUpMessage, DateTimeOffset> messagesOut = await _sendFollowUpMessageProvider.CreateSendFollowUpMessagesAsync(prospectsForFollowUpMessage) as Dictionary<CampaignProspectFollowUpMessage, DateTimeOffset>;
@@ -80,7 +76,7 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages
 
             await PublishMessagesGoingOut(messagesGoingOut);
         }
-        
+
         /// <summary>
         /// Only triggered for those hals that did NOT have DeepScanProspectsForRepliesPhase executed. DeepScanProspectsForRepliesPhase
         /// will handle execution of FollowUpMessagesPhase and ScanProspectsForReplies, however
@@ -120,7 +116,7 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages
             else
             {
                 _logger.LogInformation($"Scheduling FollowUpMessageBody to go out at {scheduleTime}");
-                await _sendFollowUpMessageProvider.ScheduleFollowUpMessageAsync(followUpMessageBody, queueNameIn, routingKeyIn, halId, scheduleTime);                
+                await _sendFollowUpMessageProvider.ScheduleFollowUpMessageAsync(followUpMessageBody, queueNameIn, routingKeyIn, halId, scheduleTime);
             }
         }
     }

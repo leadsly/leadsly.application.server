@@ -1,8 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
+﻿using Leadsly.Domain.Models.Entities;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
-using Leadsly.Application.Model.Entities;
 using System.Linq;
 
 namespace Leadsly.Infrastructure.DatabaseInitializer
@@ -29,7 +29,7 @@ namespace Leadsly.Infrastructure.DatabaseInitializer
         private static void Seed(DatabaseContext dbContext, ILogger<DatabaseInitializer> logger)
         {
             // populate database with UnitedStates timezones
-            if(dbContext.SupportedTimeZones.Count() == 0)
+            if (dbContext.SupportedTimeZones.Count() == 0)
             {
                 foreach (string tzId in InitialTimeZoneIds)
                 {
@@ -40,7 +40,7 @@ namespace Leadsly.Infrastructure.DatabaseInitializer
                     dbContext.SupportedTimeZones.Add(tz);
                     dbContext.SaveChanges();
                 }
-            }            
+            }
         }
     }
 }

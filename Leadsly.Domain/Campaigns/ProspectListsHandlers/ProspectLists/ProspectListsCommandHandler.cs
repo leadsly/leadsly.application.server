@@ -1,10 +1,8 @@
 ﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
-using Leadsly.Application.Model.Entities.Campaigns.Phases;
-using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Factories.Interfaces;
+using Leadsly.Domain.Models.Entities.Campaigns.Phases;
 using Leadsly.Domain.Providers.Interfaces;
-using Leadsly.Domain.Repositories;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,7 +36,7 @@ namespace Leadsly.Domain.Campaigns.ProspectListsHandlers.ProspectLists
         /// <returns></returns>
         public async Task HandleAsync(ProspectListsCommand command)
         {
-            if(command.HalIds != null)
+            if (command.HalIds != null)
             {
                 await InternalExecuteListAsync(command.HalIds);
             }
@@ -80,7 +78,7 @@ namespace Leadsly.Domain.Campaigns.ProspectListsHandlers.ProspectLists
             foreach (string halId in halIds)
             {
                 IList<ProspectListPhase> halsProspectListPhases = await _campaignProvider.GetIncompleteProspectListPhasesAsync(halId);
-                if(halsProspectListPhases.Count > 0)
+                if (halsProspectListPhases.Count > 0)
                 {
                     prospectListPhases.AddRange(halsProspectListPhases);
                 }

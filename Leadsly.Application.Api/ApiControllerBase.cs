@@ -1,7 +1,7 @@
 ﻿using Leadsly.Application.Model;
-using Leadsly.Application.Model.Entities;
 using Leadsly.Application.Model.ViewModels;
 using Leadsly.Domain;
+using Leadsly.Domain.Models.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

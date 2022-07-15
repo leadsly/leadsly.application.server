@@ -1,4 +1,4 @@
-﻿using Leadsly.Application.Model.Entities.Campaigns;
+﻿using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.Models.ViewModels.Reports;
 using Leadsly.Domain.Models.ViewModels.Reports.ApexCharts;
 using System;
