@@ -59,4 +59,8 @@
 		<ProjectReference Include="..\Leadsly.Infrastructure\Leadsly.Infrastructure.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<Content Remove="ClientApp\**" />		
+	</ItemGroup>
+
 </Project>
