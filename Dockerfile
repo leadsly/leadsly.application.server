@@ -24,6 +24,7 @@ RUN dotnet build -c Release -o /../../app
 
 WORKDIR "/src/Leadsly.Application.Server/Leadsly.Application.Api"
 RUN dotnet build -c Release -o /../../app
+RUN rm -rf /src/Leadsly.Application.Server/Leadsly.Application.Api/ClientApp
 
 WORKDIR "/src/Leadsly.Application.Server/Leadsly.Infrastructure"
 RUN dotnet build -c Release -o /../../app
@@ -42,7 +43,6 @@ RUN npm run build:prod
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app .
-RUN rm -rf /app/ClientApp
 
 ENV AWS_ACCESS_KEY_ID="AKIA2KIVUGORHZXNMOVT"
 ENV AWS_REGION="us-east-1"
