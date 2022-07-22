@@ -245,10 +245,6 @@ namespace Leadsly.Domain.Providers
                         HostPort = x.HostPort
                     }).ToList(),
                     Privileged = cd.Privileged,
-                    RepositoryCredentials = new Amazon.ECS.Model.RepositoryCredentials
-                    {
-                        CredentialsParameter = cd.RepositoryCredentials.CredentialsParameter
-                    },
                     StartTimeout = cd.StartTimeout,
                     StopTimeout = cd.StopTimeout,
                     VolumesFrom = cd.VolumesFrom.Select(x => new Amazon.ECS.Model.VolumeFrom

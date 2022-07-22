@@ -91,10 +91,6 @@ namespace Leadsly.Infrastructure.Repositories
                         DisableNetworking = c.DisableNetworking,
                         Essential = c.Essential,
                         Privileged = c.Privileged,
-                        RepositoryCredentials = new Domain.Models.Entities.RepositoryCredentials
-                        {
-                            CredentialsParameter = c.RepositoryCredentials.CredentialsParameter
-                        },
                         VolumesFrom = c.VolumesFrom.Select(v => new Domain.Models.Entities.VolumesFrom
                         {
                             SourceContainer = v.SourceContainer,
