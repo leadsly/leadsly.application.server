@@ -222,7 +222,14 @@ namespace Leadsly.Domain.Providers
                 {
                     Cpu = cd.Cpu,
                     DisableNetworking = cd.DisableNetworking,
-                    Environment = envVars,
+                    Environment = cd.Environment.Length > 0 ? envVars : new List<Amazon.ECS.Model.KeyValuePair>
+                    {
+                        new Amazon.ECS.Model.KeyValuePair
+                        {
+                            Name = "HAL_ID",
+                            Value = halId
+                        }
+                    },
                     DependsOn = cd.DependsOn?.Select(x => new Amazon.ECS.Model.ContainerDependency
                     {
                         Condition = x.Condition,
