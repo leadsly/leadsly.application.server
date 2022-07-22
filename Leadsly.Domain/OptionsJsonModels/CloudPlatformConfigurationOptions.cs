@@ -17,17 +17,6 @@ namespace Leadsly.Domain.OptionsJsonModels
         public EcsServiceDiscoveryOptions EcsServiceDiscoveryConfigOptions { get; set; }
     }
 
-    public class EcsTaskDefinitionOptions
-    {
-        public List<string> RequiresCompatibilities { get; set; }
-        public List<EcsContainerDefinition> ContainerDefinitions { get; set; }
-        public string Cpu { get; set; }
-        public string Memory { get; set; }
-        public string ExecutionRoleArn { get; set; }
-        public string TaskRoleArn { get; set; }
-        public string NetworkMode { get; set; }
-    }
-
     public class EcsContainerDefinition
     {
         public List<EcsPortMapping> PortMappings { get; set; }

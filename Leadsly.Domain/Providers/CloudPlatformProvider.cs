@@ -202,35 +202,50 @@ namespace Leadsly.Domain.Providers
         {
             CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
 
-            string taskDefinition = $"{Guid.NewGuid()}-task-def";
-            string halContainerName = $"hal-{Guid.NewGuid()}";
-            string gridContainerName = $"{Guid.NewGuid()}-gird";
+            string taskDefinition = $"{halId}-task-def";
+            string gridContainerName = $"{halId}-gird";
 
             RegisterTaskDefinitionRequest request = new RegisterTaskDefinitionRequest
             {
-                RequiresCompatibilities = configuration.EcsTaskDefinitionConfig.RequiresCompatibilities,
-                Family = taskDefinition,
-                ContainerDefinitions = configuration.EcsTaskDefinitionConfig.ContainerDefinitions.Select(c =>
+                ContainerDefinitions = configuration.EcsTaskDefinitionConfig.ContainerDefinitions.Select(cd => new Amazon.ECS.Model.ContainerDefinition
                 {
-                    return new ContainerDefinition
+                    Cpu = cd.Cpu,
+                    DisableNetworking = cd.DisableNetworking,
+                    DependsOn = cd.DependsOn?.Select(x => new Amazon.ECS.Model.ContainerDependency
                     {
-                        Name = c.Name == "Hal" ? halContainerName : gridContainerName,
-                        Image = c.Image,
-                        Environment = new List<Amazon.ECS.Model.KeyValuePair>()
-                        {
-                            new Amazon.ECS.Model.KeyValuePair()
-                            {
-                                Name = Enum.GetName(DockerEnvironmentVariables.HAL_ID),
-                                Value = halId
-                            }
-                        }
-                    };
+                        Condition = x.Condition,
+                        ContainerName = x.ContainerName
+                    }).ToList(),
+                    Essential = cd.Essential,
+                    Image = cd.Image,
+                    Memory = cd.Memory,
+                    Name = cd.Name,
+                    PortMappings = cd.PortMappings?.Select(x => new Amazon.ECS.Model.PortMapping
+                    {
+                        ContainerPort = x.ContainerPort,
+                        HostPort = x.HostPort
+                    }).ToList(),
+                    Privileged = cd.Privileged,
+                    RepositoryCredentials = new Amazon.ECS.Model.RepositoryCredentials
+                    {
+                        CredentialsParameter = cd.RepositoryCredentials.CredentialsParameter
+                    },
+                    StartTimeout = cd.StartTimeout,
+                    StopTimeout = cd.StopTimeout,
+                    VolumesFrom = cd.VolumesFrom.Select(x => new Amazon.ECS.Model.VolumeFrom
+                    {
+                        ReadOnly = x.ReadOnly,
+                        SourceContainer = x.SourceContainer
+                    }).ToList()
                 }).ToList(),
                 Cpu = configuration.EcsTaskDefinitionConfig.Cpu,
-                Memory = configuration.EcsTaskDefinitionConfig.Memory,
-                TaskRoleArn = configuration.EcsTaskDefinitionConfig.TaskRoleArn,
                 ExecutionRoleArn = configuration.EcsTaskDefinitionConfig.ExecutionRoleArn,
-                NetworkMode = configuration.EcsTaskDefinitionConfig.NetworkMode
+                Family = taskDefinition,
+                Memory = configuration.EcsTaskDefinitionConfig.Memory,
+                NetworkMode = configuration.EcsTaskDefinitionConfig.NetworkMode,
+                RequiresCompatibilities = configuration.EcsTaskDefinitionConfig.RequiresCompatibilities.ToList(),
+                TaskRoleArn = configuration.EcsTaskDefinitionConfig.TaskRoleArn
+
             };
 
             RegisterTaskDefinitionResponse response = await _awsElasticContainerService.RegisterTaskDefinitionAsync(request, ct);

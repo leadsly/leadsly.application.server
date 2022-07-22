@@ -67,17 +67,49 @@ namespace Leadsly.Infrastructure.Repositories
                 },
                 EcsTaskDefinitionConfig = new()
                 {
-                    ContainerDefinitions = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.ContainerDefinitions.Select(c => new EcsContainerDefinitionConfig
+                    ContainerDefinitions = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.ContainerDefinitions.Select(c => new Domain.Models.Entities.ContainerDefinition
                     {
+                        Name = c.Name,
                         Image = c.Image,
-                        Name = c.Name
-                    }).ToList(),
-                    Cpu = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.Cpu,
-                    ExecutionRoleArn = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.ExecutionRoleArn,
-                    Memory = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.Memory,
+                        Cpu = c.Cpu,
+                        Memory = c.Memory,
+                        Environment = c.Environment.Select(e => new Domain.Models.Entities.Environment
+                        {
+                            Name = e.Name,
+                            Value = e.Value
+                        }).ToArray(),
+                        PortMappings = c.PortMappings.Select(p => new Domain.Models.Entities.PortMapping
+                        {
+                            ContainerPort = p.ContainerPort,
+                            HostPort = p.HostPort
+                        }).ToArray(),
+                        DependsOn = c.DependsOn.Select(d => new Domain.Models.Entities.DependsOn
+                        {
+                            ContainerName = d.ContainerName,
+                            Condition = d.Condition
+                        }).ToArray(),
+                        DisableNetworking = c.DisableNetworking,
+                        Essential = c.Essential,
+                        Privileged = c.Privileged,
+                        RepositoryCredentials = new Domain.Models.Entities.RepositoryCredentials
+                        {
+                            CredentialsParameter = c.RepositoryCredentials.CredentialsParameter
+                        },
+                        VolumesFrom = c.VolumesFrom.Select(v => new Domain.Models.Entities.VolumesFrom
+                        {
+                            SourceContainer = v.SourceContainer,
+                            ReadOnly = v.ReadOnly
+                        }).ToArray(),
+                        StartTimeout = c.StartTimeout,
+                        StopTimeout = c.StopTimeout
+                    }).ToArray(),
+                    Family = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.Family,
                     NetworkMode = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.NetworkMode,
                     RequiresCompatibilities = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.RequiresCompatibilities,
-                    TaskRoleArn = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.TaskRoleArn
+                    TaskRoleArn = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.TaskRoleArn,
+                    Cpu = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.Cpu,
+                    Memory = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.Memory,
+                    ExecutionRoleArn = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.ExecutionRoleArn
                 }
             };
 

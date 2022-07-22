@@ -1,6 +1,7 @@
-﻿namespace Leadsly.Domain.Models.Entities
+﻿namespace Leadsly.Domain.OptionsJsonModels
 {
-    public class EcsTaskDefinitionConfig
+
+    public class EcsTaskDefinitionOptions
     {
         public ContainerDefinition[] ContainerDefinitions { get; set; }
         public string Cpu { get; set; }
