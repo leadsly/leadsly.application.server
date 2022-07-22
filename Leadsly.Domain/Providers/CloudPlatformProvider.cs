@@ -201,6 +201,17 @@ namespace Leadsly.Domain.Providers
         public async Task<EcsTaskDefinition> RegisterTaskDefinitionInAwsAsync(string halId, CancellationToken ct = default)
         {
             CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
+            List<Amazon.ECS.Model.KeyValuePair> envVars = configuration.EcsTaskDefinitionConfig.ContainerDefinitions.SelectMany(x => x.Environment.Select(e => new Amazon.ECS.Model.KeyValuePair
+            {
+                Name = e.Name,
+                Value = e.Value
+            })).ToList();
+
+            envVars.Add(new Amazon.ECS.Model.KeyValuePair
+            {
+                Name = "HAL_ID",
+                Value = halId
+            });
 
             string taskDefinition = $"{halId}-task-def";
             string gridContainerName = $"{halId}-gird";
@@ -211,6 +222,7 @@ namespace Leadsly.Domain.Providers
                 {
                     Cpu = cd.Cpu,
                     DisableNetworking = cd.DisableNetworking,
+                    Environment = envVars,
                     DependsOn = cd.DependsOn?.Select(x => new Amazon.ECS.Model.ContainerDependency
                     {
                         Condition = x.Condition,
