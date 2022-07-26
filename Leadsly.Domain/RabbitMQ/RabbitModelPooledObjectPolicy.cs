@@ -1,13 +1,6 @@
-﻿using Leadsly.Application.Model.RabbitMQ;
-using Leadsly.Domain.OptionsJsonModels;
-using Leadsly.Domain.Repositories;
+﻿using Leadsly.Domain.OptionsJsonModels;
 using Microsoft.Extensions.ObjectPool;
 using RabbitMQ.Client;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Leadsly.Domain.RabbitMQ
 {
@@ -27,9 +20,13 @@ namespace Leadsly.Domain.RabbitMQ
                 UserName = options.ConnectionFactoryConfigOptions.UserName,
                 Password = options.ConnectionFactoryConfigOptions.Password,
                 HostName = options.ConnectionFactoryConfigOptions.HostName,
-                Port = options.ConnectionFactoryConfigOptions.Port,                                
+                Port = options.ConnectionFactoryConfigOptions.Port,
                 DispatchConsumersAsync = true,
-                ClientProvidedName = "[Publisher] AppServer"
+                ClientProvidedName = "[Publisher] AppServer",
+                Ssl = new SslOption()
+                {
+                    Enabled = options.ConnectionFactoryConfigOptions.Ssl.Enabled
+                }
             };
 
             return factory.CreateConnection();

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Leadsly.Domain.OptionsJsonModels
+﻿namespace Leadsly.Domain.OptionsJsonModels
 {
     public class RabbitMQConfigOptions
     {
@@ -21,7 +15,13 @@ namespace Leadsly.Domain.OptionsJsonModels
         public string HostName { get; set; }
         public string VirtualHost { get; set; }
         public int Port { get; set; }
+        public Ssl Ssl { get; set; }
         public string ClientProvidedName { get; set; }
+    }
+
+    public class Ssl
+    {
+        public bool Enabled { get; set; }
     }
 
     public class ExchangeConfigOptions
