@@ -15,19 +15,22 @@ namespace Leadsly.Domain.RabbitMQ
 
         private IConnection GetConnection(RabbitMQConfigOptions options)
         {
-            var factory = new ConnectionFactory()
+            var factory = new ConnectionFactory();
+
+            if (options.ConnectionFactoryConfigOptions.Ssl.Enabled == true)
             {
-                UserName = options.ConnectionFactoryConfigOptions.UserName,
-                Password = options.ConnectionFactoryConfigOptions.Password,
-                HostName = options.ConnectionFactoryConfigOptions.HostName,
-                Port = options.ConnectionFactoryConfigOptions.Port,
-                DispatchConsumersAsync = true,
-                ClientProvidedName = "[Publisher] AppServer",
-                Ssl = new SslOption()
+                factory.Ssl = new SslOption
                 {
-                    Enabled = options.ConnectionFactoryConfigOptions.Ssl.Enabled
-                }
-            };
+                    Enabled = options.ConnectionFactoryConfigOptions.Ssl.Enabled,
+                    ServerName = options.ConnectionFactoryConfigOptions.Ssl.ServerName
+                };
+            }
+
+            factory.UserName = options.ConnectionFactoryConfigOptions.UserName;
+            factory.Password = options.ConnectionFactoryConfigOptions.Password;
+            factory.Port = options.ConnectionFactoryConfigOptions.Port;
+            factory.DispatchConsumersAsync = true;
+            factory.ClientProvidedName = "[Publisher] AppServer";
 
             return factory.CreateConnection();
         }
