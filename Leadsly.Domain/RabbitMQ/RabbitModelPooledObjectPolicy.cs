@@ -25,7 +25,7 @@ namespace Leadsly.Domain.RabbitMQ
                     ServerName = options.ConnectionFactoryConfigOptions.Ssl.ServerName
                 };
             }
-
+            factory.HostName = options.ConnectionFactoryConfigOptions.HostName;
             factory.UserName = options.ConnectionFactoryConfigOptions.UserName;
             factory.Password = options.ConnectionFactoryConfigOptions.Password;
             factory.Port = options.ConnectionFactoryConfigOptions.Port;

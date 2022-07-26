@@ -201,11 +201,18 @@ namespace Leadsly.Domain.Providers
         public async Task<EcsTaskDefinition> RegisterTaskDefinitionInAwsAsync(string halId, CancellationToken ct = default)
         {
             CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
-            List<Amazon.ECS.Model.KeyValuePair> envVars = configuration.EcsTaskDefinitionConfig.ContainerDefinitions.SelectMany(x => x.Environment.Select(e => new Amazon.ECS.Model.KeyValuePair
+            List<Amazon.ECS.Model.KeyValuePair> envVars = configuration.EcsTaskDefinitionConfig.ContainerDefinitions.SelectMany(x =>
             {
-                Name = e.Name,
-                Value = e.Value
-            })).ToList();
+                if (x.Environment != null)
+                {
+                    return x.Environment.Select(y => new Amazon.ECS.Model.KeyValuePair
+                    {
+                        Name = y.Name,
+                        Value = y.Value
+                    });
+                }
+                return new List<Amazon.ECS.Model.KeyValuePair>();
+            }).ToList();
 
             envVars.Add(new Amazon.ECS.Model.KeyValuePair
             {
@@ -218,7 +225,7 @@ namespace Leadsly.Domain.Providers
 
             RegisterTaskDefinitionRequest request = new RegisterTaskDefinitionRequest
             {
-                ContainerDefinitions = configuration.EcsTaskDefinitionConfig.ContainerDefinitions.Select(cd => new Amazon.ECS.Model.ContainerDefinition
+                ContainerDefinitions = configuration.EcsTaskDefinitionConfig.ContainerDefinitions?.Select(cd => new Amazon.ECS.Model.ContainerDefinition
                 {
                     Cpu = cd.Cpu,
                     DisableNetworking = cd.DisableNetworking,
@@ -247,7 +254,7 @@ namespace Leadsly.Domain.Providers
                     Privileged = cd.Privileged,
                     StartTimeout = cd.StartTimeout,
                     StopTimeout = cd.StopTimeout,
-                    VolumesFrom = cd.VolumesFrom.Select(x => new Amazon.ECS.Model.VolumeFrom
+                    VolumesFrom = cd.VolumesFrom?.Select(x => new Amazon.ECS.Model.VolumeFrom
                     {
                         ReadOnly = x.ReadOnly,
                         SourceContainer = x.SourceContainer

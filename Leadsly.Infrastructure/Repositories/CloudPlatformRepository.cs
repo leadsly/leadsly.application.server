@@ -67,23 +67,23 @@ namespace Leadsly.Infrastructure.Repositories
                 },
                 EcsTaskDefinitionConfig = new()
                 {
-                    ContainerDefinitions = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.ContainerDefinitions.Select(c => new Domain.Models.Entities.ContainerDefinition
+                    ContainerDefinitions = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.ContainerDefinitions?.Select(c => new Domain.Models.Entities.ContainerDefinition
                     {
                         Name = c.Name,
                         Image = c.Image,
                         Cpu = c.Cpu,
                         Memory = c.Memory,
-                        Environment = c.Environment.Select(e => new Domain.Models.Entities.Environment
+                        Environment = c.Environment?.Select(e => new Domain.Models.Entities.Environment
                         {
                             Name = e.Name,
                             Value = e.Value
                         }).ToArray(),
-                        PortMappings = c.PortMappings.Select(p => new Domain.Models.Entities.PortMapping
+                        PortMappings = c.PortMappings?.Select(p => new Domain.Models.Entities.PortMapping
                         {
                             ContainerPort = p.ContainerPort,
                             HostPort = p.HostPort
                         }).ToArray(),
-                        DependsOn = c.DependsOn.Select(d => new Domain.Models.Entities.DependsOn
+                        DependsOn = c.DependsOn?.Select(d => new Domain.Models.Entities.DependsOn
                         {
                             ContainerName = d.ContainerName,
                             Condition = d.Condition
@@ -91,7 +91,7 @@ namespace Leadsly.Infrastructure.Repositories
                         DisableNetworking = c.DisableNetworking,
                         Essential = c.Essential,
                         Privileged = c.Privileged,
-                        VolumesFrom = c.VolumesFrom.Select(v => new Domain.Models.Entities.VolumesFrom
+                        VolumesFrom = c.VolumesFrom?.Select(v => new Domain.Models.Entities.VolumesFrom
                         {
                             SourceContainer = v.SourceContainer,
                             ReadOnly = v.ReadOnly
