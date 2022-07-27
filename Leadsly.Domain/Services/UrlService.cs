@@ -1,22 +1,18 @@
-﻿using Leadsly.Application.Model;
-using Leadsly.Domain.Services.Interfaces;
+﻿using Leadsly.Domain.Services.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Leadsly.Domain.Services
 {
     public class UrlService : IUrlService
     {
-        public UrlService(ILogger<UrlService> logger, IWebHostEnvironment env, IOptions<HalConfigOptions> halConfigOptions)
+        public UrlService(ILogger<UrlService> logger, IWebHostEnvironment env)
         {
             _logger = logger;
             _env = env;
-            _halConfigOptions = halConfigOptions.Value;
         }
 
-        private readonly HalConfigOptions _halConfigOptions;
         private readonly ILogger<UrlService> _logger;
         private readonly IWebHostEnvironment _env;
 
@@ -26,13 +22,13 @@ namespace Leadsly.Domain.Services
             string url = string.Empty;
             if (_env.IsDevelopment())
             {
-                string hostName = _halConfigOptions.HostName;
-                long port = _halConfigOptions.Port;
+                string hostName = "localhost";
+                long port = 5021;
                 url = $"https://{hostName}:{port}";
             }
             else if (_env.IsStaging())
             {
-                string hostName = _halConfigOptions.HostName;
+                string hostName = "hal";
                 url = $"http://{hostName}";
             }
             else
