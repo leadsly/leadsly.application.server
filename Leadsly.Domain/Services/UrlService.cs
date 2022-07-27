@@ -24,16 +24,16 @@ namespace Leadsly.Domain.Services
             {
                 string hostName = "localhost";
                 long port = 5021;
-                url = $"https://{hostName}:{port}";
+                url = $"https://{hostName}:{port}/api";
             }
             else if (_env.IsStaging())
             {
                 string hostName = "hal";
-                url = $"http://{hostName}";
+                url = $"http://{hostName}/api";
             }
             else
             {
-                url = $"https://{serviceDiscName}.{namespaceName}";
+                url = $"https://{serviceDiscName}.{namespaceName}/api";
             }
 
             _logger.LogDebug("Final url is {url}", url);
