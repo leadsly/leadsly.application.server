@@ -28,7 +28,7 @@ namespace Leadsly.Domain.Services
 
         public async Task<HttpResponseMessage> PerformHealthCheckAsync(HealthCheckRequest halRequest, CancellationToken ct = default)
         {
-            string halUrl = _urlService.GetHalsBaseUrl(halRequest.NamespaceName);
+            string halUrl = _urlService.GetHalsBaseUrl(halRequest.NamespaceName, halRequest.ServiceDiscoveryName);
             string url = halRequest.PrivateIpAddress != null ? $"https://{halRequest.PrivateIpAddress}" : halUrl;
 
             HttpRequestMessage request = new()
@@ -53,7 +53,7 @@ namespace Leadsly.Domain.Services
 
         public async Task<HttpResponseMessage> RequestNewWebDriverInstanceAsync(INewWebDriverRequest instantiateNewWebDriverRequest, CancellationToken ct = default)
         {
-            string url = _urlService.GetHalsBaseUrl(instantiateNewWebDriverRequest.NamespaceName);
+            string url = _urlService.GetHalsBaseUrl(instantiateNewWebDriverRequest.NamespaceName, instantiateNewWebDriverRequest.ServiceDiscoveryName);
             HttpRequestMessage request = new()
             {
                 Method = HttpMethod.Post,
@@ -80,7 +80,7 @@ namespace Leadsly.Domain.Services
 
         public async Task<HttpResponseMessage> AuthenticateUserSocialAccountAsync(IConnectAccountRequest authRequest, CancellationToken ct = default)
         {
-            string url = _urlService.GetHalsBaseUrl(authRequest.NamespaceName);
+            string url = _urlService.GetHalsBaseUrl(authRequest.NamespaceName, authRequest.ServiceDiscoveryName);
             HttpRequestMessage request = new()
             {
                 Method = HttpMethod.Post,
@@ -111,7 +111,7 @@ namespace Leadsly.Domain.Services
 
         public async Task<HttpResponseMessage> SignInAsync(AuthenticateLinkedInAccountRequest request, IHeaderDictionary requestHeaders, CancellationToken ct = default)
         {
-            string url = _urlService.GetHalsBaseUrl(request.NamespaceName);
+            string url = _urlService.GetHalsBaseUrl(request.NamespaceName, request.ServiceDiscoveryName);
             HttpRequestMessage req = new()
             {
                 Method = HttpMethod.Post,
@@ -155,7 +155,7 @@ namespace Leadsly.Domain.Services
 
         public async Task<HttpResponseMessage> EnterTwoFactorAuthCodeAsync(IEnterTwoFactorAuthCodeRequest enterTwoFactorAuthRequest, CancellationToken ct = default)
         {
-            string url = _urlService.GetHalsBaseUrl(enterTwoFactorAuthRequest.NamespaceName);
+            string url = _urlService.GetHalsBaseUrl(enterTwoFactorAuthRequest.NamespaceName, enterTwoFactorAuthRequest.ServiceDiscoveryName);
 
             HttpRequestMessage request = new()
             {
@@ -186,7 +186,7 @@ namespace Leadsly.Domain.Services
 
         public async Task<HttpResponseMessage> EnterTwoFactorAuthCodeAsync(EnterTwoFactorAuthRequest request, CancellationToken ct = default)
         {
-            string url = _urlService.GetHalsBaseUrl(request.NamespaceName);
+            string url = _urlService.GetHalsBaseUrl(request.NamespaceName, request.ServiceDiscoveryName);
 
             HttpRequestMessage req = new()
             {

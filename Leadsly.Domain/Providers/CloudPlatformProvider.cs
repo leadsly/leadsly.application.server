@@ -182,6 +182,7 @@ namespace Leadsly.Domain.Providers
             {
                 ContainerDefinitions = configuration.EcsTaskDefinitionConfig.ContainerDefinitions?.Select(cd =>
                 {
+                    string awsLogsGroup = cd.LogConfiguration.Options.AwslogsGroup.Replace("{halId}", halId);
                     Amazon.ECS.Model.ContainerDefinition containerDef = new Amazon.ECS.Model.ContainerDefinition
                     {
                         Cpu = cd.Cpu,
@@ -203,6 +204,17 @@ namespace Leadsly.Domain.Providers
                         Image = cd.Image,
                         Memory = cd.Memory,
                         Name = cd.Name,
+                        LogConfiguration = new Amazon.ECS.Model.LogConfiguration
+                        {
+                            LogDriver = cd.LogConfiguration?.LogDriver,
+                            Options = new Dictionary<string, string>
+                            {
+                                { "awslogs-group", awsLogsGroup },
+                                { "awslogs-stream-prefix", cd.LogConfiguration.Options.AwslogsStreamPrefix },
+                                { "awslogs-region", cd.LogConfiguration.Options.AwslogsRegion },
+                                { "awslogs-create-group", cd.LogConfiguration.Options.AwslogsCreateGroup }
+                            }
+                        },
                         LinuxParameters = new Amazon.ECS.Model.LinuxParameters
                         {
                             InitProcessEnabled = cd.LinuxParameters.InitProcessEnabled

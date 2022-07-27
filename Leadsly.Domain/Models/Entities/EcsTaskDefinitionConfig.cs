@@ -29,6 +29,21 @@
         public int StartTimeout { get; set; }
         public int StopTimeout { get; set; }
         public VolumesFrom[] VolumesFrom { get; set; }
+        public LogConfiguration LogConfiguration { get; set; }
+    }
+
+    public class LogConfiguration
+    {
+        public string LogDriver { get; set; }
+        public Options Options { get; set; }
+    }
+
+    public class Options
+    {
+        public string AwslogsCreateGroup { get; set; }
+        public string AwslogsGroup { get; set; }
+        public string AwslogsRegion { get; set; }
+        public string AwslogsStreamPrefix { get; set; }
     }
 
     public class LinuxParameters

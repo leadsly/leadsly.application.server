@@ -76,11 +76,18 @@ namespace Leadsly.Domain.Providers
             };
 
             HttpResponseMessage resp = await SignInUserAsync(request, requestHeaders, ct);
+            HttpStatusCode statusCode = resp.StatusCode;
+            _logger.LogDebug("Connect account response from hal had status code of: {statusCode}", statusCode.ToString());
 
             string content = string.Empty;
             if (resp != null)
             {
                 content = await resp.Content?.ReadAsStringAsync();
+            }
+            else
+            {
+                _logger.LogError("Failed to connect account to hal. The response is null");
+                return null;
             }
 
             ConnectLinkedInAccountResponse response = JsonConvert.DeserializeObject<ConnectLinkedInAccountResponse>(content);

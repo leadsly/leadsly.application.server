@@ -1,7 +1,4 @@
 ﻿using Leadsly.Application.Model;
-
-using Leadsly.Domain.Models.Entities;
-using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
@@ -12,20 +9,18 @@ namespace Leadsly.Domain.Services
 {
     public class UrlService : IUrlService
     {
-        public UrlService(ILogger<UrlService> logger, IWebHostEnvironment env, ICloudPlatformRepository cloudPlatformRepository, IOptions<HalConfigOptions> halConfigOptions)
+        public UrlService(ILogger<UrlService> logger, IWebHostEnvironment env, IOptions<HalConfigOptions> halConfigOptions)
         {
             _logger = logger;
             _env = env;
-            _cloudPlatformRepository = cloudPlatformRepository;
             _halConfigOptions = halConfigOptions.Value;
         }
 
         private readonly HalConfigOptions _halConfigOptions;
         private readonly ILogger<UrlService> _logger;
         private readonly IWebHostEnvironment _env;
-        private readonly ICloudPlatformRepository _cloudPlatformRepository;
 
-        public string GetHalsBaseUrl(string namespaceName)
+        public string GetHalsBaseUrl(string namespaceName, string serviceDiscName)
         {
             _logger.LogInformation("Getting hal's url");
             string url = string.Empty;
@@ -42,9 +37,7 @@ namespace Leadsly.Domain.Services
             }
             else
             {
-                CloudPlatformConfiguration config = _cloudPlatformRepository.GetCloudPlatformConfiguration();
-                string serviceDiscoveryName = config.ServiceDiscoveryConfig.Name;
-                url = $"https://{serviceDiscoveryName}.{namespaceName}";
+                url = $"https://{serviceDiscName}.{namespaceName}";
             }
 
             _logger.LogDebug("Final url is {url}", url);

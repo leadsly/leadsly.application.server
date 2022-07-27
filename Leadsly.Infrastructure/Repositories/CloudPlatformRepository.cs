@@ -78,6 +78,17 @@ namespace Leadsly.Infrastructure.Repositories
                             Name = e.Name,
                             Value = e.Value
                         }).ToArray(),
+                        LogConfiguration = new Domain.Models.Entities.LogConfiguration
+                        {
+                            LogDriver = c.LogConfiguration?.LogDriver,
+                            Options = new Domain.Models.Entities.Options
+                            {
+                                AwslogsCreateGroup = c.LogConfiguration?.Options?.AwslogsCreateGroup,
+                                AwslogsGroup = c.LogConfiguration?.Options?.AwslogsGroup,
+                                AwslogsRegion = c.LogConfiguration?.Options?.AwslogsRegion,
+                                AwslogsStreamPrefix = c.LogConfiguration?.Options?.AwslogsStreamPrefix
+                            }
+                        },
                         LinuxParameters = new Domain.Models.Entities.LinuxParameters
                         {
                             InitProcessEnabled = c.LinuxParameters.InitProcessEnabled,
