@@ -6,7 +6,6 @@ using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -100,14 +99,14 @@ namespace Leadsly.Domain.Providers
             await _orphanedCloudResourcesRepository.AddOrphanedCloudResourceAsync(orphanedCloudResource, ct);
         }
 
-        public async Task<EcsService> CreateEcsServiceInAwsAsync(string taskDefinition, string cloudMapServiceArn, CancellationToken ct = default)
+        public async Task<Amazon.ECS.Model.CreateServiceResponse> CreateEcsServiceInAwsAsync(string serviceName, string taskDefinition, string cloudMapServiceArn, CancellationToken ct = default)
         {
             CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
 
             Amazon.ECS.Model.CreateServiceRequest request = new Amazon.ECS.Model.CreateServiceRequest
             {
                 DesiredCount = configuration.EcsServiceConfig.DesiredCount,
-                ServiceName = $"hal-{Guid.NewGuid()}-service",
+                ServiceName = serviceName,
                 TaskDefinition = taskDefinition,
                 Cluster = configuration.EcsServiceConfig.ClusterArn,
                 LaunchType = configuration.EcsServiceConfig.LaunchType,
@@ -130,38 +129,13 @@ namespace Leadsly.Domain.Providers
                 SchedulingStrategy = configuration.EcsServiceConfig.SchedulingStrategy
             };
 
-            Amazon.ECS.Model.CreateServiceResponse response = await _awsElasticContainerService.CreateServiceAsync(request, ct);
-            if (response == null || response.HttpStatusCode != HttpStatusCode.OK)
-            {
-                _logger.LogError("Failed to create ECS Service in AWS");
-                return null;
-            }
-
-            _logger.LogInformation("Successfully created ECS Service in AWS");
-
-            // copy properties from response.Service to new EcsCreateService object
-            EcsService ecsCreateService = new()
-            {
-                ClusterArn = response.Service.ClusterArn,
-                CreatedAt = ((DateTimeOffset)response.Service.CreatedAt).ToUnixTimeSeconds(),
-                CreatedBy = response.Service.CreatedBy,
-                EcsServiceRegistries = response.Service.ServiceRegistries.Select(r => new EcsServiceRegistry()
-                {
-                    RegistryArn = r.RegistryArn,
-                }).ToList(),
-                SchedulingStrategy = response.Service.SchedulingStrategy,
-                ServiceArn = response.Service.ServiceArn,
-                ServiceName = response.Service.ServiceName,
-                TaskDefinition = response.Service.TaskDefinition,
-            };
-
-            return ecsCreateService;
+            return await _awsElasticContainerService.CreateServiceAsync(request, ct);
         }
 
-        public async Task<CloudMapDiscoveryService> CreateCloudMapDiscoveryServiceInAwsAsync(CancellationToken ct = default)
+        public async Task<Amazon.ServiceDiscovery.Model.CreateServiceResponse> CreateCloudMapDiscoveryServiceInAwsAsync(string serviceDiscoveryName, CancellationToken ct = default)
         {
             CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
-            string serviceDiscoveryName = $"hal-{Guid.NewGuid()}-srv-disc";
+
             Amazon.ServiceDiscovery.Model.CreateServiceRequest request = new Amazon.ServiceDiscovery.Model.CreateServiceRequest
             {
                 Name = serviceDiscoveryName,
@@ -179,26 +153,10 @@ namespace Leadsly.Domain.Providers
                 }
             };
 
-            Amazon.ServiceDiscovery.Model.CreateServiceResponse response = await _awsServiceDiscoveryService.CreateServiceAsync(request, ct);
-            if (response == null || response.HttpStatusCode != HttpStatusCode.OK)
-            {
-                _logger.LogError($"Failed to create Cloud Map service discovery service in AWS. HttpStatusCode: {response?.HttpStatusCode}");
-                return null;
-            }
-            _logger.LogInformation($"Successfully created Cloud Map service discovery service in AWS. HttpStatusCode: {response?.HttpStatusCode}");
-
-            CloudMapDiscoveryService cloudMapDiscoveryService = new()
-            {
-                Arn = response.Service.Arn,
-                CreateDate = response.Service.CreateDate,
-                Name = serviceDiscoveryName,
-                ServiceDiscoveryId = response.Service.Id
-            };
-
-            return cloudMapDiscoveryService;
+            return await _awsServiceDiscoveryService.CreateServiceAsync(request, ct);
         }
 
-        public async Task<EcsTaskDefinition> RegisterTaskDefinitionInAwsAsync(string halId, CancellationToken ct = default)
+        public async Task<RegisterTaskDefinitionResponse> RegisterTaskDefinitionInAwsAsync(string taskDefinition, string halId, CancellationToken ct = default)
         {
             CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
             List<Amazon.ECS.Model.KeyValuePair> envVars = configuration.EcsTaskDefinitionConfig.ContainerDefinitions.SelectMany(x =>
@@ -219,9 +177,6 @@ namespace Leadsly.Domain.Providers
                 Name = "HAL_ID",
                 Value = halId
             });
-
-            string taskDefinition = $"{halId}-task-def";
-            string gridContainerName = $"{halId}-gird";
 
             RegisterTaskDefinitionRequest request = new RegisterTaskDefinitionRequest
             {
@@ -281,21 +236,7 @@ namespace Leadsly.Domain.Providers
                 TaskRoleArn = configuration.EcsTaskDefinitionConfig.TaskRoleArn
             };
 
-            RegisterTaskDefinitionResponse response = await _awsElasticContainerService.RegisterTaskDefinitionAsync(request, ct);
-            if (response == null || response.HttpStatusCode != HttpStatusCode.OK)
-            {
-                _logger.LogError("Failed to register ECS task definition in AWS");
-                return null;
-            }
-            _logger.LogInformation("Successfully registered ECS task definition in AWS.");
-
-            EcsTaskDefinition ecsTaskDefinition = new()
-            {
-                TaskDefinitionArn = response.TaskDefinition.TaskDefinitionArn,
-                Family = response.TaskDefinition.Family
-            };
-
-            return ecsTaskDefinition;
+            return await _awsElasticContainerService.RegisterTaskDefinitionAsync(request, ct);
         }
 
         private async Task<Amazon.ECS.Model.DescribeServicesResponse> DescribeServicesAsync(string serviceName, string clusterArn, CancellationToken ct = default)

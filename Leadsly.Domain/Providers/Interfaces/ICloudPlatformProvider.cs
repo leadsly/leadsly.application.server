@@ -10,9 +10,9 @@ namespace Leadsly.Domain.Providers.Interfaces
         Task<VirtualAssistant> GetVirtualAssistantAsync(string userId, CancellationToken ct = default);
         Task<VirtualAssistant> CreateVirtualAssistantAsync(EcsTaskDefinition newEcsTaskDefinition, EcsService newEcsService, IList<EcsTask> ecsServiceTasks, CloudMapDiscoveryService newService, string halId, string userId, string timezoneId, CancellationToken ct = default);
         Task<bool> DeleteVirtualAssistantAsync(string virtualAssistantId, CancellationToken ct = default);
-        Task<EcsTaskDefinition> RegisterTaskDefinitionInAwsAsync(string halId, CancellationToken ct = default);
-        Task<CloudMapDiscoveryService> CreateCloudMapDiscoveryServiceInAwsAsync(CancellationToken ct = default);
-        Task<EcsService> CreateEcsServiceInAwsAsync(string taskDefinition, string cloudMapServiceArn, CancellationToken ct = default);
+        Task<Amazon.ECS.Model.RegisterTaskDefinitionResponse> RegisterTaskDefinitionInAwsAsync(string taskDefinition, string halId, CancellationToken ct = default);
+        Task<Amazon.ServiceDiscovery.Model.CreateServiceResponse> CreateCloudMapDiscoveryServiceInAwsAsync(string serviceDiscoveryName, CancellationToken ct = default);
+        Task<Amazon.ECS.Model.CreateServiceResponse> CreateEcsServiceInAwsAsync(string serviceName, string taskDefinition, string cloudMapServiceArn, CancellationToken ct = default);
         Task<IList<EcsTask>> ListEcsServiceTasksAsync(string clusterArn, string serviceName, CancellationToken ct = default);
         public Task<bool> EnsureEcsServiceTasksAreRunningAsync(string ecsServiceName, string clusterArn, CancellationToken ct = default);
         Task DeleteAwsEcsServiceAsync(string userId, string serviceName, string clusterName, CancellationToken ct = default);
