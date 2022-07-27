@@ -78,6 +78,11 @@ namespace Leadsly.Infrastructure.Repositories
                             Name = e.Name,
                             Value = e.Value
                         }).ToArray(),
+                        LinuxParameters = new Domain.Models.Entities.LinuxParameters
+                        {
+                            InitProcessEnabled = c.LinuxParameters.InitProcessEnabled,
+                            SharedMemorySize = c.LinuxParameters.SharedMemorySize
+                        },
                         PortMappings = c.PortMappings?.Select(p => new Domain.Models.Entities.PortMapping
                         {
                             ContainerPort = p.ContainerPort,

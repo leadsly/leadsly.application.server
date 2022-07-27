@@ -225,40 +225,52 @@ namespace Leadsly.Domain.Providers
 
             RegisterTaskDefinitionRequest request = new RegisterTaskDefinitionRequest
             {
-                ContainerDefinitions = configuration.EcsTaskDefinitionConfig.ContainerDefinitions?.Select(cd => new Amazon.ECS.Model.ContainerDefinition
+                ContainerDefinitions = configuration.EcsTaskDefinitionConfig.ContainerDefinitions?.Select(cd =>
                 {
-                    Cpu = cd.Cpu,
-                    DisableNetworking = cd.DisableNetworking,
-                    Environment = cd.Environment.Length > 0 ? envVars : new List<Amazon.ECS.Model.KeyValuePair>
+                    Amazon.ECS.Model.ContainerDefinition containerDef = new Amazon.ECS.Model.ContainerDefinition
                     {
-                        new Amazon.ECS.Model.KeyValuePair
+                        Cpu = cd.Cpu,
+                        DisableNetworking = cd.DisableNetworking,
+                        Environment = cd.Environment?.Length > 0 ? envVars : new List<Amazon.ECS.Model.KeyValuePair>
                         {
-                            Name = "HAL_ID",
-                            Value = halId
-                        }
-                    },
-                    DependsOn = cd.DependsOn?.Select(x => new Amazon.ECS.Model.ContainerDependency
+                            new Amazon.ECS.Model.KeyValuePair
+                            {
+                                Name = "HAL_ID",
+                                Value = halId
+                            }
+                        },
+                        DependsOn = cd.DependsOn?.Select(x => new Amazon.ECS.Model.ContainerDependency
+                        {
+                            Condition = x.Condition,
+                            ContainerName = x.ContainerName
+                        }).ToList(),
+                        Essential = cd.Essential,
+                        Image = cd.Image,
+                        Memory = cd.Memory,
+                        Name = cd.Name,
+                        LinuxParameters = new Amazon.ECS.Model.LinuxParameters
+                        {
+                            InitProcessEnabled = cd.LinuxParameters.InitProcessEnabled
+                        },
+                        PortMappings = cd.PortMappings?.Select(x => new Amazon.ECS.Model.PortMapping
+                        {
+                            ContainerPort = x.ContainerPort,
+                            HostPort = x.HostPort
+                        }).ToList(),
+                        Privileged = cd.Privileged,
+                        VolumesFrom = cd.VolumesFrom?.Select(x => new Amazon.ECS.Model.VolumeFrom
+                        {
+                            ReadOnly = x.ReadOnly,
+                            SourceContainer = x.SourceContainer
+                        }).ToList()
+                    };
+
+                    if (cd.LinuxParameters.SharedMemorySize > 0)
                     {
-                        Condition = x.Condition,
-                        ContainerName = x.ContainerName
-                    }).ToList(),
-                    Essential = cd.Essential,
-                    Image = cd.Image,
-                    Memory = cd.Memory,
-                    Name = cd.Name,
-                    PortMappings = cd.PortMappings?.Select(x => new Amazon.ECS.Model.PortMapping
-                    {
-                        ContainerPort = x.ContainerPort,
-                        HostPort = x.HostPort
-                    }).ToList(),
-                    Privileged = cd.Privileged,
-                    StartTimeout = cd.StartTimeout,
-                    StopTimeout = cd.StopTimeout,
-                    VolumesFrom = cd.VolumesFrom?.Select(x => new Amazon.ECS.Model.VolumeFrom
-                    {
-                        ReadOnly = x.ReadOnly,
-                        SourceContainer = x.SourceContainer
-                    }).ToList()
+                        containerDef.LinuxParameters.SharedMemorySize = cd.LinuxParameters.SharedMemorySize;
+                    }
+
+                    return containerDef;
                 }).ToList(),
                 Cpu = configuration.EcsTaskDefinitionConfig.Cpu,
                 ExecutionRoleArn = configuration.EcsTaskDefinitionConfig.ExecutionRoleArn,
@@ -267,7 +279,6 @@ namespace Leadsly.Domain.Providers
                 NetworkMode = configuration.EcsTaskDefinitionConfig.NetworkMode,
                 RequiresCompatibilities = configuration.EcsTaskDefinitionConfig.RequiresCompatibilities.ToList(),
                 TaskRoleArn = configuration.EcsTaskDefinitionConfig.TaskRoleArn
-
             };
 
             RegisterTaskDefinitionResponse response = await _awsElasticContainerService.RegisterTaskDefinitionAsync(request, ct);

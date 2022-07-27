@@ -18,6 +18,7 @@
         public DependsOn[] DependsOn { get; set; }
         public bool DisableNetworking { get; set; }
         public Environment[] Environment { get; set; }
+        public LinuxParameters LinuxParameters { get; set; }
         public bool Essential { get; set; }
         public string Image { get; set; }
         public int Memory { get; set; }
@@ -28,6 +29,12 @@
         public int StartTimeout { get; set; }
         public int StopTimeout { get; set; }
         public VolumesFrom[] VolumesFrom { get; set; }
+    }
+
+    public class LinuxParameters
+    {
+        public bool InitProcessEnabled { get; set; }
+        public int SharedMemorySize { get; set; }
     }
 
     public class RepositoryCredentials
