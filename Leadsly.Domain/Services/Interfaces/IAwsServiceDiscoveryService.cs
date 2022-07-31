@@ -17,6 +17,8 @@ namespace Leadsly.Domain.Services.Interfaces
 
         Task<DeleteServiceResponse> DeleteServiceAsync(DeleteServiceDiscoveryServiceRequest deleteServiceDiscoveryRequest, CancellationToken ct = default);
 
+        Task<RegisterInstanceResponse> RegisterInstanceAsync(RegisterInstanceRequest request, CancellationToken ct = default);
+
         Task<bool> DeleteCloudMapDiscoveryServiceAsync(string cloudMapDiscoveryServiceId, CancellationToken ct = default);
 
         Task<GetNamespaceResponse> GetNamespaceAsync(GetCloudMapNamespaceRequest getNamespaceRequest, CancellationToken ct = default);

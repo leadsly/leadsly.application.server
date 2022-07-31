@@ -142,7 +142,8 @@ namespace Leadsly.Domain.Services
             HttpResponseMessage response = default;
             try
             {
-                _logger.LogInformation("Request has been sent to sign user in", url);
+                string requestUri = request.RequestUrl;
+                _logger.LogInformation("Request has been sent to sign user in base url {url} and full path {requestUri}", url, requestUri);
                 response = await _httpClient.SendAsync(req, ct);
             }
             catch (Exception ex)

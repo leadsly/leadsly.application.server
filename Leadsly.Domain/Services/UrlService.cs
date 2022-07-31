@@ -33,7 +33,7 @@ namespace Leadsly.Domain.Services
             }
             else
             {
-                url = $"https://{serviceDiscName}.{namespaceName}/api";
+                url = $"http://{serviceDiscName}.{namespaceName}/api";
             }
 
             _logger.LogDebug("Final url is {url}", url);

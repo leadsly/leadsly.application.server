@@ -8,6 +8,7 @@ namespace Leadsly.Domain.Providers.Interfaces
     public interface ICloudPlatformProvider
     {
         Task<VirtualAssistant> GetVirtualAssistantAsync(string userId, CancellationToken ct = default);
+        Task<Amazon.ServiceDiscovery.Model.RegisterInstanceResponse> RegisterCloudMapSrvInstanceAsync(string ecsServiceId, CancellationToken ct = default);
         Task<VirtualAssistant> CreateVirtualAssistantAsync(EcsTaskDefinition newEcsTaskDefinition, EcsService newEcsService, IList<EcsTask> ecsServiceTasks, CloudMapDiscoveryService newService, string halId, string userId, string timezoneId, CancellationToken ct = default);
         Task<bool> DeleteVirtualAssistantAsync(string virtualAssistantId, CancellationToken ct = default);
         Task<Amazon.ECS.Model.RegisterTaskDefinitionResponse> RegisterTaskDefinitionInAwsAsync(string taskDefinition, string halId, CancellationToken ct = default);

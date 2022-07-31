@@ -6,6 +6,7 @@ using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -154,6 +155,22 @@ namespace Leadsly.Domain.Providers
             };
 
             return await _awsServiceDiscoveryService.CreateServiceAsync(request, ct);
+        }
+
+        public async Task<Amazon.ServiceDiscovery.Model.RegisterInstanceResponse> RegisterCloudMapSrvInstanceAsync(string ecsServiceId, CancellationToken ct = default)
+        {
+            Amazon.ServiceDiscovery.Model.RegisterInstanceRequest request = new RegisterInstanceRequest
+            {
+                Attributes = new Dictionary<string, string>
+                {
+                    { "AWS_INSTANCE_PORT", "80" }
+                },
+                CreatorRequestId = Guid.NewGuid().ToString(),
+                ServiceId = ecsServiceId,
+                InstanceId = ecsServiceId
+            };
+
+            return await _awsServiceDiscoveryService.RegisterInstanceAsync(request, ct);
         }
 
         public async Task<RegisterTaskDefinitionResponse> RegisterTaskDefinitionInAwsAsync(string taskDefinition, string halId, CancellationToken ct = default)

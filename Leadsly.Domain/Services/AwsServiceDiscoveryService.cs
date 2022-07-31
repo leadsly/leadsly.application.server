@@ -37,6 +37,20 @@ namespace Leadsly.Domain.Services
             return resp;
         }
 
+        public async Task<RegisterInstanceResponse> RegisterInstanceAsync(RegisterInstanceRequest request, CancellationToken ct = default)
+        {
+            RegisterInstanceResponse resp = default;
+            try
+            {
+                resp = await _awsServiceDiscoveryClient.RegisterInstanceAsync(request);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to register cloud map service instance");
+            }
+            return resp;
+        }
+
         public async Task<DeleteServiceResponse> DeleteServiceAsync(DeleteServiceDiscoveryServiceRequest deleteServiceDiscoveryRequest, CancellationToken ct = default)
         {
             DeleteServiceResponse resp = default;
