@@ -40,7 +40,7 @@ namespace Leadsly.Domain.RabbitMQ
             queueName = queueName.Replace("{queueName}", queueNameIn);
 
             IDictionary<string, object> arguments = new Dictionary<string, object>();
-            arguments.Add(RabbitMQConstants.QueueType, RabbitMQConstants.Quorum);
+            arguments.Add(RabbitMQConstants.QueueType, RabbitMQConstants.Classic);
 
             channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: arguments);
 
