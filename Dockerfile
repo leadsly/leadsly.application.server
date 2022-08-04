@@ -32,14 +32,6 @@ RUN dotnet build -c Release -o /../../app
 FROM build AS publish
 RUN dotnet publish -c Release -o /app
 
-# build angular app
-FROM node:14.20-alpine AS angular-build
-WORKDIR /app/src/client-app
-COPY ./Leadsly.Application.Server/Leadsly.Application.Api/ClientApp/package.json ./Leadsly.Application.Server/Leadsly.Application.Api/ClientApp/package-lock.json ./
-RUN npm install
-COPY ./Leadsly.Application.Server/Leadsly.Application.Api/ClientApp /app/src/client-app
-RUN npm run build:prod
-
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app .
@@ -49,6 +41,5 @@ ENV AWS_REGION="us-east-1"
 ENV AWS_SECRET_ACCESS_KEY="jvsp7dTl13UXVGuqsjiLVReeAG+7yh/Iwk+KY5JY"
 
 WORKDIR /app
-COPY --from=angular-build /app/src/client-app/dist/leadsly-app/browser /app/wwwroot
 
 ENTRYPOINT ["dotnet", "Leadsly.Application.Api.dll"]

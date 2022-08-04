@@ -71,12 +71,16 @@ namespace Leadsly.Application.Api
             // if request does not contain api it will also work
             app.UsePathBase("/api");
 
-            if (env.IsProduction())
+            if (env.IsDevelopment() || env.IsStaging())
             {
+                app.UseCors(ApiConstants.Cors.AllowAll);
+            }
+            else
+            {
+                app.UseCors(ApiConstants.Cors.WithOrigins);
+                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-
-            app.UseCors(ApiConstants.Cors.AllowAll);
 
             app.UseDefaultFiles();
 
