@@ -6,14 +6,11 @@ using Leadsly.Domain;
 using Leadsly.Domain.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Serilog;
-using System.IO;
 
 namespace Leadsly.Application.Api
 {
@@ -56,11 +53,7 @@ namespace Leadsly.Application.Api
                     .AddServices(Configuration)
                     .AddRemoveNull204FormatterConfigration()
                     .AddMemoryCache()
-                    .AddHostedService<ProducingHostedService>()
-                    .AddSpaStaticFiles(spa =>
-                    {
-                        spa.RootPath = "wwwroot";
-                    });
+                    .AddHostedService<ProducingHostedService>();
 
             services.Configure<MvcOptions>(ApiDefaults.Configure);
         }
@@ -81,30 +74,6 @@ namespace Leadsly.Application.Api
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-
-            app.UseDefaultFiles();
-
-            app.UseSpaStaticFiles();
-
-            app.UseSpaStaticFiles(new StaticFileOptions
-            {
-                FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "assets", "fonts")),
-                RequestPath = "/wwwroot/assets/fonts",
-                OnPrepareResponse = ctx =>
-                {
-                    ctx.Context.Response.Headers.Append("Cache-Control", "private, max-age=86400, stale-while-revalidate=604800");
-                }
-            });
-
-            app.UseSpaStaticFiles(new StaticFileOptions
-            {
-                FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "assets", "iconfont")),
-                RequestPath = "/wwwroot/assets/iconfont",
-                OnPrepareResponse = ctx =>
-                {
-                    ctx.Context.Response.Headers.Append("Cache-Control", "private, max-age=86400, stale-while-revalidate=604800");
-                }
-            });
 
             app.UseMiddleware<ErrorHandlingMiddleware>();
 
