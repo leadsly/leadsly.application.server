@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Leadsly.Domain", "Leadsly.D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Leadsly.Infrastructure", "Leadsly.Infrastructure\Leadsly.Infrastructure.csproj", "{BF22B581-F596-46CA-A120-B73DCA0AF629}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Leadsly.Application.Model", "..\Leadsly.Application.Model\Leadsly.Application.Model.csproj", "{97850436-0B56-43F1-BD3B-B6A5D58C01E1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Leadsly.Application.Model", "Leadsly.Application.Model\Leadsly.Application.Model.csproj", "{97850436-0B56-43F1-BD3B-B6A5D58C01E1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
