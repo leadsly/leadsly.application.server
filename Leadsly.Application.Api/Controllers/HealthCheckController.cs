@@ -31,7 +31,7 @@ namespace Leadsly.Application.Api.Controllers
             return new JsonResult(new HealthCheckViewModel
             {
                 APIVersion = typeof(Startup).Assembly.GetName().Version.ToString(),
-                Name = typeof(Startup).Assembly.GetName().ToString()
+                Name = typeof(Startup).Assembly.GetName().Name
             });
         }
     }

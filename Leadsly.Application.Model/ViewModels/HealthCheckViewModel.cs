@@ -8,6 +8,7 @@ namespace Leadsly.Application.Model.ViewModels
         [DataMember(Name = "apiVersion")]
         public string? APIVersion { get; set; }
 
+        [DataMember(Name = "name")]
         public string? Name { get; set; }
     }
 }
