@@ -1,5 +1,4 @@
-﻿using Leadsly.Domain;
-using Leadsly.Application.Model.ViewModels;
+﻿using Leadsly.Application.Model.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -10,7 +9,7 @@ namespace Leadsly.Application.Api.Controllers
     /// Healthcheck controller.
     /// </summary>
     [ApiController]
-    [Route("[controller]")]    
+    [Route("[controller]")]
     public class HealthCheckController : ApiControllerBase
     {
         public HealthCheckController(ILogger<HealthCheckController> logger)
@@ -28,10 +27,11 @@ namespace Leadsly.Application.Api.Controllers
         [AllowAnonymous]
         public IActionResult HealthCheck()
         {
-            _logger.LogTrace("Healthcheck action executed.");           
-            return new JsonResult(new HealthCheckViewModel 
+            _logger.LogTrace("Healthcheck action executed.");
+            return new JsonResult(new HealthCheckViewModel
             {
-                APIVersion = typeof(Startup).Assembly.GetName().Version.ToString()                
+                APIVersion = typeof(Startup).Assembly.GetName().Version.ToString(),
+                Name = typeof(Startup).Assembly.GetName().ToString()
             });
         }
     }
