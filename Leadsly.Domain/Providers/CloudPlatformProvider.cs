@@ -41,7 +41,7 @@ namespace Leadsly.Domain.Providers
         private readonly IOrphanedCloudResourcesRepository _orphanedCloudResourcesRepository;
         private readonly ICloudPlatformRepository _cloudPlatformRepository;
         private readonly ILogger<CloudPlatformProvider> _logger;
-        private readonly int DefaultTimeToWaitForEcsServicePendingTasks_InSeconds = 160;
+        private readonly int DefaultTimeToWaitForEcsServicePendingTasks_InSeconds = 220;
 
         public async Task DeleteAwsEcsServiceAsync(string userId, string serviceName, string clusterName, CancellationToken ct = default)
         {
