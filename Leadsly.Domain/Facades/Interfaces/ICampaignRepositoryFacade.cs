@@ -33,6 +33,9 @@ namespace Leadsly.Domain.Facades.Interfaces
 
         #region ConnectionWithdrawPhase
         Task<ConnectionWithdrawPhase> CreateConnectionWithdrawPhaseAsync(ConnectionWithdrawPhase phase, CancellationToken ct = default);
+
+        Task<bool> DeleteConnectionWithdrawPhaseAsync(string socialAccountId, CancellationToken ct = default);
+
         #endregion
 
         #region FollowUpMessagePhase
@@ -49,6 +52,9 @@ namespace Leadsly.Domain.Facades.Interfaces
         Task<IList<MonitorForNewConnectionsPhase>> GetAllMonitorForNewConnectionsPhasesByUserIdAsync(string userId, CancellationToken ct = default);
         Task<MonitorForNewConnectionsPhase> GetMonitorForNewConnectionsPhaseBySocialAccountIdAsync(string socialAccountId, CancellationToken ct = default);
         Task<MonitorForNewConnectionsPhase> CreateMonitorForNewConnectionsPhaseAsync(MonitorForNewConnectionsPhase phase, CancellationToken ct = default);
+
+        Task<bool> DeleteMonitorForNewConnectionsPhaseAsync(string monitorForNewConnectionsPhaseId, CancellationToken ct = default);
+
         #endregion
 
         #region PrimaryProspect
@@ -75,6 +81,8 @@ namespace Leadsly.Domain.Facades.Interfaces
         #region ScanProspectsForRepliesPhase
         Task<ScanProspectsForRepliesPhase> CreateScanProspectsForRepliesPhaseAsync(ScanProspectsForRepliesPhase phase, CancellationToken ct = default);
         Task<ScanProspectsForRepliesPhase> GetScanProspectsForRepliesPhaseByIdAsync(string scanProspectsForRepliesPhaseId, CancellationToken ct = default);
+        Task<bool> DeleteScanProspectsForRepliesPhaseAsync(string scanProspectsForRepliesPhaseId, CancellationToken ct = default);
+
         #endregion
 
         #region SendConnectionsPhase

@@ -7,5 +7,6 @@ namespace Leadsly.Domain.Repositories
     public interface IConnectionWithdrawPhaseRepository
     {
         Task<ConnectionWithdrawPhase> CreateAsync(ConnectionWithdrawPhase phase, CancellationToken ct = default);
+        Task<bool> DeleteAsync(string id, CancellationToken ct = default);
     }
 }

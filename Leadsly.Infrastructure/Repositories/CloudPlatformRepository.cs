@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -210,6 +211,23 @@ namespace Leadsly.Infrastructure.Repositories
                 _logger.LogError(ex, "Failed to remove ecs service from the database");
                 return false;
             }
+            return true;
+        }
+
+        public async Task<bool> RemoveEcsTasksByServiceIdAsync(string ecsServiceId, CancellationToken ct = default)
+        {
+            try
+            {
+                IList<EcsTask> ecsTasks = await _dbContext.EcsTasks.Where(t => t.EcsServiceId == ecsServiceId).ToListAsync(ct);
+                _dbContext.EcsTasks.RemoveRange(ecsTasks);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to remove ECS Tasks by ECS service id: {ecsServiceId}", ecsServiceId);
+                return false;
+            }
+
             return true;
         }
 

@@ -34,15 +34,46 @@ namespace Leadsly.Domain.Supervisor
                 return viewModel;
             }
 
+            // delete aws resources and their database counterparts (EcsServices, TaskDefinitions etc)
+            await DeleteAwsResourcesAsync(virtualAssistant, userId, ct);
+
+            if (virtualAssistant.SocialAccount != null)
+            {
+                SocialAccount socialAccount = await _socialAccountRepository.GetByIdAsync(virtualAssistant.SocialAccount.SocialAccountId, ct);
+
+                // first delete connection withdraw phases
+                await _campaignRepositoryFacade.DeleteConnectionWithdrawPhaseAsync(socialAccount.ConnectionWithdrawPhase.ConnectionWithdrawPhaseId, ct);
+
+                // second delete Monitorfornewconnections phase
+                await _campaignRepositoryFacade.DeleteMonitorForNewConnectionsPhaseAsync(socialAccount.MonitorForNewProspectsPhase.MonitorForNewConnectionsPhaseId, ct);
+
+                // delete scan prospects for replies
+                await _campaignRepositoryFacade.DeleteScanProspectsForRepliesPhaseAsync(socialAccount.ScanProspectsForRepliesPhase.ScanProspectsForRepliesPhaseId, ct);
+
+                await _socialAccountRepository.RemoveSocialAccountAsync(virtualAssistant.SocialAccount.SocialAccountId, ct);
+            }
+
+            await _virtualAssistantRepository.DeleteAsync(virtualAssistant.VirtualAssistantId, ct);
+
+            viewModel.Succeeded = true;
+            return viewModel;
+
+        }
+
+        private async Task DeleteAwsResourcesAsync(VirtualAssistant virtualAssistant, string userId, CancellationToken ct = default)
+        {
             // if for whatever reason the ecs service is not set
             if (!string.IsNullOrEmpty(virtualAssistant.EcsService?.ServiceName) && !string.IsNullOrEmpty(virtualAssistant.EcsService?.ClusterArn))
             {
                 await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, virtualAssistant.EcsService.ServiceName, virtualAssistant.EcsService.ClusterArn, ct);
 
-                if (!string.IsNullOrEmpty(virtualAssistant.CloudMapDiscoveryService?.ServiceDiscoveryId))
-                {
-                    await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, virtualAssistant.CloudMapDiscoveryService.ServiceDiscoveryId);
-                }
+                //if (!string.IsNullOrEmpty(virtualAssistant.CloudMapDiscoveryService?.ServiceDiscoveryId))
+                //{
+                //    await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, virtualAssistant.CloudMapDiscoveryService.ServiceDiscoveryId);
+                //}
+
+                // delete all ecs tasks associated with this ecs service
+                await _cloudPlatformProvider.DeleteEcsTasksByEcsServiceId(virtualAssistant.EcsService.EcsServiceId, ct);
 
                 // this will delete both ECS service and the CloudMapDiscoveryService from the database                
                 await _cloudPlatformProvider.DeleteEcsServiceAsync(virtualAssistant.EcsService.EcsServiceId, ct);
@@ -60,12 +91,6 @@ namespace Leadsly.Domain.Supervisor
                 await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, virtualAssistant.EcsTaskDefinition.Family, ct);
                 await _cloudPlatformProvider.DeleteTaskDefinitionRegistrationAsync(virtualAssistant.EcsTaskDefinition.EcsTaskDefinitionId, ct);
             }
-
-            await _cloudPlatformProvider.DeleteVirtualAssistantAsync(virtualAssistant.VirtualAssistantId, ct);
-
-            viewModel.Succeeded = true;
-            return viewModel;
-
         }
 
         public async Task<VirtualAssistantInfoViewModel> GetVirtualAssistantInfoAsync(string userId, CancellationToken ct = default)

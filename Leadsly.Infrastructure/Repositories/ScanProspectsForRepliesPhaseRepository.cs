@@ -19,6 +19,12 @@ namespace Leadsly.Infrastructure.Repositories
 
         private readonly DatabaseContext _dbContext;
         private readonly ILogger<ScanProspectsForRepliesPhaseRepository> _logger;
+
+        private async Task<bool> PhaseExists(string id, CancellationToken ct = default)
+        {
+            return await _dbContext.ScanProspectsForRepliesPhase.AnyAsync(x => x.ScanProspectsForRepliesPhaseId == id, ct);
+        }
+
         public async Task<ScanProspectsForRepliesPhase> CreateAsync(ScanProspectsForRepliesPhase phase, CancellationToken ct = default)
         {
             _logger.LogInformation("Creating ScanProspectsForRepliesPhase.");
@@ -56,6 +62,28 @@ namespace Leadsly.Infrastructure.Repositories
                 return null;
             }
             return phase;
+        }
+
+        public async Task<bool> DeleteAsync(string id, CancellationToken ct = default)
+        {
+            if (!await PhaseExists(id, ct))
+            {
+                return false;
+            }
+
+            try
+            {
+                ScanProspectsForRepliesPhase toRemove = _dbContext.ScanProspectsForRepliesPhase.Find(id);
+                _dbContext.ScanProspectsForRepliesPhase.Remove(toRemove);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError(ex, "Failed to delete ScanProspectsForRepliesPhase with id: {id}", id);
+                return false;
+            }
+
+            return true;
         }
     }
 }

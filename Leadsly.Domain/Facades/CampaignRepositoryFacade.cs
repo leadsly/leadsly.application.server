@@ -255,5 +255,20 @@ namespace Leadsly.Domain.Facades
         {
             return await _prospectListPhaseRepository.AnyIncompleteByHalIdAsync(halId, ct);
         }
+
+        public async Task<bool> DeleteConnectionWithdrawPhaseAsync(string connectionWithdrawPhaseId, CancellationToken ct = default)
+        {
+            return await _connectionWithdrawPhaseRepository.DeleteAsync(connectionWithdrawPhaseId, ct);
+        }
+
+        public async Task<bool> DeleteMonitorForNewConnectionsPhaseAsync(string monitorForNewConnectionsPhaseId, CancellationToken ct = default)
+        {
+            return await _monitorForNewConnectionsPhaseRepository.DeleteAsync(monitorForNewConnectionsPhaseId, ct);
+        }
+
+        public async Task<bool> DeleteScanProspectsForRepliesPhaseAsync(string scanProspectsForRepliesPhaseId, CancellationToken ct = default)
+        {
+            return await _scanProspectsForRepliesPhaseRepository.DeleteAsync(scanProspectsForRepliesPhaseId, ct);
+        }
     }
 }

@@ -24,12 +24,14 @@ namespace Leadsly.Domain.Supervisor
             ICampaignPhaseClient campaignPhaseClient,
             ITimeZoneRepository timeZoneRepository,
             ICampaignPhaseProcessorProvider campaignPhaseProcessorProvider,
+            IVirtualAssistantRepository virtualAssistantRepository,
             IMemoryCache memoryCache,
             ILogger<Supervisor> logger)
         {
             _timestampService = timestampService;
             _timeZoneRepository = timeZoneRepository;
             _campaignProvider = campaignProvider;
+            _virtualAssistantRepository = virtualAssistantRepository;
             _socialAccountRepository = socialAccountRepository;
             _halRepository = halRepository;
             _campaignPhaseClient = campaignPhaseClient;
@@ -46,6 +48,7 @@ namespace Leadsly.Domain.Supervisor
         }
 
         private readonly ITimestampService _timestampService;
+        private readonly IVirtualAssistantRepository _virtualAssistantRepository;
         private readonly ICreateCampaignService _createCampaignService;
         private readonly ICampaignPhaseProcessorProvider _campaignPhaseProcessorProvider;
         private readonly ITimeZoneRepository _timeZoneRepository;

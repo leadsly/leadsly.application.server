@@ -21,6 +21,11 @@ namespace Leadsly.Infrastructure.Repositories
         private readonly DatabaseContext _dbContext;
         private readonly ILogger<MonitorForNewConnectionsPhaseRepository> _logger;
 
+        private async Task<bool> PhaseExists(string id, CancellationToken ct = default)
+        {
+            return await _dbContext.MonitorForNewConnectionsPhases.AnyAsync(x => x.MonitorForNewConnectionsPhaseId == id, ct);
+        }
+
         public async Task<MonitorForNewConnectionsPhase> CreateAsync(MonitorForNewConnectionsPhase phase, CancellationToken ct = default)
         {
             _logger.LogInformation("Creating new MonitorForNewConnectionsPhase");
@@ -80,6 +85,28 @@ namespace Leadsly.Infrastructure.Repositories
                 return null;
             }
             return monitorForNewConnectionsPhase;
+        }
+
+        public async Task<bool> DeleteAsync(string id, CancellationToken ct = default)
+        {
+            if (!await PhaseExists(id, ct))
+            {
+                return false;
+            }
+
+            try
+            {
+                MonitorForNewConnectionsPhase toRemove = _dbContext.MonitorForNewConnectionsPhases.Find(id);
+                _dbContext.MonitorForNewConnectionsPhases.Remove(toRemove);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError(ex, "Failed to delete MonitorForNewConnectionsPhase with id: {id}", id);
+                return false;
+            }
+
+            return true;
         }
     }
 }

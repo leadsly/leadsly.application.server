@@ -8,5 +8,6 @@ namespace Leadsly.Domain.Repositories
     {
         Task<ScanProspectsForRepliesPhase> CreateAsync(ScanProspectsForRepliesPhase phase, CancellationToken ct = default);
         Task<ScanProspectsForRepliesPhase> GetByIdAsync(string scanProspectsForRepliesPhaseId, CancellationToken ct = default);
+        Task<bool> DeleteAsync(string id, CancellationToken ct = default);
     }
 }

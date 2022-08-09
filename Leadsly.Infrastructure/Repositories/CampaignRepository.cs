@@ -218,6 +218,7 @@ namespace Leadsly.Infrastructure.Repositories
             catch (Exception ex)
             {
                 this._logger.LogError(ex, "Failed to delete campaign with id: {campaignId}", campaignId);
+                return false;
             }
 
             return true;

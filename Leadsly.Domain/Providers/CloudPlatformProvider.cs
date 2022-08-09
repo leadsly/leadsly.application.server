@@ -52,6 +52,11 @@ namespace Leadsly.Domain.Providers
             }
         }
 
+        public async Task<bool> DeleteEcsTasksByEcsServiceId(string ecsServiceId, CancellationToken ct = default)
+        {
+            return await _cloudPlatformRepository.RemoveEcsTasksByServiceIdAsync(ecsServiceId, ct);
+        }
+
         public async Task DeleteEcsServiceAsync(string ecsServiceId, CancellationToken ct = default)
         {
             await _cloudPlatformRepository.RemoveEcsServiceAsync(ecsServiceId, ct);
@@ -384,11 +389,6 @@ namespace Leadsly.Domain.Providers
             };
 
             return await _virtualAssistantRepository.CreateAsync(virtualAssistant, ct);
-        }
-
-        public async Task<bool> DeleteVirtualAssistantAsync(string virtualAssistantId, CancellationToken ct = default)
-        {
-            return await _virtualAssistantRepository.DeleteAsync(virtualAssistantId, ct);
         }
 
         public async Task<IList<EcsTask>> ListEcsServiceTasksAsync(string clusterArn, string serviceArn, CancellationToken ct = default)
