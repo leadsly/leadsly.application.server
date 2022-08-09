@@ -211,7 +211,15 @@ namespace Leadsly.Infrastructure.Repositories
 
             try
             {
-                Campaign toRemove = _dbContext.Campaigns.Find(campaignId);
+                Campaign toRemove = await _dbContext
+                    .Campaigns
+                    .Include(x => x.FollowUpMessagePhase)
+                    .Include(x => x.ProspectListPhase)
+                    .Include(x => x.SearchUrlsProgress)
+                    .Include(x => x.SendConnectionRequestPhase)
+                    .Include(x => x.SendConnectionStages)
+                    .Include(x => x.SentConnectionsStatuses)
+                    .FirstOrDefaultAsync(x => x.CampaignId == campaignId);
                 _dbContext.Campaigns.Remove(toRemove);
                 await _dbContext.SaveChangesAsync(ct);
             }

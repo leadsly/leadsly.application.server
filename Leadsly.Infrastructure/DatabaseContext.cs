@@ -66,6 +66,8 @@ namespace Leadsly.Infrastructure
             LeadslyTimeZoneConfiguration.Configure(builder, _logger);
 
             EcsResourcesConfiguration.Configure(builder, _logger);
+
+            CampaignsConfiguration.Configure(builder, _logger);
         }
     }
 }
