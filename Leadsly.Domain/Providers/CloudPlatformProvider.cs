@@ -290,7 +290,7 @@ namespace Leadsly.Domain.Providers
             while (mainStopWatch.Elapsed.TotalSeconds <= DefaultTimeToWaitForEcsServicePendingTasks_InSeconds)
             {
                 // Check elapsed time w/o stopping/resetting the stopwatch                
-                if (intervalStopWatch.Elapsed.TotalSeconds >= 40)
+                if (intervalStopWatch.Elapsed.TotalSeconds >= 20)
                 {
                     double timeout = (DefaultTimeToWaitForEcsServicePendingTasks_InSeconds - mainStopWatch.Elapsed.TotalSeconds);
                     _logger.LogInformation("Checking if ECS service tasks are running... Times out in: {timeout}", timeout);
@@ -307,7 +307,7 @@ namespace Leadsly.Domain.Providers
                     }
                     else
                     {
-                        _logger.LogInformation("ECS Service tasks are not running yet. Checking again in 40 seconds...");
+                        _logger.LogInformation("ECS Service tasks are not running yet. Checking again in 20 seconds...");
                     }
                     intervalStopWatch.Restart();
                 }
