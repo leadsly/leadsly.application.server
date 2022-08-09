@@ -69,7 +69,11 @@ namespace Leadsly.Infrastructure.Repositories
             SocialAccount socialAccount = default;
             try
             {
-                socialAccount = await _dbContext.SocialAccounts.FindAsync(id);
+                socialAccount = await _dbContext.SocialAccounts
+                    .Include(s => s.ConnectionWithdrawPhase)
+                    .Include(s => s.ScanProspectsForRepliesPhase)
+                    .Include(s => s.MonitorForNewProspectsPhase)
+                    .FirstOrDefaultAsync(s => s.SocialAccountId == id);
             }
             catch (Exception ex)
             {
