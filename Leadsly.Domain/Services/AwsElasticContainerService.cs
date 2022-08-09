@@ -130,7 +130,7 @@ namespace Leadsly.Domain.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to update AWS service.");
+                _logger.LogError(ex, $"Failed to describe AWS service. {ex.Message}");
             }
 
             return resp;
