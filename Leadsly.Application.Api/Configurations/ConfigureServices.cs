@@ -226,6 +226,17 @@ namespace Leadsly.Application.Api.Configurations
             configuration.GetSection(nameof(CloudPlatformConfigurationOptions)).Bind(cloudPlatformConfigurationOptions);
             AWSConfigs.AWSRegion = cloudPlatformConfigurationOptions.AwsOptions.Region;
 
+            services.AddScoped(opt =>
+            {
+                AmazonECSConfig config = new AmazonECSConfig
+                {
+                    Timeout = TimeSpan.FromSeconds(240),
+                    ThrottleRetries = false
+                };
+
+                AmazonECSClient client = new AmazonECSClient(config);
+                return client;
+            });
             services.AddScoped(typeof(AmazonECSClient));
             services.AddScoped(typeof(AmazonServiceDiscoveryClient));
             services.AddScoped(typeof(AmazonRoute53Client));
