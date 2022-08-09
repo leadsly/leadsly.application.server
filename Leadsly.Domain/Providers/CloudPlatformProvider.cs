@@ -1,6 +1,5 @@
 ﻿using Amazon.ECS.Model;
 using Amazon.ServiceDiscovery.Model;
-using Leadsly.Domain.Models;
 using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
@@ -281,72 +280,60 @@ namespace Leadsly.Domain.Providers
 
         public async Task<bool> EnsureEcsServiceTasksAreRunningAsync(string ecsServiceName, string clusterArn, CancellationToken ct = default)
         {
+            _logger.LogInformation("Ensuring ECS service tasks are running.");
             Stopwatch mainStopWatch = new Stopwatch();
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
+            Stopwatch intervalStopWatch = new Stopwatch();
+            intervalStopWatch.Start();
             mainStopWatch.Start();
-            _logger.LogInformation("Ensuring ecs service tasks are running. Waiting 20 seconds before checking.");
+            bool ecsServiceTasksRunning = false;
+            _logger.LogInformation("The wait time for ECS service tasks to be running is {DefaultTimeToWaitForEcsServicePendingTasks_InSeconds}", DefaultTimeToWaitForEcsServicePendingTasks_InSeconds);
             while (mainStopWatch.Elapsed.TotalSeconds <= DefaultTimeToWaitForEcsServicePendingTasks_InSeconds)
             {
                 // Check elapsed time w/o stopping/resetting the stopwatch                
-                if (stopwatch.Elapsed.TotalSeconds >= 20)
+                if (intervalStopWatch.Elapsed.TotalSeconds >= 20)
                 {
                     double timeout = (DefaultTimeToWaitForEcsServicePendingTasks_InSeconds - mainStopWatch.Elapsed.TotalSeconds);
-                    _logger.LogInformation("Checking if ecs service tasks are running... Times out in: {timeout}", timeout);
-                    // At least 5 seconds elapsed, restart stopwatch.
-                    stopwatch.Stop();
-                    CloudPlatformOperationResult checkTaskStatusResult = await AreEcsServiceTasksRunningAsync(ecsServiceName, clusterArn, ct);
-                    if (checkTaskStatusResult.Succeeded)
+                    _logger.LogInformation("Checking if ECS service tasks are running... Times out in: {timeout}", timeout);
+                    // At least 20 seconds elapsed, restart stopwatch.
+                    intervalStopWatch.Stop();
+                    bool areECSServiceTasksRunning = await AreEcsServiceTasksRunningAsync(ecsServiceName, clusterArn, ct);
+                    if (areECSServiceTasksRunning == true)
                     {
-                        if (((bool)checkTaskStatusResult.Value) == true)
-                        {
-                            _logger.LogInformation("Successfully verified ecs service tasks are running");
-                            mainStopWatch.Stop();
-                            stopwatch.Stop();
-                            return true;
-                        }
-                        else
-                        {
-                            _logger.LogInformation("Ecs service tasks are not running yet. Checking again in 20 seconds...");
-                        }
+                        _logger.LogInformation("Successfully verified ecs service tasks are running");
+                        mainStopWatch.Stop();
+                        intervalStopWatch.Stop();
+                        ecsServiceTasksRunning = true;
+                        break;
                     }
                     else
                     {
-                        return false;
+                        _logger.LogInformation("ECS Service tasks are not running yet. Checking again in 20 seconds...");
                     }
-                    stopwatch.Restart();
+                    intervalStopWatch.Restart();
                 }
 
                 if (mainStopWatch.Elapsed.TotalSeconds == DefaultTimeToWaitForEcsServicePendingTasks_InSeconds)
                 {
-                    _logger.LogWarning("Failed to find out if ecs service tasks are running in the alotted time.");
-                    return false;
+                    _logger.LogWarning("ECS Service tasks were not started in the allotted time. Exiting...");
+                    mainStopWatch.Stop();
+                    intervalStopWatch.Stop();
+                    ecsServiceTasksRunning = false;
+                    break;
                 }
             }
 
-            return true;
+            _logger.LogInformation("Are ECS Service tasks running: {ecsServiceTasksRunning}", ecsServiceTasksRunning);
+            return ecsServiceTasksRunning;
         }
 
-        private async Task<CloudPlatformOperationResult> AreEcsServiceTasksRunningAsync(string ecsServiceName, string clusternArn, CancellationToken ct = default)
+        private async Task<bool> AreEcsServiceTasksRunningAsync(string ecsServiceName, string clusternArn, CancellationToken ct = default)
         {
-            CloudPlatformOperationResult result = new()
-            {
-                Succeeded = false
-            };
-
             Amazon.ECS.Model.DescribeServicesResponse response = await DescribeServicesAsync(ecsServiceName, clusternArn, ct);
 
             if (response == null || response.Services == null || response.HttpStatusCode != HttpStatusCode.OK)
             {
-                result.Value = false;
-                result.Failures.Add(new()
-                {
-                    Arn = ecsServiceName,
-                    Code = Leadsly.Application.Model.Codes.AWS_API_ERROR,
-                    Detail = "Aws API returned null, services were null or status code did not equal 200",
-                    Reason = "Failed to get number of pending tasks for this service"
-                });
-                return result;
+                _logger.LogError("AWS request to figure out if ECS Service tasks are running has failed");
+                return false;
             }
 
             if (response.Services.Count() > 1)
@@ -354,9 +341,7 @@ namespace Leadsly.Domain.Providers
                 _logger.LogWarning("Expected to find a single service in the response but more than one were found. Using first service in the collection to check if all tasks are running");
             }
 
-            result.Succeeded = true;
-            result.Value = response.Services.First().PendingCount == 0 && response.Services.First().RunningCount > 0;
-            return result;
+            return response.Services.First().PendingCount == 0 && response.Services.First().RunningCount > 0;
         }
 
         public async Task<VirtualAssistant> GetVirtualAssistantAsync(string userId, CancellationToken ct = default)
