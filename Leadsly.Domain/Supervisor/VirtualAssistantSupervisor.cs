@@ -53,6 +53,8 @@ namespace Leadsly.Domain.Supervisor
                 await _socialAccountRepository.RemoveSocialAccountAsync(virtualAssistant.SocialAccount.SocialAccountId, ct);
             }
 
+            await _halRepository.DeleteAsync(virtualAssistant.HalId, ct);
+
             await _virtualAssistantRepository.DeleteAsync(virtualAssistant.VirtualAssistantId, ct);
 
             viewModel.Succeeded = true;

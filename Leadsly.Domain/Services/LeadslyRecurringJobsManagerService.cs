@@ -62,7 +62,7 @@ namespace Leadsly.Domain.Services
         public async Task PublishHalPhasesAsync(string halId)
         {
             //////////////////////////////////////////////////////////////////////////////////////
-            ///// Restart Hal and Selenium Grid task
+            ///// Restart Hal
             //////////////////////////////////////////////////////////////////////////////////////
             RestartResourcesCommand restartCommand = new RestartResourcesCommand(halId);
             await _restartResourcesHandler.HandleAsync(restartCommand);

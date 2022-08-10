@@ -25,6 +25,12 @@
             public const string ExecutePhase = "ExecutePhase";
         }
 
+        public static class RestartApplication
+        {
+            public const string QueueName = "restart.application";
+            public const string RoutingKey = "restart-application";
+        }
+
         public static class Networking
         {
             public const string QueueName = "networking";

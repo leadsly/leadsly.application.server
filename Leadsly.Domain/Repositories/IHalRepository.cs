@@ -9,6 +9,7 @@ namespace Leadsly.Domain.Repositories
     public interface IHalRepository
     {
         public Task<HalUnit> CreateAsync(HalUnit halDetails, CancellationToken ct = default);
+        public Task<bool> DeleteAsync(string halId, CancellationToken ct = default);
         public Task<HalUnit> GetBySocialAccountUsernameAsync(string connectedAccountUsername, CancellationToken ct = default);
 
         /// <summary>

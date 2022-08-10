@@ -22,6 +22,11 @@ namespace Leadsly.Infrastructure.Repositories
         private readonly ILogger<HalRepository> _logger;
         private readonly DatabaseContext _dbContext;
 
+        private async Task<bool> HalExists(string halId, CancellationToken ct = default)
+        {
+            return await _dbContext.HalUnits.AnyAsync(x => x.HalId == halId, ct);
+        }
+
         public async Task<HalUnit> CreateAsync(HalUnit halDetails, CancellationToken ct = default)
         {
             _logger.LogInformation("Creating HalUnit.");
@@ -162,6 +167,28 @@ namespace Leadsly.Infrastructure.Repositories
                 return null;
             }
             return halUnits;
+        }
+
+        public async Task<bool> DeleteAsync(string halId, CancellationToken ct = default)
+        {
+            if (!await HalExists(halId, ct))
+            {
+                return false;
+            }
+
+            try
+            {
+                HalUnit toRemove = await _dbContext.HalUnits.Where(x => x.HalId == halId).SingleAsync(ct);
+                _dbContext.HalUnits.Remove(toRemove);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError(ex, "Failed to delete HalUnit with HalId: {halId}", halId);
+                return false;
+            }
+
+            return true;
         }
     }
 }
