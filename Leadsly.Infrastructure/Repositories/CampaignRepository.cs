@@ -219,6 +219,8 @@ namespace Leadsly.Infrastructure.Repositories
                     .Include(x => x.SendConnectionRequestPhase)
                     .Include(x => x.SendConnectionStages)
                     .Include(x => x.SentConnectionsStatuses)
+                    .Include(x => x.CampaignProspectList)
+                        .ThenInclude(y => y.CampaignProspects)
                     .FirstOrDefaultAsync(x => x.CampaignId == campaignId);
                 _dbContext.Campaigns.Remove(toRemove);
                 await _dbContext.SaveChangesAsync(ct);

@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 namespace Leadsly.Application.Api.Controllers
 {
     [ApiController]
+    [AllowAnonymous]
     [Route("[controller]")]
     public class ScanProspectsForRepliesController : ApiControllerBase
     {
@@ -23,8 +24,7 @@ namespace Leadsly.Application.Api.Controllers
         private readonly ISupervisor _supervisor;
         private readonly ILogger<ScanProspectsForRepliesController> _logger;
 
-        [AllowAnonymous]
-        [HttpPost]   
+        [HttpPost]
         [Route("{halId}")]
         public async Task<IActionResult> CreateScanProspectsForRepliesMessageAsync(string halId, [FromBody] TriggerScanProspectsForRepliesRequest request)
         {
@@ -34,7 +34,6 @@ namespace Leadsly.Application.Api.Controllers
         }
 
         [HttpPost("{halId}/prospects-replied")]
-        [AllowAnonymous]
         public async Task<IActionResult> ProspectsReplied(string halId, ProspectsRepliedRequest request, CancellationToken ct = default)
         {
             _logger.LogInformation("Executing ProspectsReplied action for HalId {halId}", halId);

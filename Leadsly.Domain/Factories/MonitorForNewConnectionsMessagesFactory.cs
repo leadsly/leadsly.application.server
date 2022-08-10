@@ -35,18 +35,23 @@ namespace Leadsly.Domain.Factories
         private readonly IHalRepository _halRepository;
         private readonly ILogger<MonitorForNewConnectionsMessagesFactory> _logger;
 
-        public async Task<MonitorForNewAcceptedConnectionsBody> CreateMessageAsync(string halId, int numOfHoursAgo = 0, CancellationToken ct = default)
+        public async Task<MonitorForNewAcceptedConnectionsBody> CreateMessageAsync(string halId, int numOfHoursAgo, CancellationToken ct = default)
         {
-            return await CreateMessageBodyAsync(halId, numOfHoursAgo, ct);
+            return await CreateMessageBodyForActiveCampaignsAsync(halId, numOfHoursAgo, ct);
         }
 
-        private async Task<MonitorForNewAcceptedConnectionsBody> CreateMessageBodyAsync(string halId, int numOfHoursAgo = 0, CancellationToken ct = default)
+        public async Task<MonitorForNewAcceptedConnectionsBody> CreateMessageAsync(string halId, CancellationToken ct = default)
+        {
+            return await CreateMessageBodyForActiveCampaignsAsync(halId, 0, ct);
+        }
+
+        private async Task<MonitorForNewAcceptedConnectionsBody> CreateMessageBodyForActiveCampaignsAsync(string halId, int numOfHoursAgo, CancellationToken ct = default)
         {
             SocialAccount socialAccount = await _userProvider.GetSocialAccountByHalIdAsync(halId, ct);
             MonitorForNewAcceptedConnectionsBody messageBody = default;
             if (socialAccount.User.Campaigns.Any(c => c.Active == true))
             {
-                messageBody = await CreateMonitorForNewAcceptedConnectionsBodyAsync(socialAccount.HalDetails.HalId, socialAccount.UserId, socialAccount.SocialAccountId, numOfHoursAgo);
+                messageBody = await CreateMonitorForNewAcceptedConnectionsBodyAsync(halId, socialAccount.UserId, socialAccount.SocialAccountId, numOfHoursAgo);
             }
 
             return messageBody;
@@ -72,19 +77,6 @@ namespace Leadsly.Domain.Factories
             }
 
             return messageBodies;
-        }
-
-        public async Task<MonitorForNewAcceptedConnectionsBody> CreateMessageAsync(string halId, CancellationToken ct = default)
-        {
-            return await CreateMessageBodyAsync(halId, ct);
-        }
-
-        private async Task<MonitorForNewAcceptedConnectionsBody> CreateMessageBodyAsync(string halId, CancellationToken ct = default)
-        {
-            SocialAccount socialAccount = await _userProvider.GetSocialAccountByHalIdAsync(halId);
-
-            MonitorForNewAcceptedConnectionsBody messageBody = await CreateMonitorForNewAcceptedConnectionsBodyAsync(halId, socialAccount.UserId, socialAccount.SocialAccountId);
-            return messageBody;
         }
 
         private async Task<MonitorForNewAcceptedConnectionsBody> CreateMonitorForNewAcceptedConnectionsBodyAsync(string halId, string userId, string socialAccountId, int numOfHoursAgo = 0, CancellationToken ct = default)

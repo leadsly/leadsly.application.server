@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 namespace Leadsly.Application.Api.Controllers
 {
     [ApiController]
+    [AllowAnonymous]
     [Route("[controller]")]
     public class FollowUpMessageController : ApiControllerBase
     {
@@ -23,7 +24,6 @@ namespace Leadsly.Application.Api.Controllers
         private readonly ISupervisor _supervisor;
         private readonly ILogger<FollowUpMessageController> _logger;
 
-        [AllowAnonymous]
         [HttpPost]
         [Route("{halId}")]
         public async Task<IActionResult> CreateFollowUpMessagesMessageAsync(string halId, [FromBody] TriggerFollowUpMessageRequest request)
@@ -34,7 +34,6 @@ namespace Leadsly.Application.Api.Controllers
         }
 
         [HttpPost("{campaignProspectId}/follow-up")]
-        [AllowAnonymous]
         public async Task<IActionResult> FollowUpMessageSentAsync(string campaignProspectId, [FromBody] FollowUpMessageSentRequest request, CancellationToken ct = default)
         {
             _logger.LogInformation("Exeucting FollowUpMessageSent action for CampaignProspectId {campaignProspectId}", campaignProspectId);

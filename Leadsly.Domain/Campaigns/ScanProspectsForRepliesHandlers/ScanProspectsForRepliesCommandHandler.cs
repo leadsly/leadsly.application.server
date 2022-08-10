@@ -1,16 +1,8 @@
 ﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
-using Leadsly.Application.Model.Entities;
-using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Factories.Interfaces;
-using Leadsly.Domain.Providers.Interfaces;
-using Leadsly.Domain.Repositories;
-using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
@@ -19,7 +11,7 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
     {
         public ScanProspectsForRepliesCommandHandler(
             IScanProspectsForRepliesMessagesFactory messagesFactory,
-            IMessageBrokerOutlet messageBrokerOutlet,            
+            IMessageBrokerOutlet messageBrokerOutlet,
             ILogger<ScanProspectsForRepliesCommand> logger
             )
         {
@@ -28,13 +20,13 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
             _logger = logger;
         }
 
-        private readonly IScanProspectsForRepliesMessagesFactory _messagesFactory;        
+        private readonly IScanProspectsForRepliesMessagesFactory _messagesFactory;
         private readonly IMessageBrokerOutlet _messageBrokerOutlet;
         private readonly ILogger<ScanProspectsForRepliesCommand> _logger;
 
         public async Task HandleAsync(ScanProspectsForRepliesCommand command)
         {
-            if(command.HalIds != null)
+            if (command.HalIds != null)
             {
                 await InternalHandleAsync(command.HalIds);
             }
@@ -57,13 +49,16 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
         {
             ScanProspectsForRepliesBody messageBody = await _messagesFactory.CreateMessageAsync(halId);
 
-            string queueNameIn = RabbitMQConstants.ScanProspectsForReplies.QueueName;
-            string routingKeyIn = RabbitMQConstants.ScanProspectsForReplies.RoutingKey;
-            
-            Dictionary<string, object> headers = new Dictionary<string, object>();
-            headers.Add(RabbitMQConstants.ScanProspectsForReplies.ExecutionType, RabbitMQConstants.ScanProspectsForReplies.ExecutePhase);
+            if (messageBody != null)
+            {
+                string queueNameIn = RabbitMQConstants.ScanProspectsForReplies.QueueName;
+                string routingKeyIn = RabbitMQConstants.ScanProspectsForReplies.RoutingKey;
 
-            _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers);
+                Dictionary<string, object> headers = new Dictionary<string, object>();
+                headers.Add(RabbitMQConstants.ScanProspectsForReplies.ExecutionType, RabbitMQConstants.ScanProspectsForReplies.ExecutePhase);
+
+                _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers);
+            }
         }
     }
 }

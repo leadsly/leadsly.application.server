@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 namespace Leadsly.Application.Api.Controllers
 {
     [ApiController]
+    [AllowAnonymous]
     [Route("[controller]")]
     public class DeepScanProspectsForRepliesController : ApiControllerBase
     {
@@ -29,8 +30,7 @@ namespace Leadsly.Application.Api.Controllers
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        [AllowAnonymous]
-        [HttpPost("{halId}")]        
+        [HttpPost("{halId}")]
         public async Task<IActionResult> ProspectsThatReplied(string halId, ProspectsRepliedRequest request, CancellationToken ct = default)
         {
             _logger.LogInformation("Executing DeepScanProspects action for HalId {halId}", halId);

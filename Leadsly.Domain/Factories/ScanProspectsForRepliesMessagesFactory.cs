@@ -22,15 +22,18 @@ namespace Leadsly.Domain.Factories
             ICampaignRepositoryFacade campaignRepositoryFacade,
             IRabbitMQProvider rabbitMQProvider,
             IHalRepository halRepository,
+            IUserProvider userProvider,
             ITimestampService timestampService)
         {
             _logger = logger;
+            _userProvider = userProvider;
             _campaignRepositoryFacade = campaignRepositoryFacade;
             _rabbitMQProvider = rabbitMQProvider;
             _halRepository = halRepository;
             _timestampService = timestampService;
         }
 
+        private readonly IUserProvider _userProvider;
         private readonly ILogger<ScanProspectsForRepliesMessagesFactory> _logger;
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
         private readonly IRabbitMQProvider _rabbitMQProvider;
@@ -40,10 +43,18 @@ namespace Leadsly.Domain.Factories
         public async Task<ScanProspectsForRepliesBody> CreateMessageAsync(string halId, IList<CampaignProspect> campaignProspects = default, CancellationToken ct = default)
         {
             HalUnit halUnit = await _halRepository.GetByHalIdAsync(halId);
-            // fire off ScanProspectsForRepliesPhase with the payload of the contacted prospects
-            string scanProspectsForRepliesPhaseId = halUnit.SocialAccount.ScanProspectsForRepliesPhase.ScanProspectsForRepliesPhaseId;
 
-            return await CreateScanProspectsForRepliesBodyAsync(scanProspectsForRepliesPhaseId, halId, campaignProspects, ct);
+            SocialAccount socialAccount = await _userProvider.GetSocialAccountByHalIdAsync(halId, ct);
+            ScanProspectsForRepliesBody messageBody = default;
+            if (socialAccount.User.Campaigns.Any(c => c.Active == true))
+            {
+                // fire off ScanProspectsForRepliesPhase with the payload of the contacted prospects
+                string scanProspectsForRepliesPhaseId = halUnit.SocialAccount.ScanProspectsForRepliesPhase.ScanProspectsForRepliesPhaseId;
+
+                return await CreateScanProspectsForRepliesBodyAsync(scanProspectsForRepliesPhaseId, halId, campaignProspects, ct);
+            }
+
+            return messageBody;
         }
 
         /// <summary>
@@ -84,6 +95,8 @@ namespace Leadsly.Domain.Factories
                 ServiceDiscoveryName = config.ApiServiceDiscoveryName
             };
 
+            // the section below attempts to determine what was the last follow up message that we have sent to the prospect and grab its content.
+            // this is important because hal will then go through all of these proepcts and search messaging history and look for that specific message.
             if (campaignProspects != null)
             {
                 IList<ContactedCampaignProspect> contactedCampaignProspects = new List<ContactedCampaignProspect>();

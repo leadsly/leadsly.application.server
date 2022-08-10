@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 namespace Leadsly.Application.Api.Controllers
 {
     [ApiController]
+    [AllowAnonymous]
     [Route("[controller]")]
     public class ProspectListPhaseController : ApiControllerBase
     {
@@ -25,7 +26,6 @@ namespace Leadsly.Application.Api.Controllers
         private readonly ISupervisor _supervisor;
 
         [HttpPatch("{prospectListPhaseId}")]
-        [AllowAnonymous]
         public async Task<IActionResult> UpdateProspectList(string prospectListPhaseId, [FromBody] JsonPatchDocument<ProspectListPhase> patchDoc, CancellationToken ct = default)
         {
             _logger.LogInformation("Executing UpdateProspectListPhase action for ProspectListPhaseId {prospectListPhaseId}", prospectListPhaseId);

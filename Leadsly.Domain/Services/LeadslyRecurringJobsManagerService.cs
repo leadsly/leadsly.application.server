@@ -54,6 +54,11 @@ namespace Leadsly.Domain.Services
         private readonly HalWorkCommandHandlerDecorator<NetworkingCommand> _networkingCommandHandler;
         private readonly HalWorkCommandHandlerDecorator<RestartResourcesCommand> _restartResourcesHandler;
 
+        /// <summary>
+        /// Executed each morning at the given StartTime and timezone for each HalUnit.
+        /// </summary>
+        /// <param name="halId"></param>
+        /// <returns></returns>
         public async Task PublishHalPhasesAsync(string halId)
         {
             //////////////////////////////////////////////////////////////////////////////////////
@@ -108,6 +113,13 @@ namespace Leadsly.Domain.Services
             }
         }
 
+        /// <summary>
+        /// If any of the prospects associated with HalUnit have accepted the connection invite, have gotten a follow up message and have NOT been marked as complete (this happens when all follow up messages go out AND not contact is made within certain time frame)
+        /// we then proceed to execute DeepScanProspectsForReplies phase.
+        /// </summary>
+        /// <param name="halId"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
         private async Task<bool> PublishDeepScanAsync(string halId, CancellationToken ct = default)
         {
             IList<CampaignProspect> campaignProspects = await GetAllCampaignProspectsByHalIdAsync(halId, ct);

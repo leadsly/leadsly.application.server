@@ -14,7 +14,7 @@ namespace Leadsly.Domain
 {
     public class RecurringJobsHandler : IRecurringJobsHandler
     {
-        public RecurringJobsHandler(IServiceProvider serviceProbider,
+        public RecurringJobsHandler(
             ITimeZoneRepository timezoneRepository,
             IHangfireService hangfireService,
             IHalRepository halRepository,
@@ -26,7 +26,6 @@ namespace Leadsly.Domain
             _halRepository = halRepository;
             _logger = logger;
             _timestampService = timestampService;
-            _serviceProbider = serviceProbider;
             _hangfireService = hangfireService;
             _timezoneRepository = timezoneRepository;
         }
@@ -35,60 +34,16 @@ namespace Leadsly.Domain
         private readonly ITimestampService _timestampService;
         private readonly IHalRepository _halRepository;
         private readonly ILogger<RecurringJobsHandler> _logger;
-        private readonly IServiceProvider _serviceProbider;
         private readonly IHangfireService _hangfireService;
         private readonly ITimeZoneRepository _timezoneRepository;
 
-        //public async Task CreateAndPublishJobsAsync()
-        //{
-        //    using (var scope = _serviceProbider.CreateScope())
-        //    {
-        //        //////////////////////////////////////////////////////////////////////////////////////
-        //        ///// ScanForNewConnectionsOffHours
-        //        //////////////////////////////////////////////////////////////////////////////////////
-        //        HalWorkCommandHandlerDecorator<CheckOffHoursNewConnectionsCommand> offHoursHandler =
-        //            scope.ServiceProvider.GetRequiredService<HalWorkCommandHandlerDecorator<CheckOffHoursNewConnectionsCommand>>();
-
-        //        CheckOffHoursNewConnectionsCommand offHoursCommand = new CheckOffHoursNewConnectionsCommand();
-        //        await offHoursHandler.HandleAsync(offHoursCommand);
-
-        //        ////////////////////////////////////////////////////////////////////////////////////
-        //        /// MonitorForNewConnectionsAll
-        //        ////////////////////////////////////////////////////////////////////////////////////
-        //        HalWorkCommandHandlerDecorator<MonitorForNewConnectionsAllCommand> monitorHandler =
-        //            scope.ServiceProvider.GetRequiredService<HalWorkCommandHandlerDecorator<MonitorForNewConnectionsAllCommand>>();
-
-        //        MonitorForNewConnectionsAllCommand monitorForNewConnectionsAllCommand = new MonitorForNewConnectionsAllCommand();
-        //        await monitorHandler.HandleAsync(monitorForNewConnectionsAllCommand);
-
-        //        ////////////////////////////////////////////////////////////////////////////////////////
-        //        /////// UncontactedFollowUpMessageCommand
-        //        ////////////////////////////////////////////////////////////////////////////////////////
-        //        ////HalWorkCommandHandlerDecorator<UncontactedFollowUpMessageCommand> uncontactedHandler =
-        //        ////   scope.ServiceProvider.GetRequiredService<HalWorkCommandHandlerDecorator<UncontactedFollowUpMessageCommand>>();
-
-        //        ////UncontactedFollowUpMessageCommand uncontactedCommand = new UncontactedFollowUpMessageCommand();
-        //        ////await uncontactedHandler.HandleAsync(uncontactedCommand);
-
-        //        IPhaseManager phaseManager = scope.ServiceProvider.GetRequiredService<IPhaseManager>();
-
-        //        //////////////////////////////////////////////////////////////////////////////////////////////////////
-        //        /// Prospecting [ DeepScanProspectsForReplies OR (FollowUpMessagePhase AND ScanProspectsForReplies) ]
-        //        //////////////////////////////////////////////////////////////////////////////////////////////////////
-        //        await phaseManager.ProspectingPhaseAsync();
-
-        //        ////////////////////////////////////////////////////////////////////////////////////////////////
-        //        /// NetworkingConnectionsPhase[ProspectListPhase OR SendConnectionsPhase]
-        //        ////////////////////////////////////////////////////////////////////////////////////////////////
-        //        await phaseManager.NetworkingConnectionsPhaseAsync();
-
-        //        ////////////////////////////////////////////////////////////////////////////////////////////////
-        //        /// NetworkingPhase[ProspectListPhase AND SendConnectionsPhase Merged]
-        //        ////////////////////////////////////////////////////////////////////////////////////////////////
-        //        await phaseManager.NetworkingPhaseAsync();
-        //    }
-        //}
-
+        /// <summary>
+        /// This method is executed once a day at 4:40AM of the currently executing timezone. 
+        /// It grabs all of HalUnits registered in this timezone parses out each Hal unit start hour (7:00AM for example)
+        /// and schedules a job to go out at that time.
+        /// </summary>
+        /// <param name="timeZoneId"></param>
+        /// <returns></returns>
         public async Task PublishJobsAsync(string timeZoneId)
         {
             // get all hal ids for this time zone
@@ -104,18 +59,22 @@ namespace Leadsly.Domain
                 foreach (HalUnit halUnit in halsInTimezone)
                 {
                     // Grab this Hal's start time and schedule the job shortly after the start time                    
-                    if (halUnit != null)
-                    {
-                        string halId = halUnit.HalId;
-                        _logger.LogInformation("Hal unit with id {halId} was found", halId);
-                        DateTimeOffset startDate = _timestampService.ParseDateTimeOffsetLocalized(halUnit.TimeZoneId, halUnit.StartHour);
-                        _logger.LogInformation($"Hal unit with id {halId}, has a start date of {startDate}");
-                        _hangfireService.Schedule<ILeadslyRecurringJobsManagerService>((x) => x.PublishHalPhasesAsync(halId), startDate);
-                    }
+                    string halId = halUnit.HalId;
+                    _logger.LogInformation("Hal unit with id {halId} was found", halId);
+                    DateTimeOffset startDate = _timestampService.ParseDateTimeOffsetLocalized(halUnit.TimeZoneId, halUnit.StartHour);
+                    _logger.LogInformation($"Hal unit with id {halId}, has a start date of {startDate}");
+                    _hangfireService.Schedule<ILeadslyRecurringJobsManagerService>((x) => x.PublishHalPhasesAsync(halId), startDate);
                 }
             }
         }
 
+        /// <summary>
+        /// This method is executed each time the application starts. Upon start it will get all of the entries from the 'SupportedTimeZones' table.
+        /// It will then check to see if there are any existing jobs in the database that match the following format 'ActiveCampaigns_EasternStandardTime'.
+        /// Any new timezones will be then added as a recurring job based on the CRON schedule. As of right now it is 4:40AM of whatever timezone is being added.
+        /// If new timezone is added to the database it will be picked up the next day this method is scheduled to execute.
+        /// </summary>
+        /// <returns></returns>
         public async Task ScheduleJobsForNewTimeZonesAsync()
         {
             IList<LeadslyTimeZone> supportedTimeZones = await _timezoneRepository.GetAllSupportedTimeZonesAsync();

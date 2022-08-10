@@ -49,6 +49,11 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
             }
         }
 
+        /// <summary>
+        /// TODO: this should be converted to only work with single hal id at a time.
+        /// </summary>
+        /// <param name="halId"></param>
+        /// <returns></returns>
         private async Task InternalExecuteAsync(string halId)
         {
             IList<string> halIds = new List<string>()
@@ -67,10 +72,13 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
             {
                 string halId = halCampaignProspects.Key;
 
-                // fire off ScanProspectsForRepliesPhase with the payload of the contacted prospects
+                // fire off DeepScanProspectsForRepliesPhase with the payload of the contacted prospects
                 ScanProspectsForRepliesBody messageBody = await _messagesFactory.CreateMessageAsync(halId, halCampaignProspects.Value);
 
-                PublishMessage(messageBody);
+                if (messageBody != null && messageBody.ContactedCampaignProspects.Any())
+                {
+                    PublishMessage(messageBody);
+                }
             }
         }
 
@@ -85,6 +93,11 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
             _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers);
         }
 
+        /// <summary>
+        /// The key is halId and dictionary is a list of CampaignProspects
+        /// </summary>
+        /// <param name="halIds"></param>
+        /// <returns></returns>
         private async Task<IDictionary<string, IList<CampaignProspect>>> CreateHalsCampainProspectsAsync(IList<string> halIds)
         {
             IDictionary<string, IList<CampaignProspect>> halsCampaignProspects = new Dictionary<string, IList<CampaignProspect>>();
