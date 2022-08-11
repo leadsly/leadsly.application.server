@@ -123,6 +123,122 @@ namespace Leadsly.Infrastructure.Repositories
                     Cpu = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.Cpu,
                     Memory = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.Memory,
                     ExecutionRoleArn = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.ExecutionRoleArn
+                },
+                EcsGridTaskDefinitionConfig = new()
+                {
+                    ContainerDefinitions = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.ContainerDefinitions?.Select(c => new Domain.Models.Entities.ContainerDefinition
+                    {
+                        Name = c.Name,
+                        Image = c.Image,
+                        Cpu = c.Cpu,
+                        Memory = c.Memory,
+                        Environment = c.Environment?.Select(e => new Domain.Models.Entities.Environment
+                        {
+                            Name = e.Name,
+                            Value = e.Value
+                        }).ToArray(),
+                        LogConfiguration = new Domain.Models.Entities.LogConfiguration
+                        {
+                            LogDriver = c.LogConfiguration?.LogDriver,
+                            Options = new Domain.Models.Entities.Options
+                            {
+                                AwslogsCreateGroup = c.LogConfiguration?.Options?.AwslogsCreateGroup,
+                                AwslogsGroup = c.LogConfiguration?.Options?.AwslogsGroup,
+                                AwslogsRegion = c.LogConfiguration?.Options?.AwslogsRegion,
+                                AwslogsStreamPrefix = c.LogConfiguration?.Options?.AwslogsStreamPrefix
+                            }
+                        },
+                        LinuxParameters = new Domain.Models.Entities.LinuxParameters
+                        {
+                            InitProcessEnabled = c.LinuxParameters.InitProcessEnabled,
+                            SharedMemorySize = c.LinuxParameters.SharedMemorySize
+                        },
+                        PortMappings = c.PortMappings?.Select(p => new Domain.Models.Entities.PortMapping
+                        {
+                            ContainerPort = p.ContainerPort,
+                            HostPort = p.HostPort
+                        }).ToArray(),
+                        DependsOn = c.DependsOn?.Select(d => new Domain.Models.Entities.DependsOn
+                        {
+                            ContainerName = d.ContainerName,
+                            Condition = d.Condition
+                        }).ToArray(),
+                        DisableNetworking = c.DisableNetworking,
+                        Essential = c.Essential,
+                        Privileged = c.Privileged,
+                        VolumesFrom = c.VolumesFrom?.Select(v => new Domain.Models.Entities.VolumesFrom
+                        {
+                            SourceContainer = v.SourceContainer,
+                            ReadOnly = v.ReadOnly
+                        }).ToArray(),
+                        StartTimeout = c.StartTimeout,
+                        StopTimeout = c.StopTimeout
+                    }).ToArray(),
+                    Family = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.Family,
+                    NetworkMode = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.NetworkMode,
+                    RequiresCompatibilities = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.RequiresCompatibilities,
+                    TaskRoleArn = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.TaskRoleArn,
+                    Cpu = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.Cpu,
+                    Memory = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.Memory,
+                    ExecutionRoleArn = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.ExecutionRoleArn
+                },
+                EcsHalTaskDefinitionConfig = new()
+                {
+                    ContainerDefinitions = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.ContainerDefinitions?.Select(c => new Domain.Models.Entities.ContainerDefinition
+                    {
+                        Name = c.Name,
+                        Image = c.Image,
+                        Cpu = c.Cpu,
+                        Memory = c.Memory,
+                        Environment = c.Environment?.Select(e => new Domain.Models.Entities.Environment
+                        {
+                            Name = e.Name,
+                            Value = e.Value
+                        }).ToArray(),
+                        LogConfiguration = new Domain.Models.Entities.LogConfiguration
+                        {
+                            LogDriver = c.LogConfiguration?.LogDriver,
+                            Options = new Domain.Models.Entities.Options
+                            {
+                                AwslogsCreateGroup = c.LogConfiguration?.Options?.AwslogsCreateGroup,
+                                AwslogsGroup = c.LogConfiguration?.Options?.AwslogsGroup,
+                                AwslogsRegion = c.LogConfiguration?.Options?.AwslogsRegion,
+                                AwslogsStreamPrefix = c.LogConfiguration?.Options?.AwslogsStreamPrefix
+                            }
+                        },
+                        LinuxParameters = new Domain.Models.Entities.LinuxParameters
+                        {
+                            InitProcessEnabled = c.LinuxParameters.InitProcessEnabled,
+                            SharedMemorySize = c.LinuxParameters.SharedMemorySize
+                        },
+                        PortMappings = c.PortMappings?.Select(p => new Domain.Models.Entities.PortMapping
+                        {
+                            ContainerPort = p.ContainerPort,
+                            HostPort = p.HostPort
+                        }).ToArray(),
+                        DependsOn = c.DependsOn?.Select(d => new Domain.Models.Entities.DependsOn
+                        {
+                            ContainerName = d.ContainerName,
+                            Condition = d.Condition
+                        }).ToArray(),
+                        DisableNetworking = c.DisableNetworking,
+                        Essential = c.Essential,
+                        Privileged = c.Privileged,
+                        VolumesFrom = c.VolumesFrom?.Select(v => new Domain.Models.Entities.VolumesFrom
+                        {
+                            SourceContainer = v.SourceContainer,
+                            ReadOnly = v.ReadOnly
+                        }).ToArray(),
+                        StartTimeout = c.StartTimeout,
+                        StopTimeout = c.StopTimeout
+                    }).ToArray(),
+                    Family = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.Family,
+                    NetworkMode = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.NetworkMode,
+                    RequiresCompatibilities = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.RequiresCompatibilities,
+                    TaskRoleArn = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.TaskRoleArn,
+                    Cpu = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.Cpu,
+                    Memory = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.Memory,
+                    ExecutionRoleArn = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.ExecutionRoleArn
                 }
             };
 

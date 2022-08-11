@@ -9,7 +9,6 @@ namespace Leadsly.Domain.Models.Entities
         public string TaskArn { get; set; }
         public string ContainerName { get; set; }
         public string EcsServiceId { get; set; }
-        public ContainerPurpose ContainerPurpose { get; set; }
         public EcsService EcsService { get; set; }
     }
 }

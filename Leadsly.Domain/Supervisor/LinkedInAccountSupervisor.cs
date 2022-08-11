@@ -5,6 +5,7 @@ using Leadsly.Domain.Models.Responses;
 using Leadsly.Domain.Models.ViewModels.LinkedInAccount;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -48,13 +49,20 @@ namespace Leadsly.Domain.Supervisor
                 return null;
             }
 
-            if (string.IsNullOrEmpty(virtualAssistant.CloudMapDiscoveryService?.Name))
+            if (virtualAssistant.CloudMapDiscoveryServices != null || virtualAssistant.CloudMapDiscoveryServices.Count != 0)
             {
-                _logger.LogError("Couldn't process request to link account because no cloud map discovery service has been found. This name is required to make a request to hal");
+                _logger.LogError("Couldn't process request to link account because no cloud map discovery services has been found. This name is required to make a request to hal");
                 return null;
             }
 
-            ConnectLinkedInAccountResponse response = await _leadslyHalProvider.ConnectAccountAsync(request.Username, request.Password, virtualAssistant.CloudMapDiscoveryService.Name, responseHeaders, requestHeaders, ct);
+            EcsService halEcsService = virtualAssistant.EcsServices.Where(x => x.Purpose == Purpose.Hal).FirstOrDefault();
+            if (halEcsService == null)
+            {
+                _logger.LogError("Couldn't process request to link account because no hal ecs service has been found. This service is required to make a request to hal");
+                return null;
+            }
+
+            ConnectLinkedInAccountResponse response = await _leadslyHalProvider.ConnectAccountAsync(request.Username, request.Password, halEcsService.CloudMapDiscoveryService.Name, responseHeaders, requestHeaders, ct);
             if (response == null)
             {
                 return null;
@@ -90,13 +98,20 @@ namespace Leadsly.Domain.Supervisor
                 return null;
             }
 
-            if (string.IsNullOrEmpty(virtualAssistant.CloudMapDiscoveryService?.Name))
+            if (virtualAssistant.CloudMapDiscoveryServices != null || virtualAssistant.CloudMapDiscoveryServices.Count != 0)
             {
                 _logger.LogError("Couldn't process request to link account because no cloud map discovery service has been found. This name is required to make a request to hal");
                 return null;
             }
 
-            EnterTwoFactorAuthResponse response = await _leadslyHalProvider.EnterTwoFactorAuthAsync(request.Code, virtualAssistant.CloudMapDiscoveryService.Name, ct);
+            EcsService halEcsService = virtualAssistant.EcsServices.Where(x => x.Purpose == Purpose.Hal).FirstOrDefault();
+            if (halEcsService == null)
+            {
+                _logger.LogError("Couldn't process request to link account because no hal ecs service has been found. This service is required to make a request to hal");
+                return null;
+            }
+
+            EnterTwoFactorAuthResponse response = await _leadslyHalProvider.EnterTwoFactorAuthAsync(request.Code, halEcsService.CloudMapDiscoveryService.Name, ct);
             if (response == null)
             {
                 return null;

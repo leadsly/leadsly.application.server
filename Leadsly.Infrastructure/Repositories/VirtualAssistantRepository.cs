@@ -49,9 +49,9 @@ namespace Leadsly.Infrastructure.Repositories
                     .Where(v => v.ApplicationUserId == userId)
                     .Include(v => v.SocialAccount)
                     .Include(v => v.HalUnit)
-                    .Include(v => v.CloudMapDiscoveryService)
-                    .Include(v => v.EcsService)
-                    .Include(v => v.EcsTaskDefinition)
+                    .Include(v => v.CloudMapDiscoveryServices)
+                    .Include(v => v.EcsServices)
+                    .Include(v => v.EcsTaskDefinitions)
                     .ToListAsync(ct);
             }
             catch (Exception ex)
@@ -82,10 +82,10 @@ namespace Leadsly.Infrastructure.Repositories
                     .Include(v => v.SocialAccount)
                     .Where(v => v.SocialAccount.Linked == true && v.HalUnit.HalId == halId)
                     .Include(v => v.HalUnit)
-                    .Include(v => v.CloudMapDiscoveryService)
-                    .Include(v => v.EcsService)
+                    .Include(v => v.CloudMapDiscoveryServices)
+                    .Include(v => v.EcsServices)
                         .ThenInclude(s => s.EcsTasks)
-                    .Include(v => v.EcsTaskDefinition)
+                    .Include(v => v.EcsTaskDefinitions)
                     .FirstOrDefaultAsync(ct);
             }
             catch (Exception ex)

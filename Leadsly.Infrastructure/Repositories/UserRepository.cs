@@ -58,10 +58,9 @@ namespace Leadsly.Infrastructure.Repositories
             List<SocialAccount> socialAccounts = await _dbContext.SocialAccounts
                 .Where(sa => sa.UserId == userId)
                 .Include(sa => sa.VirtualAssistant)
-                .Include(sa => sa.VirtualAssistant.EcsService)
-                    .ThenInclude(ecsSer => ecsSer.EcsServiceRegistries)
-                .Include(sa => sa.VirtualAssistant.EcsTaskDefinition)
-                .Include(sa => sa.VirtualAssistant.CloudMapDiscoveryService)
+                .Include(sa => sa.VirtualAssistant.EcsServices)
+                .Include(sa => sa.VirtualAssistant.EcsTaskDefinitions)
+                .Include(sa => sa.VirtualAssistant.CloudMapDiscoveryServices)
                 .ToListAsync();
 
             return socialAccounts;

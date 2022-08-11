@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Leadsly.Domain.Models.Entities
+﻿namespace Leadsly.Domain.Models.Entities
 {
     public class CloudPlatformConfiguration
     {
@@ -14,6 +7,8 @@ namespace Leadsly.Domain.Models.Entities
         public EcsServiceConfig EcsServiceConfig { get; set; }
         public EcsTaskConfig EcsTaskConfig { get; set; }
         public EcsTaskDefinitionConfig EcsTaskDefinitionConfig { get; set; }
+        public EcsTaskDefinitionConfig EcsHalTaskDefinitionConfig { get; set; }
+        public EcsTaskDefinitionConfig EcsGridTaskDefinitionConfig { get; set; }
         public CloudMapServiceDiscoveryConfig ServiceDiscoveryConfig { get; set; }
     }
 }

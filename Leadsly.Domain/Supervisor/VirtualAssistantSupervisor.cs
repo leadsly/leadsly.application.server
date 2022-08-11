@@ -14,9 +14,9 @@ namespace Leadsly.Domain.Supervisor
 {
     public partial class Supervisor : ISupervisor
     {
-        private EcsService EcsService { get; set; }
-        private EcsTaskDefinition EcsTaskDefinition { get; set; }
-        private CloudMapDiscoveryService CloudMapDiscoveryService { get; set; }
+        private IList<EcsService> EcsServices { get; set; }
+        private IList<EcsTaskDefinition> EcsTaskDefinitions { get; set; }
+        private IList<CloudMapDiscoveryService> CloudMapDiscoveryServices { get; set; }
         private IList<EcsTask> EcsServiceTasks { get; set; }
 
         public async Task<DeleteVirtualAssistantViewModel> DeleteVirtualAssistantAsync(string userId, CancellationToken ct = default)
@@ -65,33 +65,37 @@ namespace Leadsly.Domain.Supervisor
         private async Task DeleteAwsResourcesAsync(VirtualAssistant virtualAssistant, string userId, CancellationToken ct = default)
         {
             // if for whatever reason the ecs service is not set
-            if (!string.IsNullOrEmpty(virtualAssistant.EcsService?.ServiceName) && !string.IsNullOrEmpty(virtualAssistant.EcsService?.ClusterArn))
+            if (virtualAssistant.EcsServices != null || virtualAssistant.EcsServices.Count != 0)
             {
-                await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, virtualAssistant.EcsService.ServiceName, virtualAssistant.EcsService.ClusterArn, ct);
+                foreach (EcsService ecsService in virtualAssistant.EcsServices)
+                {
+                    await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsService.ServiceName, ecsService.ClusterArn, ct);
 
-                //if (!string.IsNullOrEmpty(virtualAssistant.CloudMapDiscoveryService?.ServiceDiscoveryId))
-                //{
-                //    await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, virtualAssistant.CloudMapDiscoveryService.ServiceDiscoveryId);
-                //}
+                    // delete all ecs tasks associated with this ecs service
+                    await _cloudPlatformProvider.DeleteEcsTasksByEcsServiceId(ecsService.EcsServiceId, ct);
 
-                // delete all ecs tasks associated with this ecs service
-                await _cloudPlatformProvider.DeleteEcsTasksByEcsServiceId(virtualAssistant.EcsService.EcsServiceId, ct);
-
-                // this will delete both ECS service and the CloudMapDiscoveryService from the database                
-                await _cloudPlatformProvider.DeleteEcsServiceAsync(virtualAssistant.EcsService.EcsServiceId, ct);
+                    // this will delete both ECS service and the CloudMapDiscoveryService from the database                
+                    await _cloudPlatformProvider.DeleteEcsServiceAsync(ecsService.EcsServiceId, ct);
+                }
             }
 
             // check if cloud map discovery service was set and delete it.
-            if (!string.IsNullOrEmpty(virtualAssistant.CloudMapDiscoveryService?.ServiceDiscoveryId))
+            if (virtualAssistant.CloudMapDiscoveryServices != null || virtualAssistant.CloudMapDiscoveryServices.Count != 0)
             {
-                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, virtualAssistant.CloudMapDiscoveryService.ServiceDiscoveryId);
-                await _cloudPlatformProvider.DeleteCloudMapServiceAsync(virtualAssistant.CloudMapDiscoveryService.CloudMapDiscoveryServiceId);
+                foreach (CloudMapDiscoveryService cloudMapService in virtualAssistant.CloudMapDiscoveryServices)
+                {
+                    await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, cloudMapService.ServiceDiscoveryId);
+                    await _cloudPlatformProvider.DeleteCloudMapServiceAsync(cloudMapService.CloudMapDiscoveryServiceId);
+                }
             }
 
-            if (!string.IsNullOrEmpty(virtualAssistant.EcsTaskDefinition?.Family))
+            if (virtualAssistant.EcsTaskDefinitions != null || virtualAssistant.EcsTaskDefinitions.Count != 0)
             {
-                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, virtualAssistant.EcsTaskDefinition.Family, ct);
-                await _cloudPlatformProvider.DeleteTaskDefinitionRegistrationAsync(virtualAssistant.EcsTaskDefinition.EcsTaskDefinitionId, ct);
+                foreach (EcsTaskDefinition ecsTaskDefinition in virtualAssistant.EcsTaskDefinitions)
+                {
+                    await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, ecsTaskDefinition.Family, ct);
+                    await _cloudPlatformProvider.DeleteTaskDefinitionRegistrationAsync(ecsTaskDefinition.EcsTaskDefinitionId, ct);
+                }
             }
         }
 
@@ -125,7 +129,7 @@ namespace Leadsly.Domain.Supervisor
                 return null;
             }
 
-            VirtualAssistant virtualAssistant = await _cloudPlatformProvider.CreateVirtualAssistantAsync(EcsTaskDefinition, EcsService, EcsServiceTasks, CloudMapDiscoveryService, halId, setup.UserId, setup.TimeZoneId, ct);
+            VirtualAssistant virtualAssistant = await _cloudPlatformProvider.CreateVirtualAssistantAsync(EcsTaskDefinitions, EcsServices, EcsServiceTasks, CloudMapDiscoveryServices, halId, setup.UserId, setup.TimeZoneId, ct);
             VirtualAssistantViewModel virtualAssistantViewModel = VirtualAssistantConverter.Convert(virtualAssistant);
             return virtualAssistantViewModel;
         }
@@ -133,56 +137,129 @@ namespace Leadsly.Domain.Supervisor
         private async Task<bool> CreateAwsResourcesAsync(string halId, string userId, CancellationToken ct = default)
         {
             // Register the new task definition
-            string taskDefinition = $"{halId}-task-def";
-            Amazon.ECS.Model.RegisterTaskDefinitionResponse ecsTaskDefinitionRegistrationResponse = await _cloudPlatformProvider.RegisterTaskDefinitionInAwsAsync(taskDefinition, halId, ct);
-            if (ecsTaskDefinitionRegistrationResponse == null || ecsTaskDefinitionRegistrationResponse.HttpStatusCode != HttpStatusCode.OK)
+            string gridTaskDefinition = $"{halId}-grid-task-def";
+            Amazon.ECS.Model.RegisterTaskDefinitionResponse ecsGridTaskDefinitionRegistrationResponse = await _cloudPlatformProvider.RegisterGridTaskDefinitionInAwsAsync(gridTaskDefinition, halId, ct);
+            if (ecsGridTaskDefinitionRegistrationResponse == null || ecsGridTaskDefinitionRegistrationResponse.HttpStatusCode != HttpStatusCode.OK)
             {
-                _logger.LogError("Failed to register ECS task definition in AWS");
+                _logger.LogError("Failed to register grid ECS task definition in AWS");
                 return false;
             }
-            _logger.LogInformation("Successfully registered ECS task definition in AWS");
+            _logger.LogInformation("Successfully registered grid ECS task definition in AWS");
 
-            // create cloud map service discovery service
-            string serviceDiscoveryName = $"hal-{halId}-srv-disc";
-            Amazon.ServiceDiscovery.Model.CreateServiceResponse createCloudMapServiceResponse = await _cloudPlatformProvider.CreateCloudMapDiscoveryServiceInAwsAsync(serviceDiscoveryName, ct);
-            if (createCloudMapServiceResponse == null || createCloudMapServiceResponse.HttpStatusCode != HttpStatusCode.OK)
+            string halTaskDefinition = $"{halId}-hal-task-def";
+            Amazon.ECS.Model.RegisterTaskDefinitionResponse ecsHalTaskDefinitionRegistrationResponse = await _cloudPlatformProvider.RegisterHalTaskDefinitionInAwsAsync(halTaskDefinition, halId, ct);
+            if (ecsHalTaskDefinitionRegistrationResponse == null || ecsHalTaskDefinitionRegistrationResponse.HttpStatusCode != HttpStatusCode.OK)
             {
-                _logger.LogError($"Failed to create Cloud Map service discovery service in AWS. HttpStatusCode: {createCloudMapServiceResponse?.HttpStatusCode}");
-                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, serviceDiscoveryName, ct);
+                _logger.LogError("Failed to register hal ECS task definition in AWS");
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, gridTaskDefinition, ct);
                 return false;
             }
-            _logger.LogInformation($"Successfully created Cloud Map service discovery service in AWS. HttpStatusCode: {createCloudMapServiceResponse?.HttpStatusCode}");
+            _logger.LogInformation("Successfully registered hal ECS task definition in AWS");
 
-            // create ecs service
-            string ecsServiceName = $"hal-{halId}-srv";
-            Amazon.ECS.Model.CreateServiceResponse ecsCreateEcsServiceResponse = await _cloudPlatformProvider.CreateEcsServiceInAwsAsync(ecsServiceName, ecsTaskDefinitionRegistrationResponse.TaskDefinition.Family, createCloudMapServiceResponse.Service.Arn, ct);
-            if (ecsCreateEcsServiceResponse == null || ecsCreateEcsServiceResponse.HttpStatusCode != HttpStatusCode.OK)
+            // create cloud map service discovery service for the grid
+            string serviceGridDiscoveryName = $"hal-{halId}-grid-srv-disc";
+            Amazon.ServiceDiscovery.Model.CreateServiceResponse createGridCloudMapServiceResponse = await _cloudPlatformProvider.CreateCloudMapDiscoveryServiceInAwsAsync(serviceGridDiscoveryName, ct);
+            if (createGridCloudMapServiceResponse == null || createGridCloudMapServiceResponse.HttpStatusCode != HttpStatusCode.OK)
             {
-                _logger.LogError("Failed to create ECS Service in AWS");
-                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createCloudMapServiceResponse.Service.Id, ct);
-                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, ecsTaskDefinitionRegistrationResponse.TaskDefinition.Family, ct);
+                _logger.LogError($"Failed to create grid Cloud Map service discovery service in AWS. HttpStatusCode: {createGridCloudMapServiceResponse?.HttpStatusCode}");
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, gridTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, halTaskDefinition, ct);
                 return false;
             }
-            _logger.LogInformation("Successfully created ECS Service in AWS");
+            _logger.LogInformation($"Successfully created grid Cloud Map service discovery service in AWS. HttpStatusCode: {createGridCloudMapServiceResponse?.HttpStatusCode}");
+
+            // create cloud map service discovery service for hal
+            string serviceHalDiscoveryName = $"hal-{halId}-srv-disc";
+            Amazon.ServiceDiscovery.Model.CreateServiceResponse createHalCloudMapServiceResponse = await _cloudPlatformProvider.CreateCloudMapDiscoveryServiceInAwsAsync(serviceHalDiscoveryName, ct);
+            if (createHalCloudMapServiceResponse == null || createHalCloudMapServiceResponse.HttpStatusCode != HttpStatusCode.OK)
+            {
+                _logger.LogError($"Failed to create hal Cloud Map service discovery service in AWS. HttpStatusCode: {createGridCloudMapServiceResponse?.HttpStatusCode}");
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, gridTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, halTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createGridCloudMapServiceResponse.Service.Id, ct);
+                return false;
+            }
+            _logger.LogInformation($"Successfully created hal Cloud Map service discovery service in AWS. HttpStatusCode: {createGridCloudMapServiceResponse?.HttpStatusCode}");
+
+            // create ecs service for grid
+            string ecsGridServiceName = $"hal-{halId}-grid-srv";
+            Amazon.ECS.Model.CreateServiceResponse ecsCreateGridEcsServiceResponse = await _cloudPlatformProvider.CreateEcsServiceInAwsAsync(ecsGridServiceName, ecsGridTaskDefinitionRegistrationResponse.TaskDefinition.Family, createGridCloudMapServiceResponse.Service.Arn, ct);
+            if (ecsCreateGridEcsServiceResponse == null || ecsCreateGridEcsServiceResponse.HttpStatusCode != HttpStatusCode.OK)
+            {
+                _logger.LogError("Failed to create grid ECS Service in AWS");
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, gridTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, halTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createGridCloudMapServiceResponse.Service.Id, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createHalCloudMapServiceResponse.Service.Id, ct);
+                return false;
+            }
+            _logger.LogInformation("Successfully created grid ECS Service in AWS");
+
+            // create ecs service for hal
+            string ecsHalServiceName = $"hal-{halId}-srv";
+            Amazon.ECS.Model.CreateServiceResponse ecsCreateHalEcsServiceResponse = await _cloudPlatformProvider.CreateEcsServiceInAwsAsync(ecsHalServiceName, ecsHalTaskDefinitionRegistrationResponse.TaskDefinition.Family, createHalCloudMapServiceResponse.Service.Arn, ct);
+            if (ecsCreateHalEcsServiceResponse == null || ecsCreateHalEcsServiceResponse.HttpStatusCode != HttpStatusCode.OK)
+            {
+                _logger.LogError("Failed to create hal ECS Service in AWS");
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, gridTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, halTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createGridCloudMapServiceResponse.Service.Id, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createHalCloudMapServiceResponse.Service.Id, ct);
+                await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateGridEcsServiceResponse.Service.ServiceName, ecsCreateGridEcsServiceResponse.Service.ClusterArn, ct);
+                return false;
+            }
+            _logger.LogInformation("Successfully created hal ECS Service in AWS");
 
             // Ensure all aws resources are running before making healthcheck request
-            bool running = await _cloudPlatformProvider.EnsureEcsServiceTasksAreRunningAsync(ecsCreateEcsServiceResponse.Service.ServiceName, ecsCreateEcsServiceResponse.Service.ClusterArn, ct);
-            if (running == false)
+            bool ecsGridTasksRunning = await _cloudPlatformProvider.EnsureEcsServiceTasksAreRunningAsync(ecsCreateGridEcsServiceResponse.Service.ServiceName, ecsCreateGridEcsServiceResponse.Service.ClusterArn, ct);
+            if (ecsGridTasksRunning == false)
             {
-                _logger.LogError("Ecs Tasks are not running. Tear down resources and try again");
-                await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateEcsServiceResponse.Service.ServiceName, ecsCreateEcsServiceResponse.Service.ClusterArn, ct);
-                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createCloudMapServiceResponse.Service.Id, ct);
-                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, ecsTaskDefinitionRegistrationResponse.TaskDefinition.Family, ct);
+                _logger.LogError("Ecs Grid Tasks are not running. Tear down resources and try again");
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, gridTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, halTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createGridCloudMapServiceResponse.Service.Id, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createHalCloudMapServiceResponse.Service.Id, ct);
+                await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateGridEcsServiceResponse.Service.ServiceName, ecsCreateGridEcsServiceResponse.Service.ClusterArn, ct);
+                await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateHalEcsServiceResponse.Service.ServiceName, ecsCreateHalEcsServiceResponse.Service.ClusterArn, ct);
                 return false;
             }
 
-            IList<EcsTask> ecsServiceTasks = await _cloudPlatformProvider.ListEcsServiceTasksAsync(ecsCreateEcsServiceResponse.Service.ClusterArn, ecsCreateEcsServiceResponse.Service.ServiceArn, ct);
-            if (ecsServiceTasks == null)
+            bool ecsHalTasksRunning = await _cloudPlatformProvider.EnsureEcsServiceTasksAreRunningAsync(ecsCreateHalEcsServiceResponse.Service.ServiceName, ecsCreateHalEcsServiceResponse.Service.ClusterArn, ct);
+            if (ecsHalTasksRunning == false)
             {
-                _logger.LogError("Failed to retreive ecs tasks for service {ecsServiceName}", ecsServiceName);
-                await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateEcsServiceResponse.Service.ServiceName, ecsCreateEcsServiceResponse.Service.ClusterArn, ct);
-                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createCloudMapServiceResponse.Service.Id, ct);
-                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, ecsTaskDefinitionRegistrationResponse.TaskDefinition.Family, ct);
+                _logger.LogError("Ecs Hal Tasks are not running. Tear down resources and try again");
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, gridTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, halTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createGridCloudMapServiceResponse.Service.Id, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createHalCloudMapServiceResponse.Service.Id, ct);
+                await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateGridEcsServiceResponse.Service.ServiceName, ecsCreateGridEcsServiceResponse.Service.ClusterArn, ct);
+                await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateHalEcsServiceResponse.Service.ServiceName, ecsCreateHalEcsServiceResponse.Service.ClusterArn, ct);
+                return false;
+            }
+
+            IList<EcsTask> ecsGridServiceTasks = await _cloudPlatformProvider.ListEcsServiceTasksAsync(ecsCreateGridEcsServiceResponse.Service.ClusterArn, ecsCreateGridEcsServiceResponse.Service.ServiceArn, ct);
+            if (ecsGridServiceTasks == null)
+            {
+                _logger.LogError("Failed to retreive grid ecs tasks for service {ecsServiceName}", ecsGridServiceName);
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, gridTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, halTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createGridCloudMapServiceResponse.Service.Id, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createHalCloudMapServiceResponse.Service.Id, ct);
+                await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateGridEcsServiceResponse.Service.ServiceName, ecsCreateGridEcsServiceResponse.Service.ClusterArn, ct);
+                await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateHalEcsServiceResponse.Service.ServiceName, ecsCreateHalEcsServiceResponse.Service.ClusterArn, ct);
+                return false;
+            }
+
+            IList<EcsTask> ecsHalServiceTasks = await _cloudPlatformProvider.ListEcsServiceTasksAsync(ecsCreateHalEcsServiceResponse.Service.ClusterArn, ecsCreateHalEcsServiceResponse.Service.ServiceArn, ct);
+            if (ecsHalServiceTasks == null)
+            {
+                _logger.LogError("Failed to retreive hal ecs tasks for service {ecsServiceName}", ecsHalServiceName);
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, gridTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, halTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createGridCloudMapServiceResponse.Service.Id, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createHalCloudMapServiceResponse.Service.Id, ct);
+                await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateGridEcsServiceResponse.Service.ServiceName, ecsCreateGridEcsServiceResponse.Service.ClusterArn, ct);
+                await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateHalEcsServiceResponse.Service.ServiceName, ecsCreateHalEcsServiceResponse.Service.ClusterArn, ct);
                 return false;
             }
 
@@ -197,39 +274,186 @@ namespace Leadsly.Domain.Supervisor
             //    return false;
             //}
 
-            EcsTaskDefinition = new()
+            EcsTaskDefinitions = new List<EcsTaskDefinition>();
+            EcsTaskDefinition ecsGridTaskDefinition = new()
             {
-                TaskDefinitionArn = ecsTaskDefinitionRegistrationResponse.TaskDefinition.TaskDefinitionArn,
-                Family = ecsTaskDefinitionRegistrationResponse.TaskDefinition.Family
+                TaskDefinitionArn = ecsGridTaskDefinitionRegistrationResponse.TaskDefinition.TaskDefinitionArn,
+                Family = ecsGridTaskDefinitionRegistrationResponse.TaskDefinition.Family
             };
+            EcsTaskDefinitions.Add(ecsGridTaskDefinition);
 
-            CloudMapDiscoveryService = new()
+            EcsTaskDefinition ecsHalTaskDefinition = new()
             {
-                Arn = createCloudMapServiceResponse.Service.Arn,
-                CreateDate = createCloudMapServiceResponse.Service.CreateDate,
-                Name = serviceDiscoveryName,
-                ServiceDiscoveryId = createCloudMapServiceResponse.Service.Id
+                TaskDefinitionArn = ecsHalTaskDefinitionRegistrationResponse.TaskDefinition.TaskDefinitionArn,
+                Family = ecsHalTaskDefinitionRegistrationResponse.TaskDefinition.Family
             };
+            EcsTaskDefinitions.Add(ecsHalTaskDefinition);
 
-            EcsService = new()
+            CloudMapDiscoveryServices = new List<CloudMapDiscoveryService>();
+            CloudMapDiscoveryService gridCloudMapService = new()
             {
-                ClusterArn = ecsCreateEcsServiceResponse.Service.ClusterArn,
-                CreatedAt = ((DateTimeOffset)ecsCreateEcsServiceResponse.Service.CreatedAt).ToUnixTimeSeconds(),
-                CreatedBy = ecsCreateEcsServiceResponse.Service.CreatedBy,
-                EcsServiceRegistries = ecsCreateEcsServiceResponse.Service.ServiceRegistries.Select(r => new EcsServiceRegistry()
+                Arn = createGridCloudMapServiceResponse.Service.Arn,
+                CreateDate = createGridCloudMapServiceResponse.Service.CreateDate,
+                Name = serviceGridDiscoveryName,
+                ServiceDiscoveryId = createGridCloudMapServiceResponse.Service.Id
+            };
+            CloudMapDiscoveryServices.Add(gridCloudMapService);
+
+            CloudMapDiscoveryService halCloudMapService = new()
+            {
+                Arn = createHalCloudMapServiceResponse.Service.Arn,
+                CreateDate = createHalCloudMapServiceResponse.Service.CreateDate,
+                Name = serviceHalDiscoveryName,
+                ServiceDiscoveryId = createHalCloudMapServiceResponse.Service.Id
+            };
+            CloudMapDiscoveryServices.Add(halCloudMapService);
+
+            EcsServices = new List<EcsService>();
+            EcsService ecsGridService = new()
+            {
+                ClusterArn = ecsCreateGridEcsServiceResponse.Service.ClusterArn,
+                CreatedAt = ((DateTimeOffset)ecsCreateGridEcsServiceResponse.Service.CreatedAt).ToUnixTimeSeconds(),
+                CreatedBy = ecsCreateGridEcsServiceResponse.Service.CreatedBy,
+                EcsServiceRegistries = ecsCreateGridEcsServiceResponse.Service.ServiceRegistries.Select(r => new EcsServiceRegistry()
                 {
                     RegistryArn = r.RegistryArn,
                 }).ToList(),
-                SchedulingStrategy = ecsCreateEcsServiceResponse.Service.SchedulingStrategy,
-                ServiceArn = ecsCreateEcsServiceResponse.Service.ServiceArn,
-                ServiceName = ecsCreateEcsServiceResponse.Service.ServiceName,
-                TaskDefinition = ecsCreateEcsServiceResponse.Service.TaskDefinition,
+                SchedulingStrategy = ecsCreateGridEcsServiceResponse.Service.SchedulingStrategy,
+                ServiceArn = ecsCreateGridEcsServiceResponse.Service.ServiceArn,
+                ServiceName = ecsCreateGridEcsServiceResponse.Service.ServiceName,
+                TaskDefinition = ecsCreateGridEcsServiceResponse.Service.TaskDefinition,
+                Purpose = Purpose.Grid
             };
+            ecsGridService.CloudMapDiscoveryService = gridCloudMapService;
+            ecsGridService.EcsTasks = ecsGridServiceTasks;
+            gridCloudMapService.EcsService = ecsGridService;
+            EcsServices.Add(ecsGridService);
 
-            EcsServiceTasks = ecsServiceTasks;
+            EcsService ecsHalService = new()
+            {
+                ClusterArn = ecsCreateHalEcsServiceResponse.Service.ClusterArn,
+                CreatedAt = ((DateTimeOffset)ecsCreateHalEcsServiceResponse.Service.CreatedAt).ToUnixTimeSeconds(),
+                CreatedBy = ecsCreateHalEcsServiceResponse.Service.CreatedBy,
+                EcsServiceRegistries = ecsCreateHalEcsServiceResponse.Service.ServiceRegistries.Select(r => new EcsServiceRegistry()
+                {
+                    RegistryArn = r.RegistryArn,
+                }).ToList(),
+                SchedulingStrategy = ecsCreateHalEcsServiceResponse.Service.SchedulingStrategy,
+                ServiceArn = ecsCreateHalEcsServiceResponse.Service.ServiceArn,
+                ServiceName = ecsCreateHalEcsServiceResponse.Service.ServiceName,
+                TaskDefinition = ecsCreateHalEcsServiceResponse.Service.TaskDefinition,
+                Purpose = Purpose.Hal
+            };
+            ecsHalService.CloudMapDiscoveryService = halCloudMapService;
+            ecsHalService.EcsTasks = ecsHalServiceTasks;
+            halCloudMapService.EcsService = ecsHalService;
+            EcsServices.Add(ecsHalService);
+
+            EcsServiceTasks = ecsGridServiceTasks.Concat(ecsHalServiceTasks).ToList();
 
             return true;
         }
+
+        //private async Task<bool> CreateAwsResourcesAsync(string halId, string userId, CancellationToken ct = default)
+        //{
+        //    // Register the new task definition
+        //    string gridTaskDefinition = $"{halId}-grid-task-def";
+        //    Amazon.ECS.Model.RegisterTaskDefinitionResponse ecsTaskDefinitionRegistrationResponse = await _cloudPlatformProvider.RegisterTaskDefinitionInAwsAsync(taskDefinition, halId, ct);
+        //    if (ecsTaskDefinitionRegistrationResponse == null || ecsTaskDefinitionRegistrationResponse.HttpStatusCode != HttpStatusCode.OK)
+        //    {
+        //        _logger.LogError("Failed to register ECS task definition in AWS");
+        //        return false;
+        //    }
+        //    _logger.LogInformation("Successfully registered ECS task definition in AWS");
+
+        //    // create cloud map service discovery service
+        //    string serviceDiscoveryName = $"hal-{halId}-srv-disc";
+        //    Amazon.ServiceDiscovery.Model.CreateServiceResponse createCloudMapServiceResponse = await _cloudPlatformProvider.CreateCloudMapDiscoveryServiceInAwsAsync(serviceDiscoveryName, ct);
+        //    if (createCloudMapServiceResponse == null || createCloudMapServiceResponse.HttpStatusCode != HttpStatusCode.OK)
+        //    {
+        //        _logger.LogError($"Failed to create Cloud Map service discovery service in AWS. HttpStatusCode: {createCloudMapServiceResponse?.HttpStatusCode}");
+        //        await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, serviceDiscoveryName, ct);
+        //        return false;
+        //    }
+        //    _logger.LogInformation($"Successfully created Cloud Map service discovery service in AWS. HttpStatusCode: {createCloudMapServiceResponse?.HttpStatusCode}");
+
+        //    // create ecs service
+        //    string ecsServiceName = $"hal-{halId}-srv";
+        //    Amazon.ECS.Model.CreateServiceResponse ecsCreateEcsServiceResponse = await _cloudPlatformProvider.CreateEcsServiceInAwsAsync(ecsServiceName, ecsTaskDefinitionRegistrationResponse.TaskDefinition.Family, createCloudMapServiceResponse.Service.Arn, ct);
+        //    if (ecsCreateEcsServiceResponse == null || ecsCreateEcsServiceResponse.HttpStatusCode != HttpStatusCode.OK)
+        //    {
+        //        _logger.LogError("Failed to create ECS Service in AWS");
+        //        await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createCloudMapServiceResponse.Service.Id, ct);
+        //        await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, ecsTaskDefinitionRegistrationResponse.TaskDefinition.Family, ct);
+        //        return false;
+        //    }
+        //    _logger.LogInformation("Successfully created ECS Service in AWS");
+
+        //    // Ensure all aws resources are running before making healthcheck request
+        //    bool running = await _cloudPlatformProvider.EnsureEcsServiceTasksAreRunningAsync(ecsCreateEcsServiceResponse.Service.ServiceName, ecsCreateEcsServiceResponse.Service.ClusterArn, ct);
+        //    if (running == false)
+        //    {
+        //        _logger.LogError("Ecs Tasks are not running. Tear down resources and try again");
+        //        await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateEcsServiceResponse.Service.ServiceName, ecsCreateEcsServiceResponse.Service.ClusterArn, ct);
+        //        await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createCloudMapServiceResponse.Service.Id, ct);
+        //        await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, ecsTaskDefinitionRegistrationResponse.TaskDefinition.Family, ct);
+        //        return false;
+        //    }
+
+        //    IList<EcsTask> ecsServiceTasks = await _cloudPlatformProvider.ListEcsServiceTasksAsync(ecsCreateEcsServiceResponse.Service.ClusterArn, ecsCreateEcsServiceResponse.Service.ServiceArn, ct);
+        //    if (ecsServiceTasks == null)
+        //    {
+        //        _logger.LogError("Failed to retreive ecs tasks for service {ecsServiceName}", ecsServiceName);
+        //        await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateEcsServiceResponse.Service.ServiceName, ecsCreateEcsServiceResponse.Service.ClusterArn, ct);
+        //        await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createCloudMapServiceResponse.Service.Id, ct);
+        //        await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, ecsTaskDefinitionRegistrationResponse.TaskDefinition.Family, ct);
+        //        return false;
+        //    }
+
+        //    // I'm fairly certain healthcheck is already done by aws resources
+        //    // Healthcheck request to ensure all resources are running in the expected state
+        //    //bool healthCheck = await _cloudPlatformProvider.EnsureEcsServiceTasksAreRunningAsync(ecsServiceName, ecsCreateEcsServiceResponse.Service.ClusterArn, ct);
+        //    //if (healthCheck == false)
+        //    //{
+        //    //    await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateEcsServiceResponse.Service.ServiceName, ecsCreateEcsServiceResponse.Service.ClusterArn, ct);
+        //    //    await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createCloudMapServiceResponse.Service.Id, ct);
+        //    //    await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, ecsTaskDefinitionRegistrationResponse.TaskDefinition.Family, ct);                
+        //    //    return false;
+        //    //}
+
+        //    EcsTaskDefinition = new()
+        //    {
+        //        TaskDefinitionArn = ecsTaskDefinitionRegistrationResponse.TaskDefinition.TaskDefinitionArn,
+        //        Family = ecsTaskDefinitionRegistrationResponse.TaskDefinition.Family
+        //    };
+
+        //    CloudMapDiscoveryService = new()
+        //    {
+        //        Arn = createCloudMapServiceResponse.Service.Arn,
+        //        CreateDate = createCloudMapServiceResponse.Service.CreateDate,
+        //        Name = serviceDiscoveryName,
+        //        ServiceDiscoveryId = createCloudMapServiceResponse.Service.Id
+        //    };
+
+        //    EcsService = new()
+        //    {
+        //        ClusterArn = ecsCreateEcsServiceResponse.Service.ClusterArn,
+        //        CreatedAt = ((DateTimeOffset)ecsCreateEcsServiceResponse.Service.CreatedAt).ToUnixTimeSeconds(),
+        //        CreatedBy = ecsCreateEcsServiceResponse.Service.CreatedBy,
+        //        EcsServiceRegistries = ecsCreateEcsServiceResponse.Service.ServiceRegistries.Select(r => new EcsServiceRegistry()
+        //        {
+        //            RegistryArn = r.RegistryArn,
+        //        }).ToList(),
+        //        SchedulingStrategy = ecsCreateEcsServiceResponse.Service.SchedulingStrategy,
+        //        ServiceArn = ecsCreateEcsServiceResponse.Service.ServiceArn,
+        //        ServiceName = ecsCreateEcsServiceResponse.Service.ServiceName,
+        //        TaskDefinition = ecsCreateEcsServiceResponse.Service.TaskDefinition,
+        //    };
+
+        //    EcsServiceTasks = ecsServiceTasks;
+
+        //    return true;
+        //}
 
         private string GenerateHalId()
         {

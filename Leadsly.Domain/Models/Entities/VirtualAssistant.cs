@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Leadsly.Domain.Models.Entities
@@ -20,9 +21,9 @@ namespace Leadsly.Domain.Models.Entities
         public string HalUnitId { get; set; }
         public SocialAccount SocialAccount { get; set; }
         public ApplicationUser ApplicationUser { get; set; }
-        public EcsService EcsService { get; set; }
-        public EcsTaskDefinition EcsTaskDefinition { get; set; }
-        public CloudMapDiscoveryService CloudMapDiscoveryService { get; set; }
+        public IList<EcsService> EcsServices { get; set; }
+        public IList<EcsTaskDefinition> EcsTaskDefinitions { get; set; }
+        public IList<CloudMapDiscoveryService> CloudMapDiscoveryServices { get; set; }
         public HalUnit HalUnit { get; set; }
     }
 }

@@ -1,5 +1,4 @@
-﻿using Leadsly.Domain.Models;
-using Leadsly.Domain.Models.Entities;
+﻿using Leadsly.Domain.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Logging;
@@ -19,17 +18,22 @@ namespace Leadsly.Infrastructure.Configurations
                 .WithOne(s => s.VirtualAssistant)
                 .OnDelete(DeleteBehavior.Cascade);
 
-                entity.HasOne(v => v.EcsService);
-                entity.HasOne(v => v.EcsTaskDefinition);
-                entity.HasOne(v => v.CloudMapDiscoveryService);
+                entity.HasMany(v => v.EcsServices);
+                entity.HasMany(v => v.EcsTaskDefinitions);
+                entity.HasMany(v => v.CloudMapDiscoveryServices);
             });
 
             builder.Entity<CloudMapDiscoveryService>()
                     .HasOne(map => map.EcsService)
                     .WithOne(ser => ser.CloudMapDiscoveryService);
 
+            ValueConverter<Purpose, string> converter = new ValueConverter<Purpose, string>(v => v.ToString(), v => (Purpose)Enum.Parse(typeof(Purpose), v));
+
             builder.Entity<EcsService>(s =>
             {
+                s.Property(s => s.Purpose)
+                .HasConversion(converter);
+
                 s.HasMany(s => s.EcsServiceRegistries)
                  .WithOne(reg => reg.EcsService)
                  .HasForeignKey(reg => reg.EcsServiceId)
@@ -39,12 +43,6 @@ namespace Leadsly.Infrastructure.Configurations
                     .WithOne(map => map.EcsService)
                     .HasForeignKey<CloudMapDiscoveryService>(map => map.EcsServiceId);
             });
-
-            ValueConverter<ContainerPurpose, string> converter = new ValueConverter<ContainerPurpose, string>(v => v.ToString(), v => (ContainerPurpose)Enum.Parse(typeof(ContainerPurpose), v));
-
-            builder.Entity<EcsTask>()
-                .Property(s => s.ContainerPurpose)
-                .HasConversion(converter);
         }
     }
 }

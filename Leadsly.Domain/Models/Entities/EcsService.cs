@@ -19,6 +19,8 @@ namespace Leadsly.Domain.Models.Entities
         [Required]
         public string CreatedBy { get; set; }
         [Required]
+        public Purpose Purpose { get; set; }
+        [Required]
         public string TaskDefinition { get; set; }
         [Required]
         public string SchedulingStrategy { get; set; }
@@ -26,5 +28,12 @@ namespace Leadsly.Domain.Models.Entities
         public ICollection<EcsServiceRegistry> EcsServiceRegistries { get; set; }
         public ICollection<EcsTask> EcsTasks { get; set; }
 
+    }
+
+    public enum Purpose
+    {
+        None,
+        Grid,
+        Hal
     }
 }
