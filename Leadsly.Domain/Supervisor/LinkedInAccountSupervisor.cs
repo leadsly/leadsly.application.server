@@ -105,7 +105,7 @@ namespace Leadsly.Domain.Supervisor
                 return null;
             }
 
-            if (virtualAssistant.CloudMapDiscoveryServices != null || virtualAssistant.CloudMapDiscoveryServices.Count != 0)
+            if (virtualAssistant.CloudMapDiscoveryServices == null || virtualAssistant.CloudMapDiscoveryServices.Count == 0)
             {
                 _logger.LogError("Couldn't process request to link account because no cloud map discovery service has been found. This name is required to make a request to hal");
                 return null;
