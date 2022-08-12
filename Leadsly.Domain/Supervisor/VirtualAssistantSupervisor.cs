@@ -184,7 +184,7 @@ namespace Leadsly.Domain.Supervisor
 
             // create ecs service for grid
             string ecsGridServiceName = $"grid-{halId}-srv";
-            Amazon.ECS.Model.CreateServiceResponse ecsCreateGridEcsServiceResponse = await _cloudPlatformProvider.CreateEcsServiceInAwsAsync(ecsGridServiceName, ecsGridTaskDefinitionRegistrationResponse.TaskDefinition.Family, createGridCloudMapServiceResponse.Service.Arn, ct);
+            Amazon.ECS.Model.CreateServiceResponse ecsCreateGridEcsServiceResponse = await _cloudPlatformProvider.CreateEcsServiceInAwsAsync(ecsGridServiceName, ecsGridTaskDefinitionRegistrationResponse.TaskDefinition.Family, createGridCloudMapServiceResponse.Service.Arn, configuration.EcsServiceConfig.Grid, ct);
             if (ecsCreateGridEcsServiceResponse == null || ecsCreateGridEcsServiceResponse.HttpStatusCode != HttpStatusCode.OK)
             {
                 _logger.LogError("Failed to create grid ECS Service in AWS");
@@ -198,7 +198,7 @@ namespace Leadsly.Domain.Supervisor
 
             // create ecs service for hal
             string ecsHalServiceName = $"hal-{halId}-srv";
-            Amazon.ECS.Model.CreateServiceResponse ecsCreateHalEcsServiceResponse = await _cloudPlatformProvider.CreateEcsServiceInAwsAsync(ecsHalServiceName, ecsHalTaskDefinitionRegistrationResponse.TaskDefinition.Family, createHalCloudMapServiceResponse.Service.Arn, ct);
+            Amazon.ECS.Model.CreateServiceResponse ecsCreateHalEcsServiceResponse = await _cloudPlatformProvider.CreateEcsServiceInAwsAsync(ecsHalServiceName, ecsHalTaskDefinitionRegistrationResponse.TaskDefinition.Family, createHalCloudMapServiceResponse.Service.Arn, configuration.EcsServiceConfig.Hal, ct);
             if (ecsCreateHalEcsServiceResponse == null || ecsCreateHalEcsServiceResponse.HttpStatusCode != HttpStatusCode.OK)
             {
                 _logger.LogError("Failed to create hal ECS Service in AWS");

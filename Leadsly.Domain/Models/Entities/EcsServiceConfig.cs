@@ -1,13 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace Leadsly.Domain.Models.Entities
 {
     public class EcsServiceConfig
+    {
+        public Config Hal { get; set; }
+        public Config Grid { get; set; }
+    }
+
+    public class Config
     {
         public string AssignPublicIp { get; set; }
         public string ClusterArn { get; set; }

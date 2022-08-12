@@ -104,17 +104,15 @@ namespace Leadsly.Domain.Providers
             await _orphanedCloudResourcesRepository.AddOrphanedCloudResourceAsync(orphanedCloudResource, ct);
         }
 
-        public async Task<Amazon.ECS.Model.CreateServiceResponse> CreateEcsServiceInAwsAsync(string serviceName, string taskDefinition, string cloudMapServiceArn, CancellationToken ct = default)
+        public async Task<Amazon.ECS.Model.CreateServiceResponse> CreateEcsServiceInAwsAsync(string serviceName, string taskDefinition, string cloudMapServiceArn, Config ecsServiceConfig, CancellationToken ct = default)
         {
-            CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
-
             Amazon.ECS.Model.CreateServiceRequest request = new Amazon.ECS.Model.CreateServiceRequest
             {
-                DesiredCount = configuration.EcsServiceConfig.DesiredCount,
+                DesiredCount = ecsServiceConfig.DesiredCount,
                 ServiceName = serviceName,
                 TaskDefinition = taskDefinition,
-                Cluster = configuration.EcsServiceConfig.ClusterArn,
-                LaunchType = configuration.EcsServiceConfig.LaunchType,
+                Cluster = ecsServiceConfig.ClusterArn,
+                LaunchType = ecsServiceConfig.LaunchType,
                 ServiceRegistries = new List<ServiceRegistry>()
                 {
                     new()
@@ -126,12 +124,12 @@ namespace Leadsly.Domain.Providers
                 {
                     AwsvpcConfiguration = new()
                     {
-                        AssignPublicIp = configuration.EcsServiceConfig.AssignPublicIp,
-                        Subnets = configuration.EcsServiceConfig.Subnets,
-                        SecurityGroups = configuration.EcsServiceConfig.SecurityGroups
+                        AssignPublicIp = ecsServiceConfig.AssignPublicIp,
+                        Subnets = ecsServiceConfig.Subnets,
+                        SecurityGroups = ecsServiceConfig.SecurityGroups
                     }
                 },
-                SchedulingStrategy = configuration.EcsServiceConfig.SchedulingStrategy
+                SchedulingStrategy = ecsServiceConfig.SchedulingStrategy
             };
 
             return await _awsElasticContainerService.CreateServiceAsync(request, ct);

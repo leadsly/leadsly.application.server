@@ -49,6 +49,12 @@ namespace Leadsly.Domain.OptionsJsonModels
 
     public class EcsServiceConfigOptions
     {
+        public ConfigOptions Hal { get; set; }
+        public ConfigOptions Grid { get; set; }
+    }
+
+    public class ConfigOptions
+    {
         public string AssignPublicIp { get; set; }
         public string ClusterArn { get; set; }
         public string ServiceName { get; set; }

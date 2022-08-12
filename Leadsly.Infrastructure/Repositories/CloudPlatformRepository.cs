@@ -49,15 +49,30 @@ namespace Leadsly.Infrastructure.Repositories
                 ApiServiceDiscoveryName = _cloudPlatformConfigurationOptions.AwsOptions.ApiServiceDiscoveryName,
                 EcsServiceConfig = new()
                 {
-                    AssignPublicIp = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.AssignPublicIp,
-                    ClusterArn = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.ClusterArn,
-                    LaunchType = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.LaunchType,
-                    SecurityGroups = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.SecurityGroups,
-                    DesiredCount = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.DesiredCount,
-                    SchedulingStrategy = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.SchedulingStrategy,
-                    ServiceName = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.ServiceName,
-                    Subnets = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Subnets,
-                    TaskDefinition = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.TaskDefinition
+                    Grid = new()
+                    {
+                        AssignPublicIp = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Grid.AssignPublicIp,
+                        ClusterArn = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Grid.ClusterArn,
+                        LaunchType = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Grid.LaunchType,
+                        SecurityGroups = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Grid.SecurityGroups,
+                        DesiredCount = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Grid.DesiredCount,
+                        SchedulingStrategy = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Grid.SchedulingStrategy,
+                        ServiceName = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Grid.ServiceName,
+                        Subnets = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Grid.Subnets,
+                        TaskDefinition = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Grid.TaskDefinition
+                    },
+                    Hal = new()
+                    {
+                        AssignPublicIp = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Hal.AssignPublicIp,
+                        ClusterArn = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Hal.ClusterArn,
+                        LaunchType = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Hal.LaunchType,
+                        SecurityGroups = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Hal.SecurityGroups,
+                        DesiredCount = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Hal.DesiredCount,
+                        SchedulingStrategy = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Hal.SchedulingStrategy,
+                        ServiceName = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Hal.ServiceName,
+                        Subnets = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Hal.Subnets,
+                        TaskDefinition = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Hal.TaskDefinition
+                    }
                 },
                 ServiceDiscoveryConfig = new()
                 {
