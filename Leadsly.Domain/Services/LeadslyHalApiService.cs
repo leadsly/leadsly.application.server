@@ -118,6 +118,8 @@ namespace Leadsly.Domain.Services
                 RequestUri = new Uri($"{url}/{request.RequestUrl}", UriKind.Absolute),
                 Content = JsonContent.Create(new
                 {
+                    GridNamespaceName = request.GridNamespaceName,
+                    GridServiceDiscoveryName = request.GridServiceDiscoveryName,
                     Username = request.Username,
                     Password = request.Password,
                     ConnectAuthUrl = request.ConnectAuthUrl,
@@ -195,6 +197,8 @@ namespace Leadsly.Domain.Services
                 RequestUri = new Uri($"{url}/{request.RequestUrl}", UriKind.Absolute),
                 Content = JsonContent.Create(new
                 {
+                    GridNamespaceName = request.GridNamespaceName,
+                    GridServiceDiscoveryName = request.GridServiceDiscoveryName,
                     WindowHandleId = request.WindowHandleId,
                     Code = request.Code,
                     BrowserPurpose = request.BrowserPurpose,

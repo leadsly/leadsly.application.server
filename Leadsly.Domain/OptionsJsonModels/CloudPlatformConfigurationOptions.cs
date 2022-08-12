@@ -34,6 +34,13 @@ namespace Leadsly.Domain.OptionsJsonModels
 
     public class EcsServiceDiscoveryOptions
     {
+        public CloudMapOptions GridCloudMapOptions { get; set; }
+        public CloudMapOptions HalCloudMapOptions { get; set; }
+        public CloudMapOptions AppServerCloudMapOptions { get; set; }
+    }
+
+    public class CloudMapOptions
+    {
         public string NamespaceId { get; set; }
         public int DnsRecordTTL { get; set; }
         public string DnsRecordType { get; set; }

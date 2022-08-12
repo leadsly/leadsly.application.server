@@ -49,7 +49,7 @@ namespace Leadsly.Domain.Supervisor
                 return null;
             }
 
-            if (virtualAssistant.CloudMapDiscoveryServices != null || virtualAssistant.CloudMapDiscoveryServices.Count != 0)
+            if (virtualAssistant.CloudMapDiscoveryServices == null || virtualAssistant.CloudMapDiscoveryServices.Count == 0)
             {
                 _logger.LogError("Couldn't process request to link account because no cloud map discovery services has been found. This name is required to make a request to hal");
                 return null;
@@ -62,7 +62,14 @@ namespace Leadsly.Domain.Supervisor
                 return null;
             }
 
-            ConnectLinkedInAccountResponse response = await _leadslyHalProvider.ConnectAccountAsync(request.Username, request.Password, halEcsService.CloudMapDiscoveryService.Name, responseHeaders, requestHeaders, ct);
+            EcsService gridEcsService = virtualAssistant.EcsServices.Where(x => x.Purpose == Purpose.Grid).FirstOrDefault();
+            if (halEcsService == null)
+            {
+                _logger.LogError("Couldn't process request to link account because no grid ecs service has been found. This service is required to make a request to hal");
+                return null;
+            }
+
+            ConnectLinkedInAccountResponse response = await _leadslyHalProvider.ConnectAccountAsync(request.Username, request.Password, halEcsService.CloudMapDiscoveryService.Name, gridEcsService.CloudMapDiscoveryService.Name, responseHeaders, requestHeaders, ct);
             if (response == null)
             {
                 return null;
@@ -111,7 +118,14 @@ namespace Leadsly.Domain.Supervisor
                 return null;
             }
 
-            EnterTwoFactorAuthResponse response = await _leadslyHalProvider.EnterTwoFactorAuthAsync(request.Code, halEcsService.CloudMapDiscoveryService.Name, ct);
+            EcsService gridEcsService = virtualAssistant.EcsServices.Where(x => x.Purpose == Purpose.Grid).FirstOrDefault();
+            if (halEcsService == null)
+            {
+                _logger.LogError("Couldn't process request to link account because no grid ecs service has been found. This service is required to make a request to hal");
+                return null;
+            }
+
+            EnterTwoFactorAuthResponse response = await _leadslyHalProvider.EnterTwoFactorAuthAsync(request.Code, halEcsService.CloudMapDiscoveryService.Name, gridEcsService.CloudMapDiscoveryService.Name, ct);
             if (response == null)
             {
                 return null;

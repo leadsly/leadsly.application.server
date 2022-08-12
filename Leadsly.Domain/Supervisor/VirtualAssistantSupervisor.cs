@@ -67,7 +67,7 @@ namespace Leadsly.Domain.Supervisor
             // if for whatever reason the ecs service is not set
             if (virtualAssistant.EcsServices != null || virtualAssistant.EcsServices.Count != 0)
             {
-                foreach (EcsService ecsService in virtualAssistant.EcsServices)
+                foreach (EcsService ecsService in virtualAssistant.EcsServices.ToList())
                 {
                     await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsService.ServiceName, ecsService.ClusterArn, ct);
 
@@ -82,7 +82,7 @@ namespace Leadsly.Domain.Supervisor
             // check if cloud map discovery service was set and delete it.
             if (virtualAssistant.CloudMapDiscoveryServices != null || virtualAssistant.CloudMapDiscoveryServices.Count != 0)
             {
-                foreach (CloudMapDiscoveryService cloudMapService in virtualAssistant.CloudMapDiscoveryServices)
+                foreach (CloudMapDiscoveryService cloudMapService in virtualAssistant.CloudMapDiscoveryServices.ToList())
                 {
                     await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, cloudMapService.ServiceDiscoveryId);
                     await _cloudPlatformProvider.DeleteCloudMapServiceAsync(cloudMapService.CloudMapDiscoveryServiceId);
@@ -91,7 +91,7 @@ namespace Leadsly.Domain.Supervisor
 
             if (virtualAssistant.EcsTaskDefinitions != null || virtualAssistant.EcsTaskDefinitions.Count != 0)
             {
-                foreach (EcsTaskDefinition ecsTaskDefinition in virtualAssistant.EcsTaskDefinitions)
+                foreach (EcsTaskDefinition ecsTaskDefinition in virtualAssistant.EcsTaskDefinitions.ToList())
                 {
                     await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, ecsTaskDefinition.Family, ct);
                     await _cloudPlatformProvider.DeleteTaskDefinitionRegistrationAsync(ecsTaskDefinition.EcsTaskDefinitionId, ct);
@@ -156,9 +156,10 @@ namespace Leadsly.Domain.Supervisor
             }
             _logger.LogInformation("Successfully registered hal ECS task definition in AWS");
 
+            CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
             // create cloud map service discovery service for the grid
-            string serviceGridDiscoveryName = $"hal-{halId}-grid-srv-disc";
-            Amazon.ServiceDiscovery.Model.CreateServiceResponse createGridCloudMapServiceResponse = await _cloudPlatformProvider.CreateCloudMapDiscoveryServiceInAwsAsync(serviceGridDiscoveryName, ct);
+            string serviceGridDiscoveryName = $"grid-{halId}-srv-disc";
+            Amazon.ServiceDiscovery.Model.CreateServiceResponse createGridCloudMapServiceResponse = await _cloudPlatformProvider.CreateCloudMapDiscoveryServiceInAwsAsync(serviceGridDiscoveryName, configuration.ServiceDiscoveryConfig.Grid, ct);
             if (createGridCloudMapServiceResponse == null || createGridCloudMapServiceResponse.HttpStatusCode != HttpStatusCode.OK)
             {
                 _logger.LogError($"Failed to create grid Cloud Map service discovery service in AWS. HttpStatusCode: {createGridCloudMapServiceResponse?.HttpStatusCode}");
@@ -170,7 +171,7 @@ namespace Leadsly.Domain.Supervisor
 
             // create cloud map service discovery service for hal
             string serviceHalDiscoveryName = $"hal-{halId}-srv-disc";
-            Amazon.ServiceDiscovery.Model.CreateServiceResponse createHalCloudMapServiceResponse = await _cloudPlatformProvider.CreateCloudMapDiscoveryServiceInAwsAsync(serviceHalDiscoveryName, ct);
+            Amazon.ServiceDiscovery.Model.CreateServiceResponse createHalCloudMapServiceResponse = await _cloudPlatformProvider.CreateCloudMapDiscoveryServiceInAwsAsync(serviceHalDiscoveryName, configuration.ServiceDiscoveryConfig.Hal, ct);
             if (createHalCloudMapServiceResponse == null || createHalCloudMapServiceResponse.HttpStatusCode != HttpStatusCode.OK)
             {
                 _logger.LogError($"Failed to create hal Cloud Map service discovery service in AWS. HttpStatusCode: {createGridCloudMapServiceResponse?.HttpStatusCode}");
@@ -182,7 +183,7 @@ namespace Leadsly.Domain.Supervisor
             _logger.LogInformation($"Successfully created hal Cloud Map service discovery service in AWS. HttpStatusCode: {createGridCloudMapServiceResponse?.HttpStatusCode}");
 
             // create ecs service for grid
-            string ecsGridServiceName = $"hal-{halId}-grid-srv";
+            string ecsGridServiceName = $"grid-{halId}-srv";
             Amazon.ECS.Model.CreateServiceResponse ecsCreateGridEcsServiceResponse = await _cloudPlatformProvider.CreateEcsServiceInAwsAsync(ecsGridServiceName, ecsGridTaskDefinitionRegistrationResponse.TaskDefinition.Family, createGridCloudMapServiceResponse.Service.Arn, ct);
             if (ecsCreateGridEcsServiceResponse == null || ecsCreateGridEcsServiceResponse.HttpStatusCode != HttpStatusCode.OK)
             {
@@ -295,6 +296,7 @@ namespace Leadsly.Domain.Supervisor
                 Arn = createGridCloudMapServiceResponse.Service.Arn,
                 CreateDate = createGridCloudMapServiceResponse.Service.CreateDate,
                 Name = serviceGridDiscoveryName,
+                NamespaceId = configuration.ServiceDiscoveryConfig.Grid.NamespaceId,
                 ServiceDiscoveryId = createGridCloudMapServiceResponse.Service.Id
             };
             CloudMapDiscoveryServices.Add(gridCloudMapService);
@@ -304,6 +306,7 @@ namespace Leadsly.Domain.Supervisor
                 Arn = createHalCloudMapServiceResponse.Service.Arn,
                 CreateDate = createHalCloudMapServiceResponse.Service.CreateDate,
                 Name = serviceHalDiscoveryName,
+                NamespaceId = configuration.ServiceDiscoveryConfig.Hal.NamespaceId,
                 ServiceDiscoveryId = createHalCloudMapServiceResponse.Service.Id
             };
             CloudMapDiscoveryServices.Add(halCloudMapService);

@@ -137,22 +137,20 @@ namespace Leadsly.Domain.Providers
             return await _awsElasticContainerService.CreateServiceAsync(request, ct);
         }
 
-        public async Task<Amazon.ServiceDiscovery.Model.CreateServiceResponse> CreateCloudMapDiscoveryServiceInAwsAsync(string serviceDiscoveryName, CancellationToken ct = default)
+        public async Task<Amazon.ServiceDiscovery.Model.CreateServiceResponse> CreateCloudMapDiscoveryServiceInAwsAsync(string serviceDiscoveryName, CloudMapConfig cloudMapConfig, CancellationToken ct = default)
         {
-            CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
-
             Amazon.ServiceDiscovery.Model.CreateServiceRequest request = new Amazon.ServiceDiscovery.Model.CreateServiceRequest
             {
                 Name = serviceDiscoveryName,
-                NamespaceId = configuration.ServiceDiscoveryConfig.NamespaceId,
+                NamespaceId = cloudMapConfig.NamespaceId,
                 DnsConfig = new()
                 {
                     DnsRecords = new List<DnsRecord>()
                     {
                         new DnsRecord()
                         {
-                            TTL = configuration.ServiceDiscoveryConfig.DnsRecordTTL,
-                            Type = configuration.ServiceDiscoveryConfig.DnsRecordType
+                            TTL = cloudMapConfig.DnsRecordTTL,
+                            Type = cloudMapConfig.DnsRecordType
                         }
                     }
                 }
@@ -199,39 +197,9 @@ namespace Leadsly.Domain.Providers
                 Value = halId
             });
 
-            return await RegisterTaskDefinitionInAwsAsync(configuration, halId, envVars, halTaskDefinition, ct);
-        }
-
-        public async Task<RegisterTaskDefinitionResponse> RegisterGridTaskDefinitionInAwsAsync(string gridTaskDefinition, string halId, CancellationToken ct = default)
-        {
-            CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
-            List<Amazon.ECS.Model.KeyValuePair> envVars = configuration.EcsGridTaskDefinitionConfig.ContainerDefinitions.SelectMany(x =>
-            {
-                if (x.Environment != null)
-                {
-                    return x.Environment.Select(y => new Amazon.ECS.Model.KeyValuePair
-                    {
-                        Name = y.Name,
-                        Value = y.Value
-                    });
-                }
-                return new List<Amazon.ECS.Model.KeyValuePair>();
-            }).ToList();
-
-            envVars.Add(new Amazon.ECS.Model.KeyValuePair
-            {
-                Name = "HAL_ID",
-                Value = halId
-            });
-
-            return await RegisterTaskDefinitionInAwsAsync(configuration, halId, envVars, gridTaskDefinition, ct);
-        }
-
-        private async Task<RegisterTaskDefinitionResponse> RegisterTaskDefinitionInAwsAsync(CloudPlatformConfiguration configuration, string halId, List<Amazon.ECS.Model.KeyValuePair> envVars, string taskDefinition, CancellationToken ct = default)
-        {
             RegisterTaskDefinitionRequest request = new RegisterTaskDefinitionRequest
             {
-                ContainerDefinitions = configuration.EcsTaskDefinitionConfig.ContainerDefinitions?.Select(cd =>
+                ContainerDefinitions = configuration.EcsHalTaskDefinitionConfig.ContainerDefinitions?.Select(cd =>
                 {
                     string awsLogsGroup = cd.LogConfiguration.Options.AwslogsGroup.Replace("{halId}", halId);
                     Amazon.ECS.Model.ContainerDefinition containerDef = new Amazon.ECS.Model.ContainerDefinition
@@ -286,7 +254,96 @@ namespace Leadsly.Domain.Providers
                 }).ToList(),
                 Cpu = configuration.EcsTaskDefinitionConfig.Cpu,
                 ExecutionRoleArn = configuration.EcsTaskDefinitionConfig.ExecutionRoleArn,
-                Family = taskDefinition,
+                Family = halTaskDefinition,
+                Memory = configuration.EcsTaskDefinitionConfig.Memory,
+                NetworkMode = configuration.EcsTaskDefinitionConfig.NetworkMode,
+                RequiresCompatibilities = configuration.EcsTaskDefinitionConfig.RequiresCompatibilities.ToList(),
+                TaskRoleArn = configuration.EcsTaskDefinitionConfig.TaskRoleArn
+            };
+
+            return await _awsElasticContainerService.RegisterTaskDefinitionAsync(request, ct);
+        }
+
+        public async Task<RegisterTaskDefinitionResponse> RegisterGridTaskDefinitionInAwsAsync(string gridTaskDefinition, string halId, CancellationToken ct = default)
+        {
+            CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
+            List<Amazon.ECS.Model.KeyValuePair> envVars = configuration.EcsGridTaskDefinitionConfig.ContainerDefinitions.SelectMany(x =>
+            {
+                if (x.Environment != null)
+                {
+                    return x.Environment.Select(y => new Amazon.ECS.Model.KeyValuePair
+                    {
+                        Name = y.Name,
+                        Value = y.Value
+                    });
+                }
+                return new List<Amazon.ECS.Model.KeyValuePair>();
+            }).ToList();
+
+            envVars.Add(new Amazon.ECS.Model.KeyValuePair
+            {
+                Name = "HAL_ID",
+                Value = halId
+            });
+
+            RegisterTaskDefinitionRequest request = new RegisterTaskDefinitionRequest
+            {
+                ContainerDefinitions = configuration.EcsGridTaskDefinitionConfig.ContainerDefinitions?.Select(cd =>
+                {
+                    string awsLogsGroup = cd.LogConfiguration.Options.AwslogsGroup.Replace("{halId}", halId);
+                    Amazon.ECS.Model.ContainerDefinition containerDef = new Amazon.ECS.Model.ContainerDefinition
+                    {
+                        Cpu = cd.Cpu,
+                        DisableNetworking = cd.DisableNetworking,
+                        Environment = cd.Environment?.Length > 0 ? envVars : new List<Amazon.ECS.Model.KeyValuePair>
+                        {
+                            new Amazon.ECS.Model.KeyValuePair
+                            {
+                                Name = "HAL_ID",
+                                Value = halId
+                            }
+                        },
+                        DependsOn = cd.DependsOn?.Select(x => new Amazon.ECS.Model.ContainerDependency
+                        {
+                            Condition = x.Condition,
+                            ContainerName = x.ContainerName
+                        }).ToList(),
+                        Image = cd.Image,
+                        Memory = cd.Memory,
+                        Name = cd.Name,
+                        LogConfiguration = new Amazon.ECS.Model.LogConfiguration
+                        {
+                            LogDriver = cd.LogConfiguration?.LogDriver,
+                            Options = new Dictionary<string, string>
+                            {
+                                { "awslogs-group", awsLogsGroup },
+                                { "awslogs-stream-prefix", cd.LogConfiguration.Options.AwslogsStreamPrefix },
+                                { "awslogs-region", cd.LogConfiguration.Options.AwslogsRegion },
+                                { "awslogs-create-group", cd.LogConfiguration.Options.AwslogsCreateGroup }
+                            }
+                        },
+                        LinuxParameters = new Amazon.ECS.Model.LinuxParameters
+                        {
+                            InitProcessEnabled = cd.LinuxParameters.InitProcessEnabled
+                        },
+                        PortMappings = cd.PortMappings?.Select(x => new Amazon.ECS.Model.PortMapping
+                        {
+                            ContainerPort = x.ContainerPort,
+                            HostPort = x.HostPort
+                        }).ToList(),
+                        Privileged = cd.Privileged
+                    };
+
+                    if (cd.LinuxParameters.SharedMemorySize > 0)
+                    {
+                        containerDef.LinuxParameters.SharedMemorySize = cd.LinuxParameters.SharedMemorySize;
+                    }
+
+                    return containerDef;
+                }).ToList(),
+                Cpu = configuration.EcsTaskDefinitionConfig.Cpu,
+                ExecutionRoleArn = configuration.EcsTaskDefinitionConfig.ExecutionRoleArn,
+                Family = gridTaskDefinition,
                 Memory = configuration.EcsTaskDefinitionConfig.Memory,
                 NetworkMode = configuration.EcsTaskDefinitionConfig.NetworkMode,
                 RequiresCompatibilities = configuration.EcsTaskDefinitionConfig.RequiresCompatibilities.ToList(),

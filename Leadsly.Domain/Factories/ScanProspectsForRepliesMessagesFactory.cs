@@ -8,6 +8,7 @@ using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -22,6 +23,7 @@ namespace Leadsly.Domain.Factories
             ICampaignRepositoryFacade campaignRepositoryFacade,
             IRabbitMQProvider rabbitMQProvider,
             IHalRepository halRepository,
+            IVirtualAssistantRepository virtualAssistantRepository,
             IUserProvider userProvider,
             ITimestampService timestampService)
         {
@@ -30,9 +32,11 @@ namespace Leadsly.Domain.Factories
             _campaignRepositoryFacade = campaignRepositoryFacade;
             _rabbitMQProvider = rabbitMQProvider;
             _halRepository = halRepository;
+            _virtualAssistantRepository = virtualAssistantRepository;
             _timestampService = timestampService;
         }
 
+        private readonly IVirtualAssistantRepository _virtualAssistantRepository;
         private readonly IUserProvider _userProvider;
         private readonly ILogger<ScanProspectsForRepliesMessagesFactory> _logger;
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
@@ -71,6 +75,18 @@ namespace Leadsly.Domain.Factories
             ScanProspectsForRepliesPhase scanProspectsForRepliesPhase = await _campaignRepositoryFacade.GetScanProspectsForRepliesPhaseByIdAsync(scanProspectsForRepliesPhaseId, ct);
 
             HalUnit halUnit = await _halRepository.GetByHalIdAsync(halId, ct);
+            VirtualAssistant virtualAssistant = await _virtualAssistantRepository.GetByHalIdAsync(halUnit.HalId, ct);
+            EcsService gridEcsService = virtualAssistant.EcsServices.FirstOrDefault(x => x.Purpose == Purpose.Grid);
+            string virtualAssistantId = virtualAssistant.VirtualAssistantId;
+            if (gridEcsService == null)
+            {
+                throw new Exception($"Grid ecs service not found for virtual assistant {virtualAssistantId}.");
+            }
+
+            if (gridEcsService.CloudMapDiscoveryService == null)
+            {
+                throw new Exception($"Cloud map discovery service not found for virtual assistant {virtualAssistantId}.");
+            }
 
             ChromeProfile chromeProfile = await _halRepository.GetChromeProfileAsync(PhaseType.ScanForReplies, ct);
             string chromeProfileName = chromeProfile?.Name;
@@ -84,6 +100,8 @@ namespace Leadsly.Domain.Factories
 
             ScanProspectsForRepliesBody scanProspectsForRepliesBody = new()
             {
+                GridNamespaceName = config.ServiceDiscoveryConfig.Grid.Name,
+                GridServiceDiscoveryName = gridEcsService.CloudMapDiscoveryService.Name,
                 PageUrl = scanProspectsForRepliesPhase.PageUrl,
                 HalId = halId,
                 TimeZoneId = halUnit.TimeZoneId,
@@ -91,7 +109,7 @@ namespace Leadsly.Domain.Factories
                 EndOfWorkday = halUnit.EndHour,
                 ChromeProfileName = chromeProfileName,
                 UserId = scanProspectsForRepliesPhase.SocialAccount.UserId,
-                NamespaceName = config.ServiceDiscoveryConfig.Name,
+                NamespaceName = config.ServiceDiscoveryConfig.AppServer.Name,
                 ServiceDiscoveryName = config.ApiServiceDiscoveryName
             };
 
@@ -126,10 +144,14 @@ namespace Leadsly.Domain.Factories
                 scanProspectsForRepliesBody.ContactedCampaignProspects = contactedCampaignProspects;
             }
 
-            string namespaceName = config.ServiceDiscoveryConfig.Name;
-            string serviceDiscoveryname = config.ApiServiceDiscoveryName;
-            _logger.LogTrace("ProspectListBody object is configured with Namespace Name of {namespaceName}", namespaceName);
-            _logger.LogTrace("ProspectListBody object is configured with Service discovery name of {serviceDiscoveryname}", serviceDiscoveryname);
+            string appServerNamespaceName = config.ServiceDiscoveryConfig.AppServer.Name;
+            string appServerServiceDiscoveryname = config.ApiServiceDiscoveryName;
+            string gridNamespaceName = config.ServiceDiscoveryConfig.Grid.Name;
+            string gridServiceDiscoveryName = gridEcsService.CloudMapDiscoveryService.Name;
+            _logger.LogTrace("ScanProspectsForRepliesBody object is configured with Grid Namespace Name of {gridNamespaceName}", gridNamespaceName);
+            _logger.LogTrace("ScanProspectsForRepliesBody object is configured with Grid Service discovery name of {gridServiceDiscoveryname}", gridServiceDiscoveryName);
+            _logger.LogTrace("ScanProspectsForRepliesBody object is configured with AppServer Namespace Name of {appServerNamespaceName}", appServerNamespaceName);
+            _logger.LogTrace("ScanProspectsForRepliesBody object is configured with AppServer Service discovery name of {appServerServiceDiscoveryname}", appServerServiceDiscoveryname);
 
             return scanProspectsForRepliesBody;
         }

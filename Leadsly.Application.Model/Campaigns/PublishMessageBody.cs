@@ -6,6 +6,10 @@ namespace Leadsly.Application.Model.Campaigns
     public class PublishMessageBody
     {
         [DataMember]
+        public string GridNamespaceName { get; set; } = string.Empty;
+        [DataMember]
+        public string GridServiceDiscoveryName { get; set; } = string.Empty;
+        [DataMember]
         public string ServiceDiscoveryName { get; set; } = string.Empty;
 
         [DataMember]

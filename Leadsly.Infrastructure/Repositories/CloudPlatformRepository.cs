@@ -61,10 +61,27 @@ namespace Leadsly.Infrastructure.Repositories
                 },
                 ServiceDiscoveryConfig = new()
                 {
-                    DnsRecordTTL = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.DnsRecordTTL,
-                    DnsRecordType = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.DnsRecordType,
-                    NamespaceId = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.NamespaceId,
-                    Name = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.Name
+                    AppServer = new()
+                    {
+                        DnsRecordTTL = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.AppServerCloudMapOptions.DnsRecordTTL,
+                        DnsRecordType = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.AppServerCloudMapOptions.DnsRecordType,
+                        NamespaceId = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.AppServerCloudMapOptions.NamespaceId,
+                        Name = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.AppServerCloudMapOptions.Name
+                    },
+                    Grid = new()
+                    {
+                        DnsRecordTTL = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.GridCloudMapOptions.DnsRecordTTL,
+                        DnsRecordType = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.GridCloudMapOptions.DnsRecordType,
+                        NamespaceId = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.GridCloudMapOptions.NamespaceId,
+                        Name = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.GridCloudMapOptions.Name
+                    },
+                    Hal = new()
+                    {
+                        DnsRecordTTL = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.HalCloudMapOptions.DnsRecordTTL,
+                        DnsRecordType = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.HalCloudMapOptions.DnsRecordType,
+                        NamespaceId = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.HalCloudMapOptions.NamespaceId,
+                        Name = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.HalCloudMapOptions.Name
+                    }
                 },
                 EcsTaskDefinitionConfig = new()
                 {
@@ -126,7 +143,7 @@ namespace Leadsly.Infrastructure.Repositories
                 },
                 EcsGridTaskDefinitionConfig = new()
                 {
-                    ContainerDefinitions = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.ContainerDefinitions?.Select(c => new Domain.Models.Entities.ContainerDefinition
+                    ContainerDefinitions = _cloudPlatformConfigurationOptions.AwsOptions.EcsGridTaskDefinitionConfigOptions.ContainerDefinitions?.Select(c => new Domain.Models.Entities.ContainerDefinition
                     {
                         Name = c.Name,
                         Image = c.Image,
@@ -184,7 +201,7 @@ namespace Leadsly.Infrastructure.Repositories
                 },
                 EcsHalTaskDefinitionConfig = new()
                 {
-                    ContainerDefinitions = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.ContainerDefinitions?.Select(c => new Domain.Models.Entities.ContainerDefinition
+                    ContainerDefinitions = _cloudPlatformConfigurationOptions.AwsOptions.EcsHalTaskDefinitionConfigOptions.ContainerDefinitions?.Select(c => new Domain.Models.Entities.ContainerDefinition
                     {
                         Name = c.Name,
                         Image = c.Image,

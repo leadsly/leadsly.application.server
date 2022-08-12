@@ -21,6 +21,7 @@ namespace Leadsly.Domain.Supervisor
             ISearchUrlProgressRepository searchUrlProgressRepository,
             ICampaignProvider campaignProvider,
             ISocialAccountRepository socialAccountRepository,
+            ICloudPlatformRepository cloudPlatformRepository,
             ICampaignPhaseClient campaignPhaseClient,
             ITimeZoneRepository timeZoneRepository,
             ICampaignPhaseProcessorProvider campaignPhaseProcessorProvider,
@@ -28,6 +29,7 @@ namespace Leadsly.Domain.Supervisor
             IMemoryCache memoryCache,
             ILogger<Supervisor> logger)
         {
+            _cloudPlatformRepository = cloudPlatformRepository;
             _timestampService = timestampService;
             _timeZoneRepository = timeZoneRepository;
             _campaignProvider = campaignProvider;
@@ -47,6 +49,7 @@ namespace Leadsly.Domain.Supervisor
             _logger = logger;
         }
 
+        private readonly ICloudPlatformRepository _cloudPlatformRepository;
         private readonly ITimestampService _timestampService;
         private readonly IVirtualAssistantRepository _virtualAssistantRepository;
         private readonly ICreateCampaignService _createCampaignService;

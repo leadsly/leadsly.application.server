@@ -36,13 +36,15 @@ namespace Leadsly.Domain.Providers
         private readonly IHalRepository _halRepository;
         private readonly ILogger<LeadslyHalProvider> _logger;
 
-        public async Task<EnterTwoFactorAuthResponse> EnterTwoFactorAuthAsync(string code, string resourceDiscoveryName, CancellationToken ct = default)
+        public async Task<EnterTwoFactorAuthResponse> EnterTwoFactorAuthAsync(string code, string resourceDiscoveryName, string gridDiscoveryServiceName, CancellationToken ct = default)
         {
             CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
             EnterTwoFactorAuthRequest request = new()
             {
+                GridNamespaceName = configuration.ServiceDiscoveryConfig.Grid.Name,
+                GridServiceDiscoveryName = gridDiscoveryServiceName,
                 RequestUrl = "linkedin/2fa",
-                NamespaceName = configuration.ServiceDiscoveryConfig.Name,
+                NamespaceName = configuration.ServiceDiscoveryConfig.Hal.Name,
                 ServiceDiscoveryName = resourceDiscoveryName,
                 Code = code
             };
@@ -61,13 +63,15 @@ namespace Leadsly.Domain.Providers
             return response;
         }
 
-        public async Task<ConnectLinkedInAccountResponse> ConnectAccountAsync(string email, string password, string resourceDiscoveryServiceName, IHeaderDictionary responseHeaders, IHeaderDictionary requestHeaders, CancellationToken ct = default)
+        public async Task<ConnectLinkedInAccountResponse> ConnectAccountAsync(string email, string password, string resourceDiscoveryServiceName, string gridDiscoveryServiceName, IHeaderDictionary responseHeaders, IHeaderDictionary requestHeaders, CancellationToken ct = default)
         {
             CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
 
             AuthenticateLinkedInAccountRequest request = new()
             {
-                NamespaceName = configuration.ServiceDiscoveryConfig.Name,
+                GridNamespaceName = configuration.ServiceDiscoveryConfig.Grid.Name,
+                GridServiceDiscoveryName = gridDiscoveryServiceName,
+                NamespaceName = configuration.ServiceDiscoveryConfig.Hal.Name,
                 ServiceDiscoveryName = resourceDiscoveryServiceName,
                 RequestUrl = "linkedin/signin",
                 Password = password,

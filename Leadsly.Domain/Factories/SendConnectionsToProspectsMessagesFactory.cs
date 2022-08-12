@@ -8,6 +8,7 @@ using Leadsly.Domain.Repositories;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,14 +19,17 @@ namespace Leadsly.Domain.Factories
         public SendConnectionsToProspectsMessagesFactory(
             ILogger<SendConnectionsToProspectsMessagesFactory> logger,
             IHalRepository halRepository,
+            IVirtualAssistantRepository virtualAssistantRepository,
             IRabbitMQProvider rabbitMQProvider
             )
         {
+            _virtualAssistantRepository = virtualAssistantRepository;
             _halRepository = halRepository;
             _rabbitMQProvider = rabbitMQProvider;
             _logger = logger;
         }
 
+        private readonly IVirtualAssistantRepository _virtualAssistantRepository;
         private readonly IHalRepository _halRepository;
         private readonly IRabbitMQProvider _rabbitMQProvider;
         private readonly ILogger<SendConnectionsToProspectsMessagesFactory> _logger;
@@ -39,6 +43,18 @@ namespace Leadsly.Domain.Factories
         {
             _logger.LogInformation("Creating send connections body message for rabbit mq message broker.");
             HalUnit halUnit = await _halRepository.GetByHalIdAsync(campaign.HalId, ct);
+            VirtualAssistant virtualAssistant = await _virtualAssistantRepository.GetByHalIdAsync(halUnit.HalId, ct);
+            EcsService gridEcsService = virtualAssistant.EcsServices.FirstOrDefault(x => x.Purpose == Purpose.Grid);
+            string virtualAssistantId = virtualAssistant.VirtualAssistantId;
+            if (gridEcsService == null)
+            {
+                throw new Exception($"Grid ecs service not found for virtual assistant {virtualAssistantId}.");
+            }
+
+            if (gridEcsService.CloudMapDiscoveryService == null)
+            {
+                throw new Exception($"Cloud map discovery service not found for virtual assistant {virtualAssistantId}.");
+            }
 
             int dailyConnectionsLimit = campaign.DailyInvites;
             _logger.LogDebug("Daily connection request limit is {dailyConnectionsLimit}", dailyConnectionsLimit);
@@ -61,6 +77,8 @@ namespace Leadsly.Domain.Factories
 
             SendConnectionsBody sendConnectionsBody = new()
             {
+                GridNamespaceName = config.ServiceDiscoveryConfig.Grid.Name,
+                GridServiceDiscoveryName = gridEcsService.CloudMapDiscoveryService.Name,
                 ChromeProfileName = chromeProfileName,
                 DailyLimit = dailyConnectionsLimit,
                 HalId = halUnit.HalId,
@@ -70,14 +88,18 @@ namespace Leadsly.Domain.Factories
                 EndOfWorkday = halUnit.EndHour,
                 StartDateTimestamp = campaign.StartTimestamp,
                 CampaignId = campaign.CampaignId,
-                NamespaceName = config.ServiceDiscoveryConfig.Name,
+                NamespaceName = config.ServiceDiscoveryConfig.AppServer.Name,
                 ServiceDiscoveryName = config.ApiServiceDiscoveryName
             };
 
-            string namespaceName = config.ServiceDiscoveryConfig.Name;
-            string serviceDiscoveryname = config.ApiServiceDiscoveryName;
-            _logger.LogTrace("SendConnectionsBody object is configured with Namespace Name of {namespaceName}", namespaceName);
-            _logger.LogTrace("SendConnectionsBody object is configured with Service discovery name of {serviceDiscoveryname}", serviceDiscoveryname);
+            string appServerNamespaceName = config.ServiceDiscoveryConfig.AppServer.Name;
+            string appServerServiceDiscoveryname = config.ApiServiceDiscoveryName;
+            string gridNamespaceName = config.ServiceDiscoveryConfig.Grid.Name;
+            string gridServiceDiscoveryName = gridEcsService.CloudMapDiscoveryService.Name;
+            _logger.LogTrace("SendConnectionsBody object is configured with Grid Namespace Name of {gridNamespaceName}", gridNamespaceName);
+            _logger.LogTrace("SendConnectionsBody object is configured with Grid Service discovery name of {gridServiceDiscoveryname}", gridServiceDiscoveryName);
+            _logger.LogTrace("SendConnectionsBody object is configured with AppServer Namespace Name of {appServerNamespaceName}", appServerNamespaceName);
+            _logger.LogTrace("SendConnectionsBody object is configured with AppServer Service discovery name of {appServerServiceDiscoveryname}", appServerServiceDiscoveryname);
 
             return sendConnectionsBody;
         }
