@@ -220,6 +220,13 @@ namespace Leadsly.Domain.Providers
                         Image = cd.Image,
                         Memory = cd.Memory,
                         Name = cd.Name,
+                        HealthCheck = new()
+                        {
+                            Command = cd.HealthCheck.Command.ToList(),
+                            Interval = cd.HealthCheck.Interval,
+                            Retries = cd.HealthCheck.Retries,
+                            Timeout = cd.HealthCheck.Timeout
+                        },
                         LogConfiguration = new Amazon.ECS.Model.LogConfiguration
                         {
                             LogDriver = cd.LogConfiguration?.LogDriver,
@@ -309,6 +316,13 @@ namespace Leadsly.Domain.Providers
                         Image = cd.Image,
                         Memory = cd.Memory,
                         Name = cd.Name,
+                        HealthCheck = new()
+                        {
+                            Command = cd.HealthCheck.Command.ToList(),
+                            Interval = cd.HealthCheck.Interval,
+                            Retries = cd.HealthCheck.Retries,
+                            Timeout = cd.HealthCheck.Timeout
+                        },
                         LogConfiguration = new Amazon.ECS.Model.LogConfiguration
                         {
                             LogDriver = cd.LogConfiguration?.LogDriver,
@@ -419,6 +433,13 @@ namespace Leadsly.Domain.Providers
                             ContainerPort = x.ContainerPort,
                             HostPort = x.HostPort
                         }).ToList(),
+                        HealthCheck = new()
+                        {
+                            Command = cd.HealthCheck.Command.ToList(),
+                            Interval = cd.HealthCheck.Interval,
+                            Retries = cd.HealthCheck.Retries,
+                            Timeout = cd.HealthCheck.Timeout
+                        },
                         Privileged = cd.Privileged,
                         VolumesFrom = cd.VolumesFrom?.Select(x => new Amazon.ECS.Model.VolumeFrom
                         {
