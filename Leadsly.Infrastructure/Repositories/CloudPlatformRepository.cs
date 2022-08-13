@@ -144,7 +144,8 @@ namespace Leadsly.Infrastructure.Repositories
                             Command = c.HealthCheck.Command,
                             Interval = c.HealthCheck.Interval,
                             Retries = c.HealthCheck.Retries,
-                            Timeout = c.HealthCheck.Timeout
+                            Timeout = c.HealthCheck.Timeout,
+                            StartPeriod = c.HealthCheck.StartPeriod
                         },
                         Privileged = c.Privileged,
                         VolumesFrom = c.VolumesFrom?.Select(v => new Domain.Models.Entities.VolumesFrom
@@ -209,7 +210,8 @@ namespace Leadsly.Infrastructure.Repositories
                             Command = c.HealthCheck.Command,
                             Interval = c.HealthCheck.Interval,
                             Retries = c.HealthCheck.Retries,
-                            Timeout = c.HealthCheck.Timeout
+                            Timeout = c.HealthCheck.Timeout,
+                            StartPeriod = c.HealthCheck.StartPeriod
                         },
                         Privileged = c.Privileged,
                         VolumesFrom = c.VolumesFrom?.Select(v => new Domain.Models.Entities.VolumesFrom
@@ -274,7 +276,8 @@ namespace Leadsly.Infrastructure.Repositories
                             Command = c.HealthCheck.Command,
                             Interval = c.HealthCheck.Interval,
                             Retries = c.HealthCheck.Retries,
-                            Timeout = c.HealthCheck.Timeout
+                            Timeout = c.HealthCheck.Timeout,
+                            StartPeriod = c.HealthCheck.StartPeriod
                         },
                         Privileged = c.Privileged,
                         VolumesFrom = c.VolumesFrom?.Select(v => new Domain.Models.Entities.VolumesFrom

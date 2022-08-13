@@ -225,7 +225,8 @@ namespace Leadsly.Domain.Providers
                             Command = cd.HealthCheck.Command.ToList(),
                             Interval = cd.HealthCheck.Interval,
                             Retries = cd.HealthCheck.Retries,
-                            Timeout = cd.HealthCheck.Timeout
+                            Timeout = cd.HealthCheck.Timeout,
+                            StartPeriod = cd.HealthCheck.StartPeriod
                         },
                         LogConfiguration = new Amazon.ECS.Model.LogConfiguration
                         {
@@ -321,7 +322,8 @@ namespace Leadsly.Domain.Providers
                             Command = cd.HealthCheck.Command.ToList(),
                             Interval = cd.HealthCheck.Interval,
                             Retries = cd.HealthCheck.Retries,
-                            Timeout = cd.HealthCheck.Timeout
+                            Timeout = cd.HealthCheck.Timeout,
+                            StartPeriod = cd.HealthCheck.StartPeriod
                         },
                         LogConfiguration = new Amazon.ECS.Model.LogConfiguration
                         {
@@ -438,7 +440,8 @@ namespace Leadsly.Domain.Providers
                             Command = cd.HealthCheck.Command.ToList(),
                             Interval = cd.HealthCheck.Interval,
                             Retries = cd.HealthCheck.Retries,
-                            Timeout = cd.HealthCheck.Timeout
+                            Timeout = cd.HealthCheck.Timeout,
+                            StartPeriod = cd.HealthCheck.StartPeriod
                         },
                         Privileged = cd.Privileged,
                         VolumesFrom = cd.VolumesFrom?.Select(x => new Amazon.ECS.Model.VolumeFrom
