@@ -317,7 +317,7 @@ namespace Leadsly.Domain.Providers
                         Image = cd.Image,
                         Memory = cd.Memory,
                         Name = cd.Name,
-                        HealthCheck = new()
+                        HealthCheck = cd.HealthCheck == null ? null : new()
                         {
                             Command = cd.HealthCheck.Command.ToList(),
                             Interval = cd.HealthCheck.Interval,
@@ -340,6 +340,11 @@ namespace Leadsly.Domain.Providers
                         {
                             InitProcessEnabled = cd.LinuxParameters.InitProcessEnabled
                         },
+                        VolumesFrom = cd.VolumesFrom?.Select(x => new Amazon.ECS.Model.VolumeFrom
+                        {
+                            ReadOnly = x.ReadOnly,
+                            SourceContainer = x.SourceContainer
+                        }).ToList(),
                         PortMappings = cd.PortMappings?.Select(x => new Amazon.ECS.Model.PortMapping
                         {
                             ContainerPort = x.ContainerPort,
@@ -435,7 +440,7 @@ namespace Leadsly.Domain.Providers
                             ContainerPort = x.ContainerPort,
                             HostPort = x.HostPort
                         }).ToList(),
-                        HealthCheck = new()
+                        HealthCheck = cd.HealthCheck == null ? null : new()
                         {
                             Command = cd.HealthCheck.Command.ToList(),
                             Interval = cd.HealthCheck.Interval,

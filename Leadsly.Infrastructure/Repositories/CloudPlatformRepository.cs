@@ -205,7 +205,7 @@ namespace Leadsly.Infrastructure.Repositories
                         }).ToArray(),
                         DisableNetworking = c.DisableNetworking,
                         Essential = c.Essential,
-                        HealthCheck = new()
+                        HealthCheck = c.HealthCheck == null ? null : new()
                         {
                             Command = c.HealthCheck.Command,
                             Interval = c.HealthCheck.Interval,
