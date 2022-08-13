@@ -222,13 +222,13 @@ namespace Leadsly.Infrastructure.Repositories
                         StartTimeout = c.StartTimeout,
                         StopTimeout = c.StopTimeout
                     }).ToArray(),
-                    Family = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.Family,
-                    NetworkMode = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.NetworkMode,
-                    RequiresCompatibilities = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.RequiresCompatibilities,
-                    TaskRoleArn = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.TaskRoleArn,
-                    Cpu = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.Cpu,
-                    Memory = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.Memory,
-                    ExecutionRoleArn = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.ExecutionRoleArn
+                    Family = _cloudPlatformConfigurationOptions.AwsOptions.EcsGridTaskDefinitionConfigOptions.Family,
+                    NetworkMode = _cloudPlatformConfigurationOptions.AwsOptions.EcsGridTaskDefinitionConfigOptions.NetworkMode,
+                    RequiresCompatibilities = _cloudPlatformConfigurationOptions.AwsOptions.EcsGridTaskDefinitionConfigOptions.RequiresCompatibilities,
+                    TaskRoleArn = _cloudPlatformConfigurationOptions.AwsOptions.EcsGridTaskDefinitionConfigOptions.TaskRoleArn,
+                    Cpu = _cloudPlatformConfigurationOptions.AwsOptions.EcsGridTaskDefinitionConfigOptions.Cpu,
+                    Memory = _cloudPlatformConfigurationOptions.AwsOptions.EcsGridTaskDefinitionConfigOptions.Memory,
+                    ExecutionRoleArn = _cloudPlatformConfigurationOptions.AwsOptions.EcsGridTaskDefinitionConfigOptions.ExecutionRoleArn
                 },
                 EcsHalTaskDefinitionConfig = new()
                 {
@@ -288,13 +288,13 @@ namespace Leadsly.Infrastructure.Repositories
                         StartTimeout = c.StartTimeout,
                         StopTimeout = c.StopTimeout
                     }).ToArray(),
-                    Family = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.Family,
-                    NetworkMode = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.NetworkMode,
-                    RequiresCompatibilities = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.RequiresCompatibilities,
-                    TaskRoleArn = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.TaskRoleArn,
-                    Cpu = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.Cpu,
-                    Memory = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.Memory,
-                    ExecutionRoleArn = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.ExecutionRoleArn
+                    Family = _cloudPlatformConfigurationOptions.AwsOptions.EcsHalTaskDefinitionConfigOptions.Family,
+                    NetworkMode = _cloudPlatformConfigurationOptions.AwsOptions.EcsHalTaskDefinitionConfigOptions.NetworkMode,
+                    RequiresCompatibilities = _cloudPlatformConfigurationOptions.AwsOptions.EcsHalTaskDefinitionConfigOptions.RequiresCompatibilities,
+                    TaskRoleArn = _cloudPlatformConfigurationOptions.AwsOptions.EcsHalTaskDefinitionConfigOptions.TaskRoleArn,
+                    Cpu = _cloudPlatformConfigurationOptions.AwsOptions.EcsHalTaskDefinitionConfigOptions.Cpu,
+                    Memory = _cloudPlatformConfigurationOptions.AwsOptions.EcsHalTaskDefinitionConfigOptions.Memory,
+                    ExecutionRoleArn = _cloudPlatformConfigurationOptions.AwsOptions.EcsHalTaskDefinitionConfigOptions.ExecutionRoleArn
                 }
             };
 

@@ -258,13 +258,13 @@ namespace Leadsly.Domain.Providers
 
                     return containerDef;
                 }).ToList(),
-                Cpu = configuration.EcsTaskDefinitionConfig.Cpu,
-                ExecutionRoleArn = configuration.EcsTaskDefinitionConfig.ExecutionRoleArn,
+                Cpu = configuration.EcsHalTaskDefinitionConfig.Cpu,
+                ExecutionRoleArn = configuration.EcsHalTaskDefinitionConfig.ExecutionRoleArn,
                 Family = halTaskDefinition,
-                Memory = configuration.EcsTaskDefinitionConfig.Memory,
-                NetworkMode = configuration.EcsTaskDefinitionConfig.NetworkMode,
-                RequiresCompatibilities = configuration.EcsTaskDefinitionConfig.RequiresCompatibilities.ToList(),
-                TaskRoleArn = configuration.EcsTaskDefinitionConfig.TaskRoleArn
+                Memory = configuration.EcsHalTaskDefinitionConfig.Memory,
+                NetworkMode = configuration.EcsHalTaskDefinitionConfig.NetworkMode,
+                RequiresCompatibilities = configuration.EcsHalTaskDefinitionConfig.RequiresCompatibilities.ToList(),
+                TaskRoleArn = configuration.EcsHalTaskDefinitionConfig.TaskRoleArn
             };
 
             return await _awsElasticContainerService.RegisterTaskDefinitionAsync(request, ct);
@@ -355,13 +355,13 @@ namespace Leadsly.Domain.Providers
 
                     return containerDef;
                 }).ToList(),
-                Cpu = configuration.EcsTaskDefinitionConfig.Cpu,
-                ExecutionRoleArn = configuration.EcsTaskDefinitionConfig.ExecutionRoleArn,
+                Cpu = configuration.EcsGridTaskDefinitionConfig.Cpu,
+                ExecutionRoleArn = configuration.EcsGridTaskDefinitionConfig.ExecutionRoleArn,
                 Family = gridTaskDefinition,
-                Memory = configuration.EcsTaskDefinitionConfig.Memory,
-                NetworkMode = configuration.EcsTaskDefinitionConfig.NetworkMode,
-                RequiresCompatibilities = configuration.EcsTaskDefinitionConfig.RequiresCompatibilities.ToList(),
-                TaskRoleArn = configuration.EcsTaskDefinitionConfig.TaskRoleArn
+                Memory = configuration.EcsGridTaskDefinitionConfig.Memory,
+                NetworkMode = configuration.EcsGridTaskDefinitionConfig.NetworkMode,
+                RequiresCompatibilities = configuration.EcsGridTaskDefinitionConfig.RequiresCompatibilities.ToList(),
+                TaskRoleArn = configuration.EcsGridTaskDefinitionConfig.TaskRoleArn
             };
 
             return await _awsElasticContainerService.RegisterTaskDefinitionAsync(request, ct);
