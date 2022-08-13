@@ -23,6 +23,7 @@
         public string Image { get; set; }
         public int Memory { get; set; }
         public string Name { get; set; }
+        public HealthCheck HealthCheck { get; set; }
         public PortMapping[] PortMappings { get; set; }
         public bool Privileged { get; set; }
         public RepositoryCredentials RepositoryCredentials { get; set; }
@@ -30,6 +31,15 @@
         public int StopTimeout { get; set; }
         public VolumesFrom[] VolumesFrom { get; set; }
         public LogConfiguration LogConfiguration { get; set; }
+    }
+
+    public class HealthCheck
+    {
+        public int Retries { get; set; }
+        public string[] Command { get; set; }
+        public int Timeout { get; set; }
+        public int Interval { get; set; }
+        public int StartPeriod { get; set; }
     }
 
     public class LogConfiguration

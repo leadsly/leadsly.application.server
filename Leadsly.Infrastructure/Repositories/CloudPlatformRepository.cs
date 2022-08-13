@@ -139,6 +139,13 @@ namespace Leadsly.Infrastructure.Repositories
                         }).ToArray(),
                         DisableNetworking = c.DisableNetworking,
                         Essential = c.Essential,
+                        HealthCheck = new()
+                        {
+                            Command = c.HealthCheck.Command,
+                            Interval = c.HealthCheck.Interval,
+                            Retries = c.HealthCheck.Retries,
+                            Timeout = c.HealthCheck.Timeout
+                        },
                         Privileged = c.Privileged,
                         VolumesFrom = c.VolumesFrom?.Select(v => new Domain.Models.Entities.VolumesFrom
                         {
@@ -197,6 +204,13 @@ namespace Leadsly.Infrastructure.Repositories
                         }).ToArray(),
                         DisableNetworking = c.DisableNetworking,
                         Essential = c.Essential,
+                        HealthCheck = new()
+                        {
+                            Command = c.HealthCheck.Command,
+                            Interval = c.HealthCheck.Interval,
+                            Retries = c.HealthCheck.Retries,
+                            Timeout = c.HealthCheck.Timeout
+                        },
                         Privileged = c.Privileged,
                         VolumesFrom = c.VolumesFrom?.Select(v => new Domain.Models.Entities.VolumesFrom
                         {
@@ -255,6 +269,13 @@ namespace Leadsly.Infrastructure.Repositories
                         }).ToArray(),
                         DisableNetworking = c.DisableNetworking,
                         Essential = c.Essential,
+                        HealthCheck = new()
+                        {
+                            Command = c.HealthCheck.Command,
+                            Interval = c.HealthCheck.Interval,
+                            Retries = c.HealthCheck.Retries,
+                            Timeout = c.HealthCheck.Timeout
+                        },
                         Privileged = c.Privileged,
                         VolumesFrom = c.VolumesFrom?.Select(v => new Domain.Models.Entities.VolumesFrom
                         {

@@ -20,6 +20,7 @@
         public bool DisableNetworking { get; set; }
         public Environment[] Environment { get; set; }
         public LinuxParameters LinuxParameters { get; set; }
+        public HealthCheck HealthCheck { get; set; }
         public bool Essential { get; set; }
         public string Image { get; set; }
         public int Memory { get; set; }
@@ -31,6 +32,15 @@
         public LogConfiguration LogConfiguration { get; set; }
         public int StopTimeout { get; set; }
         public VolumesFrom[] VolumesFrom { get; set; }
+    }
+
+    public class HealthCheck
+    {
+        public string[] Command { get; set; }
+        public int Interval { get; set; }
+        public int Retries { get; set; }
+        public int StartPeriod { get; set; }
+        public int Timeout { get; set; }
     }
 
     public class LogConfiguration
