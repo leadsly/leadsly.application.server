@@ -42,7 +42,7 @@ namespace Leadsly.Domain.RabbitMQ
             IDictionary<string, object> arguments = new Dictionary<string, object>();
             arguments.Add(RabbitMQConstants.QueueType, RabbitMQConstants.Classic);
 
-            channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: arguments);
+            channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: true, arguments: arguments);
 
             string routingKey = options.RoutingKey.Replace("{halId}", halId);
             routingKey = routingKey.Replace("{purpose}", routingKeyIn);
