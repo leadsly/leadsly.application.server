@@ -78,24 +78,24 @@ namespace Leadsly.Infrastructure.Repositories
                 {
                     AppServer = new()
                     {
-                        DnsRecordTTL = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.AppServerCloudMapOptions.DnsRecordTTL,
-                        DnsRecordType = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.AppServerCloudMapOptions.DnsRecordType,
-                        NamespaceId = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.AppServerCloudMapOptions.NamespaceId,
-                        Name = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.AppServerCloudMapOptions.Name
+                        DnsRecordTTL = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.AppServer.DnsRecordTTL,
+                        DnsRecordType = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.AppServer.DnsRecordType,
+                        NamespaceId = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.AppServer.NamespaceId,
+                        Name = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.AppServer.Name
                     },
                     Grid = new()
                     {
-                        DnsRecordTTL = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.GridCloudMapOptions.DnsRecordTTL,
-                        DnsRecordType = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.GridCloudMapOptions.DnsRecordType,
-                        NamespaceId = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.GridCloudMapOptions.NamespaceId,
-                        Name = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.GridCloudMapOptions.Name
+                        DnsRecordTTL = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.Grid.DnsRecordTTL,
+                        DnsRecordType = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.Grid.DnsRecordType,
+                        NamespaceId = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.Grid.NamespaceId,
+                        Name = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.Grid.Name
                     },
                     Hal = new()
                     {
-                        DnsRecordTTL = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.HalCloudMapOptions.DnsRecordTTL,
-                        DnsRecordType = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.HalCloudMapOptions.DnsRecordType,
-                        NamespaceId = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.HalCloudMapOptions.NamespaceId,
-                        Name = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.HalCloudMapOptions.Name
+                        DnsRecordTTL = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.Hal.DnsRecordTTL,
+                        DnsRecordType = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.Hal.DnsRecordType,
+                        NamespaceId = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.Hal.NamespaceId,
+                        Name = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.Hal.Name
                     }
                 },
                 EcsTaskDefinitionConfig = new()
