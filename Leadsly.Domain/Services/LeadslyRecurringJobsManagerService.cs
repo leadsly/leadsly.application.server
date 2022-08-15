@@ -55,18 +55,27 @@ namespace Leadsly.Domain.Services
         private readonly HalWorkCommandHandlerDecorator<RestartResourcesCommand> _restartResourcesHandler;
 
         /// <summary>
-        /// Executed each morning at the given StartTime and timezone for each HalUnit.
+        /// Restarts hal every morning to ensure fresh state
         /// </summary>
         /// <param name="halId"></param>
         /// <returns></returns>
-        public async Task PublishHalPhasesAsync(string halId)
+        /// <exception cref="NotImplementedException"></exception>
+        public async Task RestartHalAsync(string halId)
         {
             //////////////////////////////////////////////////////////////////////////////////////
             ///// Restart Hal
             //////////////////////////////////////////////////////////////////////////////////////
             RestartResourcesCommand restartCommand = new RestartResourcesCommand(halId);
             await _restartResourcesHandler.HandleAsync(restartCommand);
+        }
 
+        /// <summary>
+        /// Executed each morning at the given StartTime and timezone for each HalUnit.
+        /// </summary>
+        /// <param name="halId"></param>
+        /// <returns></returns>
+        public async Task PublishHalPhasesAsync(string halId)
+        {
             //////////////////////////////////////////////////////////////////////////////////////
             ///// ScanForNewConnectionsOffHours
             //////////////////////////////////////////////////////////////////////////////////////
