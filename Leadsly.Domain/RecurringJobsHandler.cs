@@ -62,12 +62,12 @@ namespace Leadsly.Domain
                     string halId = halUnit.HalId;
                     _logger.LogInformation("Hal unit with id {halId} was found", halId);
                     DateTimeOffset startDate = _timestampService.ParseDateTimeOffsetLocalized(halUnit.TimeZoneId, halUnit.StartHour);
-                    DateTimeOffset startDateForPublishHalPhases = startDate.AddMinutes(-15);
+                    DateTimeOffset startDateForPublishHalPhases = startDate.AddMinutes(-30);
                     _logger.LogInformation($"Hal unit with id {halId}, has a start date of {startDate}");
                     _hangfireService.Schedule<ILeadslyRecurringJobsManagerService>((x) => x.PublishHalPhasesAsync(halId), startDateForPublishHalPhases);
 
                     // restart hal one hour before all phases are expected to start executing
-                    DateTimeOffset restartStartDate = startDate.AddMinutes(-45);
+                    DateTimeOffset restartStartDate = startDate.AddMinutes(-60);
                     _logger.LogInformation($"Hal unit with id {halId}, has a restart date of {restartStartDate}");
                     _hangfireService.Schedule<ILeadslyRecurringJobsManagerService>((x) => x.RestartHalAsync(halId), restartStartDate);
                 }
