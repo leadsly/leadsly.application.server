@@ -13,6 +13,9 @@ namespace Leadsly.Domain.Models.Responses
         public bool InvalidEmail { get; set; }
 
         [DataMember(IsRequired = true)]
+        public bool EmailPinChallenge { get; set; }
+
+        [DataMember(IsRequired = true)]
         public bool TwoFactorAuthRequired { get; set; }
 
         [DataMember(IsRequired = true)]

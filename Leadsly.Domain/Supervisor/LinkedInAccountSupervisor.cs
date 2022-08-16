@@ -75,7 +75,7 @@ namespace Leadsly.Domain.Supervisor
                 return null;
             }
 
-            if (response.TwoFactorAuthRequired == false && response.UnexpectedErrorOccured == false && response.InvalidEmail == false && response.InvalidPassword == false)
+            if (response.TwoFactorAuthRequired == false && response.UnexpectedErrorOccured == false && response.InvalidEmail == false && response.InvalidPassword == false && response.EmailPinChallenge == false)
             {
                 // assume we've successfully linked the account so now we can create new social account for the user
                 SocialAccount socialAccount = await _userProvider.CreateSocialAccountAsync(virtualAssistant, userId, request.Username, ct);
@@ -142,6 +142,61 @@ namespace Leadsly.Domain.Supervisor
             }
 
             TwoFactorAuthResultViewModel viewModel = LinkedInSetupConverter.Convert(response);
+            return viewModel;
+        }
+
+        public async Task<EmailChallengePinResultViewModel> EnterEmailChallengePinAsync(string userId, EmailChallengePinRequest request, CancellationToken ct = default)
+        {
+            VirtualAssistant virtualAssistant = await _cloudPlatformProvider.GetVirtualAssistantAsync(userId, ct);
+            if (virtualAssistant == null)
+            {
+                _logger.LogError("Couldn't process request to enter email challenge pin because no virtual assistant has been created");
+                return null;
+            }
+
+            if (string.IsNullOrEmpty(request.Pin))
+            {
+                _logger.LogError("Couldn't process request to enter enter email challenge pin because email challenge pin is empty");
+                return null;
+            }
+
+            if (virtualAssistant.CloudMapDiscoveryServices == null || virtualAssistant.CloudMapDiscoveryServices.Count == 0)
+            {
+                _logger.LogError("Couldn't process request to link account because no cloud map discovery service has been found. This name is required to make a request to hal");
+                return null;
+            }
+
+            EcsService halEcsService = virtualAssistant.EcsServices.Where(x => x.Purpose == Purpose.Hal).FirstOrDefault();
+            if (halEcsService == null)
+            {
+                _logger.LogError("Couldn't process request to link account because no hal ecs service has been found. This service is required to make a request to hal");
+                return null;
+            }
+
+            EcsService gridEcsService = virtualAssistant.EcsServices.Where(x => x.Purpose == Purpose.Grid).FirstOrDefault();
+            if (halEcsService == null)
+            {
+                _logger.LogError("Couldn't process request to link account because no grid ecs service has been found. This service is required to make a request to hal");
+                return null;
+            }
+
+            EnterEmailChallengePinResponse response = await _leadslyHalProvider.EnterEmailChallengePinAsync(request.Pin, halEcsService.CloudMapDiscoveryService.Name, gridEcsService.CloudMapDiscoveryService.Name, ct);
+            if (response == null)
+            {
+                return null;
+            }
+
+            if (response.InvalidOrExpiredPin == false && response.UnexpectedErrorOccured == false && response.FailedToEnterPin == false && response.TwoFactorAuthRequired == false)
+            {
+                // assume we've successfully linked the account so now we can create new social account for the user
+                SocialAccount socialAccount = await _userProvider.CreateSocialAccountAsync(virtualAssistant, userId, request.Username, ct);
+                if (socialAccount == null)
+                {
+                    return null;
+                }
+            }
+
+            EmailChallengePinResultViewModel viewModel = LinkedInSetupConverter.Convert(response);
             return viewModel;
         }
     }

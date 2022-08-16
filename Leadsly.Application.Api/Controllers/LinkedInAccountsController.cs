@@ -34,7 +34,7 @@ namespace Leadsly.Application.Api.Controllers
         [HttpGet("info")]
         public async Task<IActionResult> GetConnectedAccountAsync(string userId, CancellationToken ct = default)
         {
-            _logger.LogTrace("Connected action executed.");
+            _logger.LogTrace("GetConnectedAccountAsync action executed.");
 
             ConnectedViewModel connected = await _supervisor.GetConnectedAccountAsync(userId, ct);
 
@@ -42,9 +42,9 @@ namespace Leadsly.Application.Api.Controllers
         }
 
         [HttpPost("connect")]
-        public async Task<IActionResult> Connect(ConnectLinkedInAccountRequest request, CancellationToken ct = default)
+        public async Task<IActionResult> ConnectAsync(ConnectLinkedInAccountRequest request, CancellationToken ct = default)
         {
-            _logger.LogTrace("Connect action executed.");
+            _logger.LogTrace("ConnectAsync action executed.");
 
             string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             ConnectLinkedInAccountResultViewModel result = await _supervisor.LinkLinkedInAccount(request, userId, HttpContext.Response.Headers, HttpContext.Request.Headers, ct);
@@ -58,12 +58,23 @@ namespace Leadsly.Application.Api.Controllers
         }
 
         [HttpPost("2fa")]
-        public async Task<IActionResult> TwoFactorAuth(TwoFactorAuthRequest request, CancellationToken ct = default)
+        public async Task<IActionResult> TwoFactorAuthAsync(TwoFactorAuthRequest request, CancellationToken ct = default)
         {
-            _logger.LogTrace("TwoFactorAuth action executed");
+            _logger.LogTrace("TwoFactorAuthAsync action executed");
 
             string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             TwoFactorAuthResultViewModel result = await _supervisor.EnterTwoFactorAuthAsync(userId, request, ct);
+
+            return result == null ? BadRequest(ProblemDetailsDescriptions.EnterTwoFactorAuthCode) : Ok(result);
+        }
+
+        [HttpPost("email-challenge-pin")]
+        public async Task<IActionResult> EmailChallengePinAsync(EmailChallengePinRequest request, CancellationToken ct = default)
+        {
+            _logger.LogTrace("EmailChallengePinAsync action executed");
+
+            string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            TwoFactorAuthResultViewModel result = await _supervisor.EnterEmailChallengePinAsync(userId, request, ct);
 
             return result == null ? BadRequest(ProblemDetailsDescriptions.EnterTwoFactorAuthCode) : Ok(result);
         }

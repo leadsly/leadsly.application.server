@@ -63,6 +63,33 @@ namespace Leadsly.Domain.Providers
             return response;
         }
 
+        public async Task<EnterEmailChallengePinResponse> EnterEmailChallengePinAsync(string pin, string resourceDiscoveryName, string gridDiscoveryServiceName, CancellationToken ct = default)
+        {
+            CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
+            EnterEmailChallengePinRequest request = new()
+            {
+                GridNamespaceName = configuration.ServiceDiscoveryConfig.Grid.Name,
+                GridServiceDiscoveryName = gridDiscoveryServiceName,
+                RequestUrl = "linkedin/email-challenge-pin",
+                NamespaceName = configuration.ServiceDiscoveryConfig.Hal.Name,
+                ServiceDiscoveryName = resourceDiscoveryName,
+                Pin = pin
+            };
+
+            HttpResponseMessage resp = await _leadslyHalApiService.EnterEmailChallengePinAsync(request, ct);
+            if (resp == null || resp.StatusCode == HttpStatusCode.InternalServerError || resp.IsSuccessStatusCode == false)
+            {
+                IEnumerable<string> values = default;
+                resp?.Headers.TryGetValues(CustomHeaderKeys.Origin, out values);
+                _logger.LogError($"Failed to send request to enter email challenge pin for hal id {values?.FirstOrDefault()}. The response is null or status code is not successful");
+                return null;
+            }
+
+            string content = await resp.Content?.ReadAsStringAsync();
+            EnterEmailChallengePinResponse response = JsonConvert.DeserializeObject<EnterEmailChallengePinResponse>(content);
+            return response;
+        }
+
         public async Task<ConnectLinkedInAccountResponse> ConnectAccountAsync(string email, string password, string resourceDiscoveryServiceName, string gridDiscoveryServiceName, IHeaderDictionary responseHeaders, IHeaderDictionary requestHeaders, CancellationToken ct = default)
         {
             CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();

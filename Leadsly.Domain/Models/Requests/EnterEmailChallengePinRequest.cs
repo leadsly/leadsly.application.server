@@ -1,0 +1,17 @@
+﻿using Leadsly.Application.Model.WebDriver;
+
+namespace Leadsly.Domain.Models.Requests
+{
+    public class EnterEmailChallengePinRequest
+    {
+        public string RequestUrl { get; set; }
+        public string NamespaceName { get; set; }
+        public string ServiceDiscoveryName { get; set; }
+        public string GridServiceDiscoveryName { get; set; }
+        public string GridNamespaceName { get; set; }
+        public string Pin { get; set; }
+        public string WindowHandleId { get; set; } = string.Empty;
+        public BrowserPurpose BrowserPurpose { get; set; } = BrowserPurpose.Auth;
+        public long AttemptNumber { get; set; } = 1;
+    }
+}

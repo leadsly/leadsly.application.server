@@ -43,6 +43,8 @@ namespace Leadsly.Domain.Supervisor
 
         Task<TwoFactorAuthResultViewModel> EnterTwoFactorAuthAsync(string userId, Models.Requests.TwoFactorAuthRequest request, CancellationToken ct = default);
 
+        Task<TwoFactorAuthResultViewModel> EnterEmailChallengePinAsync(string userId, EmailChallengePinRequest request, CancellationToken ct = default);
+
         Task<HalOperationResult<T>> ProcessProspectsAsync<T>(CollectedProspectsRequest request, CancellationToken ct = default)
             where T : IOperationResponse;
 

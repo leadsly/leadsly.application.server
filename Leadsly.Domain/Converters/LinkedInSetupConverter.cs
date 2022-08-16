@@ -9,6 +9,7 @@ namespace Leadsly.Domain.Converters
         {
             return new ConnectLinkedInAccountResultViewModel
             {
+                EmailPinChallenge = resp.EmailPinChallenge,
                 TwoFactorAuthRequired = resp.TwoFactorAuthRequired,
                 TwoFactorAuthType = resp.TwoFactorAuthType,
                 InvalidEmail = resp.InvalidEmail,
@@ -23,6 +24,17 @@ namespace Leadsly.Domain.Converters
             {
                 InvalidOrExpiredCode = resp.InvalidOrExpiredCode,
                 FailedToEnterCode = resp.FailedToEnterCode,
+                UnexpectedErrorOccured = resp.UnexpectedErrorOccured
+            };
+        }
+
+        public static EmailChallengePinResultViewModel Convert(EnterEmailChallengePinResponse resp)
+        {
+            return new EmailChallengePinResultViewModel
+            {
+                FailedToEnterPin = resp.FailedToEnterPin,
+                InvalidOrExpiredPin = resp.InvalidOrExpiredPin,
+                TwoFactorAuthRequired = resp.TwoFactorAuthRequired,
                 UnexpectedErrorOccured = resp.UnexpectedErrorOccured
             };
         }

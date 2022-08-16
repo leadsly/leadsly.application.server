@@ -16,5 +16,6 @@ namespace Leadsly.Domain.Services.Interfaces
         Task<HttpResponseMessage> SignInAsync(AuthenticateLinkedInAccountRequest request, IHeaderDictionary requestHeaders, CancellationToken ct = default);
         Task<HttpResponseMessage> EnterTwoFactorAuthCodeAsync(IEnterTwoFactorAuthCodeRequest request, CancellationToken ct = default);
         Task<HttpResponseMessage> EnterTwoFactorAuthCodeAsync(EnterTwoFactorAuthRequest request, CancellationToken ct = default);
+        Task<HttpResponseMessage> EnterEmailChallengePinAsync(EnterEmailChallengePinRequest request, CancellationToken ct = default);
     }
 }

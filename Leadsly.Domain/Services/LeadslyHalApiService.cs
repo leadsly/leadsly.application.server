@@ -219,5 +219,38 @@ namespace Leadsly.Domain.Services
 
             return response;
         }
+
+        public async Task<HttpResponseMessage> EnterEmailChallengePinAsync(EnterEmailChallengePinRequest request, CancellationToken ct = default)
+        {
+            string url = _urlService.GetHalsBaseUrl(request.NamespaceName, request.ServiceDiscoveryName);
+
+            HttpRequestMessage req = new()
+            {
+                Method = HttpMethod.Post,
+                RequestUri = new Uri($"{url}/{request.RequestUrl}", UriKind.Absolute),
+                Content = JsonContent.Create(new
+                {
+                    GridNamespaceName = request.GridNamespaceName,
+                    GridServiceDiscoveryName = request.GridServiceDiscoveryName,
+                    WindowHandleId = request.WindowHandleId,
+                    Pin = request.Pin,
+                    BrowserPurpose = request.BrowserPurpose,
+                    AttemptNumber = request.AttemptNumber
+                })
+            };
+
+            HttpResponseMessage response = default;
+            try
+            {
+                _logger.LogInformation("Request has been sent to enter email challenge pin", url);
+                response = await _httpClient.SendAsync(req, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send request to enter email challenge pin");
+            }
+
+            return response;
+        }
     }
 }
