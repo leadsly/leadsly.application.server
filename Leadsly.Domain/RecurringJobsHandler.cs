@@ -64,14 +64,27 @@ namespace Leadsly.Domain
                     DateTimeOffset startDate = _timestampService.ParseDateTimeOffsetLocalized(halUnit.TimeZoneId, halUnit.StartHour);
                     _logger.LogInformation($"Hal unit with id {halId}, has a start date of {startDate}");
 
-                    _logger.LogDebug("Scheduling PublishHalPhasesAsync for halId {halId}", halId);
-                    _hangfireService.Schedule<ILeadslyRecurringJobsManagerService>((x) => x.PublishHalPhasesAsync(halId), startDate);
-
                     // restart hal one hour before all phases are expected to start executing
                     DateTimeOffset restartStartDate = startDate.AddMinutes(-60);
                     _logger.LogInformation($"Hal unit with id {halId}, has a restart date of {restartStartDate}");
                     _logger.LogDebug("Scheduling RestartHalAsync for halId {halId}", halId);
                     _hangfireService.Schedule<ILeadslyRecurringJobsManagerService>((x) => x.RestartHalAsync(halId), restartStartDate);
+
+                    DateTimeOffset checkOffHoursNewConnectionsStartDate = startDate;
+                    _logger.LogDebug("Scheduling PublishCheckOffHoursNewConnectionsAsync for halId {halId}. Start time for this phase is {checkOffHoursNewConnectionsStartDate}", halId, checkOffHoursNewConnectionsStartDate);
+                    _hangfireService.Schedule<ILeadslyRecurringJobsManagerService>((x) => x.PublishCheckOffHoursNewConnectionsAsync(halId), checkOffHoursNewConnectionsStartDate);
+
+                    DateTimeOffset prospectPhaseStartDate = startDate;
+                    _logger.LogDebug("Scheduling PublishProspectingPhaseAsync for halId {halId}. Start time for this phase is {prospectPhaseStartDate}", halId, prospectPhaseStartDate);
+                    _hangfireService.Schedule<ILeadslyRecurringJobsManagerService>((x) => x.PublishProspectingPhaseAsync(halId), prospectPhaseStartDate);
+
+                    DateTimeOffset monitorForNewConnectionsStartDate = startDate;
+                    _logger.LogDebug("Scheduling PublishMonitorForNewConnectionsAsync for halId {halId}. Start time for this phase is {monitorForNewConnectionsStartDate}", halId, monitorForNewConnectionsStartDate);
+                    _hangfireService.Schedule<ILeadslyRecurringJobsManagerService>((x) => x.PublishProspectingPhaseAsync(halId), monitorForNewConnectionsStartDate);
+
+                    DateTimeOffset publishNetworkingStartDate = startDate.AddMinutes(15);
+                    _logger.LogDebug("Scheduling PublishNetworkingPhaseAsync for halId {halId}. Start time for this phase is {publishNetworkingStartDate}", halId, publishNetworkingStartDate);
+                    _hangfireService.Schedule<ILeadslyRecurringJobsManagerService>((x) => x.PublishProspectingPhaseAsync(halId), publishNetworkingStartDate);
                 }
             }
             else

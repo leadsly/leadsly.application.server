@@ -79,35 +79,45 @@ namespace Leadsly.Domain.Services
             //////////////////////////////////////////////////////////////////////////////////////
             ///// ScanForNewConnectionsOffHours
             //////////////////////////////////////////////////////////////////////////////////////            
-            CheckOffHoursNewConnectionsCommand offHoursCommand = new CheckOffHoursNewConnectionsCommand(halId);
-            await _offHoursHandler.HandleAsync(offHoursCommand);
+            await PublishCheckOffHoursNewConnectionsAsync(halId);
 
             ////////////////////////////////////////////////////////////////////////////////////
-            /// MonitorForNewConnectionsAll
+            /// MonitorForNewConnections
             ////////////////////////////////////////////////////////////////////////////////////            
-            MonitorForNewConnectionsCommand monitorForNewConnectionsCommand = new MonitorForNewConnectionsCommand(halId);
-            await _monitorHandler.HandleAsync(monitorForNewConnectionsCommand);
+            await PublishMonitorForNewConnectionsAsync(halId);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////
             /// Prospecting [ DeepScanProspectsForReplies OR (FollowUpMessagePhase AND ScanProspectsForReplies) ]
             //////////////////////////////////////////////////////////////////////////////////////////////////////
-            await ProspectingPhaseAsync(halId);
+            await PublishProspectingPhaseAsync(halId);
 
             ////////////////////////////////////////////////////////////////////////////////////////////////
             /// NetworkingPhase[ProspectListPhase AND SendConnectionsPhase Merged]
             ////////////////////////////////////////////////////////////////////////////////////////////////
-            await NetworkingPhaseAsync(halId);
+            await PublishNetworkingPhaseAsync(halId);
         }
 
-        public async Task NetworkingPhaseAsync(string halId, CancellationToken ct = default)
+        public async Task PublishCheckOffHoursNewConnectionsAsync(string halId)
+        {
+            CheckOffHoursNewConnectionsCommand offHoursCommand = new CheckOffHoursNewConnectionsCommand(halId);
+            await _offHoursHandler.HandleAsync(offHoursCommand);
+        }
+
+        public async Task PublishMonitorForNewConnectionsAsync(string halId)
+        {
+            MonitorForNewConnectionsCommand monitorForNewConnectionsCommand = new MonitorForNewConnectionsCommand(halId);
+            await _monitorHandler.HandleAsync(monitorForNewConnectionsCommand);
+        }
+
+        public async Task PublishNetworkingPhaseAsync(string halId)
         {
             NetworkingCommand networkingCommand = new NetworkingCommand(halId);
             await _networkingCommandHandler.HandleAsync(networkingCommand);
         }
 
-        private async Task ProspectingPhaseAsync(string halId, CancellationToken ct = default)
+        public async Task PublishProspectingPhaseAsync(string halId)
         {
-            if (await PublishDeepScanAsync(halId, ct) == true)
+            if (await PublishDeepScanAsync(halId) == true)
             {
                 DeepScanProspectsForRepliesCommand deepScanCommand = new DeepScanProspectsForRepliesCommand(halId);
                 await _deepHandler.HandleAsync(deepScanCommand);
