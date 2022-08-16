@@ -62,15 +62,21 @@ namespace Leadsly.Domain
                     string halId = halUnit.HalId;
                     _logger.LogInformation("Hal unit with id {halId} was found", halId);
                     DateTimeOffset startDate = _timestampService.ParseDateTimeOffsetLocalized(halUnit.TimeZoneId, halUnit.StartHour);
-                    DateTimeOffset startDateForPublishHalPhases = startDate.AddMinutes(-30);
                     _logger.LogInformation($"Hal unit with id {halId}, has a start date of {startDate}");
-                    _hangfireService.Schedule<ILeadslyRecurringJobsManagerService>((x) => x.PublishHalPhasesAsync(halId), startDateForPublishHalPhases);
+
+                    _logger.LogDebug("Scheduling PublishHalPhasesAsync for halId {halId}", halId);
+                    _hangfireService.Schedule<ILeadslyRecurringJobsManagerService>((x) => x.PublishHalPhasesAsync(halId), startDate);
 
                     // restart hal one hour before all phases are expected to start executing
                     DateTimeOffset restartStartDate = startDate.AddMinutes(-60);
                     _logger.LogInformation($"Hal unit with id {halId}, has a restart date of {restartStartDate}");
+                    _logger.LogDebug("Scheduling RestartHalAsync for halId {halId}", halId);
                     _hangfireService.Schedule<ILeadslyRecurringJobsManagerService>((x) => x.RestartHalAsync(halId), restartStartDate);
                 }
+            }
+            else
+            {
+                _logger.LogInformation("No hal units found for time zone {timeZoneId}", timeZoneId);
             }
         }
 
@@ -113,6 +119,10 @@ namespace Leadsly.Domain
                             TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
                             _hangfireService.AddOrUpdate<IRecurringJobsHandler>(jobName, (x) => x.PublishJobsAsync(timeZoneId), HangFireConstants.RecurringJobs.DailyCronSchedule, tzInfo);
                         }
+                    }
+                    else
+                    {
+                        _logger.LogInformation("Recurring job was found. No need to create a new recurring job");
                     }
                 }
             }

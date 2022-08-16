@@ -61,6 +61,8 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages
         private async Task InternalHandleAsync(string halId)
         {
             IList<Campaign> campaigns = await _campaignRepositoryFacade.GetAllActiveCampaignsByHalIdAsync(halId);
+            string campaignCount = campaigns?.Count == null ? "0" : campaigns.Count.ToString();
+            _logger.LogInformation($"[FollowUpMessagesCommandHandler] HalId {halId} has {campaignCount} active campaigns");
 
             Dictionary<CampaignProspectFollowUpMessage, DateTimeOffset> messagesGoingOut = new Dictionary<CampaignProspectFollowUpMessage, DateTimeOffset>();
             foreach (Campaign activeCampaign in campaigns)
@@ -70,9 +72,14 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages
                 List<CampaignProspect> prospectsForFollowUpMessage = campaignProspects.Where(p => p.Accepted == true && p.Replied == false && p.FollowUpComplete == false).ToList();
                 if (prospectsForFollowUpMessage.Count > 0)
                 {
+                    _logger.LogInformation("Prospects that need to receive follow up messages is greater than 0 and we will be generating CampaignProspectFollowUpMessage");
                     // await campaignProvider.SendFollowUpMessagesAsync(uncontactedProspects);
                     Dictionary<CampaignProspectFollowUpMessage, DateTimeOffset> messagesOut = await _sendFollowUpMessageProvider.CreateSendFollowUpMessagesAsync(prospectsForFollowUpMessage) as Dictionary<CampaignProspectFollowUpMessage, DateTimeOffset>;
                     messagesGoingOut.AddRange(messagesOut);
+                }
+                else
+                {
+                    _logger.LogInformation("Prospects that need to receive follow up messages is 0. No CampaignProspectFollowUpMessage messages will be generated.");
                 }
             }
 
@@ -113,6 +120,7 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages
 
             if (scheduleTime == default)
             {
+                _logger.LogInformation("FollowUpMessageBody does not have a schedule time set, sending message immediately");
                 _messageBrokerOutlet.PublishPhase(followUpMessageBody, queueNameIn, routingKeyIn, halId, null);
             }
             else

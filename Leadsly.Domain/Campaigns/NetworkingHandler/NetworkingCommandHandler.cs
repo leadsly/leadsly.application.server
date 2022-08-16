@@ -99,15 +99,17 @@ namespace Leadsly.Domain.Campaigns.NetworkingHandler
 
             DateTimeOffset nowLocalized = await _timestampService.GetNowLocalizedAsync(halId);
             DateTimeOffset phaseStartDateTimeOffset = _timestampService.ParseDateTimeOffsetLocalized(message.TimeZoneId, message.StartTime);
+            _logger.LogInformation("Scheduling NetworkingMessageBody to go out within 5 minutes of hals start time. HalId {halId}. Hal start time {phaseStartDateTimeOffset}", halId);
+            DateTimeOffset networkingPhaseSlidingTimeOffset = phaseStartDateTimeOffset.AddMinutes(5);
 
-            if (nowLocalized.TimeOfDay < phaseStartDateTimeOffset.TimeOfDay)
+            if (nowLocalized.TimeOfDay < networkingPhaseSlidingTimeOffset.TimeOfDay)
             {
-                _logger.LogInformation($"[Networking] This phase will be scheduled to start at {phaseStartDateTimeOffset}. Current local time is: {nowLocalized}");
-                _hangfireService.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(message, queueNameIn, routingKeyIn, halId, null), phaseStartDateTimeOffset);
+                _logger.LogInformation($"[Networking] This phase will be scheduled to start at {networkingPhaseSlidingTimeOffset}. Current local time is: {nowLocalized}");
+                _hangfireService.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(message, queueNameIn, routingKeyIn, halId, null), networkingPhaseSlidingTimeOffset);
             }
             else
             {
-                _logger.LogInformation($"[Networking] This phase will not be triggered today because it is in the past {phaseStartDateTimeOffset}. Current local time is: {nowLocalized}");
+                _logger.LogInformation($"[Networking] This phase will not be triggered today because it is in the past {networkingPhaseSlidingTimeOffset}. This includes the sliding time of 5 mintues. Current local time is: {nowLocalized}");
                 // temporary to schedule jobs right away                
                 // _messageBrokerOutlet.PublishPhase(message, queueNameIn, routingKeyIn, halId, null);
             }

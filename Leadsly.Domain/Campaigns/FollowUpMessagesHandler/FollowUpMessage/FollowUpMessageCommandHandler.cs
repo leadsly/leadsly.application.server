@@ -44,6 +44,7 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessage
 
             if (command.ScheduleTime == default)
             {
+                _logger.LogInformation("FollowUpMessageBody does not have a schedule time set, sending message immediately");
                 _messageBrokerOutlet.PublishPhase(followUpMessageBody, queueNameIn, routingKeyIn, halId, null);
             }
             else
