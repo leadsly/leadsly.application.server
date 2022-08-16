@@ -41,11 +41,14 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
         {
             if (command.HalIds != null)
             {
+                _logger.LogInformation("[PublishHalPhasesAsync] Exuecting DeepScanProspectsForRepliesCommand for multiple halIds");
                 await InternalExecuteAsync(command.HalIds);
             }
             else if (string.IsNullOrEmpty(command.HalId) == false)
             {
-                await InternalExecuteAsync(command.HalId);
+                string halId = command.HalId;
+                _logger.LogInformation("[PublishHalPhasesAsync] Exuecting DeepScanProspectsForRepliesCommand for halId: {halId}", halId);
+                await InternalExecuteAsync(halId);
             }
         }
 
@@ -73,11 +76,17 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
                 string halId = halCampaignProspects.Key;
 
                 // fire off DeepScanProspectsForRepliesPhase with the payload of the contacted prospects
+                _logger.LogInformation("Creating DeepScanProspectsForRepliesMessage for halId: {halId}", halId);
                 ScanProspectsForRepliesBody messageBody = await _messagesFactory.CreateMessageAsync(halId, halCampaignProspects.Value);
 
                 if (messageBody != null && messageBody.ContactedCampaignProspects.Any())
                 {
+                    _logger.LogInformation("Publishing DeepScanProspectsForRepliesMessage for halId: {halId}", halId);
                     PublishMessage(messageBody);
+                }
+                else
+                {
+                    _logger.LogInformation("No DeepScanProspectsForRepliesMessage to publish for halId: {halId} because DeepScanProspectsForRepliesMessage was not generated.", halId);
                 }
             }
         }
@@ -100,14 +109,21 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
         /// <returns></returns>
         private async Task<IDictionary<string, IList<CampaignProspect>>> CreateHalsCampainProspectsAsync(IList<string> halIds)
         {
+            _logger.LogDebug("[CreateHalsCampainProspectsAsync] Creating a dictionary of halId as key and campaign prospects as value");
             IDictionary<string, IList<CampaignProspect>> halsCampaignProspects = new Dictionary<string, IList<CampaignProspect>>();
 
             foreach (string halId in halIds)
             {
+                _logger.LogDebug("[CreateHalsCampainProspectsAsync] Getting CampaignProspects for halId {halId}", halId);
                 IList<CampaignProspect> halsCampProspects = await GetCampainProspectsAsync(halId);
                 if (halsCampProspects.Count > 0)
                 {
+                    _logger.LogDebug("[CreateHalsCampainProspectsAsync] CampaignProspects were found for halId {halId}.", halId);
                     halsCampaignProspects.Add(halId, halsCampProspects);
+                }
+                else
+                {
+                    _logger.LogDebug("[CreateHalsCampainProspectsAsync] No CampaignProspects found for halId {halId}", halId);
                 }
             }
 

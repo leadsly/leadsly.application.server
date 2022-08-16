@@ -25,27 +25,38 @@ namespace Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers
 
         public async Task HandleAsync(CheckOffHoursNewConnectionsCommand command)
         {
+            string halId = command.HalId;
+            _logger.LogInformation("[HandleAsync] Exuecting CheckOffHoursNewConnectionsCommand for halId: {halId}", halId);
             string queueNameIn = RabbitMQConstants.MonitorNewAcceptedConnections.QueueName;
             string routingKeyIn = RabbitMQConstants.MonitorNewAcceptedConnections.RoutingKey;
             Dictionary<string, object> headers = new Dictionary<string, object>();
+            _logger.LogInformation($"Setting rabbitMQ headers. Header key {RabbitMQConstants.MonitorNewAcceptedConnections.ExecuteType} header value is {RabbitMQConstants.MonitorNewAcceptedConnections.ExecuteOffHoursScan}");
             headers.Add(RabbitMQConstants.MonitorNewAcceptedConnections.ExecuteType, RabbitMQConstants.MonitorNewAcceptedConnections.ExecuteOffHoursScan);
 
             if (string.IsNullOrEmpty(command.HalId) == false)
             {
+                _logger.LogDebug("HalId is set on the command");
                 await InternalHandleAsync(command.HalId, queueNameIn, routingKeyIn, headers);
             }
             else
             {
+                _logger.LogDebug("HalId is not set on the command");
                 await InternalHandleAsync(queueNameIn, routingKeyIn, headers);
             }
         }
 
         private async Task InternalHandleAsync(string halId, string queueNameIn, string routingKeyIn, Dictionary<string, object> headers)
         {
+            _logger.LogDebug("Creating CheckOffHoursNewConnectionsBody message. The message is configured to check for connections created within last 12 hours");
             MonitorForNewAcceptedConnectionsBody messageBody = await _messagesFactory.CreateMessageAsync(halId, 12);
-            if(messageBody != null)
+            if (messageBody != null)
             {
+                _logger.LogInformation("Publishing CheckOffHoursNewConnectionsBody message to hal {halId}", halId);
                 _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers);
+            }
+            else
+            {
+                _logger.LogInformation("Will not publish CheckOffHoursNewConnectionsBody message to hal {halId} because the created message is null", halId);
             }
         }
 

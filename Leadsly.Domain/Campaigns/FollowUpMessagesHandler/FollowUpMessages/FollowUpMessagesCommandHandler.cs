@@ -47,7 +47,9 @@ namespace Leadsly.Domain.Campaigns.FollowUpMessagesHandler.FollowUpMessages
         {
             if (command.HalId != null)
             {
-                await InternalHandleAsync(command.HalId);
+                string halId = command.HalId;
+                _logger.LogInformation("[PublishHalPhasesAsync] Exuecting FollowUpMessagesCommand for halId: {halId}", halId);
+                await InternalHandleAsync(halId);
             }
 
             if (command.HalIds != null)

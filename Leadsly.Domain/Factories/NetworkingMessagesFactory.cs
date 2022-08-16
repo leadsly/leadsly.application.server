@@ -58,6 +58,11 @@ namespace Leadsly.Domain.Factories
         {
             IList<NetworkingMessageBody> messages = new List<NetworkingMessageBody>();
             IList<IDictionary<int, string>> propsectsToCrawlAndTimes = await GetNumberOfNetworkingPhasesAsync(campaignId);
+            if (propsectsToCrawlAndTimes.Count == 0)
+            {
+                _logger.LogDebug("None of the prospects to crawl and their times to crawl and connect with were determined from [GetNumberOfNetworkingPhasesAsync] method.");
+            }
+
             foreach (var propsectsToCrawlAndTime in propsectsToCrawlAndTimes)
             {
                 foreach (var item in propsectsToCrawlAndTime)
@@ -69,11 +74,17 @@ namespace Leadsly.Domain.Factories
                 }
             }
 
+            if (messages.Count == 0)
+            {
+                _logger.LogInformation("No networking messages were generated for CampaignId {campaignId} with UserId {userId}", campaignId, userId);
+            }
+
             return messages;
         }
 
         private async Task<IList<IDictionary<int, string>>> GetNumberOfNetworkingPhasesAsync(string campaignId, CancellationToken ct = default)
         {
+            _logger.LogDebug("Determining number of networking phases for campaign {campaignId}. This will return number of prospects we should connect with and what time.", campaignId);
             IList<IDictionary<int, string>> propsectsToCrawlAndTime = new List<IDictionary<int, string>>();
             Campaign campaign = await _campaignRepositoryFacade.GetCampaignByIdAsync(campaignId, ct);
             if (campaign.IsWarmUpEnabled == true)
@@ -83,8 +94,12 @@ namespace Leadsly.Domain.Factories
             else
             {
                 IList<SendConnectionsStage> sendConnectionsStages = await _campaignRepositoryFacade.GetStagesByCampaignIdAsync(campaignId, ct);
+                _logger.LogDebug($"Number of SendConnectionsStages is: {sendConnectionsStages.Count}");
 
                 int invitesPerStage = Math.DivRem(campaign.DailyInvites, sendConnectionsStages.Count, out int remainderInvites);
+                _logger.LogDebug("Number of invites that should happen per stage is {invitesPerStage}", invitesPerStage);
+                _logger.LogTrace("The remainder of invites is {remainderInvites}", remainderInvites);
+
                 List<int> stagesConnectionsLimit = sendConnectionsStages.OrderBy(s => s.Order).Select(_ => invitesPerStage).ToList();
                 if (remainderInvites != 0)
                 {

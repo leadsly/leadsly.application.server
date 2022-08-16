@@ -26,17 +26,25 @@ namespace Leadsly.Domain.Campaigns.MonitorForNewConnectionsHandlers
 
         public async Task HandleAsync(MonitorForNewConnectionsCommand command)
         {
+            string halId = command.HalId;
+            _logger.LogInformation("[HandleAsync] Exuecting MonitorForNewConnectionsCommand for halId: {halId}", halId);
             string queueNameIn = RabbitMQConstants.MonitorNewAcceptedConnections.QueueName;
             string routingKeyIn = RabbitMQConstants.MonitorNewAcceptedConnections.RoutingKey;
-            string halId = command.HalId;
 
             Dictionary<string, object> headers = new Dictionary<string, object>();
+            _logger.LogInformation($"Setting rabbitMQ headers. Header key {RabbitMQConstants.MonitorNewAcceptedConnections.ExecuteType} header value is {RabbitMQConstants.MonitorNewAcceptedConnections.ExecutePhase}");
             headers.Add(RabbitMQConstants.MonitorNewAcceptedConnections.ExecuteType, RabbitMQConstants.MonitorNewAcceptedConnections.ExecutePhase);
 
+            _logger.LogDebug("Creating MonitorForNewAcceptedConnectionsBody message.");
             MonitorForNewAcceptedConnectionsBody messageBody = await _messagesFactory.CreateMessageAsync(halId, System.Threading.CancellationToken.None);
             if (messageBody != null)
             {
+                _logger.LogInformation("Publishing MonitorForNewAcceptedConnectionsBody message to hal {halId}", halId);
                 _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers);
+            }
+            else
+            {
+                _logger.LogInformation("Will not publish MonitorForNewAcceptedConnectionsBody message to hal {halId} because the message is null", halId);
             }
         }
     }

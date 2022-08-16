@@ -33,7 +33,9 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
 
             if (command.HalId != null)
             {
-                await InternalHandleAsync(command.HalId);
+                string halId = command.HalId;
+                _logger.LogInformation("[PublishHalPhasesAsync] Exuecting ScanProspectsForRepliesCommand for halId: {halId}", halId);
+                await InternalHandleAsync(halId);
             }
         }
 

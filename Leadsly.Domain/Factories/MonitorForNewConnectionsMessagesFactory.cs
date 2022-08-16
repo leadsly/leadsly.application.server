@@ -52,10 +52,17 @@ namespace Leadsly.Domain.Factories
         private async Task<MonitorForNewAcceptedConnectionsBody> CreateMessageBodyForActiveCampaignsAsync(string halId, int numOfHoursAgo, CancellationToken ct = default)
         {
             SocialAccount socialAccount = await _userProvider.GetSocialAccountByHalIdAsync(halId, ct);
+            string email = socialAccount.Username;
+            _logger.LogDebug("Social account {email} is associated with HalId {halId}", email, halId);
             MonitorForNewAcceptedConnectionsBody messageBody = default;
             if (socialAccount.User.Campaigns.Any(c => c.Active == true))
             {
+                _logger.LogDebug("Social account {email} has active campaigns", email);
                 messageBody = await CreateMonitorForNewAcceptedConnectionsBodyAsync(halId, socialAccount.UserId, socialAccount.SocialAccountId, numOfHoursAgo);
+            }
+            else
+            {
+                _logger.LogDebug("Social account {email} does not have any active campaigns. This means that the message body will not be generated.", email);
             }
 
             return messageBody;
@@ -85,7 +92,6 @@ namespace Leadsly.Domain.Factories
 
         private async Task<MonitorForNewAcceptedConnectionsBody> CreateMonitorForNewAcceptedConnectionsBodyAsync(string halId, string userId, string socialAccountId, int numOfHoursAgo = 0, CancellationToken ct = default)
         {
-            _logger.LogInformation("Creating monitor for new connections body message for rabbit mq message broker.");
             MonitorForNewConnectionsPhase monitorForNewConnectionsPhase = await _campaignRepositoryFacade.GetMonitorForNewConnectionsPhaseBySocialAccountIdAsync(socialAccountId, ct);
             HalUnit halUnit = await _halRepository.GetByHalIdAsync(halId, ct);
             VirtualAssistant virtualAssistant = await _virtualAssistantRepository.GetByHalIdAsync(halId, ct);
@@ -131,10 +137,10 @@ namespace Leadsly.Domain.Factories
             string appServerServiceDiscoveryname = config.ApiServiceDiscoveryName;
             string gridNamespaceName = config.ServiceDiscoveryConfig.Grid.Name;
             string gridServiceDiscoveryName = gridEcsService.CloudMapDiscoveryService.Name;
-            _logger.LogTrace("MonitorForNewAcceptedConnectionsBody object is configured with Grid Namespace Name of {gridNamespaceName}", gridNamespaceName);
-            _logger.LogTrace("MonitorForNewAcceptedConnectionsBody object is configured with Grid Service discovery name of {gridServiceDiscoveryname}", gridServiceDiscoveryName);
-            _logger.LogTrace("MonitorForNewAcceptedConnectionsBody object is configured with AppServer Namespace Name of {appServerNamespaceName}", appServerNamespaceName);
-            _logger.LogTrace("MonitorForNewAcceptedConnectionsBody object is configured with AppServer Service discovery name of {appServerServiceDiscoveryname}", appServerServiceDiscoveryname);
+            _logger.LogTrace("MonitorForNewAcceptedConnectionsBody/CheckOffHoursNewConnectionsBody object is configured with Grid Namespace Name of {gridNamespaceName}", gridNamespaceName);
+            _logger.LogTrace("MonitorForNewAcceptedConnectionsBody/CheckOffHoursNewConnectionsBody object is configured with Grid Service discovery name of {gridServiceDiscoveryname}", gridServiceDiscoveryName);
+            _logger.LogTrace("MonitorForNewAcceptedConnectionsBody/CheckOffHoursNewConnectionsBody object is configured with AppServer Namespace Name of {appServerNamespaceName}", appServerNamespaceName);
+            _logger.LogTrace("MonitorForNewAcceptedConnectionsBody/CheckOffHoursNewConnectionsBody object is configured with AppServer Service discovery name of {appServerServiceDiscoveryname}", appServerServiceDiscoveryname);
 
             return monitorForNewAcceptedConnectionsBody;
         }

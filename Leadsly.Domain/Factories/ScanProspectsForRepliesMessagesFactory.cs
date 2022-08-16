@@ -49,13 +49,20 @@ namespace Leadsly.Domain.Factories
             HalUnit halUnit = await _halRepository.GetByHalIdAsync(halId);
 
             SocialAccount socialAccount = await _userProvider.GetSocialAccountByHalIdAsync(halId, ct);
+            string email = socialAccount.Username;
+            _logger.LogDebug("Social account {email} is associated with HalId {halId}", email, halId);
             ScanProspectsForRepliesBody messageBody = default;
             if (socialAccount.User.Campaigns.Any(c => c.Active == true))
             {
+                _logger.LogDebug("Active campaigns have been found for halId {halId}", halId);
                 // fire off ScanProspectsForRepliesPhase with the payload of the contacted prospects
                 string scanProspectsForRepliesPhaseId = halUnit.SocialAccount.ScanProspectsForRepliesPhase.ScanProspectsForRepliesPhaseId;
 
                 return await CreateScanProspectsForRepliesBodyAsync(scanProspectsForRepliesPhaseId, halId, campaignProspects, ct);
+            }
+            else
+            {
+                _logger.LogDebug("No active campaigns were found for halId {halId}", halId);
             }
 
             return messageBody;
@@ -117,6 +124,7 @@ namespace Leadsly.Domain.Factories
             // this is important because hal will then go through all of these proepcts and search messaging history and look for that specific message.
             if (campaignProspects != null)
             {
+                _logger.LogInformation("CampaignProspects have been set and populated");
                 IList<ContactedCampaignProspect> contactedCampaignProspects = new List<ContactedCampaignProspect>();
                 foreach (CampaignProspect campaignProspect in campaignProspects)
                 {
@@ -130,6 +138,8 @@ namespace Leadsly.Domain.Factories
                     }
                     else
                     {
+                        string prospectName = campaignProspect.Name;
+                        _logger.LogDebug("CampaignProspect {prospectName} had a follow up message sent. The follow up message that was sent had the order number of {lastFollowUpMessageOrder}", prospectName, lastFollowUpMessageOrder);
                         ContactedCampaignProspect contactedCampaignProspect = new()
                         {
                             CampaignProspectId = campaignProspect.CampaignProspectId,
@@ -141,6 +151,8 @@ namespace Leadsly.Domain.Factories
                         contactedCampaignProspects.Add(contactedCampaignProspect);
                     }
                 }
+                int count = contactedCampaignProspects.Count();
+                _logger.LogDebug("Number of prospects who have received a follow up message is {count}", count);
                 scanProspectsForRepliesBody.ContactedCampaignProspects = contactedCampaignProspects;
             }
 
@@ -148,10 +160,10 @@ namespace Leadsly.Domain.Factories
             string appServerServiceDiscoveryname = config.ApiServiceDiscoveryName;
             string gridNamespaceName = config.ServiceDiscoveryConfig.Grid.Name;
             string gridServiceDiscoveryName = gridEcsService.CloudMapDiscoveryService.Name;
-            _logger.LogTrace("ScanProspectsForRepliesBody object is configured with Grid Namespace Name of {gridNamespaceName}", gridNamespaceName);
-            _logger.LogTrace("ScanProspectsForRepliesBody object is configured with Grid Service discovery name of {gridServiceDiscoveryname}", gridServiceDiscoveryName);
-            _logger.LogTrace("ScanProspectsForRepliesBody object is configured with AppServer Namespace Name of {appServerNamespaceName}", appServerNamespaceName);
-            _logger.LogTrace("ScanProspectsForRepliesBody object is configured with AppServer Service discovery name of {appServerServiceDiscoveryname}", appServerServiceDiscoveryname);
+            _logger.LogTrace("ScanProspectsForRepliesBody/DeepScanProspectsForReplies object is configured with Grid Namespace Name of {gridNamespaceName}", gridNamespaceName);
+            _logger.LogTrace("ScanProspectsForRepliesBody/DeepScanProspectsForReplies object is configured with Grid Service discovery name of {gridServiceDiscoveryname}", gridServiceDiscoveryName);
+            _logger.LogTrace("ScanProspectsForRepliesBody/DeepScanProspectsForReplies object is configured with AppServer Namespace Name of {appServerNamespaceName}", appServerNamespaceName);
+            _logger.LogTrace("ScanProspectsForRepliesBody/DeepScanProspectsForReplies object is configured with AppServer Service discovery name of {appServerServiceDiscoveryname}", appServerServiceDiscoveryname);
 
             return scanProspectsForRepliesBody;
         }

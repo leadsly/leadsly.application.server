@@ -78,13 +78,13 @@ namespace Leadsly.Domain.Services
         {
             //////////////////////////////////////////////////////////////////////////////////////
             ///// ScanForNewConnectionsOffHours
-            //////////////////////////////////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////////////////////////////            
             CheckOffHoursNewConnectionsCommand offHoursCommand = new CheckOffHoursNewConnectionsCommand(halId);
             await _offHoursHandler.HandleAsync(offHoursCommand);
 
             ////////////////////////////////////////////////////////////////////////////////////
             /// MonitorForNewConnectionsAll
-            ////////////////////////////////////////////////////////////////////////////////////
+            ////////////////////////////////////////////////////////////////////////////////////            
             MonitorForNewConnectionsCommand monitorForNewConnectionsCommand = new MonitorForNewConnectionsCommand(halId);
             await _monitorHandler.HandleAsync(monitorForNewConnectionsCommand);
 
@@ -105,7 +105,7 @@ namespace Leadsly.Domain.Services
             await _networkingCommandHandler.HandleAsync(networkingCommand);
         }
 
-        public async Task ProspectingPhaseAsync(string halId, CancellationToken ct = default)
+        private async Task ProspectingPhaseAsync(string halId, CancellationToken ct = default)
         {
             if (await PublishDeepScanAsync(halId, ct) == true)
             {

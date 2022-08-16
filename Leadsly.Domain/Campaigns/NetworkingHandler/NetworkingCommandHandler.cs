@@ -60,6 +60,7 @@ namespace Leadsly.Domain.Campaigns.NetworkingHandler
 
         private async Task HandleInternalAsync(string halId, CancellationToken ct = default)
         {
+            _logger.LogInformation("Creating NetworkingMessageBody for halId {halId}. This is triggered on daily basis", halId);
             IList<NetworkingMessageBody> messages = await _networkingMessagesFactory.CreateNetworkingMessagesAsync(halId, ct);
 
             await SchedulePhaseMessagesAsync(messages);
@@ -67,14 +68,25 @@ namespace Leadsly.Domain.Campaigns.NetworkingHandler
 
         private async Task HandleInternalAsync(string campaignId, string userId, CancellationToken ct = default)
         {
+            _logger.LogInformation("Creating NetworkingMessageBody because new campaign was created. CampaignId {campaignId} for UserId {userId}", campaignId, userId);
             IList<NetworkingMessageBody> messages = await _networkingMessagesFactory.CreateNetworkingMessagesAsync(campaignId, userId, ct);
-            await SchedulePhaseMessagesAsync(messages);
+
+            if (messages.Count == 0)
+            {
+                _logger.LogDebug("There were no NetworkingMessages generated.");
+            }
+            else
+            {
+                await SchedulePhaseMessagesAsync(messages);
+            }
         }
 
         private async Task SchedulePhaseMessagesAsync(IList<NetworkingMessageBody> messages)
         {
             foreach (NetworkingMessageBody message in messages)
             {
+                int numberOfProspectsToCrawl = message.ProspectsToCrawl;
+                _logger.LogDebug("Scheduling NetworkingMessageBody. Number of prospects to crawl and connect with for this message is {numberOfProspectsToCrawl}", numberOfProspectsToCrawl);
                 await SchedulePhaseMessageAsync(message);
             }
         }

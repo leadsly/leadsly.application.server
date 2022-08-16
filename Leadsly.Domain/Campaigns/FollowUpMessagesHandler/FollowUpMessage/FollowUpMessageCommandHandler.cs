@@ -1,5 +1,4 @@
-﻿using Hangfire;
-using Leadsly.Application.Model;
+﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
 using Leadsly.Domain.Factories.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
