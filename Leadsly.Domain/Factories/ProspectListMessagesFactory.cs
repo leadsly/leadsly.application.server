@@ -46,8 +46,8 @@ namespace Leadsly.Domain.Factories
             _logger.LogInformation("Creating prospect list body message for rabbit mq message broker.");
             ProspectListPhase prospectListPhase = await _campaignRepositoryFacade.GetProspectListPhaseByIdAsync(prospectListPhaseId, ct);
             string primaryProspectListId = prospectListPhase.Campaign.CampaignProspectList.PrimaryProspectListId;
-
-            HalUnit halUnit = await _halRepository.GetByHalIdAsync(prospectListPhase.Campaign.HalId, ct);
+            string halId = prospectListPhase.Campaign.HalId;
+            HalUnit halUnit = await _halRepository.GetByHalIdAsync(halId, ct);
             VirtualAssistant virtualAssistant = await _virtualAssistantRepository.GetByHalIdAsync(halUnit.HalId, ct);
             EcsService gridEcsService = virtualAssistant.EcsServices.FirstOrDefault(x => x.Purpose == Purpose.Grid);
             string virtualAssistantId = virtualAssistant.VirtualAssistantId;
@@ -100,10 +100,10 @@ namespace Leadsly.Domain.Factories
             string appServerServiceDiscoveryname = config.ApiServiceDiscoveryName;
             string gridNamespaceName = config.ServiceDiscoveryConfig.Grid.Name;
             string gridServiceDiscoveryName = gridEcsService.CloudMapDiscoveryService.Name;
-            _logger.LogTrace("ProspectListBody object is configured with Grid Namespace Name of {gridNamespaceName}", gridNamespaceName);
-            _logger.LogTrace("ProspectListBody object is configured with Grid Service discovery name of {gridServiceDiscoveryname}", gridServiceDiscoveryName);
-            _logger.LogTrace("ProspectListBody object is configured with AppServer Namespace Name of {appServerNamespaceName}", appServerNamespaceName);
-            _logger.LogTrace("ProspectListBody object is configured with AppServer Service discovery name of {appServerServiceDiscoveryname}", appServerServiceDiscoveryname);
+            _logger.LogTrace("ProspectListBody object is configured with Grid Namespace Name of {gridNamespaceName}. This HalId is  {halId}", gridNamespaceName, halId);
+            _logger.LogTrace("ProspectListBody object is configured with Grid Service discovery name of {gridServiceDiscoveryname}. This HalId is  {halId}", gridServiceDiscoveryName, halId);
+            _logger.LogTrace("ProspectListBody object is configured with AppServer Namespace Name of {appServerNamespaceName}. This HalId is  {halId}", appServerNamespaceName, halId);
+            _logger.LogTrace("ProspectListBody object is configured with AppServer Service discovery name of {appServerServiceDiscoveryname}. This HalId is  {halId}", appServerServiceDiscoveryname, halId);
 
             return prospectListBody;
         }

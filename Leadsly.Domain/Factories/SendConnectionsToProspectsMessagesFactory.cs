@@ -42,7 +42,8 @@ namespace Leadsly.Domain.Factories
         private async Task<SendConnectionsBody> CreateSendConnectionsBodyAsync(Campaign campaign, CampaignWarmUp campaignWarmUp = null, CancellationToken ct = default)
         {
             _logger.LogInformation("Creating send connections body message for rabbit mq message broker.");
-            HalUnit halUnit = await _halRepository.GetByHalIdAsync(campaign.HalId, ct);
+            string halId = campaign.HalId;
+            HalUnit halUnit = await _halRepository.GetByHalIdAsync(halId, ct);
             VirtualAssistant virtualAssistant = await _virtualAssistantRepository.GetByHalIdAsync(halUnit.HalId, ct);
             EcsService gridEcsService = virtualAssistant.EcsServices.FirstOrDefault(x => x.Purpose == Purpose.Grid);
             string virtualAssistantId = virtualAssistant.VirtualAssistantId;
@@ -96,10 +97,10 @@ namespace Leadsly.Domain.Factories
             string appServerServiceDiscoveryname = config.ApiServiceDiscoveryName;
             string gridNamespaceName = config.ServiceDiscoveryConfig.Grid.Name;
             string gridServiceDiscoveryName = gridEcsService.CloudMapDiscoveryService.Name;
-            _logger.LogTrace("SendConnectionsBody object is configured with Grid Namespace Name of {gridNamespaceName}", gridNamespaceName);
-            _logger.LogTrace("SendConnectionsBody object is configured with Grid Service discovery name of {gridServiceDiscoveryname}", gridServiceDiscoveryName);
-            _logger.LogTrace("SendConnectionsBody object is configured with AppServer Namespace Name of {appServerNamespaceName}", appServerNamespaceName);
-            _logger.LogTrace("SendConnectionsBody object is configured with AppServer Service discovery name of {appServerServiceDiscoveryname}", appServerServiceDiscoveryname);
+            _logger.LogTrace("SendConnectionsBody object is configured with Grid Namespace Name of {gridNamespaceName}. This HalId is  {halId}", gridNamespaceName, halId);
+            _logger.LogTrace("SendConnectionsBody object is configured with Grid Service discovery name of {gridServiceDiscoveryname}. This HalId is  {halId}", gridServiceDiscoveryName, halId);
+            _logger.LogTrace("SendConnectionsBody object is configured with AppServer Namespace Name of {appServerNamespaceName}. This HalId is  {halId}", appServerNamespaceName, halId);
+            _logger.LogTrace("SendConnectionsBody object is configured with AppServer Service discovery name of {appServerServiceDiscoveryname}. This HalId is  {halId}", appServerServiceDiscoveryname, halId);
 
             return sendConnectionsBody;
         }

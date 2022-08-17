@@ -160,10 +160,10 @@ namespace Leadsly.Domain.Factories
             string appServerServiceDiscoveryname = config.ApiServiceDiscoveryName;
             string gridNamespaceName = config.ServiceDiscoveryConfig.Grid.Name;
             string gridServiceDiscoveryName = gridEcsService.CloudMapDiscoveryService.Name;
-            _logger.LogTrace("ScanProspectsForRepliesBody/DeepScanProspectsForReplies object is configured with Grid Namespace Name of {gridNamespaceName}", gridNamespaceName);
-            _logger.LogTrace("ScanProspectsForRepliesBody/DeepScanProspectsForReplies object is configured with Grid Service discovery name of {gridServiceDiscoveryname}", gridServiceDiscoveryName);
-            _logger.LogTrace("ScanProspectsForRepliesBody/DeepScanProspectsForReplies object is configured with AppServer Namespace Name of {appServerNamespaceName}", appServerNamespaceName);
-            _logger.LogTrace("ScanProspectsForRepliesBody/DeepScanProspectsForReplies object is configured with AppServer Service discovery name of {appServerServiceDiscoveryname}", appServerServiceDiscoveryname);
+            _logger.LogTrace("ScanProspectsForRepliesBody/DeepScanProspectsForReplies object is configured with Grid Namespace Name of {gridNamespaceName}. This HalId is: {halId}", gridNamespaceName, halId);
+            _logger.LogTrace("ScanProspectsForRepliesBody/DeepScanProspectsForReplies object is configured with Grid Service discovery name of {gridServiceDiscoveryname}. This HalId is  {halId}", gridServiceDiscoveryName, halId);
+            _logger.LogTrace("ScanProspectsForRepliesBody/DeepScanProspectsForReplies object is configured with AppServer Namespace Name of {appServerNamespaceName}. This HalId is  {halId}", appServerNamespaceName, halId);
+            _logger.LogTrace("ScanProspectsForRepliesBody/DeepScanProspectsForReplies object is configured with AppServer Service discovery name of {appServerServiceDiscoveryname}. This HalId is  {halId}", appServerServiceDiscoveryname, halId);
 
             return scanProspectsForRepliesBody;
         }
