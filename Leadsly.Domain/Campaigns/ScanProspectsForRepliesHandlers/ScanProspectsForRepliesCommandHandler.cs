@@ -53,13 +53,19 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
 
             if (messageBody != null)
             {
+                _logger.LogDebug("ScanProspectsForRepliesBody has been generated.");
                 string queueNameIn = RabbitMQConstants.ScanProspectsForReplies.QueueName;
                 string routingKeyIn = RabbitMQConstants.ScanProspectsForReplies.RoutingKey;
 
                 Dictionary<string, object> headers = new Dictionary<string, object>();
+                _logger.LogInformation($"Setting rabbitMQ headers. Header key {RabbitMQConstants.ScanProspectsForReplies.ExecutionType} header value is {RabbitMQConstants.ScanProspectsForReplies.ExecutePhase}");
                 headers.Add(RabbitMQConstants.ScanProspectsForReplies.ExecutionType, RabbitMQConstants.ScanProspectsForReplies.ExecutePhase);
 
                 _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers);
+            }
+            else
+            {
+                _logger.LogDebug("ScanProspectsForRepliesBody has NOT been generated. ScanProspectsForRepliesPhase will not be published");
             }
         }
     }

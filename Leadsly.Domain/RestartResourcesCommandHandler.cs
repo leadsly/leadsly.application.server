@@ -50,6 +50,9 @@ namespace Leadsly.Domain
 
                     if (listTasksResponse.HttpStatusCode == System.Net.HttpStatusCode.OK)
                     {
+                        string serviceName = halEcsService.ServiceName;
+                        string numberOfTasks = listTasksResponse.TaskArns.Count().ToString();
+                        _logger.LogDebug("ListTasks request to AWS succeeded. Service name used was {serviceName} and number of tasks returned was {numberOfTasks}", serviceName, numberOfTasks);
                         foreach (string taskArn in listTasksResponse.TaskArns)
                         {
                             StopEcsTaskRequest request = new()
@@ -78,10 +81,10 @@ namespace Leadsly.Domain
                             {
                                 return new EcsTask
                                 {
-                                    ContainerName = x.ContainerName,
                                     EcsService = halEcsService,
                                     EcsServiceId = halEcsService.EcsServiceId,
-                                    TaskArn = taskArn
+                                    TaskArn = taskArn,
+                                    EcsTaskId = x.EcsTaskId
                                 };
                             }).ToList();
 
