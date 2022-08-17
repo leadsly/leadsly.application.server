@@ -76,9 +76,12 @@ namespace Leadsly.Domain
                             }
 
                             // update ecs service tasks arn
-                            _logger.LogInformation("Updating Ecs Tasks with latest task arn");
+                            _logger.LogInformation("Updating Ecs Tasks with latest task arn.");
                             IList<EcsTask> updatedEcsTasks = halEcsService.EcsTasks.Select(x =>
                             {
+                                string staleTaskArn = x.TaskArn;
+                                string freshTaskArn = taskArn;
+                                _logger.LogDebug("Stale TaskArn is {staleTaskArn}, fresh TaskArn is {freshTaskArn}", staleTaskArn, freshTaskArn);
                                 return new EcsTask
                                 {
                                     EcsService = halEcsService,
