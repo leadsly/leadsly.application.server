@@ -37,19 +37,8 @@ namespace Leadsly.Domain
         private readonly IHangfireService _hangfireService;
         private readonly ITimeZoneRepository _timezoneRepository;
 
-        /// <summary>
-        /// This method is executed once a day at 4:40AM of the currently executing timezone. 
-        /// It grabs all of HalUnits registered in this timezone parses out each Hal unit start hour (7:00AM for example)
-        /// and schedules a job to go out at that time.
-        /// </summary>
-        /// <param name="timeZoneId"></param>
-        /// <returns></returns>
-        public async Task PublishJobsAsync(string timeZoneId)
+        public async Task PublishRestartJobsPerTimezoneAsync(string timeZoneId)
         {
-            // get all hal ids for this time zone
-            _logger.LogInformation("Executing daily cron job for time zone {timeZoneId}", timeZoneId);
-            // IList<HalTimeZone> halTimeZones = await _timezoneRepository.GetAllByTimeZoneIdAsync(timeZoneId);
-
             IList<HalUnit> halsInTimezone = await _halRepository.GetAllByTimeZoneIdAsync(timeZoneId);
             if (halsInTimezone.Count > 0)
             {
@@ -69,6 +58,45 @@ namespace Leadsly.Domain
                     _logger.LogInformation($"Hal unit with id {halId}, has a restart date of {restartStartDate}");
                     _logger.LogDebug("Scheduling RestartHalAsync for halId {halId}", halId);
                     _hangfireService.Schedule<ILeadslyRecurringJobsManagerService>((x) => x.RestartHalAsync(halId), restartStartDate);
+                }
+            }
+            else
+            {
+                _logger.LogInformation("No hal units found for time zone {timeZoneId}", timeZoneId);
+            }
+        }
+
+        /// <summary>
+        /// This method is executed once a day at 4:40AM of the currently executing timezone. 
+        /// It grabs all of HalUnits registered in this timezone parses out each Hal unit start hour (7:00AM for example)
+        /// and schedules a job to go out at that time.
+        /// </summary>
+        /// <param name="timeZoneId"></param>
+        /// <returns></returns>
+        public async Task PublishJobsAsync(string timeZoneId)
+        {
+            // get all hal ids for this time zone
+            _logger.LogInformation("Executing daily cron job for time zone {timeZoneId}", timeZoneId);
+
+            IList<HalUnit> halsInTimezone = await _halRepository.GetAllByTimeZoneIdAsync(timeZoneId);
+            if (halsInTimezone.Count > 0)
+            {
+                int hals = halsInTimezone.Count;
+                _logger.LogDebug("Time zone {timeZoneId}, has {hals} hal units.", timeZoneId, hals);
+
+                foreach (HalUnit halUnit in halsInTimezone)
+                {
+                    // Grab this Hal's start time and schedule the job shortly after the start time                    
+                    string halId = halUnit.HalId;
+                    _logger.LogInformation("Hal unit with id {halId} was found", halId);
+                    DateTimeOffset startDate = _timestampService.ParseDateTimeOffsetLocalized(halUnit.TimeZoneId, halUnit.StartHour);
+                    _logger.LogInformation($"Hal unit with id {halId}, has a start date of {startDate}");
+
+                    // restart hal one hour before all phases are expected to start executing
+                    //DateTimeOffset restartStartDate = startDate.AddMinutes(-60);
+                    //_logger.LogInformation($"Hal unit with id {halId}, has a restart date of {restartStartDate}");
+                    //_logger.LogDebug("Scheduling RestartHalAsync for halId {halId}", halId);
+                    //_hangfireService.Schedule<ILeadslyRecurringJobsManagerService>((x) => x.RestartHalAsync(halId), restartStartDate);
 
                     DateTimeOffset checkOffHoursNewConnectionsStartDate = startDate;
                     _logger.LogDebug("Scheduling PublishCheckOffHoursNewConnectionsAsync for halId {halId}. Start time for this phase is {checkOffHoursNewConnectionsStartDate}", halId, checkOffHoursNewConnectionsStartDate);
@@ -131,6 +159,47 @@ namespace Leadsly.Domain
                             _logger.LogInformation("Daily Cron job is about to execute. This will go through all supported time zones and triggers jobs for active campaigns");
                             TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
                             _hangfireService.AddOrUpdate<IRecurringJobsHandler>(jobName, (x) => x.PublishJobsAsync(timeZoneId), HangFireConstants.RecurringJobs.DailyCronSchedule, tzInfo);
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogInformation("Recurring job was found. No need to create a new recurring job");
+                    }
+                }
+            }
+        }
+
+        public async Task ScheduleRestartJobsForNewTimeZonesAsync()
+        {
+            IList<LeadslyTimeZone> supportedTimeZones = await _timezoneRepository.GetAllSupportedTimeZonesAsync();
+            _logger.LogDebug($"'ScheduleRestartJobsForNewTimeZonesAsync' found {supportedTimeZones.Count} supported time zones");
+
+            using (var connection = JobStorage.Current.GetConnection())
+            {
+                foreach (LeadslyTimeZone leadslyTimeZone in supportedTimeZones)
+                {
+                    string timeZoneId = leadslyTimeZone.TimeZoneId;
+                    _logger.LogTrace("Currently executing job is for for {timeZoneId}", timeZoneId);
+                    string timeZoneIdNormalized = timeZoneId.Trim().Replace(" ", string.Empty);
+                    string jobName = $"RestartHal_{timeZoneIdNormalized}";
+                    _logger.LogTrace("Recurring daily Hangfire job name is {jobName}", jobName);
+
+                    string hangfireRecurringJobName = $"recurring-job:{jobName}";
+                    _logger.LogDebug($"Retrieving Hangfire recurring job using the following hash name {hangfireRecurringJobName}");
+                    Dictionary<string, string> recurringJob = connection.GetAllEntriesFromHash(hangfireRecurringJobName);
+
+                    if (recurringJob == null || recurringJob?.Count == 0)
+                    {
+                        _logger.LogDebug("Recurring job was not found. Creating a new recurring job called {jobName}", jobName);
+                        if (_env.IsDevelopment())
+                        {
+                            _hangfireService.Enqueue<IRecurringJobsHandler>(x => x.PublishRestartJobsPerTimezoneAsync(timeZoneId));
+                        }
+                        else
+                        {
+                            _logger.LogInformation("Daily Cron job is about to execute. This will go through all supported time zones and triggers jobs to restart all registered hal units");
+                            TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+                            _hangfireService.AddOrUpdate<IRecurringJobsHandler>(jobName, (x) => x.PublishRestartJobsPerTimezoneAsync(timeZoneId), HangFireConstants.RecurringJobs.DailyCronSchedule, tzInfo);
                         }
                     }
                     else
