@@ -325,10 +325,40 @@ namespace Leadsly.Infrastructure.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to save ecs task definition to the database");
+                _logger.LogError(ex, "Failed to save ecs service to the database");
                 return null;
             }
             return newEcsService;
+        }
+
+        public async Task<EcsService> UpdateEcsServiceAsync(EcsService updatedEcsService, CancellationToken ct = default)
+        {
+            try
+            {
+                _dbContext.EcsServices.Update(updatedEcsService);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to update ecs service in the database");
+                return null;
+            }
+            return updatedEcsService;
+        }
+
+        public async Task<IList<EcsTask>> UpdateEcsTasksAsync(IList<EcsTask> updatedEcsTasks, CancellationToken ct = default)
+        {
+            try
+            {
+                _dbContext.EcsTasks.UpdateRange(updatedEcsTasks);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to update ecs tasks in the database");
+                return null;
+            }
+            return updatedEcsTasks;
         }
 
         public async Task<CloudMapDiscoveryService> AddServiceDiscoveryAsync(CloudMapDiscoveryService newCloudMapServiceDiscovery, CancellationToken ct = default)
