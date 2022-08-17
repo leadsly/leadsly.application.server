@@ -74,7 +74,7 @@ namespace Leadsly.Application.Api.Controllers
             _logger.LogTrace("EmailChallengePinAsync action executed");
 
             string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            TwoFactorAuthResultViewModel result = await _supervisor.EnterEmailChallengePinAsync(userId, request, ct);
+            EmailChallengePinResultViewModel result = await _supervisor.EnterEmailChallengePinAsync(userId, request, ct);
 
             return result == null ? BadRequest(ProblemDetailsDescriptions.EnterTwoFactorAuthCode) : Ok(result);
         }
