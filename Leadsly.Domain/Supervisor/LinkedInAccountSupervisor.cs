@@ -183,15 +183,19 @@ namespace Leadsly.Domain.Supervisor
             EnterEmailChallengePinResponse response = await _leadslyHalProvider.EnterEmailChallengePinAsync(request.Pin, halEcsService.CloudMapDiscoveryService.Name, gridEcsService.CloudMapDiscoveryService.Name, ct);
             if (response == null)
             {
+                _logger.LogError("Response from hal was null");
                 return null;
             }
 
             if (response.InvalidOrExpiredPin == false && response.UnexpectedErrorOccured == false && response.FailedToEnterPin == false && response.TwoFactorAuthRequired == false)
             {
+                string email = request.Username;
+                _logger.LogInformation("Successfully entered email challenge pin and two factor auth is not required. Creating social account for UserId {userId} with email {email}", userId, email);
                 // assume we've successfully linked the account so now we can create new social account for the user
                 SocialAccount socialAccount = await _userProvider.CreateSocialAccountAsync(virtualAssistant, userId, request.Username, ct);
                 if (socialAccount == null)
                 {
+                    _logger.LogError("Failed to create social account for UserId {userId} with email {email}", userId, email);
                     return null;
                 }
             }

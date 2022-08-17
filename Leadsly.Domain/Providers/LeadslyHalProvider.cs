@@ -84,6 +84,7 @@ namespace Leadsly.Domain.Providers
                 _logger.LogError($"Failed to send request to enter email challenge pin for hal id {values?.FirstOrDefault()}. The response is null or status code is not successful");
                 return null;
             }
+            _logger.LogInformation("Successfully sent request to Hal to enter email challenge pin");
 
             string content = await resp.Content?.ReadAsStringAsync();
             EnterEmailChallengePinResponse response = JsonConvert.DeserializeObject<EnterEmailChallengePinResponse>(content);
