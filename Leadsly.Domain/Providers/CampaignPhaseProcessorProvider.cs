@@ -102,15 +102,15 @@ namespace Leadsly.Domain.Providers
                 if (campaignProspectListIds.Contains(campaignProspectListId))
                     continue;
 
-                // get the primary prospect list by its id                
-                CampaignProspectList campaignProspectList = await _campaignRepositoryFacade.GetCampaignProspectListByListIdAsync(campaignProspectListId);
+                // get the primary prospect list by its id                                
+                IList<CampaignProspect> campaignProspects = await _campaignRepositoryFacade.GetAllCampaignProspectsByCampaignIdAsync(campaign.CampaignId, ct);
 
-                if (campaignProspectList != null)
+                if (campaignProspects != null || campaignProspects.Count > 0)
                 {
-                    activeCampaignProspects.AddRange(campaignProspectList.CampaignProspects);
+                    activeCampaignProspects.AddRange(campaignProspects);
 
                     // try and add that primary prospect list to the dictionary
-                    campaignProspectListIds.Add(campaignProspectListId);
+                    campaignProspectListIds.Add(campaign.CampaignProspectList.CampaignProspectListId);
                 }
             }
 

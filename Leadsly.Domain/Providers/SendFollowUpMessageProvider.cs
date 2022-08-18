@@ -67,7 +67,7 @@ namespace Leadsly.Domain.Providers
                 if (messages != null && messages.Count != 0)
                 {
                     IList<int> nextFollowUpMessageOrders = DetermineNextFollowUpMessages(campaignProspect, messages);
-                    if (nextFollowUpMessageOrders.Count != 0)
+                    if (nextFollowUpMessageOrders.Count == 0)
                     {
                         // this campaign prospect has received all of the follow up messages configured
                         // check if the last follow up message was sent 14 or more days ago, if yes mark this prospect as complete or fullfilled
