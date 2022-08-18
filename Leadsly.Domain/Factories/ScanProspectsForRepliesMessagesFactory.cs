@@ -46,23 +46,34 @@ namespace Leadsly.Domain.Factories
 
         public async Task<ScanProspectsForRepliesBody> CreateMessageAsync(string halId, IList<CampaignProspect> campaignProspects = default, CancellationToken ct = default)
         {
-            HalUnit halUnit = await _halRepository.GetByHalIdAsync(halId);
-
-            SocialAccount socialAccount = await _userProvider.GetSocialAccountByHalIdAsync(halId, ct);
-            string email = socialAccount.Username;
-            _logger.LogDebug("Social account {email} is associated with HalId {halId}", email, halId);
             ScanProspectsForRepliesBody messageBody = default;
-            if (socialAccount.User.Campaigns.Any(c => c.Active == true))
+            HalUnit halUnit = await _halRepository.GetByHalIdAsync(halId);
+            if (halUnit != null)
             {
-                _logger.LogDebug("Active campaigns have been found for halId {halId}", halId);
-                // fire off ScanProspectsForRepliesPhase with the payload of the contacted prospects
-                string scanProspectsForRepliesPhaseId = halUnit.SocialAccount.ScanProspectsForRepliesPhase.ScanProspectsForRepliesPhaseId;
+                _logger.LogInformation("HalUnit with HalId {halId} found.", halId);
+                SocialAccount socialAccount = await _userProvider.GetSocialAccountByHalIdAsync(halId, ct);
+                if (socialAccount != null)
+                {
+                    string email = socialAccount.Username;
+                    _logger.LogDebug("Social account {email} is associated with HalId {halId}", email, halId);
 
-                return await CreateScanProspectsForRepliesBodyAsync(scanProspectsForRepliesPhaseId, halId, campaignProspects, ct);
+                    if (socialAccount.User?.Campaigns?.Any(c => c.Active == true) == true)
+                    {
+                        _logger.LogDebug("Active campaigns have been found for halId {halId}", halId);
+                        // fire off ScanProspectsForRepliesPhase with the payload of the contacted prospects
+                        string scanProspectsForRepliesPhaseId = halUnit.SocialAccount.ScanProspectsForRepliesPhase.ScanProspectsForRepliesPhaseId;
+
+                        return await CreateScanProspectsForRepliesBodyAsync(scanProspectsForRepliesPhaseId, halId, campaignProspects, ct);
+                    }
+                    else
+                    {
+                        _logger.LogDebug("No active campaigns were found for halId {halId}", halId);
+                    }
+                }
             }
             else
             {
-                _logger.LogDebug("No active campaigns were found for halId {halId}", halId);
+                _logger.LogDebug("HalUnit with HalId {halId} not found.", halId);
             }
 
             return messageBody;

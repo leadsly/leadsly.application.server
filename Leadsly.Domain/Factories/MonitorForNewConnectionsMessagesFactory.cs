@@ -51,18 +51,28 @@ namespace Leadsly.Domain.Factories
 
         private async Task<MonitorForNewAcceptedConnectionsBody> CreateMessageBodyForActiveCampaignsAsync(string halId, int numOfHoursAgo, CancellationToken ct = default)
         {
-            SocialAccount socialAccount = await _userProvider.GetSocialAccountByHalIdAsync(halId, ct);
-            string email = socialAccount.Username;
-            _logger.LogDebug("Social account {email} is associated with HalId {halId}", email, halId);
             MonitorForNewAcceptedConnectionsBody messageBody = default;
-            if (socialAccount.User.Campaigns.Any(c => c.Active == true))
+            SocialAccount socialAccount = await _userProvider.GetSocialAccountByHalIdAsync(halId, ct);
+            // it is possible that hal was created but user never linked their account.
+            if (socialAccount != null)
             {
-                _logger.LogDebug("Social account {email} has active campaigns", email);
-                messageBody = await CreateMonitorForNewAcceptedConnectionsBodyAsync(halId, socialAccount.UserId, socialAccount.SocialAccountId, numOfHoursAgo);
+                _logger.LogInformation("Social account associated with HalId {halId} was found!", halId);
+                string email = socialAccount.Username;
+                _logger.LogDebug("Social account {email} is associated with HalId {halId}", email, halId);
+
+                if (socialAccount.User?.Campaigns?.Any(c => c.Active == true) == true)
+                {
+                    _logger.LogDebug("Social account {email} has active campaigns", email);
+                    messageBody = await CreateMonitorForNewAcceptedConnectionsBodyAsync(halId, socialAccount.UserId, socialAccount.SocialAccountId, numOfHoursAgo);
+                }
+                else
+                {
+                    _logger.LogDebug("Social account {email} does not have any active campaigns. This means that the message body will not be generated.", email);
+                }
             }
             else
             {
-                _logger.LogDebug("Social account {email} does not have any active campaigns. This means that the message body will not be generated.", email);
+                _logger.LogDebug("Hal with HalId {halId} does not have any social account associated with it. MessageBody will not be generated", halId);
             }
 
             return messageBody;
