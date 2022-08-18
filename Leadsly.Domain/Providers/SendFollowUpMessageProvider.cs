@@ -64,14 +64,15 @@ namespace Leadsly.Domain.Providers
             foreach (CampaignProspect campaignProspect in campaignProspects)
             {
                 IList<FollowUpMessage> messages = await GetFollowUpMessagesByCampaignIdAsync(campaignProspect.CampaignId, ct);
-                if (messages != null)
+                if (messages != null && messages.Count != 0)
                 {
                     IList<int> nextFollowUpMessageOrders = DetermineNextFollowUpMessages(campaignProspect, messages);
-                    if (nextFollowUpMessageOrders.Count == 0)
+                    if (nextFollowUpMessageOrders.Count != 0)
                     {
                         // this campaign prospect has received all of the follow up messages configured
                         // check if the last follow up message was sent 14 or more days ago, if yes mark this prospect as complete or fullfilled
                         DateTimeOffset localLastFollowUpMessage = await _timestampService.GetDateFromTimestampLocalizedAsync(campaignProspect.Campaign.HalId, campaignProspect.LastFollowUpMessageSentTimestamp);
+
                         _logger.LogDebug($"[CreateSendFollowUpMessagesAsync]: Last follow up message localized date time is {localLastFollowUpMessage}");
                         DateTimeOffset localNow = await _timestampService.GetNowLocalizedAsync(campaignProspect.Campaign.HalId);
                         _logger.LogDebug($"[CreateSendFollowUpMessagesAsync]: Localized DateTime now is {localNow}");

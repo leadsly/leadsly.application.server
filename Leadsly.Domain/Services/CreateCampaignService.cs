@@ -48,6 +48,7 @@ namespace Leadsly.Domain.Services
                         Value = followUpMsg.Delay.Value
                     }
                 };
+                followUpMsgs.Add(followUpMessage);
             }
 
             return followUpMsgs;

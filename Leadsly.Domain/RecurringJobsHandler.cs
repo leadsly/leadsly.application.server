@@ -147,23 +147,23 @@ namespace Leadsly.Domain
                     _logger.LogDebug($"Retrieving Hangfire recurring job using the following hash name {hangfireRecurringJobName}");
                     Dictionary<string, string> recurringJob = connection.GetAllEntriesFromHash(hangfireRecurringJobName);
 
-                    if (recurringJob == null || recurringJob?.Count == 0)
+                    _logger.LogDebug("Recurring job was not found. Creating a new recurring job called {jobName}", jobName);
+                    if (_env.IsDevelopment())
                     {
-                        _logger.LogDebug("Recurring job was not found. Creating a new recurring job called {jobName}", jobName);
-                        if (_env.IsDevelopment())
-                        {
-                            _hangfireService.Enqueue<IRecurringJobsHandler>(x => x.PublishJobsAsync(timeZoneId));
-                        }
-                        else
+                        _hangfireService.Enqueue<IRecurringJobsHandler>(x => x.PublishJobsAsync(timeZoneId));
+                    }
+                    else
+                    {
+                        if (recurringJob == null || recurringJob?.Count == 0)
                         {
                             _logger.LogInformation("Daily Cron job is about to execute. This will go through all supported time zones and triggers jobs for active campaigns");
                             TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
                             _hangfireService.AddOrUpdate<IRecurringJobsHandler>(jobName, (x) => x.PublishJobsAsync(timeZoneId), HangFireConstants.RecurringJobs.DailyCronSchedule, tzInfo);
                         }
-                    }
-                    else
-                    {
-                        _logger.LogInformation("Recurring job was found. No need to create a new recurring job");
+                        else
+                        {
+                            _logger.LogInformation("Recurring job was found. No need to create a new recurring job");
+                        }
                     }
                 }
             }
