@@ -105,8 +105,7 @@ namespace Leadsly.Domain
                     _hangfireService.Schedule<ILeadslyRecurringJobsManagerService>((x) => x.PublishMonitorForNewConnectionsAsync(halId), monitorForNewConnectionsStartDate);
 
                     // this doesn't actually trigger anything when it executes, it just schedules the next jobs to execute.
-                    DateTimeOffset enqueueNetworkingStartDate = await _timestampService.GetNowLocalizedAsync(halId);
-                    _logger.LogDebug("Enqueuing PublishNetworkingPhaseAsync for halId {halId}. This will be enqueued right now. Currently it is: {enqueueNetworkingStartDate}", halId, enqueueNetworkingStartDate);
+                    _logger.LogDebug("Enqueuing PublishNetworkingPhaseAsync for halId {halId}. This will be enqueued right now", halId);
                     _hangfireService.Enqueue<ILeadslyRecurringJobsManagerService>((x) => x.PublishNetworkingPhaseAsync(halId));
                 }
             }
