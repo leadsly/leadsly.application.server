@@ -2,6 +2,8 @@
 using Leadsly.Application.Model.Campaigns;
 using Leadsly.Domain.Factories.Interfaces;
 using Leadsly.Domain.Services.Interfaces;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -17,7 +19,8 @@ namespace Leadsly.Domain.Campaigns.NetworkingHandler
             ILogger<NetworkingCommandHandler> logger,
             ITimestampService timestampService,
             IHangfireService hangfireService,
-            INetworkingMessagesFactory networkingMessagesFactory
+            INetworkingMessagesFactory networkingMessagesFactory,
+            IWebHostEnvironment env
             )
         {
             _hangfireService = hangfireService;
@@ -25,8 +28,10 @@ namespace Leadsly.Domain.Campaigns.NetworkingHandler
             _timestampService = timestampService;
             _messageBrokerOutlet = messageBrokerOutlet;
             _logger = logger;
+            _env = env;
         }
 
+        private readonly IWebHostEnvironment _env;
         private readonly IHangfireService _hangfireService;
         private readonly INetworkingMessagesFactory _networkingMessagesFactory;
         private readonly ITimestampService _timestampService;
@@ -108,8 +113,12 @@ namespace Leadsly.Domain.Campaigns.NetworkingHandler
             else
             {
                 _logger.LogInformation($"[Networking] This phase will not be triggered today because it is in the past {phaseStartDateTimeOffset}. Current local time is: {nowLocalized}");
-                // temporary to schedule jobs right away                
-                // _messageBrokerOutlet.PublishPhase(message, queueNameIn, routingKeyIn, halId, null);
+                if (_env.IsDevelopment())
+                {
+                    // temporary to schedule jobs right away                
+                    _logger.LogTrace("Development env detected. Executing phase immediately");
+                    _messageBrokerOutlet.PublishPhase(message, queueNameIn, routingKeyIn, halId, null);
+                }
             }
         }
     }
