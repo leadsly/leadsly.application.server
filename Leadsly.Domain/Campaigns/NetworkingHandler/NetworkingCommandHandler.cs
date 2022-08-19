@@ -107,12 +107,12 @@ namespace Leadsly.Domain.Campaigns.NetworkingHandler
 
             if (nowLocalized.TimeOfDay < phaseStartDateTimeOffset.TimeOfDay)
             {
-                _logger.LogInformation($"[Networking] This phase will be scheduled to start at {phaseStartDateTimeOffset}. Current local time is: {nowLocalized}");
+                _logger.LogInformation($"[Networking] This phase will be scheduled to start at {phaseStartDateTimeOffset}. Current local time is: {nowLocalized}. HalId {halId}");
                 _hangfireService.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(message, queueNameIn, routingKeyIn, halId, null), phaseStartDateTimeOffset);
             }
             else
             {
-                _logger.LogInformation($"[Networking] This phase will not be triggered today because it is in the past {phaseStartDateTimeOffset}. Current local time is: {nowLocalized}");
+                _logger.LogInformation($"[Networking] This phase will not be triggered today because it is in the past {phaseStartDateTimeOffset}. Current local time is: {nowLocalized}. HalId {halId}");
                 if (_env.IsDevelopment())
                 {
                     // temporary to schedule jobs right away                
