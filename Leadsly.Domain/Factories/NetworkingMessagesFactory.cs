@@ -193,7 +193,8 @@ namespace Leadsly.Domain.Factories
                 EndOfWorkday = halUnit.EndHour,
                 CampaignId = campaignId,
                 NamespaceName = config.ServiceDiscoveryConfig.AppServer.Name,
-                ServiceDiscoveryName = config.ApiServiceDiscoveryName
+                ServiceDiscoveryName = config.ApiServiceDiscoveryName,
+                SocialAccountId = virtualAssistant.SocialAccount.SocialAccountId
             };
 
             string appServerNamespaceName = config.ServiceDiscoveryConfig.AppServer.Name;

@@ -1,5 +1,4 @@
 ﻿using Leadsly.Application.Model;
-using Leadsly.Application.Model.Requests.FromHal;
 using Leadsly.Application.Model.Responses;
 using Leadsly.Domain.Supervisor;
 using Microsoft.AspNetCore.Authorization;
