@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace Leadsly.Domain
 {
-    public class HalWorkCommandHandlerDecorator<TCommand> : ICommandHandler<TCommand> 
+    public class HalWorkCommandHandlerDecorator<TCommand> : ICommandHandler<TCommand>
         where TCommand : ICommand
     {
         public HalWorkCommandHandlerDecorator(ICommandHandler<TCommand> decorated)
@@ -19,7 +15,6 @@ namespace Leadsly.Domain
         public async Task HandleAsync(TCommand command)
         {
             // check to see if right now is during hal's work day
-
             await this._decorated.HandleAsync(command);
         }
     }

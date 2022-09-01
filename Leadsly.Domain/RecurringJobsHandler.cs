@@ -98,7 +98,8 @@ namespace Leadsly.Domain
 
                     DateTimeOffset prospectPhaseStartDate = startDate;
                     _logger.LogDebug("Scheduling PublishProspectingPhaseAsync for halId {halId}. Start time for this phase is {prospectPhaseStartDate}", halId, prospectPhaseStartDate);
-                    _hangfireService.Schedule<ILeadslyRecurringJobsManagerService>((x) => x.PublishProspectingPhaseAsync(halId), prospectPhaseStartDate);
+                    // _hangfireService.Schedule<ILeadslyRecurringJobsManagerService>((x) => x.PublishProspectingPhaseAsync(halId), prospectPhaseStartDate);
+                    _hangfireService.Enqueue<ILeadslyRecurringJobsManagerService>((x) => x.PublishProspectingPhaseAsync(halId));
 
                     DateTimeOffset monitorForNewConnectionsStartDate = startDate;
                     _logger.LogDebug("Scheduling PublishMonitorForNewConnectionsAsync for halId {halId}. Start time for this phase is {monitorForNewConnectionsStartDate}", halId, monitorForNewConnectionsStartDate);

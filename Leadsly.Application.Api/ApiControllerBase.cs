@@ -182,6 +182,30 @@ namespace Leadsly.Application.Api
             });
         }
 
+        protected ObjectResult BadRequest_CampaignProspectsReplies()
+        {
+            return ProblemDetailsResult(new ProblemDetails
+            {
+                Type = ProblemDetailsTypes.BadRequestType,
+                Status = StatusCodes.Status400BadRequest,
+                Title = ReasonPhrases.GetReasonPhrase(400),
+                Detail = ProblemDetailsDescriptions.CampaignProspectsReplies,
+                Instance = HttpContext.Request.Path.Value
+            });
+        }
+
+        protected ObjectResult BadRequest_ProcessPotentialProspectsReplies()
+        {
+            return ProblemDetailsResult(new ProblemDetails
+            {
+                Type = ProblemDetailsTypes.BadRequestType,
+                Status = StatusCodes.Status400BadRequest,
+                Title = ReasonPhrases.GetReasonPhrase(400),
+                Detail = ProblemDetailsDescriptions.PotentialProspectsReplies,
+                Instance = HttpContext.Request.Path.Value
+            });
+        }
+
         /// <summary>
         /// Bad request failed to send out email.
         /// </summary>        
@@ -194,6 +218,18 @@ namespace Leadsly.Application.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.FailedToSendEmail,
+                Instance = HttpContext.Request.Path.Value
+            });
+        }
+
+        protected ObjectResult BadRequest_FailedToGetNetworkProspects()
+        {
+            return ProblemDetailsResult(new ProblemDetails
+            {
+                Type = ProblemDetailsTypes.BadRequestType,
+                Status = StatusCodes.Status400BadRequest,
+                Title = ReasonPhrases.GetReasonPhrase(400),
+                Detail = ProblemDetailsDescriptions.FailedToGetNetworkProspects,
                 Instance = HttpContext.Request.Path.Value
             });
         }

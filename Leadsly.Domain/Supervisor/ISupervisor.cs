@@ -7,6 +7,7 @@ using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.Models.Entities.Campaigns.Phases;
 using Leadsly.Domain.Models.Requests;
+using Leadsly.Domain.Models.Responses;
 using Leadsly.Domain.Models.ViewModels;
 using Leadsly.Domain.Models.ViewModels.Campaigns;
 using Leadsly.Domain.Models.ViewModels.LinkedInAccount;
@@ -51,11 +52,17 @@ namespace Leadsly.Domain.Supervisor
         Task<HalOperationResult<T>> UpdateProspectListPhaseAsync<T>(string prospectListPhaseId, JsonPatchDocument<ProspectListPhase> prospectListPhaseUpdate, CancellationToken ct)
             where T : IOperationResponse;
 
-        Task<HalOperationResult<T>> ProcessCampaignProspectsRepliedAsync<T>(ProspectsRepliedRequest request, CancellationToken ct = default)
+        Task<HalOperationResult<T>> ProcessCampaignProspectsRepliedAsync<T>(Application.Model.Requests.FromHal.ProspectsRepliedRequest request, CancellationToken ct = default)
             where T : IOperationResponse;
 
-        Task<HalOperationResult<T>> ProcessProspectsRepliedAsync<T>(ProspectsRepliedRequest request, CancellationToken ct = default)
+        Task<bool> ProcessCampaignProspectsRepliesAsync(Models.Requests.ProspectsRepliedRequest request, CancellationToken ct = default);
+
+        Task<NetworkProspectsResponse> GetAllNetworkProspectsAsync(string halId, CancellationToken ct = default);
+
+        Task<HalOperationResult<T>> ProcessProspectsRepliedAsync<T>(Application.Model.Requests.FromHal.ProspectsRepliedRequest request, CancellationToken ct = default)
             where T : IOperationResponse;
+
+        Task<bool> ProcessPotentialProspectsRepliesAsync(string halId, NewMessagesRequest request, CancellationToken ct = default);
 
         Task<HalOperationResult<T>> ProcessConnectionRequestSentForCampaignProspectsAsync<T>(CampaignProspectListRequest request, CancellationToken ct = default)
             where T : IOperationResponse;

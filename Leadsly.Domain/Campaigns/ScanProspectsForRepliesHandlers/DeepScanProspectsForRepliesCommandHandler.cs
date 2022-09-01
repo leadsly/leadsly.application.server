@@ -2,10 +2,8 @@
 using Leadsly.Application.Model.Campaigns;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Factories.Interfaces;
-using Leadsly.Domain.Models.Entities.Campaigns;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
@@ -69,17 +67,13 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
 
         private async Task InternalExecuteAsync(IList<string> halIds)
         {
-            IDictionary<string, IList<CampaignProspect>> halsCampaignProspects = await CreateHalsCampainProspectsAsync(halIds);
-
-            foreach (var halCampaignProspects in halsCampaignProspects)
+            foreach (string halId in halIds)
             {
-                string halId = halCampaignProspects.Key;
-
                 // fire off DeepScanProspectsForRepliesPhase with the payload of the contacted prospects
                 _logger.LogInformation("Creating DeepScanProspectsForRepliesMessage for halId: {halId}", halId);
-                ScanProspectsForRepliesBody messageBody = await _messagesFactory.CreateMessageAsync(halId, halCampaignProspects.Value);
+                DeepScanProspectsForRepliesBody messageBody = await _messagesFactory.CreateDeepScanMessageAsync(halId);
 
-                if (messageBody != null && messageBody.ContactedCampaignProspects.Any())
+                if (messageBody != null)
                 {
                     _logger.LogInformation("Publishing DeepScanProspectsForRepliesMessage for halId: {halId}", halId);
                     PublishMessage(messageBody);
@@ -91,7 +85,7 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
             }
         }
 
-        private void PublishMessage(ScanProspectsForRepliesBody messageBody)
+        private void PublishMessage(DeepScanProspectsForRepliesBody messageBody)
         {
             string queueNameIn = RabbitMQConstants.ScanProspectsForReplies.QueueName;
             string routingKeyIn = RabbitMQConstants.ScanProspectsForReplies.RoutingKey;
@@ -100,44 +94,6 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
             headers.Add(RabbitMQConstants.ScanProspectsForReplies.ExecutionType, RabbitMQConstants.ScanProspectsForReplies.ExecuteDeepScan);
 
             _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, headers);
-        }
-
-        /// <summary>
-        /// The key is halId and dictionary is a list of CampaignProspects
-        /// </summary>
-        /// <param name="halIds"></param>
-        /// <returns></returns>
-        private async Task<IDictionary<string, IList<CampaignProspect>>> CreateHalsCampainProspectsAsync(IList<string> halIds)
-        {
-            _logger.LogDebug("[CreateHalsCampainProspectsAsync] Creating a dictionary of halId as key and campaign prospects as value");
-            IDictionary<string, IList<CampaignProspect>> halsCampaignProspects = new Dictionary<string, IList<CampaignProspect>>();
-
-            foreach (string halId in halIds)
-            {
-                _logger.LogDebug("[CreateHalsCampainProspectsAsync] Getting CampaignProspects for halId {halId}", halId);
-                IList<CampaignProspect> halsCampProspects = await GetCampainProspectsAsync(halId);
-                if (halsCampProspects.Count > 0)
-                {
-                    _logger.LogDebug("[CreateHalsCampainProspectsAsync] CampaignProspects were found for halId {halId}.", halId);
-                    halsCampaignProspects.Add(halId, halsCampProspects);
-                }
-                else
-                {
-                    _logger.LogDebug("[CreateHalsCampainProspectsAsync] No CampaignProspects found for halId {halId}", halId);
-                }
-            }
-
-            return halsCampaignProspects;
-        }
-
-        private async Task<IList<CampaignProspect>> GetCampainProspectsAsync(string halId)
-        {
-            IDictionary<string, IList<CampaignProspect>> halsCampaignProspects = new Dictionary<string, IList<CampaignProspect>>();
-
-            IList<CampaignProspect> halCampaignProspects = await _campaignRepositoryFacade.GetAllActiveCampaignProspectsByHalIdAsync(halId);
-            IList<CampaignProspect> contactedProspects = halCampaignProspects.Where(p => p.Accepted == true && p.FollowUpMessageSent == true && p.Replied == false && p.FollowUpComplete == false).ToList();
-
-            return contactedProspects;
         }
     }
 }

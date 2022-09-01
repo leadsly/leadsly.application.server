@@ -55,7 +55,7 @@ namespace Leadsly.Domain.Providers
             HalOperationResult<T> result = new();
 
             IList<CampaignProspect> campaignProspectsToUpdate = new List<CampaignProspect>();
-            foreach (ProspectRepliedRequest prospectReplied in request.ProspectsReplied)
+            foreach (ProspectRepliedRequest prospectReplied in request.Items)
             {
                 CampaignProspect campaignProspectToUpdate = await _campaignRepositoryFacade.GetCampaignProspectByIdAsync(prospectReplied.CampaignProspectId, ct);
 
@@ -88,7 +88,7 @@ namespace Leadsly.Domain.Providers
 
             string halId = request.HalId;
             IList<CampaignProspect> campaignProspectsToUpdate = new List<CampaignProspect>();
-            foreach (ProspectRepliedRequest prospectReplied in request.ProspectsReplied)
+            foreach (ProspectRepliedRequest prospectReplied in request.Items)
             {
                 // check if this hal has any prospects in active campaigns that match this prospect
                 List<CampaignProspect> campaignProspects = await GetActiveCampaignProspectsByHalIdAsync(halId, ct) as List<CampaignProspect>;

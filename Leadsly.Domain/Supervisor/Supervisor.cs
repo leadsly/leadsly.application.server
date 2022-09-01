@@ -23,12 +23,16 @@ namespace Leadsly.Domain.Supervisor
             ISocialAccountRepository socialAccountRepository,
             ICloudPlatformRepository cloudPlatformRepository,
             ICampaignPhaseClient campaignPhaseClient,
+            IFollowUpMessageJobsRepository followUpMessageJobRepository,
+            IHangfireService hangfireService,
             ITimeZoneRepository timeZoneRepository,
             ICampaignPhaseProcessorProvider campaignPhaseProcessorProvider,
             IVirtualAssistantRepository virtualAssistantRepository,
             IMemoryCache memoryCache,
             ILogger<Supervisor> logger)
         {
+            _hangfireService = hangfireService;
+            _followUpMessageJobRepository = followUpMessageJobRepository;
             _cloudPlatformRepository = cloudPlatformRepository;
             _timestampService = timestampService;
             _timeZoneRepository = timeZoneRepository;
@@ -49,6 +53,8 @@ namespace Leadsly.Domain.Supervisor
             _logger = logger;
         }
 
+        private readonly IHangfireService _hangfireService;
+        private readonly IFollowUpMessageJobsRepository _followUpMessageJobRepository;
         private readonly ICloudPlatformRepository _cloudPlatformRepository;
         private readonly ITimestampService _timestampService;
         private readonly IVirtualAssistantRepository _virtualAssistantRepository;

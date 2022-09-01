@@ -1,6 +1,4 @@
-﻿using Leadsly.Application.Model;
-using Leadsly.Application.Model.Requests.FromHal;
-using Leadsly.Application.Model.Responses;
+﻿using Leadsly.Domain.Models.Responses;
 using Leadsly.Domain.Supervisor;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -31,19 +29,35 @@ namespace Leadsly.Application.Api.Controllers
         /// <param name="ct"></param>
         /// <returns></returns>
         [HttpPost("{halId}")]
-        public async Task<IActionResult> ProspectsThatReplied(string halId, ProspectsRepliedRequest request, CancellationToken ct = default)
+        public async Task<IActionResult> ProspectsThatReplied(string halId, Domain.Models.Requests.ProspectsRepliedRequest request, CancellationToken ct = default)
         {
             _logger.LogInformation("Executing DeepScanProspects action for HalId {halId}", halId);
 
-            HalOperationResult<IOperationResponse> result = await _supervisor.ProcessCampaignProspectsRepliedAsync<IOperationResponse>(request, ct);
+            bool succeeded = await _supervisor.ProcessCampaignProspectsRepliesAsync(request, ct);
 
-            if (result.Succeeded == false)
+            if (succeeded == false)
             {
-                _logger.LogDebug("Failed to process list of prospects coming from DeepScanProspectsForReplies phase.");
-                return BadRequest_CampaignProspectsReplied(result.Failures);
+                _logger.LogDebug("Failed to process list of replies coming from DeepScanProspectsForReplies phase.");
+                return BadRequest_CampaignProspectsReplies();
             }
 
             return Ok();
+        }
+
+        [HttpGet("{halId}/all-network-prospects")]
+        public async Task<IActionResult> GetAllActiveCampaignsNetworkProspects(string halId, CancellationToken ct = default)
+        {
+            _logger.LogInformation("Executing GetAllActiveCampaignsNetworkProspects for halId {halId}", halId);
+
+            NetworkProspectsResponse response = await _supervisor.GetAllNetworkProspectsAsync(halId, ct);
+
+            if (response == null)
+            {
+                _logger.LogDebug("Failed to retrieve NetworkProspects");
+                return BadRequest_FailedToGetNetworkProspects();
+            }
+
+            return Ok(response);
         }
 
     }

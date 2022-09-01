@@ -49,7 +49,7 @@ namespace Leadsly.Domain.Campaigns.ScanProspectsForRepliesHandlers
 
         private async Task InternalHandleAsync(string halId)
         {
-            ScanProspectsForRepliesBody messageBody = await _messagesFactory.CreateMessageAsync(halId);
+            ScanProspectsForRepliesBody messageBody = await _messagesFactory.CreateMessageAsync(halId) as ScanProspectsForRepliesBody;
 
             if (messageBody != null)
             {

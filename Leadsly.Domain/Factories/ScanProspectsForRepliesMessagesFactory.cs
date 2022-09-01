@@ -2,14 +2,12 @@
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Factories.Interfaces;
 using Leadsly.Domain.Models.Entities;
-using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.Models.Entities.Campaigns.Phases;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,7 +42,49 @@ namespace Leadsly.Domain.Factories
         private readonly IHalRepository _halRepository;
         private readonly ITimestampService _timestampService;
 
-        public async Task<ScanProspectsForRepliesBody> CreateMessageAsync(string halId, IList<CampaignProspect> campaignProspects = default, CancellationToken ct = default)
+        public async Task<DeepScanProspectsForRepliesBody> CreateDeepScanMessageAsync(string halId, CancellationToken ct = default)
+        {
+            DeepScanProspectsForRepliesBody messageBody = default;
+            HalUnit halUnit = await _halRepository.GetByHalIdAsync(halId);
+            if (halUnit != null)
+            {
+                _logger.LogInformation("HalUnit with HalId {halId} found.", halId);
+                SocialAccount socialAccount = await _userProvider.GetSocialAccountByHalIdAsync(halId, ct);
+                if (socialAccount != null)
+                {
+                    string email = socialAccount.Username;
+                    _logger.LogDebug("Social account {email} is associated with HalId {halId}", email, halId);
+
+                    if (socialAccount.User?.Campaigns?.Any(c => c.Active == true) == true)
+                    {
+                        _logger.LogDebug("Active campaigns have been found for halId {halId}", halId);
+                        // fire off ScanProspectsForRepliesPhase with the payload of the contacted prospects
+                        string scanProspectsForRepliesPhaseId = halUnit.SocialAccount.ScanProspectsForRepliesPhase.ScanProspectsForRepliesPhaseId;
+
+                        if (string.IsNullOrEmpty(socialAccount.LinkedInFullName) == false)
+                        {
+                            return await CreateDeepScanProspectsForRepliesBodyAsync(scanProspectsForRepliesPhaseId, halId, socialAccount.LinkedInFullName, ct);
+                        }
+                        else
+                        {
+                            _logger.LogDebug("DeepScanProspectsForReplies phase cannot continue without users LinkedIn full name. This is how hal checks for messages");
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogDebug("No active campaigns were found for halId {halId}", halId);
+                    }
+                }
+            }
+            else
+            {
+                _logger.LogDebug("HalUnit with HalId {halId} not found.", halId);
+            }
+
+            return messageBody;
+        }
+
+        public async Task<ScanProspectsForRepliesBody> CreateMessageAsync(string halId, CancellationToken ct = default)
         {
             ScanProspectsForRepliesBody messageBody = default;
             HalUnit halUnit = await _halRepository.GetByHalIdAsync(halId);
@@ -63,7 +103,7 @@ namespace Leadsly.Domain.Factories
                         // fire off ScanProspectsForRepliesPhase with the payload of the contacted prospects
                         string scanProspectsForRepliesPhaseId = halUnit.SocialAccount.ScanProspectsForRepliesPhase.ScanProspectsForRepliesPhaseId;
 
-                        return await CreateScanProspectsForRepliesBodyAsync(scanProspectsForRepliesPhaseId, halId, campaignProspects, ct);
+                        return await CreateScanProspectsForRepliesBodyAsync(scanProspectsForRepliesPhaseId, halId, ct);
                     }
                     else
                     {
@@ -87,7 +127,7 @@ namespace Leadsly.Domain.Factories
         /// <param name="contactedCampaignProspects"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task<ScanProspectsForRepliesBody> CreateScanProspectsForRepliesBodyAsync(string scanProspectsForRepliesPhaseId, string halId, IList<CampaignProspect> campaignProspects = default, CancellationToken ct = default)
+        private async Task<ScanProspectsForRepliesBody> CreateScanProspectsForRepliesBodyAsync(string scanProspectsForRepliesPhaseId, string halId, CancellationToken ct = default)
         {
             _logger.LogInformation("Creating scanprospects for replies body message for rabbit mq message broker.");
             ScanProspectsForRepliesPhase scanProspectsForRepliesPhase = await _campaignRepositoryFacade.GetScanProspectsForRepliesPhaseByIdAsync(scanProspectsForRepliesPhaseId, ct);
@@ -131,52 +171,74 @@ namespace Leadsly.Domain.Factories
                 ServiceDiscoveryName = config.ApiServiceDiscoveryName
             };
 
-            // the section below attempts to determine what was the last follow up message that we have sent to the prospect and grab its content.
-            // this is important because hal will then go through all of these proepcts and search messaging history and look for that specific message.
-            if (campaignProspects != null)
-            {
-                _logger.LogInformation("CampaignProspects have been set and populated");
-                IList<ContactedCampaignProspect> contactedCampaignProspects = new List<ContactedCampaignProspect>();
-                foreach (CampaignProspect campaignProspect in campaignProspects)
-                {
-                    int lastFollowUpMessageOrder = campaignProspect.SentFollowUpMessageOrderNum;
-                    CampaignProspectFollowUpMessage lastFollowUpMessage = campaignProspect.FollowUpMessages.Where(x => x.Order == lastFollowUpMessageOrder).FirstOrDefault();
-                    if (lastFollowUpMessage == null)
-                    {
-                        string campaignProspectId = campaignProspect.CampaignProspectId;
-                        int orderNum = campaignProspect.SentFollowUpMessageOrderNum;
-                        _logger.LogWarning("Could not determine user's last sent follow up message. CampaignProspectId: {campaignProspectId}\r\n FollowUpMessageOrder: {orderNum}", campaignProspectId, orderNum);
-                    }
-                    else
-                    {
-                        string prospectName = campaignProspect.Name;
-                        _logger.LogDebug("CampaignProspect {prospectName} had a follow up message sent. The follow up message that was sent had the order number of {lastFollowUpMessageOrder}", prospectName, lastFollowUpMessageOrder);
-                        ContactedCampaignProspect contactedCampaignProspect = new()
-                        {
-                            CampaignProspectId = campaignProspect.CampaignProspectId,
-                            LastFollowUpMessageContent = lastFollowUpMessage.Content,
-                            Name = campaignProspect.Name,
-                            ProspectProfileUrl = campaignProspect.ProfileUrl
-                        };
+            string appServerNamespaceName = config.ServiceDiscoveryConfig.AppServer.Name;
+            string appServerServiceDiscoveryname = config.ApiServiceDiscoveryName;
+            string gridNamespaceName = config.ServiceDiscoveryConfig.Grid.Name;
+            string gridServiceDiscoveryName = gridEcsService.CloudMapDiscoveryService.Name;
+            _logger.LogTrace("ScanProspectsForRepliesBody object is configured with Grid Namespace Name of {gridNamespaceName}. This HalId is: {halId}", gridNamespaceName, halId);
+            _logger.LogTrace("ScanProspectsForRepliesBody object is configured with Grid Service discovery name of {gridServiceDiscoveryname}. This HalId is  {halId}", gridServiceDiscoveryName, halId);
+            _logger.LogTrace("ScanProspectsForRepliesBody object is configured with AppServer Namespace Name of {appServerNamespaceName}. This HalId is  {halId}", appServerNamespaceName, halId);
+            _logger.LogTrace("ScanProspectsForRepliesBody object is configured with AppServer Service discovery name of {appServerServiceDiscoveryname}. This HalId is  {halId}", appServerServiceDiscoveryname, halId);
 
-                        contactedCampaignProspects.Add(contactedCampaignProspect);
-                    }
-                }
-                int count = contactedCampaignProspects.Count();
-                _logger.LogDebug("Number of prospects who have received a follow up message is {count}", count);
-                scanProspectsForRepliesBody.ContactedCampaignProspects = contactedCampaignProspects;
+            return scanProspectsForRepliesBody;
+        }
+
+        private async Task<DeepScanProspectsForRepliesBody> CreateDeepScanProspectsForRepliesBodyAsync(string scanProspectsForRepliesPhaseId, string halId, string linkedInFullName, CancellationToken ct = default)
+        {
+            _logger.LogInformation("Creating scanprospects for replies body message for rabbit mq message broker.");
+            ScanProspectsForRepliesPhase scanProspectsForRepliesPhase = await _campaignRepositoryFacade.GetScanProspectsForRepliesPhaseByIdAsync(scanProspectsForRepliesPhaseId, ct);
+
+            HalUnit halUnit = await _halRepository.GetByHalIdAsync(halId, ct);
+            VirtualAssistant virtualAssistant = await _virtualAssistantRepository.GetByHalIdAsync(halUnit.HalId, ct);
+            EcsService gridEcsService = virtualAssistant.EcsServices.FirstOrDefault(x => x.Purpose == Purpose.Grid);
+            string virtualAssistantId = virtualAssistant.VirtualAssistantId;
+            if (gridEcsService == null)
+            {
+                throw new Exception($"Grid ecs service not found for virtual assistant {virtualAssistantId}.");
             }
+
+            if (gridEcsService.CloudMapDiscoveryService == null)
+            {
+                throw new Exception($"Cloud map discovery service not found for virtual assistant {virtualAssistantId}.");
+            }
+
+            ChromeProfile chromeProfile = await _halRepository.GetChromeProfileAsync(PhaseType.ScanForReplies, ct);
+            string chromeProfileName = chromeProfile?.Name;
+            if (chromeProfileName == null)
+            {
+                chromeProfileName = await _rabbitMQProvider.CreateNewChromeProfileAsync(PhaseType.ScanForReplies, ct);
+            }
+            _logger.LogDebug("The chrome profile used for PhaseType.ScanForReplies is {chromeProfileName}", chromeProfileName);
+
+            CloudPlatformConfiguration config = _rabbitMQProvider.GetCloudPlatformConfiguration();
+
+            DeepScanProspectsForRepliesBody deepScanProspectsForRepliesBody = new()
+            {
+                GridNamespaceName = config.ServiceDiscoveryConfig.Grid.Name,
+                GridServiceDiscoveryName = gridEcsService.CloudMapDiscoveryService.Name,
+                PageUrl = scanProspectsForRepliesPhase.PageUrl,
+                HalId = halId,
+                LeadslyUserFullName = linkedInFullName,
+                TimeZoneId = halUnit.TimeZoneId,
+                StartOfWorkday = halUnit.StartHour,
+                EndOfWorkday = halUnit.EndHour,
+                ChromeProfileName = chromeProfileName,
+                UserId = scanProspectsForRepliesPhase.SocialAccount.UserId,
+                NamespaceName = config.ServiceDiscoveryConfig.AppServer.Name,
+                ServiceDiscoveryName = config.ApiServiceDiscoveryName
+            };
 
             string appServerNamespaceName = config.ServiceDiscoveryConfig.AppServer.Name;
             string appServerServiceDiscoveryname = config.ApiServiceDiscoveryName;
             string gridNamespaceName = config.ServiceDiscoveryConfig.Grid.Name;
             string gridServiceDiscoveryName = gridEcsService.CloudMapDiscoveryService.Name;
-            _logger.LogTrace("ScanProspectsForRepliesBody/DeepScanProspectsForReplies object is configured with Grid Namespace Name of {gridNamespaceName}. This HalId is: {halId}", gridNamespaceName, halId);
-            _logger.LogTrace("ScanProspectsForRepliesBody/DeepScanProspectsForReplies object is configured with Grid Service discovery name of {gridServiceDiscoveryname}. This HalId is  {halId}", gridServiceDiscoveryName, halId);
-            _logger.LogTrace("ScanProspectsForRepliesBody/DeepScanProspectsForReplies object is configured with AppServer Namespace Name of {appServerNamespaceName}. This HalId is  {halId}", appServerNamespaceName, halId);
-            _logger.LogTrace("ScanProspectsForRepliesBody/DeepScanProspectsForReplies object is configured with AppServer Service discovery name of {appServerServiceDiscoveryname}. This HalId is  {halId}", appServerServiceDiscoveryname, halId);
+            _logger.LogTrace("DeepScanProspectsForRepliesBody object is configured with Grid Namespace Name of {gridNamespaceName}. This HalId is: {halId}", gridNamespaceName, halId);
+            _logger.LogTrace("DeepScanProspectsForRepliesBody object is configured with Grid Service discovery name of {gridServiceDiscoveryname}. This HalId is  {halId}", gridServiceDiscoveryName, halId);
+            _logger.LogTrace("DeepScanProspectsForRepliesBody object is configured with AppServer Namespace Name of {appServerNamespaceName}. This HalId is  {halId}", appServerNamespaceName, halId);
+            _logger.LogTrace("DeepScanProspectsForRepliesBody object is configured with AppServer Service discovery name of {appServerServiceDiscoveryname}. This HalId is  {halId}", appServerServiceDiscoveryname, halId);
 
-            return scanProspectsForRepliesBody;
+            return deepScanProspectsForRepliesBody;
         }
+
     }
 }

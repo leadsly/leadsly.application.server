@@ -18,6 +18,9 @@ namespace Leadsly.Domain.Models.Entities
         public SocialAccountType AccountType { get; set; }
         [Required]
         public string Username { get; set; }
+
+        [Required]
+        public string LinkedInFullName { get; set; }
         public bool RunProspectListFirst { get; set; } = false;
         public bool MonthlySearchLimitReached { get; set; } = false;
 

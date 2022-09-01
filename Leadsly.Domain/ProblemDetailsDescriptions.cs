@@ -42,12 +42,15 @@
         public const string FailedToConfirmUsersEmail = "Failed to confirm user's e-mail.";
         public const string FailedGetResource = "Failed to get resource.";
         public const string FailedToGenerateToken = "Failed to generate token.";
+        public const string CampaignProspectsReplies = "Failed to process campaign prospects replies";
+        public const string PotentialProspectsReplies = "Failed to process potential prospect replies.";
         public const string TokenNotFound = "Token was not found in the request.";
         public const string StripeCustomerDoesNotExist = "Customer does not exist.";
         public const string NoEmailFound_Stripe = "No email could be found.";
         public const string EventExtractionFailed_Stripe = "Could not determine webhook event type.";
         public const string NoTempPasswordValue = "No temporariy password value found.";
         public const string FailedToSendEmail = "Failed to send email.";
+        public const string FailedToGetNetworkProspects = "Failed to get Network Prospects";
         public const string FailedToDeserialize = "Failed to deserialize object.";
         public const string CampaignNotFound = "Campaign not found.";
         public const string CampaignPhaseProcessing = "Failed to process campaign phase.";

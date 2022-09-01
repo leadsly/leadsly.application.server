@@ -1,6 +1,5 @@
-﻿using Leadsly.Application.Model;
-using Leadsly.Application.Model.Requests.FromHal;
-using Leadsly.Application.Model.Responses;
+﻿using Leadsly.Application.Model.Requests.FromHal;
+using Leadsly.Domain.Models.Requests;
 using Leadsly.Domain.Supervisor;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -34,16 +33,16 @@ namespace Leadsly.Application.Api.Controllers
         }
 
         [HttpPost("{halId}/prospects-replied")]
-        public async Task<IActionResult> ProspectsReplied(string halId, ProspectsRepliedRequest request, CancellationToken ct = default)
+        public async Task<IActionResult> ProspectsReplied(string halId, NewMessagesRequest request, CancellationToken ct = default)
         {
             _logger.LogInformation("Executing ProspectsReplied action for HalId {halId}", halId);
 
-            HalOperationResult<IOperationResponse> result = await _supervisor.ProcessProspectsRepliedAsync<IOperationResponse>(request, ct);
+            bool succeeded = await _supervisor.ProcessPotentialProspectsRepliesAsync(halId, request, ct);
 
-            if (result.Succeeded == false)
+            if (succeeded == false)
             {
                 _logger.LogDebug("Failed to process prospects that have replied for HalId {halId}", halId);
-                return BadRequest_CampaignProspectsReplied(result.Failures);
+                return BadRequest_ProcessPotentialProspectsReplies();
             }
 
             return Ok();

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.Serialization;
 
 namespace Leadsly.Application.Model.Requests.FromHal
 {
@@ -13,7 +8,7 @@ namespace Leadsly.Application.Model.Requests.FromHal
         /// <summary>
         /// Used by DeepScanProspectsForRepliesPhase
         /// </summary>
-        [DataMember(Name = "CampaignProspectId", IsRequired = false, EmitDefaultValue = true)]
+        [DataMember(Name = "CampaignProspectId", IsRequired = false)]
         public string CampaignProspectId { get; set; }
 
         /// <summary>
