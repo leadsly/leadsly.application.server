@@ -61,14 +61,7 @@ namespace Leadsly.Domain.Factories
                         // fire off ScanProspectsForRepliesPhase with the payload of the contacted prospects
                         string scanProspectsForRepliesPhaseId = halUnit.SocialAccount.ScanProspectsForRepliesPhase.ScanProspectsForRepliesPhaseId;
 
-                        if (string.IsNullOrEmpty(socialAccount.LinkedInFullName) == false)
-                        {
-                            return await CreateDeepScanProspectsForRepliesBodyAsync(scanProspectsForRepliesPhaseId, halId, socialAccount.LinkedInFullName, ct);
-                        }
-                        else
-                        {
-                            _logger.LogDebug("DeepScanProspectsForReplies phase cannot continue without users LinkedIn full name. This is how hal checks for messages");
-                        }
+                        return await CreateDeepScanProspectsForRepliesBodyAsync(scanProspectsForRepliesPhaseId, halId, ct);
                     }
                     else
                     {
@@ -183,7 +176,7 @@ namespace Leadsly.Domain.Factories
             return scanProspectsForRepliesBody;
         }
 
-        private async Task<DeepScanProspectsForRepliesBody> CreateDeepScanProspectsForRepliesBodyAsync(string scanProspectsForRepliesPhaseId, string halId, string linkedInFullName, CancellationToken ct = default)
+        private async Task<DeepScanProspectsForRepliesBody> CreateDeepScanProspectsForRepliesBodyAsync(string scanProspectsForRepliesPhaseId, string halId, CancellationToken ct = default)
         {
             _logger.LogInformation("Creating scanprospects for replies body message for rabbit mq message broker.");
             ScanProspectsForRepliesPhase scanProspectsForRepliesPhase = await _campaignRepositoryFacade.GetScanProspectsForRepliesPhaseByIdAsync(scanProspectsForRepliesPhaseId, ct);
@@ -218,7 +211,6 @@ namespace Leadsly.Domain.Factories
                 GridServiceDiscoveryName = gridEcsService.CloudMapDiscoveryService.Name,
                 PageUrl = scanProspectsForRepliesPhase.PageUrl,
                 HalId = halId,
-                LeadslyUserFullName = linkedInFullName,
                 TimeZoneId = halUnit.TimeZoneId,
                 StartOfWorkday = halUnit.StartHour,
                 EndOfWorkday = halUnit.EndHour,
