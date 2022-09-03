@@ -21,9 +21,11 @@ namespace Leadsly.Domain.Factories
             ICampaignRepositoryFacade campaignRepositoryFacade,
             IHalRepository halRepository,
             IVirtualAssistantRepository virtualAssistantRepository,
+            ICloudPlatformRepository cloudPlatformRepository,
             IRabbitMQProvider rabbitMQProvider
             )
         {
+            _cloudPlatformRepository = cloudPlatformRepository;
             _virtualAssistantRepository = virtualAssistantRepository;
             _rabbitMQProvider = rabbitMQProvider;
             _logger = logger;
@@ -31,11 +33,98 @@ namespace Leadsly.Domain.Factories
             _campaignRepositoryFacade = campaignRepositoryFacade;
         }
 
+        private readonly ICloudPlatformRepository _cloudPlatformRepository;
         private readonly IVirtualAssistantRepository _virtualAssistantRepository;
         private readonly IRabbitMQProvider _rabbitMQProvider;
         private readonly IHalRepository _halRepository;
         private readonly ILogger<FollowUpMessagesFactory> _logger;
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
+
+
+        public async Task<PublishMessageBody> CreateMQMessageAsync(string halId, CampaignProspectFollowUpMessage followUpMessage, FollowUpMessagePhase phase, CancellationToken ct = default)
+        {
+            PublishMessageBody message = default;
+            try
+            {
+                message = await CreateMQMessageInternalAsync(halId, followUpMessage, phase, ct);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error creating follow up message");
+            }
+
+            return message;
+        }
+
+        private async Task<PublishMessageBody> CreateMQMessageInternalAsync(string halId, CampaignProspectFollowUpMessage followUpMessage, FollowUpMessagePhase phase, CancellationToken ct = default)
+        {
+            HalUnit halUnit = await _halRepository.GetByHalIdAsync(halId, ct);
+            VirtualAssistant virtualAssistant = await _virtualAssistantRepository.GetByHalIdAsync(halId, ct);
+            EcsService gridEcsService = virtualAssistant.EcsServices.FirstOrDefault(x => x.Purpose == Purpose.Grid);
+            string virtualAssistantId = virtualAssistant.VirtualAssistantId;
+            if (gridEcsService == null)
+            {
+                _logger.LogError($"Grid ecs service not found for virtual assistant {virtualAssistantId}.");
+                return null;
+            }
+
+            if (gridEcsService.CloudMapDiscoveryService == null)
+            {
+                _logger.LogError($"Cloud map discovery service not found for virtual assistant {virtualAssistantId}.");
+                return null;
+            }
+
+            ChromeProfile chromeProfile = await _halRepository.GetChromeProfileAsync(PhaseType.FollwUpMessage, ct);
+            string chromeProfileName = chromeProfile?.Name;
+            if (chromeProfileName == null)
+            {
+                ChromeProfile profileName = new()
+                {
+                    CampaignPhaseType = PhaseType.FollwUpMessage,
+                    Name = Guid.NewGuid().ToString()
+                };
+                await _halRepository.CreateChromeProfileAsync(profileName, ct);
+                chromeProfileName = profileName.Name;
+            }
+
+            _logger.LogDebug("The chrome profile used for PhaseType.FollowUpMessage is {chromeProfileName}", chromeProfileName);
+
+            CloudPlatformConfiguration config = _cloudPlatformRepository.GetCloudPlatformConfiguration();
+
+            PublishMessageBody message = new FollowUpMessageBody
+            {
+                GridNamespaceName = config.ServiceDiscoveryConfig.Grid.Name,
+                GridServiceDiscoveryName = gridEcsService.CloudMapDiscoveryService.Name,
+                HalId = halId,
+                Content = followUpMessage.Content,
+                UserId = virtualAssistant.ApplicationUserId,
+                FollowUpMessageId = followUpMessage.CampaignProspectFollowUpMessageId,
+                NamespaceName = config.ServiceDiscoveryConfig.AppServer.Name,
+                TimeZoneId = halUnit.TimeZoneId,
+                OrderNum = followUpMessage.Order,
+                CampaignProspectId = followUpMessage.CampaignProspectId,
+                ChromeProfileName = chromeProfileName,
+                ServiceDiscoveryName = config.ApiServiceDiscoveryName,
+                PageUrl = phase.PageUrl,
+                ProspectName = followUpMessage.CampaignProspect.Name,
+                ProspectProfileUrl = followUpMessage.CampaignProspect.ProfileUrl,
+                EndOfWorkday = halUnit.EndHour,
+                StartOfWorkday = halUnit.StartHour,
+                ExpectedDeliveryDateTime = followUpMessage.ExpectedDeliveryDateTime,
+            };
+
+            string appServerNamespaceName = config.ServiceDiscoveryConfig.AppServer.Name;
+            string appServerServiceDiscoveryname = config.ApiServiceDiscoveryName;
+            string gridNamespaceName = config.ServiceDiscoveryConfig.Grid.Name;
+            string gridServiceDiscoveryName = gridEcsService.CloudMapDiscoveryService.Name;
+            _logger.LogTrace("FollowUpMessageBody object is configured with Grid Namespace Name of {gridNamespaceName}. This HalId is {halId}", gridNamespaceName, halId);
+            _logger.LogTrace("FollowUpMessageBody object is configured with Grid Service discovery name of {gridServiceDiscoveryname}. This HalId is {halId}", gridServiceDiscoveryName, halId);
+            _logger.LogTrace("FollowUpMessageBody object is configured with AppServer Namespace Name of {appServerNamespaceName}. This HalId is {halId}", appServerNamespaceName, halId);
+            _logger.LogTrace("FollowUpMessageBody object is configured with AppServer Service discovery name of {appServerServiceDiscoveryname}. This HalId is {halId}", appServerServiceDiscoveryname, halId);
+
+            return message;
+        }
+
 
         public async Task<FollowUpMessageBody> CreateMessageAsync(string campaignProspectFollowUpMessageId, string campaignId, CancellationToken ct = default)
         {

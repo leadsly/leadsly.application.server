@@ -37,6 +37,18 @@
             public const string RoutingKey = "networking-phase";
         }
 
+        public static class TriggerScanProspectsForReplies
+        {
+            public const string QueueName = "trigger.scan.prospects.for.replies";
+            public const string RoutingKey = "trigger-scan-prospects-for-replies";
+        }
+
+        public static class TriggerFollowUpMessages
+        {
+            public const string QueueName = "trigger.send.follow.up.messages";
+            public const string RoutingKey = "trigger-send-follow-up-messages";
+        }
+
         public static class FollowUpMessage
         {
             public const string QueueName = "follow.up.message";
@@ -65,3 +77,4 @@
         //}
     }
 }
+

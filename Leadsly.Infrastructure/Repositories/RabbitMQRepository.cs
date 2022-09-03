@@ -3,11 +3,6 @@ using Leadsly.Domain.OptionsJsonModels;
 using Leadsly.Domain.Repositories;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Leadsly.Infrastructure.Repositories
 {
@@ -26,10 +21,18 @@ namespace Leadsly.Infrastructure.Repositories
         {
             return new RabbitMQOptions
             {
-                RoutingKey = _rabbitMQConfigOptions.RoutingKey,
+                RoutingKey = new()
+                {
+                    AppServer = _rabbitMQConfigOptions.RoutingKey.AppServer,
+                    Hal = _rabbitMQConfigOptions.RoutingKey.Hal
+                },
                 ConnectionFactoryOptions = new()
                 {
-                    ClientProvidedName = _rabbitMQConfigOptions.ConnectionFactoryConfigOptions.ClientProvidedName,
+                    ClientProvidedName = new()
+                    {
+                        AppServer = _rabbitMQConfigOptions.ConnectionFactoryConfigOptions.ClientProvidedName.AppServer,
+                        Hal = _rabbitMQConfigOptions.ConnectionFactoryConfigOptions.ClientProvidedName.Hal
+                    },
                     HostName = _rabbitMQConfigOptions.ConnectionFactoryConfigOptions.HostName,
                     Password = _rabbitMQConfigOptions.ConnectionFactoryConfigOptions.Password,
                     Port = _rabbitMQConfigOptions.ConnectionFactoryConfigOptions.Port,
@@ -37,13 +40,29 @@ namespace Leadsly.Infrastructure.Repositories
                 },
                 ExchangeOptions = new()
                 {
-                    ExchangeType = _rabbitMQConfigOptions.ExchangeConfigOptions.ExchangeType,
-                    Name = _rabbitMQConfigOptions.ExchangeConfigOptions.Name
+                    AppServer = new()
+                    {
+                        Name = _rabbitMQConfigOptions.ExchangeConfigOptions.AppServer.Name,
+                        ExchangeType = _rabbitMQConfigOptions.ExchangeConfigOptions.AppServer.ExchangeType
+                    },
+                    Hal = new()
+                    {
+                        Name = _rabbitMQConfigOptions.ExchangeConfigOptions.Hal.Name,
+                        ExchangeType = _rabbitMQConfigOptions.ExchangeConfigOptions.Hal.ExchangeType
+                    },
                 },
                 QueueConfigOptions = new()
                 {
-                    Name = _rabbitMQConfigOptions.QueueConfigOptions.Name,
-                    AutoAcknowledge = _rabbitMQConfigOptions.QueueConfigOptions.AutoAcknowledge
+                    AppServer = new()
+                    {
+                        Name = _rabbitMQConfigOptions.QueueConfigOptions.AppServer.Name,
+                        AutoAcknowledge = _rabbitMQConfigOptions.QueueConfigOptions.AppServer.AutoAcknowledge,
+                    },
+                    Hal = new()
+                    {
+                        Name = _rabbitMQConfigOptions.QueueConfigOptions.Hal.Name,
+                        AutoAcknowledge = _rabbitMQConfigOptions.QueueConfigOptions.Hal.AutoAcknowledge,
+                    }
                 }
             };
         }

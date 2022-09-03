@@ -243,7 +243,7 @@ namespace Leadsly.Domain.Providers
             if (campaignProspect.FollowUpMessageSent == true)
             {
                 int previouslySentFollowUpMessageNum = campaignProspect.SentFollowUpMessageOrderNum;
-                followUpOrders = followUpMessages.Where(x => x.Order != previouslySentFollowUpMessageNum).Select(x => x.Order).ToList();
+                followUpOrders = followUpMessages.Where(x => x.Order > previouslySentFollowUpMessageNum).Select(x => x.Order).ToList();
             }
             else
             {

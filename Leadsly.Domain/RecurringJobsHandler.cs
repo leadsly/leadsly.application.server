@@ -94,25 +94,74 @@ namespace Leadsly.Domain
 
                     DateTimeOffset checkOffHoursNewConnectionsStartDate = startDate;
                     _logger.LogDebug("Scheduling PublishCheckOffHoursNewConnectionsAsync for halId {halId}. Start time for this phase is {checkOffHoursNewConnectionsStartDate}", halId, checkOffHoursNewConnectionsStartDate);
-                    _hangfireService.Schedule<ILeadslyRecurringJobsManagerService>((x) => x.PublishCheckOffHoursNewConnectionsAsync(halId), checkOffHoursNewConnectionsStartDate);
+                    ScheduleCheckOffHoursNewConnections(halId, checkOffHoursNewConnectionsStartDate);
 
                     DateTimeOffset prospectPhaseStartDate = startDate;
                     _logger.LogDebug("Scheduling PublishProspectingPhaseAsync for halId {halId}. Start time for this phase is {prospectPhaseStartDate}", halId, prospectPhaseStartDate);
-                    // _hangfireService.Schedule<ILeadslyRecurringJobsManagerService>((x) => x.PublishProspectingPhaseAsync(halId), prospectPhaseStartDate);
-                    _hangfireService.Enqueue<ILeadslyRecurringJobsManagerService>((x) => x.PublishProspectingPhaseAsync(halId));
+                    ScheduleProspectingPhase(halId, prospectPhaseStartDate);
 
                     DateTimeOffset monitorForNewConnectionsStartDate = startDate;
                     _logger.LogDebug("Scheduling PublishMonitorForNewConnectionsAsync for halId {halId}. Start time for this phase is {monitorForNewConnectionsStartDate}", halId, monitorForNewConnectionsStartDate);
-                    _hangfireService.Schedule<ILeadslyRecurringJobsManagerService>((x) => x.PublishMonitorForNewConnectionsAsync(halId), monitorForNewConnectionsStartDate);
+                    ScheduleMonitorForNewConnections(halId, monitorForNewConnectionsStartDate);
 
                     // this doesn't actually trigger anything when it executes, it just schedules the next jobs to execute.
                     _logger.LogDebug("Enqueuing PublishNetworkingPhaseAsync for halId {halId}. This will be enqueued right now", halId);
                     _hangfireService.Enqueue<ILeadslyRecurringJobsManagerService>((x) => x.PublishNetworkingPhaseAsync(halId));
+
+                    // run a daily job that checks if there are prospects from active campaigns that have received all follow up messages and if so check when last message was sent, if it was within 14 days, mark them as follow up complete,
+                    // this campaign prospect has received all of the follow up messages configured
+                    // check if the last follow up message was sent 14 or more days ago, if yes mark this prospect as complete or fullfilled
+                    //DateTimeOffset localLastFollowUpMessage = await _timestampService.GetDateFromTimestampLocalizedAsync(campaignProspect.Campaign.HalId, campaignProspect.LastFollowUpMessageSentTimestamp);
+
+                    //_logger.LogDebug($"[CreateSendFollowUpMessagesAsync]: Last follow up message localized date time is {localLastFollowUpMessage}");
+                    //DateTimeOffset localNow = await _timestampService.GetNowLocalizedAsync(campaignProspect.Campaign.HalId);
+                    //_logger.LogDebug($"[CreateSendFollowUpMessagesAsync]: Localized DateTime now is {localNow}");
+                    //if ((localLastFollowUpMessage - localNow).TotalDays < 14)
+                    //{
+                    //    campaignProspect.FollowUpComplete = true;
+                    //    await _campaignRepositoryFacade.UpdateCampaignProspectAsync(campaignProspect, ct);
+                    //}
                 }
             }
             else
             {
                 _logger.LogInformation("No hal units found for time zone {timeZoneId}", timeZoneId);
+            }
+        }
+
+        private void ScheduleCheckOffHoursNewConnections(string halId, DateTimeOffset checkOffHoursNewConnectionsStartDate)
+        {
+            if (_env.IsDevelopment())
+            {
+                _hangfireService.Enqueue<ILeadslyRecurringJobsManagerService>((x) => x.PublishCheckOffHoursNewConnectionsAsync(halId));
+            }
+            else
+            {
+                _hangfireService.Schedule<ILeadslyRecurringJobsManagerService>((x) => x.PublishCheckOffHoursNewConnectionsAsync(halId), checkOffHoursNewConnectionsStartDate);
+            }
+        }
+
+        private void ScheduleProspectingPhase(string halId, DateTimeOffset prospectPhaseStartDate)
+        {
+            if (_env.IsDevelopment())
+            {
+                _hangfireService.Enqueue<ILeadslyRecurringJobsManagerService>((x) => x.PublishProspectingPhaseAsync(halId));
+            }
+            else
+            {
+                _hangfireService.Schedule<ILeadslyRecurringJobsManagerService>((x) => x.PublishProspectingPhaseAsync(halId), prospectPhaseStartDate);
+            }
+        }
+
+        private void ScheduleMonitorForNewConnections(string halId, DateTimeOffset monitorForNewConnectionsStartDate)
+        {
+            if (_env.IsDevelopment())
+            {
+                _hangfireService.Enqueue<ILeadslyRecurringJobsManagerService>((x) => x.PublishMonitorForNewConnectionsAsync(halId));
+            }
+            else
+            {
+                _hangfireService.Schedule<ILeadslyRecurringJobsManagerService>((x) => x.PublishMonitorForNewConnectionsAsync(halId), monitorForNewConnectionsStartDate);
             }
         }
 

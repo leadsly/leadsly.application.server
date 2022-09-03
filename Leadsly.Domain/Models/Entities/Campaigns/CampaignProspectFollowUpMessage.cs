@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Leadsly.Domain.Models.Entities.Campaigns
 {
@@ -15,5 +11,10 @@ namespace Leadsly.Domain.Models.Entities.Campaigns
         public CampaignProspect CampaignProspect { get; set; }
         public int Order { get; set; }
         public string Content { get; set; }
+        public long ExpectedDeliveryDateTimeStamp { get; set; }
+
+        [NotMapped]
+        public DateTimeOffset ExpectedDeliveryDateTime { get; set; }
+        public long ActualDeliveryDateTimeStamp { get; set; }
     }
 }

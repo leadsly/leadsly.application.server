@@ -85,6 +85,29 @@ namespace Leadsly.Infrastructure.Repositories
             return campaignProspects;
         }
 
+        public async Task<IList<CampaignProspect>> GetAllFollowUpMessageEligbleByCampaignIdAsync(string campaignId, CancellationToken ct = default)
+        {
+            _logger.LogDebug("Retrieving all follow up message eligible prospects by campaignId {campaignId}", campaignId);
+            IList<CampaignProspect> eligibleProspects = default;
+            try
+            {
+                eligibleProspects = await _dbContext.CampaignProspects
+                    .Include(p => p.Campaign)
+                    .Where(p => p.CampaignId == campaignId && p.Accepted == true && p.Replied == false && p.FollowUpComplete == false)
+                    .Include(p => p.FollowUpMessages)
+                    .Include(p => p.PrimaryProspect)
+                    .ToListAsync(ct);
+
+                _logger.LogDebug("Successfully retrieved all follow up message eligible prospects by campaignId {campaignId}", campaignId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve all follow up message eligible prospects by campaignId {campaignId}", campaignId);
+                return null;
+            }
+            return eligibleProspects;
+        }
+
         public async Task<CampaignProspectList> GetListByListIdAsync(string campaignProspectListId, CancellationToken ct = default)
         {
             _logger.LogInformation("Retrieving CampaignProspectList by id {campaignProspectListId}", campaignProspectListId);

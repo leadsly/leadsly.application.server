@@ -25,6 +25,11 @@ using Leadsly.Domain.Factories;
 using Leadsly.Domain.Factories.Interfaces;
 using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.OptionsJsonModels;
+using Leadsly.Domain.PhaseConsumers;
+using Leadsly.Domain.PhaseConsumers.TriggerFollowUpMessagesHandler;
+using Leadsly.Domain.PhaseHandlers;
+using Leadsly.Domain.PhaseHandlers.Interfaces;
+using Leadsly.Domain.PhaseHandlers.TriggerFollowUpMessagesHandlers;
 using Leadsly.Domain.Providers;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.RabbitMQ;
@@ -259,6 +264,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<IRabbitMQProvider, RabbitMQProvider>();
             services.AddScoped<ISendFollowUpMessageProvider, SendFollowUpMessageProvider>();
             services.AddScoped<ICampaignPhaseProcessorProvider, CampaignPhaseProcessorProvider>();
+            services.AddScoped<IFollowUpMessagesProvider, FollowUpMessagesProvider>();
 
             return services;
         }
@@ -308,6 +314,11 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ICommandHandler<SendConnectionsToProspectsCommand>, SendConnectionsToProspectsCommandHandler>();
             services.AddScoped<ICommandHandler<NetworkingCommand>, NetworkingCommandHandler>();
             services.AddScoped<ICommandHandler<RestartResourcesCommand>, RestartResourcesCommandHandler>();
+            services.AddScoped<ICommandHandler<TriggerFollowUpMessagesCommand>, TriggerFollowUpMessagesCommandHandler>();
+
+            // consumers for SendFollowUpMessages and ScanProspectsForReplies
+            services.AddScoped<IConsumeCommandHandler<TriggerFollowUpMessagesConsumeCommand>, TriggerFollowUpMessagesConsumerCommandHandler>();
+            services.AddScoped<ITriggerFollowUpMessagesMessageHandlerService, TriggerFollowUpMessagesMessageHandlerService>();
 
             return services;
         }
@@ -316,11 +327,12 @@ namespace Leadsly.Application.Api.Configurations
         {
             Log.Information("Registering leadsly services.");
 
+            services.AddSingleton<IProducingService, ProducingService>();
+            services.AddSingleton<IConsumingService, ConsumingService>();
             services.AddScoped<IAwsElasticContainerService, AwsElasticContainerService>();
             services.AddScoped<IAwsServiceDiscoveryService, AwsServiceDiscoveryService>();
             services.AddScoped<IAwsRoute53Service, AwsRoute53Service>();
             services.AddScoped<ILeadslyHalApiService, LeadslyHalApiService>();
-            services.AddSingleton<IProducingService, ProducingService>();
             services.AddScoped<ICampaignService, CampaignService>();
             services.AddScoped<ITimestampService, TimestampService>();
             services.AddScoped<IMessageBrokerOutlet, MessageBrokerOutlet>();
@@ -329,6 +341,9 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<IAccessTokenService, AccessTokenService>();
             services.AddScoped<ICreateCampaignService, CreateCampaignService>();
             services.AddScoped<IRecurringJobsHandler, RecurringJobsHandler>();
+            services.AddScoped<ICreateFollowUpMessageService, CreateFollowUpMessageService>();
+            services.AddScoped<ICreateFollowUpMessagesService, CreateFollowUpMessagesService>();
+            services.AddScoped<IFollowUpMessagePublisherService, FollowUpMessagePublisherService>();
 
             return services;
         }

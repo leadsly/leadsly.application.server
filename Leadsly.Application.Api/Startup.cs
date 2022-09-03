@@ -53,7 +53,8 @@ namespace Leadsly.Application.Api
                     .AddServices(Configuration)
                     .AddRemoveNull204FormatterConfigration()
                     .AddMemoryCache()
-                    .AddHostedService<ProducingHostedService>();
+                    .AddHostedService<ProducingHostedService>()
+                    .AddHostedService<ConsumingHostedService>();
 
             services.Configure<MvcOptions>(ApiDefaults.Configure);
         }
