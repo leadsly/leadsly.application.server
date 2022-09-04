@@ -1,12 +1,12 @@
-﻿using Leadsly.Domain.Models.RabbitMQ;
+﻿using Leadsly.Domain.Models.RabbitMQMessages;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
-namespace Leadsly.Domain.PhaseHandlers.TriggerFollowUpMessagesHandlers
+namespace Leadsly.Domain.PhaseHandlers.TriggerFollowUpMessagesHandler
 {
     public class TriggerFollowUpMessagesCommand : ICommand
     {
-        public TriggerFollowUpMessagesCommand(IModel channel, BasicDeliverEventArgs eventArgs, TriggerFollowUpMessageBody message)
+        public TriggerFollowUpMessagesCommand(IModel channel, BasicDeliverEventArgs eventArgs, TriggerPhaseMessageBodyBase message)
         {
             Channel = channel;
             EventArgs = eventArgs;
@@ -15,6 +15,6 @@ namespace Leadsly.Domain.PhaseHandlers.TriggerFollowUpMessagesHandlers
 
         public IModel Channel { get; set; }
         public BasicDeliverEventArgs EventArgs { get; set; }
-        public TriggerFollowUpMessageBody Message { get; private set; }
+        public TriggerPhaseMessageBodyBase Message { get; private set; }
     }
 }

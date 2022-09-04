@@ -1,9 +1,9 @@
 ﻿using RabbitMQ.Client.Events;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.PhaseHandlers.Interfaces
+namespace Leadsly.Domain.RabbitMQ.EventHandlers.Interfaces
 {
-    public interface ITriggerFollowUpMessagesMessageHandlerService
+    public interface ITriggerFollowUpMessagesEventHandler
     {
         public Task OnTriggerFollowUpMessageEventReceivedAsync(object sender, BasicDeliverEventArgs eventArgs);
     }

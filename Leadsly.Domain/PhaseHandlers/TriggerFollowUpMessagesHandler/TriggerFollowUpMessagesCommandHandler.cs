@@ -1,6 +1,6 @@
 ﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.Campaigns;
-using Leadsly.Domain.Models.RabbitMQ;
+using Leadsly.Domain.Models.RabbitMQMessages;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -10,7 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.PhaseHandlers.TriggerFollowUpMessagesHandlers
+namespace Leadsly.Domain.PhaseHandlers.TriggerFollowUpMessagesHandler
 {
     public class TriggerFollowUpMessagesCommandHandler : TriggerPhaseBase, ICommandHandler<TriggerFollowUpMessagesCommand>
     {
@@ -31,7 +31,6 @@ namespace Leadsly.Domain.PhaseHandlers.TriggerFollowUpMessagesHandlers
         private readonly IFollowUpMessagePublisherService _publishingService;
         private readonly IFollowUpMessagesProvider _provider;
 
-
         public async Task HandleAsync(TriggerFollowUpMessagesCommand command)
         {
             IModel channel = command.Channel;
@@ -42,10 +41,11 @@ namespace Leadsly.Domain.PhaseHandlers.TriggerFollowUpMessagesHandlers
             channel.BasicAck(args.DeliveryTag, false);
         }
 
-        protected override async Task TriggerPhaseAsync(TriggerFollowUpMessageBody message)
+        protected override async Task TriggerPhaseAsync(TriggerPhaseMessageBodyBase message)
         {
-            _logger.LogInformation("[TriggerFollowUpMessagesAsync] Exuecting TriggerFollowUpMessagesCommand for halId: {0}", message.HalId);
-            IList<PublishMessageBody> mqMessages = await _provider.CreateMQFollowUpMessagesAsync(message.HalId);
+            TriggerFollowUpMessageBody messageBody = message as TriggerFollowUpMessageBody;
+            _logger.LogInformation("[TriggerFollowUpMessagesAsync] Exuecting TriggerFollowUpMessagesCommand for halId: {0}", messageBody.HalId);
+            IList<PublishMessageBody> mqMessages = await _provider.CreateMQFollowUpMessagesAsync(messageBody.HalId);
 
             foreach (PublishMessageBody mqMessage in mqMessages)
             {

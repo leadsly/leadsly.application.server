@@ -3,7 +3,7 @@
 namespace Leadsly.Domain.Models.RabbitMQMessages
 {
     [DataContract]
-    public class TriggerFollowUpMessageBody : TriggerPhaseMessageBodyBase
+    public class TriggerScanProspectsForRepliesMessageBody : TriggerPhaseMessageBodyBase
     {
         [DataMember]
         public string UserId { get; set; }

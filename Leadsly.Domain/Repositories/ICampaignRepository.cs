@@ -14,6 +14,7 @@ namespace Leadsly.Domain.Repositories
         Task<IList<Campaign>> GetAllActiveByUserIdAsync(string applicationUserId, CancellationToken ct = default);
         Task<IList<Campaign>> GetAllByUserIdAsync(string userId, CancellationToken ct = default);
         Task<IList<Campaign>> GetAllActiveByHalIdAsync(string halId, CancellationToken ct = default);
+        Task<bool> AnyActiveByHalIdAsync(string halId, CancellationToken ct = default);
         Task<IList<Campaign>> GetAllActiveAsync(CancellationToken ct = default);
         Task<CampaignWarmUp> CreateCampaignWarmUpAsync(CampaignWarmUp warmUp, CancellationToken ct = default);
         Task<CampaignWarmUp> GetCampaignWarmUpByIdAsync(string campaignId, CancellationToken ct = default);

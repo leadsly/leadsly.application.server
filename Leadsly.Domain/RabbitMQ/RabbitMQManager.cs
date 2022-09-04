@@ -100,7 +100,7 @@ namespace Leadsly.Domain.RabbitMQ
             consumer.Received += receivedHandlerAsync;
 
             // process only one message at a time
-            channel.BasicQos(0, 1, false);
+            channel.BasicQos(0, 20, false);
 
             channel.BasicConsume(queue: queueNameIn,
                                  autoAck: false,

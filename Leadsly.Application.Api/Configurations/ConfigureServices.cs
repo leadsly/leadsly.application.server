@@ -27,12 +27,14 @@ using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.OptionsJsonModels;
 using Leadsly.Domain.PhaseConsumers;
 using Leadsly.Domain.PhaseConsumers.TriggerFollowUpMessagesHandler;
-using Leadsly.Domain.PhaseHandlers;
-using Leadsly.Domain.PhaseHandlers.Interfaces;
-using Leadsly.Domain.PhaseHandlers.TriggerFollowUpMessagesHandlers;
+using Leadsly.Domain.PhaseConsumers.TriggerScanProspectsForRpliesHandlers;
+using Leadsly.Domain.PhaseHandlers.TriggerFollowUpMessagesHandler;
+using Leadsly.Domain.PhaseHandlers.TriggerScanProspectsForRepliesHandler;
 using Leadsly.Domain.Providers;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.RabbitMQ;
+using Leadsly.Domain.RabbitMQ.EventHandlers;
+using Leadsly.Domain.RabbitMQ.EventHandlers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Serializers;
 using Leadsly.Domain.Serializers.Interfaces;
@@ -265,6 +267,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ISendFollowUpMessageProvider, SendFollowUpMessageProvider>();
             services.AddScoped<ICampaignPhaseProcessorProvider, CampaignPhaseProcessorProvider>();
             services.AddScoped<IFollowUpMessagesProvider, FollowUpMessagesProvider>();
+            services.AddScoped<ICreateScanProspectsForRepliesMessageProvider, CreateScanProspectsForRepliesMessageProvider>();
 
             return services;
         }
@@ -315,10 +318,15 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ICommandHandler<NetworkingCommand>, NetworkingCommandHandler>();
             services.AddScoped<ICommandHandler<RestartResourcesCommand>, RestartResourcesCommandHandler>();
             services.AddScoped<ICommandHandler<TriggerFollowUpMessagesCommand>, TriggerFollowUpMessagesCommandHandler>();
+            services.AddScoped<ICommandHandler<TriggerScanProspectsForRepliesCommand>, TriggerScanProspectsForRepliesCommandHandler>();
 
             // consumers for SendFollowUpMessages and ScanProspectsForReplies
-            services.AddScoped<IConsumeCommandHandler<TriggerFollowUpMessagesConsumeCommand>, TriggerFollowUpMessagesConsumerCommandHandler>();
-            services.AddScoped<ITriggerFollowUpMessagesMessageHandlerService, TriggerFollowUpMessagesMessageHandlerService>();
+            services.AddScoped<IConsumeCommandHandler<TriggerFollowUpMessagesConsumeCommand>, TriggerFollowUpMessagesConsumeCommandHandler>();
+            services.AddScoped<ITriggerFollowUpMessagesEventHandler, TriggerFollowUpMessagesEventHandler>();
+
+            // consumers for ScanProspectsForReplies
+            services.AddScoped<IConsumeCommandHandler<TriggerScanProspectsForRepliesConsumeCommand>, TriggerScanProspectsForRepliesConsumeCommandHandler>();
+            services.AddScoped<ITriggerScanProspectsForRepliesEventHandler, TriggerScanProspectsForRepliesEventHandler>();
 
             return services;
         }
@@ -344,6 +352,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ICreateFollowUpMessageService, CreateFollowUpMessageService>();
             services.AddScoped<ICreateFollowUpMessagesService, CreateFollowUpMessagesService>();
             services.AddScoped<IFollowUpMessagePublisherService, FollowUpMessagePublisherService>();
+            services.AddScoped<ICreateScanProspectsForRepliesMessageService, CreateScanProspectsForRepliesMessageService>();
 
             return services;
         }

@@ -1,6 +1,7 @@
-﻿using Leadsly.Domain.Models.RabbitMQ;
-using Leadsly.Domain.PhaseHandlers.Interfaces;
-using Leadsly.Domain.PhaseHandlers.TriggerFollowUpMessagesHandlers;
+﻿using Leadsly.Domain.Models.RabbitMQMessages;
+using Leadsly.Domain.PhaseConsumers;
+using Leadsly.Domain.PhaseHandlers.TriggerFollowUpMessagesHandler;
+using Leadsly.Domain.RabbitMQ.EventHandlers.Interfaces;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
@@ -9,17 +10,17 @@ using System;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Leadsly.Domain.PhaseHandlers
+namespace Leadsly.Domain.RabbitMQ.EventHandlers
 {
-    public class TriggerFollowUpMessagesMessageHandlerService : ITriggerFollowUpMessagesMessageHandlerService
+    public class TriggerFollowUpMessagesEventHandler : TriggerPhaseEventHandlerBase, ITriggerFollowUpMessagesEventHandler
     {
-        public TriggerFollowUpMessagesMessageHandlerService(ICommandHandler<TriggerFollowUpMessagesCommand> triggerFollowUpHandler, ILogger<TriggerFollowUpMessagesMessageHandlerService> logger)
+        public TriggerFollowUpMessagesEventHandler(ICommandHandler<TriggerFollowUpMessagesCommand> triggerFollowUpHandler, ILogger<TriggerFollowUpMessagesEventHandler> logger)
         {
             _triggerFollowUpHandler = triggerFollowUpHandler;
             _logger = logger;
         }
 
-        private readonly ILogger<TriggerFollowUpMessagesMessageHandlerService> _logger;
+        private readonly ILogger<TriggerFollowUpMessagesEventHandler> _logger;
         private readonly ICommandHandler<TriggerFollowUpMessagesCommand> _triggerFollowUpHandler;
 
         public async Task OnTriggerFollowUpMessageEventReceivedAsync(object sender, BasicDeliverEventArgs eventArgs)
@@ -28,19 +29,19 @@ namespace Leadsly.Domain.PhaseHandlers
 
             byte[] body = eventArgs.Body.ToArray();
             string message = Encoding.UTF8.GetString(body);
-            TriggerFollowUpMessageBody followUpMessage = DeserializeFollowUpMessagesBody(message);
+            TriggerPhaseMessageBodyBase followUpMessage = DeserializeMessage(message);
 
             TriggerFollowUpMessagesCommand followUpMessageCommand = new TriggerFollowUpMessagesCommand(channel, eventArgs, followUpMessage);
             await _triggerFollowUpHandler.HandleAsync(followUpMessageCommand);
         }
 
-        private TriggerFollowUpMessageBody DeserializeFollowUpMessagesBody(string body)
+        protected override TriggerPhaseMessageBodyBase DeserializeMessage(string rawMessage)
         {
             _logger.LogInformation("Deserializing TriggerFollowUpMessageBody");
             TriggerFollowUpMessageBody triggerFollowUpMessageBody = null;
             try
             {
-                triggerFollowUpMessageBody = JsonConvert.DeserializeObject<TriggerFollowUpMessageBody>(body);
+                triggerFollowUpMessageBody = JsonConvert.DeserializeObject<TriggerFollowUpMessageBody>(rawMessage);
                 _logger.LogDebug("Successfully deserialized TriggerFollowUpMessageBody");
             }
             catch (Exception ex)

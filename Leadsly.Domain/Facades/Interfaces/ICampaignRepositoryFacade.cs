@@ -12,6 +12,7 @@ namespace Leadsly.Domain.Facades.Interfaces
         Task<Campaign> CreateCampaignAsync(Campaign newCampaign, CancellationToken ct = default);
         Task<Campaign> UpdateCampaignAsync(Campaign updatedCampaign, CancellationToken ct = default);
         Task<bool> DeleteCampaignAsync(string campaignId, CancellationToken ct = default);
+        Task<bool> AnyActiveCampaignsByHalIdAsync(string halId, CancellationToken ct = default);
         Task<Campaign> GetCampaignByIdAsync(string campaignId, CancellationToken ct = default);
         Task<IList<Campaign>> GetAllActiveCampaignsByUserIdAsync(string applicationUserId, CancellationToken ct = default);
         Task<IList<Campaign>> GetAllCampaignsByUserIdAsync(string userId, CancellationToken ct = default);

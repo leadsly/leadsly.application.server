@@ -1,5 +1,5 @@
 ﻿using Leadsly.Application.Model.Campaigns;
-using Leadsly.Domain.Models.RabbitMQ;
+using Leadsly.Domain.Models.RabbitMQMessages;
 using System;
 using System.Threading.Tasks;
 
@@ -12,9 +12,6 @@ namespace Leadsly.Domain.PhaseHandlers
             throw new NotImplementedException();
         }
 
-        protected virtual Task TriggerPhaseAsync(TriggerFollowUpMessageBody message)
-        {
-            throw new NotImplementedException();
-        }
+        protected abstract Task TriggerPhaseAsync(TriggerPhaseMessageBodyBase message);
     }
 }

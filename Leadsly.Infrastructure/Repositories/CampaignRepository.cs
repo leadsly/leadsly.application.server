@@ -233,5 +233,19 @@ namespace Leadsly.Infrastructure.Repositories
 
             return true;
         }
+
+        public async Task<bool> AnyActiveByHalIdAsync(string halId, CancellationToken ct = default)
+        {
+            bool anyActive = false;
+            try
+            {
+                anyActive = await _dbContext.Campaigns.Where(c => c.HalId == halId).AnyAsync(c => c.Active == true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to check if there were any active campaigns for for halId {halId}", halId);
+            }
+            return anyActive;
+        }
     }
 }

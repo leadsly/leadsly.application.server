@@ -1,5 +1,6 @@
 ﻿using Leadsly.Domain.PhaseConsumers;
 using Leadsly.Domain.PhaseConsumers.TriggerFollowUpMessagesHandler;
+using Leadsly.Domain.PhaseConsumers.TriggerScanProspectsForRpliesHandlers;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -33,6 +34,9 @@ namespace Leadsly.Domain.Services
                 ////////////////////////////////////////////////////////////////////////////////////
                 /// Consume TriggerScanProspectsForReplies messages
                 ////////////////////////////////////////////////////////////////////////////////////
+                IConsumeCommandHandler<TriggerScanProspectsForRepliesConsumeCommand> triggerScanProspectsForRepliesHandler = scope.ServiceProvider.GetRequiredService<IConsumeCommandHandler<TriggerScanProspectsForRepliesConsumeCommand>>();
+                TriggerScanProspectsForRepliesConsumeCommand triggerScanProspectsForRepliesCommand = new TriggerScanProspectsForRepliesConsumeCommand();
+                await triggerScanProspectsForRepliesHandler.ConsumeAsync(triggerScanProspectsForRepliesCommand);
             }
         }
     }

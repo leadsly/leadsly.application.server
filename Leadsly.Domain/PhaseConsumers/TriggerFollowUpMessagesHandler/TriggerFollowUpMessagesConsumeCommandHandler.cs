@@ -1,20 +1,20 @@
 ﻿using Leadsly.Application.Model;
-using Leadsly.Domain.PhaseHandlers.Interfaces;
 using Leadsly.Domain.RabbitMQ;
+using Leadsly.Domain.RabbitMQ.EventHandlers.Interfaces;
 using RabbitMQ.Client.Events;
 using System.Threading.Tasks;
 
 namespace Leadsly.Domain.PhaseConsumers.TriggerFollowUpMessagesHandler
 {
-    public class TriggerFollowUpMessagesConsumerCommandHandler : IConsumeCommandHandler<TriggerFollowUpMessagesConsumeCommand>
+    public class TriggerFollowUpMessagesConsumeCommandHandler : IConsumeCommandHandler<TriggerFollowUpMessagesConsumeCommand>
     {
-        public TriggerFollowUpMessagesConsumerCommandHandler(IRabbitMQManager rabbitMQManager, ITriggerFollowUpMessagesMessageHandlerService eventHandlerService)
+        public TriggerFollowUpMessagesConsumeCommandHandler(IRabbitMQManager rabbitMQManager, ITriggerFollowUpMessagesEventHandler eventHandlerService)
         {
             _rabbitMQManager = rabbitMQManager;
             _eventHandlerService = eventHandlerService;
         }
 
-        private readonly ITriggerFollowUpMessagesMessageHandlerService _eventHandlerService;
+        private readonly ITriggerFollowUpMessagesEventHandler _eventHandlerService;
         private readonly IRabbitMQManager _rabbitMQManager;
         public Task ConsumeAsync(TriggerFollowUpMessagesConsumeCommand command)
         {
