@@ -1,4 +1,5 @@
-﻿using Leadsly.Domain.Models.Entities.Campaigns;
+﻿using Leadsly.Domain.Models;
+using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.Models.Requests;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -17,7 +18,7 @@ namespace Leadsly.Domain.Supervisor
             bool succeeded = true;
             IList<CampaignProspect> campaignProspectsToUpdate = new List<CampaignProspect>();
             List<CampaignProspect> campaignProspects = await GetActiveCampaignProspectsByHalIdAsync(halId, ct) as List<CampaignProspect>;
-            foreach (NewMessageRequest newMessage in request.Items)
+            foreach (NewMessage newMessage in request.Items)
             {
                 // check if this hal has any prospects in active campaigns that match this prospect                
                 if (campaignProspects != null && campaignProspects.Count > 0)

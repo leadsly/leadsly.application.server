@@ -1,5 +1,4 @@
 ﻿using Leadsly.Application.Model;
-using Leadsly.Application.Model.Requests.FromHal;
 using Leadsly.Application.Model.Responses;
 using Leadsly.Domain.Supervisor;
 using Microsoft.AspNetCore.Authorization;
@@ -25,10 +24,10 @@ namespace Leadsly.Application.Api.Controllers
 
         [AllowAnonymous]
         [HttpPost("{halId}/new-prospects")]
-        public async Task<IActionResult> NewProspects(string halId, [FromBody] NewProspectsConnectionsAcceptedRequest request, CancellationToken ct = default)
+        public async Task<IActionResult> ProcessNewlyDetectedProspectsAsync(string halId, [FromBody] Leadsly.Domain.Models.Requests.RecentlyAddedProspectsRequest request, CancellationToken ct = default)
         {
             _logger.LogInformation("Executing NewProspects for HalId {halId} for CheckOffHoursNewConnections", halId);
-            HalOperationResult<IOperationResponse> result = await _supervisor.ProcessNewlyAcceptedProspectsAsync<IOperationResponse>(request, ct);            
+            HalOperationResult<IOperationResponse> result = await _supervisor.ProcessNewlyAcceptedProspectsAsync<IOperationResponse>(request, ct);
 
             if (result.Succeeded == false)
             {

@@ -30,4 +30,11 @@
       <ProjectReference Include="..\Leadsly.Application.Model\Leadsly.Application.Model.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Models\Networking\" />
+      <Folder Include="Models\MonitorForNewConnections\" />
+      <Folder Include="Models\FollowUpMessage\" />
+      <Folder Include="Models\ScanProspectsForReplies\" />
+    </ItemGroup>
+
 </Project>

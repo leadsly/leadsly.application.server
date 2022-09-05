@@ -1,8 +1,5 @@
 ﻿using Leadsly.Application.Model;
-using Leadsly.Application.Model.Requests.FromHal;
 using Leadsly.Application.Model.Responses;
-using Leadsly.Application.Model.ViewModels;
-using Leadsly.Application.Model.ViewModels.Response;
 using Leadsly.Domain.Supervisor;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -27,7 +24,7 @@ namespace Leadsly.Application.Api.Controllers
         private readonly ISupervisor _supervisor;
 
         [HttpPost("{halId}")]
-        public async Task<IActionResult> ProspectList(string halId, CollectedProspectsRequest request, CancellationToken ct = default)
+        public async Task<IActionResult> ProcessProspectListAsync(string halId, Domain.Models.Requests.CollectedProspectsRequest request, CancellationToken ct = default)
         {
             _logger.LogInformation("Executing ProspectList action for HalId {halId}", halId);
             HalOperationResult<IOperationResponse> result = await _supervisor.ProcessProspectsAsync<IOperationResponse>(request, ct);
@@ -41,24 +38,24 @@ namespace Leadsly.Application.Api.Controllers
             return Ok();
         }
 
-        /// <summary>
-        /// Retrieves user's existing prospect lists
-        /// </summary>
-        /// <param name="userId"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        [HttpGet("{userId}")]
-        public async Task<IActionResult> GetUserProspectListAsync(string userId, CancellationToken ct = default)
-        {
-            _logger.LogInformation("Executing GetUserProspectListAsync action for UserId {userId}", userId);
-            HalOperationResultViewModel<IOperationResponseViewModel> result = await _supervisor.GetProspectListsByUserIdAsync<IOperationResponseViewModel>(userId, ct);
+        ///// <summary>
+        ///// Retrieves user's existing prospect lists
+        ///// </summary>
+        ///// <param name="userId"></param>
+        ///// <param name="ct"></param>
+        ///// <returns></returns>
+        //[HttpGet("{userId}")]
+        //public async Task<IActionResult> GetUserProspectListAsync(string userId, CancellationToken ct = default)
+        //{
+        //    _logger.LogInformation("Executing GetUserProspectListAsync action for UserId {userId}", userId);
+        //    HalOperationResultViewModel<IOperationResponseViewModel> result = await _supervisor.GetProspectListsByUserIdAsync<IOperationResponseViewModel>(userId, ct);
 
-            if (result.OperationResults.Succeeded == false)
-            {
-                return BadRequest_UserProspectList();
-            }
+        //    if (result.OperationResults.Succeeded == false)
+        //    {
+        //        return BadRequest_UserProspectList();
+        //    }
 
-            return Ok(result);
-        }
+        //    return Ok(result);
+        //}
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Leadsly.Application.Model;
 using Leadsly.Application.Model.RabbitMQ;
+using Leadsly.Domain.RabbitMQ.Interfaces;
 using Leadsly.Domain.Repositories;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;

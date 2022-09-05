@@ -4,9 +4,9 @@ using System.Runtime.Serialization;
 namespace Leadsly.Domain.Models.Requests
 {
     [DataContract]
-    public class NewMessagesRequest
+    public class ConnectionsSentRequest
     {
         [DataMember]
-        public IList<NewMessage> Items { get; set; }
+        public IList<ConnectionSent> Items { get; set; }
     }
 }

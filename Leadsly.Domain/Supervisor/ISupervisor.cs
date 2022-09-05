@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.JsonPatch;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using CollectedProspectsRequest = Leadsly.Application.Model.Requests.FromHal.CollectedProspectsRequest;
 
 namespace Leadsly.Domain.Supervisor
 {

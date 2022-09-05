@@ -2,12 +2,14 @@
 using Leadsly.Application.Model.Campaigns.Interfaces;
 using Leadsly.Application.Model.Requests.FromHal;
 using Leadsly.Application.Model.Responses;
+using Leadsly.Domain.Models.Requests;
 using Leadsly.Domain.Supervisor;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Threading;
 using System.Threading.Tasks;
+using ProspectsRepliedRequest = Leadsly.Domain.Models.Requests.ProspectsRepliedRequest;
 
 namespace Leadsly.Application.Api.Controllers
 {
@@ -25,7 +27,7 @@ namespace Leadsly.Application.Api.Controllers
         private readonly ISupervisor _supervisor;
         private readonly ILogger<SendConnectionsController> _logger;
 
-        [HttpPost("{halId}")]        
+        [HttpPost("{halId}")]
         public async Task<IActionResult> CreateSendConnectionsMessage(string halId, ProspectsRepliedRequest request, CancellationToken ct = default)
         {
             _logger.LogInformation("Executing CreateSendConnectionsMessage action for HalId {halId}", halId);
@@ -41,7 +43,7 @@ namespace Leadsly.Application.Api.Controllers
             return Ok();
         }
 
-        [HttpGet("{campaignId}/url")]        
+        [HttpGet("{campaignId}/url")]
         public async Task<IActionResult> GetSentConnectionsUrlsAsync(string campaignId, CancellationToken ct = default)
         {
             _logger.LogInformation("Executing GetSentConnectionsUrls for CampaignId {campaignId}", campaignId);
@@ -55,7 +57,7 @@ namespace Leadsly.Application.Api.Controllers
             return Ok(result.Value);
         }
 
-        [HttpPatch("{campaignId}/url")]        
+        [HttpPatch("{campaignId}/url")]
         public async Task<IActionResult> UpdateSentConnectionsUrlsAsync(string campaignId, [FromBody] UpdateSearchUrlDetailsRequest request, CancellationToken ct = default)
         {
             _logger.LogInformation("Executing action UpdateSentConnectionsUrls for CampaignId {campaignId}", campaignId);
@@ -69,8 +71,8 @@ namespace Leadsly.Application.Api.Controllers
             return Ok();
         }
 
-        [HttpPost("{campaignId}/prospects")]        
-        public async Task<IActionResult> UpdateConnectionSentProspectsAsync(string campaignId, [FromBody] CampaignProspectListRequest request, CancellationToken ct = default)
+        [HttpPost("{campaignId}/prospects")]
+        public async Task<IActionResult> ProcessSentConnectionsAsync(string campaignId, [FromBody] ConnectionsSentRequest request, CancellationToken ct = default)
         {
             _logger.LogInformation("Executing action UpdateConnectionSentProspects for CampaignId {campaignId}", campaignId);
             HalOperationResult<IOperationResponse> result = await _supervisor.ProcessConnectionRequestSentForCampaignProspectsAsync<IOperationResponse>(request, ct);

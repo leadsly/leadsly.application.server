@@ -33,7 +33,7 @@ namespace Leadsly.Application.Api.Controllers
         }
 
         [HttpPost("{halId}/prospects-replied")]
-        public async Task<IActionResult> ProspectsReplied(string halId, NewMessagesRequest request, CancellationToken ct = default)
+        public async Task<IActionResult> ProcessNewMessagesAsync(string halId, NewMessagesRequest request, CancellationToken ct = default)
         {
             _logger.LogInformation("Executing ProspectsReplied action for HalId {halId}", halId);
 

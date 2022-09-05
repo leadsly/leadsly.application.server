@@ -35,6 +35,7 @@ using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.RabbitMQ;
 using Leadsly.Domain.RabbitMQ.EventHandlers;
 using Leadsly.Domain.RabbitMQ.EventHandlers.Interfaces;
+using Leadsly.Domain.RabbitMQ.Interfaces;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Serializers;
 using Leadsly.Domain.Serializers.Interfaces;

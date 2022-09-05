@@ -1,7 +1,6 @@
-﻿using RabbitMQ.Client.Events;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace Leadsly.Domain.RabbitMQ
+namespace Leadsly.Domain.RabbitMQ.Interfaces
 {
     public interface IRabbitMQManager
     {

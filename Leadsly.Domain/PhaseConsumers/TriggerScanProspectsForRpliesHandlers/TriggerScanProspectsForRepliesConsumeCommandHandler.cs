@@ -1,6 +1,6 @@
 ﻿using Leadsly.Application.Model;
-using Leadsly.Domain.RabbitMQ;
 using Leadsly.Domain.RabbitMQ.EventHandlers.Interfaces;
+using Leadsly.Domain.RabbitMQ.Interfaces;
 using RabbitMQ.Client.Events;
 using System.Threading.Tasks;
 
