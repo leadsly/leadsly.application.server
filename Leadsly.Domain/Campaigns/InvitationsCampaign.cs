@@ -8,13 +8,6 @@ namespace Leadsly.Domain.Campaigns
     {
         public override Campaign GeneratePhases(Campaign campaign, bool existingProspectList)
         {
-            SendConnectionRequestPhase sendConnectionsPhase = new()
-            {
-                Campaign = campaign,
-                PhaseType = PhaseType.SendConnectionRequests
-            };
-            campaign.SendConnectionRequestPhase = sendConnectionsPhase;
-
             if (existingProspectList == false)
             {
                 ProspectListPhase prospectListPhase = new()

@@ -114,8 +114,7 @@ namespace Leadsly.Infrastructure.Repositories
             {
                 halUnit = await _dbContext.HalUnits.Where(h => h.HalId == halId)
                                                     .Include(h => h.SocialAccount)
-                                                        .ThenInclude(s => s.ConnectionWithdrawPhase)
-                                                     .Include(h => h.SocialAccount)
+                                                    .Include(h => h.SocialAccount)
                                                         .ThenInclude(s => s.MonitorForNewProspectsPhase)
                                                     .Include(h => h.SocialAccount)
                                                         .ThenInclude(s => s.ScanProspectsForRepliesPhase)

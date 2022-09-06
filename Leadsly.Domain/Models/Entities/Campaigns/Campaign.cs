@@ -24,8 +24,6 @@ namespace Leadsly.Domain.Models.Entities.Campaigns
         public ApplicationUser ApplicationUser { get; set; }
         public ProspectListPhase ProspectListPhase { get; set; }
         public FollowUpMessagePhase FollowUpMessagePhase { get; set; }
-        public SendConnectionRequestPhase SendConnectionRequestPhase { get; set; }
-        public SendEmailInvitePhase SendEmailInvitePhase { get; set; }
         public ICollection<FollowUpMessage> FollowUpMessages { get; set; }
         public ICollection<SendConnectionsStage> SendConnectionStages { get; set; }
         public CampaignProspectList CampaignProspectList { get; set; }

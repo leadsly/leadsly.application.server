@@ -216,7 +216,6 @@ namespace Leadsly.Infrastructure.Repositories
                     .Include(x => x.FollowUpMessagePhase)
                     .Include(x => x.ProspectListPhase)
                     .Include(x => x.SearchUrlsProgress)
-                    .Include(x => x.SendConnectionRequestPhase)
                     .Include(x => x.SendConnectionStages)
                     .Include(x => x.SentConnectionsStatuses)
                     .Include(x => x.CampaignProspectList)

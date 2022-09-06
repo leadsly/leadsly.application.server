@@ -13,38 +13,35 @@ namespace Leadsly.Domain.Facades
         public CampaignRepositoryFacade(
             ICampaignProspectRepository campaignProspectRepository,
             ICampaignRepository campaignRepository,
-            IConnectionWithdrawPhaseRepository connectionWithdrawPhaseRepository,
             IFollowUpMessagePhaseRepository followUpMessagePhaseRepository,
             IMonitorForNewConnectionsPhaseRepository monitorForNewConnectionsPhaseRepository,
             IPrimaryProspectRepository primaryProspectRepository,
             IProspectListPhaseRepository prospectListPhaseRepository,
             IScanProspectsForRepliesPhaseRepository scanProspectsForRepliesPhaseRepository,
-            ISendConnectionsPhaseRepository sendConnectionsPhaseRepository,
-            IFollowUpMessageRepository followUpMessageRepository
+            IFollowUpMessageRepository followUpMessageRepository,
+            ISendConnectionsPhaseRepository sendConnectionsPhaseRepository
             )
         {
             _campaignProspectRepository = campaignProspectRepository;
+            _sendConnectionsPhaseRepository = sendConnectionsPhaseRepository;
             _campaignRepository = campaignRepository;
             _followUpMessageRepository = followUpMessageRepository;
-            _connectionWithdrawPhaseRepository = connectionWithdrawPhaseRepository;
             _followUpMessagePhaseRepository = followUpMessagePhaseRepository;
             _monitorForNewConnectionsPhaseRepository = monitorForNewConnectionsPhaseRepository;
             _primaryProspectRepository = primaryProspectRepository;
             _prospectListPhaseRepository = prospectListPhaseRepository;
             _scanProspectsForRepliesPhaseRepository = scanProspectsForRepliesPhaseRepository;
-            _sendConnectionsPhaseRepository = sendConnectionsPhaseRepository;
         }
 
+        private readonly ISendConnectionsPhaseRepository _sendConnectionsPhaseRepository;
         private readonly ICampaignProspectRepository _campaignProspectRepository;
         private readonly IFollowUpMessageRepository _followUpMessageRepository;
         private readonly ICampaignRepository _campaignRepository;
-        private readonly IConnectionWithdrawPhaseRepository _connectionWithdrawPhaseRepository;
         private readonly IFollowUpMessagePhaseRepository _followUpMessagePhaseRepository;
         private readonly IMonitorForNewConnectionsPhaseRepository _monitorForNewConnectionsPhaseRepository;
         private readonly IPrimaryProspectRepository _primaryProspectRepository;
         private readonly IProspectListPhaseRepository _prospectListPhaseRepository;
         private readonly IScanProspectsForRepliesPhaseRepository _scanProspectsForRepliesPhaseRepository;
-        private readonly ISendConnectionsPhaseRepository _sendConnectionsPhaseRepository;
 
         public async Task<IList<CampaignProspect>> CreateAllCampaignProspectsAsync(IList<CampaignProspect> campaignProspects, CancellationToken ct = default)
         {
@@ -61,40 +58,17 @@ namespace Leadsly.Domain.Facades
             return await _campaignRepository.CreateAsync(newCampaign, ct);
         }
 
-        public async Task<CampaignWarmUp> CreateCampaignWarmUpAsync(CampaignWarmUp warmUp, CancellationToken ct = default)
-        {
-            return await _campaignRepository.CreateCampaignWarmUpAsync(warmUp, ct);
-        }
-
-        public async Task<ConnectionWithdrawPhase> CreateConnectionWithdrawPhaseAsync(ConnectionWithdrawPhase phase, CancellationToken ct = default)
-        {
-            return await _connectionWithdrawPhaseRepository.CreateAsync(phase, ct);
-        }
-
-        public async Task<MonitorForNewConnectionsPhase> CreateMonitorForNewConnectionsPhaseAsync(MonitorForNewConnectionsPhase phase, CancellationToken ct = default)
-        {
-            return await _monitorForNewConnectionsPhaseRepository.CreateAsync(phase, ct);
-        }
-
         public async Task<PrimaryProspectList> CreatePrimaryProspectListAsync(PrimaryProspectList primaryProspectList, CancellationToken ct = default)
         {
             return await _primaryProspectRepository.CreateListAsync(primaryProspectList, ct);
         }
 
-        public async Task<ScanProspectsForRepliesPhase> CreateScanProspectsForRepliesPhaseAsync(ScanProspectsForRepliesPhase phase, CancellationToken ct = default)
-        {
-            return await _scanProspectsForRepliesPhaseRepository.CreateAsync(phase, ct);
-        }
 
         public async Task<IList<Campaign>> GetAllActiveCampaignsAsync(CancellationToken ct = default)
         {
             return await _campaignRepository.GetAllActiveAsync(ct);
         }
 
-        public async Task<IList<Campaign>> GetAllActiveCampaignsByUserIdAsync(string applicationUserId, CancellationToken ct = default)
-        {
-            return await _campaignRepository.GetAllActiveByUserIdAsync(applicationUserId, ct);
-        }
 
         public async Task<IList<Campaign>> GetAllCampaignsByUserIdAsync(string userId, CancellationToken ct = default)
         {
@@ -109,11 +83,6 @@ namespace Leadsly.Domain.Facades
         public async Task<IList<ProspectListPhase>> GetAllActiveProspectListPhasesAsync(CancellationToken ct = default)
         {
             return await _prospectListPhaseRepository.GetAllActiveAsync(ct);
-        }
-
-        public async Task<IList<ProspectListPhase>> GetAllActiveProspectListPhasesByHalIdAsync(string halId, CancellationToken ct = default)
-        {
-            return await _prospectListPhaseRepository.GetAllActiveByHalIdAsync(halId, ct);
         }
 
         public async Task<IList<CampaignProspect>> GetAllCampaignProspectsByCampaignIdAsync(string campaignId, CancellationToken ct = default)
@@ -136,24 +105,9 @@ namespace Leadsly.Domain.Facades
             return await _campaignProspectRepository.GetAllFollowUpMessageEligbleByCampaignIdAsync(campaignId, ct);
         }
 
-        public async Task<IList<MonitorForNewConnectionsPhase>> GetAllMonitorForNewConnectionsPhasesByUserIdAsync(string userId, CancellationToken ct = default)
-        {
-            return await _monitorForNewConnectionsPhaseRepository.GetAllByUserIdAsync(userId, ct);
-        }
-
-        public async Task<IList<SearchUrlDetails>> GetAllSentConnectionsStatusesAsync(string campaignId, CancellationToken ct = default)
-        {
-            return await _sendConnectionsPhaseRepository.GetAllSentConnectionsStatusesAsync(campaignId, ct);
-        }
-
         public async Task<Campaign> GetCampaignByIdAsync(string campaignId, CancellationToken ct = default)
         {
             return await _campaignRepository.GetByIdAsync(campaignId, ct);
-        }
-
-        public async Task<CampaignProspectList> GetCampaignProspectListByListIdAsync(string campaignProspectListId, CancellationToken ct = default)
-        {
-            return await _campaignProspectRepository.GetListByListIdAsync(campaignProspectListId, ct);
         }
 
         public async Task<CampaignWarmUp> GetCampaignWarmUpByIdAsync(string campaignId, CancellationToken ct = default)
@@ -164,11 +118,6 @@ namespace Leadsly.Domain.Facades
         public async Task<MonitorForNewConnectionsPhase> GetMonitorForNewConnectionsPhaseBySocialAccountIdAsync(string socialAccountId, CancellationToken ct = default)
         {
             return await _monitorForNewConnectionsPhaseRepository.GetBySocialAccountIdAsync(socialAccountId, ct);
-        }
-
-        public async Task<PrimaryProspect> GetPrimaryProspectByIdAsync(string primaryProspectId, CancellationToken ct = default)
-        {
-            return await _primaryProspectRepository.GetByIdAsync(primaryProspectId, ct);
         }
 
         public async Task<PrimaryProspectList> GetPrimaryProspectListByIdAsync(string primaryProspectListId, CancellationToken ct = default)
@@ -186,24 +135,9 @@ namespace Leadsly.Domain.Facades
             return await _primaryProspectRepository.GetListByNameAndUserIdAsync(prospectListName, userId, ct);
         }
 
-        public async Task<IList<PrimaryProspectList>> GetPrimaryProspectListsByUserIdAsync(string userId, CancellationToken ct = default)
-        {
-            return await _primaryProspectRepository.GetListsByUserIdAsync(userId, ct);
-        }
-
-        public async Task<ProspectListPhase> GetProspectListPhaseByCampaignIdAsync(string campaignId, CancellationToken ct = default)
-        {
-            return await _prospectListPhaseRepository.GetByCampaignIdAsync(campaignId, ct);
-        }
-
         public async Task<ProspectListPhase> GetProspectListPhaseByIdAsync(string prospectListPhaseId, CancellationToken ct = default)
         {
             return await _prospectListPhaseRepository.GetByIdAsync(prospectListPhaseId, ct);
-        }
-
-        public async Task<IList<SendConnectionsStage>> GetStagesByCampaignIdAsync(string campaignId, CancellationToken ct = default)
-        {
-            return await _sendConnectionsPhaseRepository.GetStagesByCampaignIdAsync(campaignId, ct);
         }
 
         public async Task<IList<CampaignProspect>> UpdateAllCampaignProspectsAsync(IList<CampaignProspect> campaignProspects, CancellationToken ct = default)
@@ -224,16 +158,6 @@ namespace Leadsly.Domain.Facades
         public async Task<bool> DeleteCampaignAsync(string campaignId, CancellationToken ct = default)
         {
             return await _campaignRepository.DeleteAsync(campaignId, ct);
-        }
-
-        public async Task<ProspectListPhase> UpdateProspectListPhaseAsync(ProspectListPhase prospectListPhase, CancellationToken ct = default)
-        {
-            return await _prospectListPhaseRepository.UpdateAsync(prospectListPhase, ct);
-        }
-
-        public async Task<SearchUrlDetails> UpdateSentConnectionsStatusAsync(SearchUrlDetails updatedSearchUrlStatus, CancellationToken ct = default)
-        {
-            return await _sendConnectionsPhaseRepository.UpdateSentConnectionsStatusAsync(updatedSearchUrlStatus, ct);
         }
 
         public async Task<IList<FollowUpMessage>> GetFollowUpMessagesByCampaignIdAsync(string campaignId, CancellationToken ct = default)
@@ -271,11 +195,6 @@ namespace Leadsly.Domain.Facades
             return await _prospectListPhaseRepository.AnyIncompleteByHalIdAsync(halId, ct);
         }
 
-        public async Task<bool> DeleteConnectionWithdrawPhaseAsync(string connectionWithdrawPhaseId, CancellationToken ct = default)
-        {
-            return await _connectionWithdrawPhaseRepository.DeleteAsync(connectionWithdrawPhaseId, ct);
-        }
-
         public async Task<bool> DeleteMonitorForNewConnectionsPhaseAsync(string monitorForNewConnectionsPhaseId, CancellationToken ct = default)
         {
             return await _monitorForNewConnectionsPhaseRepository.DeleteAsync(monitorForNewConnectionsPhaseId, ct);
@@ -284,6 +203,11 @@ namespace Leadsly.Domain.Facades
         public async Task<bool> DeleteScanProspectsForRepliesPhaseAsync(string scanProspectsForRepliesPhaseId, CancellationToken ct = default)
         {
             return await _scanProspectsForRepliesPhaseRepository.DeleteAsync(scanProspectsForRepliesPhaseId, ct);
+        }
+
+        public async Task<IList<SendConnectionsStage>> GetStagesByCampaignIdAsync(string campaignId, CancellationToken ct = default)
+        {
+            return await _sendConnectionsPhaseRepository.GetStagesByCampaignIdAsync(campaignId, ct);
         }
     }
 }

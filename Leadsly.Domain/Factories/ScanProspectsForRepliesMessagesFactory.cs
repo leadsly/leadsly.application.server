@@ -10,7 +10,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ChromeProfile = Leadsly.Domain.Models.Entities.Campaigns.Phases.ChromeProfile;
+using ChromeProfile = Leadsly.Domain.Models.Entities.ChromeProfile;
 using PhaseType = Leadsly.Domain.Models.Entities.Campaigns.Phases.PhaseType;
 using ScanProspectsForRepliesPhase = Leadsly.Domain.Models.Entities.Campaigns.Phases.ScanProspectsForRepliesPhase;
 

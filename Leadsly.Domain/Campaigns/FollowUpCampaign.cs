@@ -21,13 +21,6 @@ namespace Leadsly.Domain.Campaigns
                 campaign.ProspectListPhase = prospectListPhase;
             }
 
-            SendConnectionRequestPhase sendConnectionRequestPhase = new()
-            {
-                Campaign = campaign,
-                PhaseType = PhaseType.SendConnectionRequests
-            };
-            campaign.SendConnectionRequestPhase = sendConnectionRequestPhase;
-
             FollowUpMessagePhase followUpMessagePhase = new()
             {
                 Campaign = campaign,

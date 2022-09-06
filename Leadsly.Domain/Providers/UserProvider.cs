@@ -17,13 +17,11 @@ namespace Leadsly.Domain.Providers
             IUserRepository userRepository,
             IScanProspectsForRepliesPhaseRepository scanProspectsForRepliesPhaseRepository,
             ISocialAccountRepository socialAccountRepository,
-            IConnectionWithdrawPhaseRepository connectionWithdrawPhaseRepository,
             IMonitorForNewConnectionsPhaseRepository monitorForNewConnectionsPhaseRepository)
         {
             _userRepository = userRepository;
             _logger = logger;
             _scanProspectsForRepliesPhaseRepository = scanProspectsForRepliesPhaseRepository;
-            _connectionWithdrawPhaseRepository = connectionWithdrawPhaseRepository;
             _monitorForNewConnectionsPhaseRepository = monitorForNewConnectionsPhaseRepository;
             _socialAccountRepository = socialAccountRepository;
         }
@@ -31,7 +29,6 @@ namespace Leadsly.Domain.Providers
         private readonly ILogger<UserProvider> _logger;
         private readonly IUserRepository _userRepository;
         private readonly IScanProspectsForRepliesPhaseRepository _scanProspectsForRepliesPhaseRepository;
-        private readonly IConnectionWithdrawPhaseRepository _connectionWithdrawPhaseRepository;
         private readonly ISocialAccountRepository _socialAccountRepository;
         private readonly IMonitorForNewConnectionsPhaseRepository _monitorForNewConnectionsPhaseRepository;
 
@@ -96,15 +93,6 @@ namespace Leadsly.Domain.Providers
             };
 
             await _monitorForNewConnectionsPhaseRepository.CreateAsync(monitorForNewConnectionsPhase, ct);
-
-
-            ConnectionWithdrawPhase connectionWithdrawPhase = new()
-            {
-                PhaseType = PhaseType.ConnectionWithdraw,
-                SocialAccount = newSocialAccount
-            };
-
-            await _connectionWithdrawPhaseRepository.CreateAsync(connectionWithdrawPhase, ct);
         }
     }
 }

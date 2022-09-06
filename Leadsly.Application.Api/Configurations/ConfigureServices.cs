@@ -185,15 +185,14 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<IProspectListPhaseRepository, ProspectListPhaseRepository>();
             services.AddScoped<IMonitorForNewConnectionsPhaseRepository, MonitorForNewConnectionsPhaseRepository>();
             services.AddScoped<IScanProspectsForRepliesPhaseRepository, ScanProspectsForRepliesPhaseRepository>();
-            services.AddScoped<IConnectionWithdrawPhaseRepository, ConnectionWithdrawPhaseRepository>();
             services.AddScoped<IPrimaryProspectRepository, PrimaryProspectRepository>();
             services.AddScoped<ICampaignProspectRepository, CampaignProspectRepository>();
-            services.AddScoped<ISendConnectionsPhaseRepository, SendConnectionsPhaseRepository>();
             services.AddScoped<IFollowUpMessagePhaseRepository, FollowUpMessagePhaseRepository>();
             services.AddScoped<IFollowUpMessageRepository, FollowUpMessageRepository>();
             services.AddScoped<ISearchUrlProgressRepository, SearchUrlProgressRepository>();
             services.AddScoped<IFollowUpMessageJobsRepository, FollowUpMessageJobsRepository>();
             services.AddScoped<ITimeZoneRepository, TimeZoneRepository>();
+            services.AddScoped<ISendConnectionsPhaseRepository, SendConnectionsPhaseRepository>();
             services.AddScoped<IVirtualAssistantRepository, VirtualAssistantRepository>();
 
             return services;
@@ -224,9 +223,6 @@ namespace Leadsly.Application.Api.Configurations
         {
             Log.Information("Registering leadsly dependencies.");
 
-            //LeadslyBotApiOptions options = new LeadslyBotApiOptions();
-            //configuration.GetSection(nameof(LeadslyBotApiOptions)).Bind(options);
-
             services.AddHttpClient<ILeadslyHalApiService, LeadslyHalApiService>();
 
             services.Configure<CloudPlatformConfigurationOptions>(options => configuration.GetSection(nameof(CloudPlatformConfigurationOptions)).Bind(options));
@@ -250,7 +246,6 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped(typeof(AmazonRoute53Client));
             services.AddScoped<IConnectAccountResponseSerializer, ConnectAccountResponseSerializer>();
             services.AddScoped<IEnterTwoFactorAuthCodeResponseSerializer, EnterTwoFactorAuthCodeResponseSerializer>();
-            services.AddScoped<ICampaignPhaseSerializer, CampaignPhaseSerializer>();
             services.AddScoped<IPhaseManager, PhaseManager>();
             services.AddScoped<IFollowUpMessagePublisher, FollowUpMessagePublisher>();
 
@@ -276,7 +271,6 @@ namespace Leadsly.Application.Api.Configurations
         {
             Log.Information("Registering facades services.");
 
-            services.AddScoped<ISerializerFacade, SerializerFacade>();
             services.AddScoped<ICampaignRepositoryFacade, CampaignRepositoryFacade>();
 
             return services;
@@ -352,6 +346,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ICreateFollowUpMessagesService, CreateFollowUpMessagesService>();
             services.AddScoped<IFollowUpMessagePublisherService, FollowUpMessagePublisherService>();
             services.AddScoped<ICreateScanProspectsForRepliesMessageService, CreateScanProspectsForRepliesMessageService>();
+            services.AddScoped<IFollowUpMessagesService, FollowUpMessagesService>();
 
             return services;
         }

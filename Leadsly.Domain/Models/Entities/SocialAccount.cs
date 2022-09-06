@@ -29,7 +29,6 @@ namespace Leadsly.Domain.Models.Entities
         public VirtualAssistant VirtualAssistant { get; set; }
         public HalUnit HalDetails { get; set; }
         public ScanProspectsForRepliesPhase ScanProspectsForRepliesPhase { get; set; }
-        public ConnectionWithdrawPhase ConnectionWithdrawPhase { get; set; }
         public MonitorForNewConnectionsPhase MonitorForNewProspectsPhase { get; set; }
     }
 }

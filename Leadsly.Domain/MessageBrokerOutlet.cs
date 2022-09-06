@@ -1,36 +1,31 @@
 ﻿using Leadsly.Application.Model.Campaigns;
-using Leadsly.Application.Model.RabbitMQ;
-using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.RabbitMQ.Interfaces;
 using Microsoft.Extensions.Logging;
-using System;
+using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Leadsly.Domain
 {
     public class MessageBrokerOutlet : IMessageBrokerOutlet
     {
-        public MessageBrokerOutlet(IRabbitMQManager rabbitMQManager, ISerializerFacade serializerFacade, ILogger<MessageBrokerOutlet> logger)
+        public MessageBrokerOutlet(IRabbitMQManager rabbitMQManager, ILogger<MessageBrokerOutlet> logger)
         {
             _rabbitMQManager = rabbitMQManager;
-            _serializerFacade = serializerFacade;
             _logger = logger;
         }
 
         private readonly IRabbitMQManager _rabbitMQManager;
-        private readonly ISerializerFacade _serializerFacade;
         private readonly ILogger<MessageBrokerOutlet> _logger;
 
         public void PublishPhase(PublishMessageBody messageBody, string queueNameIn, string routingKeyIn, string halId, IDictionary<string, object> headers)
         {
-            byte[] body = _serializerFacade.Serialize(messageBody);
+            string message = JsonConvert.SerializeObject(messageBody);
+            byte[] rawMessage = Encoding.UTF8.GetBytes(message);
 
             _logger.LogInformation($"Publishing {messageBody.GetType().Name}.");
 
-            _rabbitMQManager.PublishMessage(body, queueNameIn, routingKeyIn, halId, headers);
+            _rabbitMQManager.PublishMessage(rawMessage, queueNameIn, routingKeyIn, halId, headers);
         }
     }
 }

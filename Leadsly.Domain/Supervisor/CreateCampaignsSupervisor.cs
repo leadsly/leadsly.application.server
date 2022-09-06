@@ -50,7 +50,6 @@ namespace Leadsly.Domain.Supervisor
 
             newCampaign.FollowUpMessages = _createCampaignService.CreateFollowUpMessages(newCampaign, request.FollowUpMessages, userId);
             newCampaign.ProspectListPhase = CreateProspectListPhase(searchUrls, newCampaign);
-            newCampaign.SendConnectionRequestPhase = CreateSendConnectionRequestPhase(newCampaign);
             newCampaign.FollowUpMessagePhase = CreateFollowUpMessagePhase(newCampaign);
             newCampaign.SentConnectionsStatuses = _createCampaignService.CreateSearchUrlDetails(searchUrls, newCampaign);
             newCampaign.SearchUrlsProgress = _createCampaignService.CreateSearchUrlProgress(searchUrls, newCampaign);
@@ -78,17 +77,6 @@ namespace Leadsly.Domain.Supervisor
                 Completed = false,
                 PhaseType = PhaseType.ProspectList,
                 SearchUrls = searchUrls.ToList()
-            };
-
-            return phase;
-        }
-
-        private SendConnectionRequestPhase CreateSendConnectionRequestPhase(Campaign campaign)
-        {
-            SendConnectionRequestPhase phase = new()
-            {
-                Campaign = campaign,
-                PhaseType = PhaseType.SendConnectionRequests
             };
 
             return phase;

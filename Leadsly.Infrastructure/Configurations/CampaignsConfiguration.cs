@@ -28,11 +28,6 @@ namespace Leadsly.Infrastructure.Configurations
                 .OnDelete(DeleteBehavior.Cascade);
 
                 entity
-                .HasOne(x => x.SendConnectionRequestPhase)
-                .WithOne(y => y.Campaign)
-                .OnDelete(DeleteBehavior.Cascade);
-
-                entity
                 .HasMany(x => x.SendConnectionStages)
                 .WithOne(y => y.Campaign)
                 .OnDelete(DeleteBehavior.Cascade);

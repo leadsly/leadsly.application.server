@@ -41,9 +41,6 @@ namespace Leadsly.Domain.Supervisor
             {
                 SocialAccount socialAccount = await _socialAccountRepository.GetByIdAsync(virtualAssistant.SocialAccount.SocialAccountId, ct);
 
-                // first delete connection withdraw phases
-                await _campaignRepositoryFacade.DeleteConnectionWithdrawPhaseAsync(socialAccount.ConnectionWithdrawPhase.ConnectionWithdrawPhaseId, ct);
-
                 // second delete Monitorfornewconnections phase
                 await _campaignRepositoryFacade.DeleteMonitorForNewConnectionsPhaseAsync(socialAccount.MonitorForNewProspectsPhase.MonitorForNewConnectionsPhaseId, ct);
 
