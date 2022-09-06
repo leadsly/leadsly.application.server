@@ -15,6 +15,7 @@ namespace Leadsly.Domain.Models.Entities.Campaigns
         public long AcceptedTimestamp { get; set; }
         public string CampaignId { get; set; }
         public bool FollowUpComplete { get; set; }
+        public long FollowUpCompleteTimestamp { get; set; }
         public string ResponseMessage { get; set; }
         public long LastFollowUpMessageSentTimestamp { get; set; }
         public bool ConnectionSent { get; set; }

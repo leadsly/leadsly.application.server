@@ -108,19 +108,8 @@ namespace Leadsly.Domain
                     _logger.LogDebug("Enqueuing PublishNetworkingPhaseAsync for halId {halId}. This will be enqueued right now", halId);
                     _hangfireService.Enqueue<ILeadslyRecurringJobsManagerService>((x) => x.PublishNetworkingPhaseAsync(halId));
 
-                    // run a daily job that checks if there are prospects from active campaigns that have received all follow up messages and if so check when last message was sent, if it was within 14 days, mark them as follow up complete,
-                    // this campaign prospect has received all of the follow up messages configured
-                    // check if the last follow up message was sent 14 or more days ago, if yes mark this prospect as complete or fullfilled
-                    //DateTimeOffset localLastFollowUpMessage = await _timestampService.GetDateFromTimestampLocalizedAsync(campaignProspect.Campaign.HalId, campaignProspect.LastFollowUpMessageSentTimestamp);
-
-                    //_logger.LogDebug($"[CreateSendFollowUpMessagesAsync]: Last follow up message localized date time is {localLastFollowUpMessage}");
-                    //DateTimeOffset localNow = await _timestampService.GetNowLocalizedAsync(campaignProspect.Campaign.HalId);
-                    //_logger.LogDebug($"[CreateSendFollowUpMessagesAsync]: Localized DateTime now is {localNow}");
-                    //if ((localLastFollowUpMessage - localNow).TotalDays < 14)
-                    //{
-                    //    campaignProspect.FollowUpComplete = true;
-                    //    await _campaignRepositoryFacade.UpdateCampaignProspectAsync(campaignProspect, ct);
-                    //}
+                    _logger.LogDebug("Enqueing PreventFollowUpMessageService for halId {halId}", halId);
+                    _hangfireService.Enqueue<IPreventFollowUpMessageService>((x) => x.MarkProspectsAsCompleteAsync(halId));
                 }
             }
             else

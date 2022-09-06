@@ -347,6 +347,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<IFollowUpMessagePublisherService, FollowUpMessagePublisherService>();
             services.AddScoped<ICreateScanProspectsForRepliesMessageService, CreateScanProspectsForRepliesMessageService>();
             services.AddScoped<IFollowUpMessagesService, FollowUpMessagesService>();
+            services.AddScoped<IPreventFollowUpMessageService, PreventFollowUpMessageService>();
 
             return services;
         }
