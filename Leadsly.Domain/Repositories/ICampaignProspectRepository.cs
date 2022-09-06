@@ -14,6 +14,7 @@ namespace Leadsly.Domain.Repositories
         Task<IList<CampaignProspect>> UpdateAllAsync(IList<CampaignProspect> campaignProspects, CancellationToken ct = default);
         Task<CampaignProspect> UpdateAsync(CampaignProspect updatedCampaignProspect, CancellationToken ct = default);
         Task<CampaignProspect> GetByIdAsync(string campaignProspectId, CancellationToken ct = default);
+        Task<CampaignProspect> GetByProfileUrlAsync(string profileUrl, string halId, string userId, CancellationToken ct = default);
         Task<CampaignProspectList> GetListByListIdAsync(string campaignProspectListId, CancellationToken ct = default);
     }
 }

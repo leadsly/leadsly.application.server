@@ -1,4 +1,5 @@
-﻿using Leadsly.Domain.Models.Responses;
+﻿using Leadsly.Domain.Models.Requests;
+using Leadsly.Domain.Models.Responses;
 using Leadsly.Domain.Supervisor;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -29,7 +30,7 @@ namespace Leadsly.Application.Api.Controllers
         /// <param name="ct"></param>
         /// <returns></returns>
         [HttpPost("{halId}")]
-        public async Task<IActionResult> ProcessProspectsRepliedAsync(string halId, Domain.Models.Requests.ProspectsRepliedRequest request, CancellationToken ct = default)
+        public async Task<IActionResult> ProcessProspectsRepliedAsync(string halId, ProspectsRepliedRequest request, CancellationToken ct = default)
         {
             _logger.LogInformation("Executing DeepScanProspects action for HalId {halId}", halId);
 

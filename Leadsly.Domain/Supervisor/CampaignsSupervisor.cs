@@ -1,7 +1,4 @@
-﻿using Leadsly.Application.Model;
-using Leadsly.Application.Model.Requests.FromHal;
-using Leadsly.Application.Model.Responses;
-using Leadsly.Domain.Converters;
+﻿using Leadsly.Domain.Converters;
 using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.Models.ViewModels.Campaigns;
 using Microsoft.AspNetCore.JsonPatch;
@@ -66,30 +63,6 @@ namespace Leadsly.Domain.Supervisor
             CampaignViewModel campaignViewModel = CampaignConverter.Convert(campaign);
 
             return campaignViewModel;
-        }
-
-        public async Task<HalOperationResult<T>> UpdateSentConnectionsUrlStatusesAsync<T>(string campaignId, UpdateSearchUrlDetailsRequest request, CancellationToken ct = default)
-            where T : IOperationResponse
-        {
-            return await _campaignProvider.UpdateSentConnectionsUrlStatusesAsync<T>(campaignId, request, ct);
-        }
-
-        public async Task<HalOperationResult<T>> GetSentConnectionsUrlStatusesAsync<T>(string campaignId, CancellationToken ct = default)
-            where T : IOperationResponse
-        {
-            return await _campaignProvider.GetSentConnectionsUrlStatusesAsync<T>(campaignId, ct);
-        }
-
-        public async Task<HalOperationResult<T>> ProcessCampaignProspectsRepliedAsync<T>(ProspectsRepliedRequest request, CancellationToken ct = default)
-            where T : IOperationResponse
-        {
-            return await _campaignProvider.ProcessCampaignProspectsRepliedAsync<T>(request, ct);
-        }
-
-        public async Task<HalOperationResult<T>> ProcessProspectsRepliedAsync<T>(ProspectsRepliedRequest request, CancellationToken ct = default)
-            where T : IOperationResponse
-        {
-            return await _campaignProvider.ProcessProspectsRepliedAsync<T>(request, ct);
         }
 
         public async Task<CampaignsViewModel> GetCampaignsByUserIdAsync(string userId, CancellationToken ct = default)

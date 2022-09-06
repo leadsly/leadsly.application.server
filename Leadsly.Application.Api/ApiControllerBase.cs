@@ -1,5 +1,4 @@
 ﻿using Leadsly.Application.Model;
-using Leadsly.Application.Model.ViewModels;
 using Leadsly.Domain;
 using Leadsly.Domain.Models.Entities;
 using Microsoft.AspNetCore.Http;
@@ -83,36 +82,6 @@ namespace Leadsly.Application.Api
         }
 
         /// <summary>
-        /// Bad request when processing prospect list
-        /// </summary>        
-        /// <returns></returns>
-        protected ObjectResult BadRequest_ProspectList(List<Failure> errors)
-        {
-            Dictionary<string, string[]> errorsDictionary = errors.ToDictionary(x => Enum.GetName(x.Code ?? Codes.ERROR), x => new[] { x.Reason, x.Detail });
-
-            return ProblemDetailsResult(new ValidationProblemDetails(errorsDictionary)
-            {
-                Type = ProblemDetailsTypes.BadRequestType,
-                Status = StatusCodes.Status400BadRequest,
-                Title = ReasonPhrases.GetReasonPhrase(400),
-                Detail = ProblemDetailsDescriptions.ProspectListError,
-                Instance = HttpContext.Request.Path.Value
-            });
-        }
-
-        protected ObjectResult BadRequest_UserProspectList()
-        {
-            return ProblemDetailsResult(new ProblemDetails
-            {
-                Type = ProblemDetailsTypes.BadRequestType,
-                Status = StatusCodes.Status400BadRequest,
-                Title = ReasonPhrases.GetReasonPhrase(400),
-                Detail = ProblemDetailsDescriptions.ProspectListError,
-                Instance = HttpContext.Request.Path.Value
-            });
-        }
-
-        /// <summary>
         /// Bad request when there is an issue updating prospect list phase.
         /// </summary>        
         /// <returns></returns>
@@ -126,24 +95,6 @@ namespace Leadsly.Application.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.UpdateProspectListPhaseError,
-                Instance = HttpContext.Request.Path.Value
-            });
-        }
-
-        /// <summary>
-        /// Bad request when there is an issue updating social account.
-        /// </summary>        
-        /// <returns></returns>
-        protected ObjectResult BadRequest_UpdatingSocialAccount(List<FailureViewModel> errors)
-        {
-            Dictionary<string, string[]> errorsDictionary = errors.ToDictionary(x => Enum.GetName(x.Code ?? Codes.ERROR), x => new[] { x.Reason, x.Detail });
-
-            return ProblemDetailsResult(new ValidationProblemDetails(errorsDictionary)
-            {
-                Type = ProblemDetailsTypes.BadRequestType,
-                Status = StatusCodes.Status400BadRequest,
-                Title = ReasonPhrases.GetReasonPhrase(400),
-                Detail = ProblemDetailsDescriptions.UpdateSocialAccountError,
                 Instance = HttpContext.Request.Path.Value
             });
         }
@@ -394,24 +345,6 @@ namespace Leadsly.Application.Api
         /// Bad request when there is an issue updating user's password.
         /// </summary>        
         /// <returns></returns>
-        protected ObjectResult BadRequest_EmailNotUpdated(IEnumerable<IdentityError> errors)
-        {
-            Dictionary<string, string[]> errorsDictionary = errors.ToDictionary(x => x.Code, x => new[] { x.Description });
-
-            return ProblemDetailsResult(new ValidationProblemDetails(errorsDictionary)
-            {
-                Type = ProblemDetailsTypes.BadRequestType,
-                Status = StatusCodes.Status400BadRequest,
-                Title = ReasonPhrases.GetReasonPhrase(400),
-                Detail = ProblemDetailsDescriptions.FailedToUpdateEmail,
-                Instance = HttpContext.Request.Path.Value
-            });
-        }
-
-        /// <summary>
-        /// Bad request when there is an issue updating user's password.
-        /// </summary>        
-        /// <returns></returns>
         protected ObjectResult BadRequest_PasswordNotUpdated(IEnumerable<IdentityError> errors)
         {
             Dictionary<string, string[]> errorsDictionary = errors.ToDictionary(x => x.Code, x => new[] { x.Description });
@@ -422,25 +355,6 @@ namespace Leadsly.Application.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.FailedToUpdatePassword,
-                Instance = HttpContext.Request.Path.Value
-            });
-        }
-
-        /// <summary>
-        /// Bad request when an error occurs setting up user with leadsly with errors list.
-        /// </summary>
-        /// <param name="errors"></param>
-        /// <returns></returns>
-        protected ObjectResult BadRequest_LeadslySetup(List<FailureViewModel> errors)
-        {
-            Dictionary<string, string[]> errorsDictionary = errors.ToDictionary(x => Enum.GetName(x.Code ?? Codes.ERROR), x => new[] { x.Reason ?? "Error occured", x.Detail ?? "Operation failed to successfully complete" });
-
-            return ProblemDetailsResult(new ValidationProblemDetails(errorsDictionary)
-            {
-                Type = ProblemDetailsTypes.BadRequest,
-                Status = StatusCodes.Status400BadRequest,
-                Title = ReasonPhrases.GetReasonPhrase(400),
-                Detail = ProblemDetailsDescriptions.VirtualAssistant,
                 Instance = HttpContext.Request.Path.Value
             });
         }
@@ -461,22 +375,6 @@ namespace Leadsly.Application.Api
             });
         }
 
-        /// <summary>
-        /// Bad request when an error occurs entering two factor auth code.
-        /// </summary>
-        /// <returns></returns>
-        protected ObjectResult BadRequest_EnteringTwoFactorAuthCode()
-        {
-            return ProblemDetailsResult(new ProblemDetails
-            {
-                Type = ProblemDetailsTypes.BadRequestType,
-                Status = StatusCodes.Status400BadRequest,
-                Title = ReasonPhrases.GetReasonPhrase(400),
-                Detail = ProblemDetailsDescriptions.EnterTwoFactorAuthCode,
-                Instance = HttpContext.Request.Path.Value
-            });
-        }
-
         protected ObjectResult BadRequest(string detail)
         {
             return ProblemDetailsResult(new ProblemDetails
@@ -485,63 +383,6 @@ namespace Leadsly.Application.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = detail,
-                Instance = HttpContext.Request.Path.Value
-            });
-        }
-
-        /// <summary>
-        /// Bad request when an error occurs setting up user with leadsly with errors list.
-        /// </summary>
-        /// <param name="errors"></param>
-        /// <returns></returns>
-        protected ObjectResult BadRequest_LeadslySetup(List<Failure> errors)
-        {
-            Dictionary<string, string[]> errorsDictionary = errors.ToDictionary(x => Enum.GetName(x.Code ?? Codes.ERROR), x => new[] { x.Reason ?? "Error occured", x.Detail ?? "Operation failed to successfully complete" });
-
-            return ProblemDetailsResult(new ValidationProblemDetails(errorsDictionary)
-            {
-                Type = ProblemDetailsTypes.BadRequest,
-                Status = StatusCodes.Status400BadRequest,
-                Title = ReasonPhrases.GetReasonPhrase(400),
-                Detail = ProblemDetailsDescriptions.VirtualAssistant,
-                Instance = HttpContext.Request.Path.Value
-            });
-        }
-
-        /// <summary>
-        /// Bad request when an error occurs creating selenium web driver.
-        /// </summary>
-        /// <param name="errors"></param>
-        /// <returns></returns>
-        protected ObjectResult BadRequest_LeadslyCreateWebDriver(List<FailureViewModel> errors)
-        {
-            Dictionary<string, string[]> errorsDictionary = errors.ToDictionary(x => Enum.GetName(x.Code ?? Codes.ERROR), x => new[] { x.Reason ?? "Error occured", x.Detail ?? "Operation failed to successfully complete" });
-
-            return ProblemDetailsResult(new ValidationProblemDetails(errorsDictionary)
-            {
-                Type = ProblemDetailsTypes.BadRequest,
-                Status = StatusCodes.Status400BadRequest,
-                Title = ReasonPhrases.GetReasonPhrase(400),
-                Detail = ProblemDetailsDescriptions.WebDriverCreationError,
-                Instance = HttpContext.Request.Path.Value
-            });
-        }
-
-        /// <summary>
-        /// Bad request when an error occurs creating new campaign.
-        /// </summary>
-        /// <param name="errors"></param>
-        /// <returns></returns>
-        protected ObjectResult BadRequest_CreateCampaign(List<FailureViewModel> errors)
-        {
-            Dictionary<string, string[]> errorsDictionary = errors.ToDictionary(x => Enum.GetName(x.Code ?? Codes.ERROR), x => new[] { x.Reason ?? "Error occured", x.Detail ?? "Operation failed to successfully complete" });
-
-            return ProblemDetailsResult(new ValidationProblemDetails(errorsDictionary)
-            {
-                Type = ProblemDetailsTypes.BadRequest,
-                Status = StatusCodes.Status400BadRequest,
-                Title = ReasonPhrases.GetReasonPhrase(400),
-                Detail = ProblemDetailsDescriptions.CreateCampaignError,
                 Instance = HttpContext.Request.Path.Value
             });
         }
@@ -600,44 +441,6 @@ namespace Leadsly.Application.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.UpdatingSentConnectionsUrlStatuses,
-                Instance = HttpContext.Request.Path.Value
-            });
-        }
-
-        /// <summary>
-        /// Bad request when an error occurs trying to authenticate user's social account
-        /// </summary>
-        /// <param name="errors"></param>
-        /// <returns></returns>
-        protected ObjectResult BadRequest_LeadslyAuthenticationError(List<FailureViewModel> errors)
-        {
-            Dictionary<string, string[]> errorsDictionary = errors.ToDictionary(x => Enum.GetName(x.Code ?? Codes.ERROR), x => new[] { x.Reason ?? "Error occured", x.Detail ?? "Operation failed to successfully complete" });
-
-            return ProblemDetailsResult(new ValidationProblemDetails(errorsDictionary)
-            {
-                Type = ProblemDetailsTypes.BadRequest,
-                Status = StatusCodes.Status400BadRequest,
-                Title = ReasonPhrases.GetReasonPhrase(400),
-                Detail = ProblemDetailsDescriptions.LeadslySocialAccountAuthenticationError,
-                Instance = HttpContext.Request.Path.Value
-            });
-        }
-
-        /// <summary>
-        /// Bad request when an error occurs trying to perform two factor auth on user's social account
-        /// </summary>
-        /// <param name="errors"></param>
-        /// <returns></returns>
-        protected ObjectResult BadRequest_LeadslyTwoFactorAuthError(List<FailureViewModel> errors)
-        {
-            Dictionary<string, string[]> errorsDictionary = errors.ToDictionary(x => Enum.GetName(x.Code ?? Codes.ERROR), x => new[] { x.Reason ?? "Error occured", x.Detail ?? "Operation failed to successfully complete" });
-
-            return ProblemDetailsResult(new ValidationProblemDetails(errorsDictionary)
-            {
-                Type = ProblemDetailsTypes.BadRequest,
-                Status = StatusCodes.Status400BadRequest,
-                Title = ReasonPhrases.GetReasonPhrase(400),
-                Detail = ProblemDetailsDescriptions.LeadslySocialAccountAuthenticationError,
                 Instance = HttpContext.Request.Path.Value
             });
         }
@@ -836,71 +639,6 @@ namespace Leadsly.Application.Api
         }
 
         /// <summary>
-        /// Bad request user sent correct username/email but invalid password.
-        /// </summary>
-        /// <param name="failedAttempts"></param>
-        /// <returns></returns>
-        protected ObjectResult Unauthorized_InvalidCredentials(int failedAttempts)
-        {
-            return ProblemDetailsResult(new ProblemDetails
-            {
-                Type = ProblemDetailsTypes.Unauthorized,
-                Status = StatusCodes.Status401Unauthorized,
-                Title = ReasonPhrases.GetReasonPhrase(401),
-                Detail = $"{ProblemDetailsDescriptions.UnauthorizedDetail} Failed attempt: {failedAttempts}.",
-                Instance = HttpContext.Request.Path.Value
-            });
-        }
-
-        /// <summary>
-        /// Bad request when user exceeded maximum number of sign in attempts and the account has now been locked.
-        /// </summary>
-        /// <returns></returns>
-        protected ObjectResult Unauthorized_AccountLockedOut()
-        {
-            return ProblemDetailsResult(new ProblemDetails
-            {
-                Type = ProblemDetailsTypes.Unauthorized,
-                Status = StatusCodes.Status401Unauthorized,
-                Title = ReasonPhrases.GetReasonPhrase(401),
-                Detail = ProblemDetailsDescriptions.UnauthorizedAccountLocked,
-                Instance = HttpContext.Request.Path.Value
-            });
-        }
-
-        /// <summary>
-        /// Forbidden when user's email has not been confirmed.
-        /// </summary>
-        /// <returns></returns>
-        protected ObjectResult Forbidden_EmailNotConfirmed()
-        {
-            return ProblemDetailsResult(new ProblemDetails
-            {
-                Type = ProblemDetailsTypes.Forbidden,
-                Status = StatusCodes.Status403Forbidden,
-                Title = ReasonPhrases.GetReasonPhrase(404),
-                Detail = ProblemDetailsDescriptions.ForbiddenEmailNotConfirmed,
-                Instance = HttpContext.Request.Path.Value
-            });
-        }
-
-        /// <summary>
-        /// When external provider token (Google, Facebook etc) is invalid.
-        /// </summary>
-        /// <returns></returns>
-        protected ObjectResult Unauthorized_InvalidExternalProviderToken()
-        {
-            return ProblemDetailsResult(new ProblemDetails
-            {
-                Type = ProblemDetailsTypes.Unauthorized,
-                Status = StatusCodes.Status401Unauthorized,
-                Title = ReasonPhrases.GetReasonPhrase(401),
-                Detail = ProblemDetailsDescriptions.UnauthorizedExternalProvider,
-                Instance = HttpContext.Request.Path.Value
-            });
-        }
-
-        /// <summary>
         /// When user registration token is invalid.
         /// </summary>
         /// <returns></returns>
@@ -965,22 +703,6 @@ namespace Leadsly.Application.Api
         }
 
         /// <summary>
-        /// When server failed to deserialize object.
-        /// </summary>
-        /// <returns></returns>
-        protected ObjectResult BadRequest_DeserializationFailed()
-        {
-            return ProblemDetailsResult(new ProblemDetails
-            {
-                Type = ProblemDetailsTypes.BadRequest,
-                Status = StatusCodes.Status400BadRequest,
-                Title = ReasonPhrases.GetReasonPhrase(400),
-                Detail = ProblemDetailsDescriptions.FailedToDeserialize,
-                Instance = HttpContext.Request.Path.Value
-            });
-        }
-
-        /// <summary>
         /// When no campaign is found witht he given id.
         /// </summary>
         /// <returns></returns>
@@ -992,22 +714,6 @@ namespace Leadsly.Application.Api
                 Status = StatusCodes.Status400BadRequest,
                 Title = ReasonPhrases.GetReasonPhrase(400),
                 Detail = ProblemDetailsDescriptions.CampaignNotFound,
-                Instance = HttpContext.Request.Path.Value
-            });
-        }
-
-        /// <summary>
-        /// When server fails to process campaign phase.
-        /// </summary>
-        /// <returns></returns>
-        protected ObjectResult BadRequest_FailedToProcessCampaignPhase()
-        {
-            return ProblemDetailsResult(new ProblemDetails
-            {
-                Type = ProblemDetailsTypes.BadRequest,
-                Status = StatusCodes.Status400BadRequest,
-                Title = ReasonPhrases.GetReasonPhrase(400),
-                Detail = ProblemDetailsDescriptions.CampaignPhaseProcessing,
                 Instance = HttpContext.Request.Path.Value
             });
         }

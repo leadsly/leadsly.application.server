@@ -26,11 +26,12 @@ namespace Leadsly.Domain.Supervisor
             IFollowUpMessageJobsRepository followUpMessageJobRepository,
             IHangfireService hangfireService,
             ITimeZoneRepository timeZoneRepository,
-            ICampaignPhaseProcessorProvider campaignPhaseProcessorProvider,
             IVirtualAssistantRepository virtualAssistantRepository,
+            IFollowUpMessagesProvider followUpMessagesProvider,
             IMemoryCache memoryCache,
             ILogger<Supervisor> logger)
         {
+            _followUpMessagesProvider = followUpMessagesProvider;
             _hangfireService = hangfireService;
             _followUpMessageJobRepository = followUpMessageJobRepository;
             _cloudPlatformRepository = cloudPlatformRepository;
@@ -47,19 +48,18 @@ namespace Leadsly.Domain.Supervisor
             _leadslyHalProvider = leadslyHalProvider;
             _searchUrlProgressRepository = searchUrlProgressRepository;
             _memoryCache = memoryCache;
-            _campaignPhaseProcessorProvider = campaignPhaseProcessorProvider;
             _userProvider = userProvider;
             _createCampaignService = createCampaignService;
             _logger = logger;
         }
 
+        private readonly IFollowUpMessagesProvider _followUpMessagesProvider;
         private readonly IHangfireService _hangfireService;
         private readonly IFollowUpMessageJobsRepository _followUpMessageJobRepository;
         private readonly ICloudPlatformRepository _cloudPlatformRepository;
         private readonly ITimestampService _timestampService;
         private readonly IVirtualAssistantRepository _virtualAssistantRepository;
         private readonly ICreateCampaignService _createCampaignService;
-        private readonly ICampaignPhaseProcessorProvider _campaignPhaseProcessorProvider;
         private readonly ITimeZoneRepository _timeZoneRepository;
         private readonly ICampaignProvider _campaignProvider;
         private readonly ISocialAccountRepository _socialAccountRepository;

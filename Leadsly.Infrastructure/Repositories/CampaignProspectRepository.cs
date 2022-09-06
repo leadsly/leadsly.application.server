@@ -62,6 +62,21 @@ namespace Leadsly.Infrastructure.Repositories
             return campaignProspects;
         }
 
+        public async Task<CampaignProspect> GetByProfileUrlAsync(string profileUrl, string userId, string halId, CancellationToken ct = default)
+        {
+            _logger.LogDebug("Retrieving campaign prospect by profile url {profileUrl}", profileUrl);
+            CampaignProspect prospect = default;
+            try
+            {
+                prospect = await _dbContext.CampaignProspects.Include(p => p.Campaign).Where(p => p.Campaign.HalId == halId && p.Campaign.ApplicationUserId == userId && p.ProfileUrl == profileUrl).SingleOrDefaultAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve campaign prospect by profileUrl {0} halId {1} and userId {2}", profileUrl, halId, userId);
+            }
+            return prospect;
+        }
+
         public async Task<IList<CampaignProspect>> GetAllActiveByHalIdAsync(string halId, CancellationToken ct = default)
         {
             _logger.LogDebug("Retrieving all CampaignProspects by hal id {halId}", halId);

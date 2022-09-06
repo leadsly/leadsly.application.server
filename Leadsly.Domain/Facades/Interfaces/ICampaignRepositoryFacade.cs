@@ -25,6 +25,7 @@ namespace Leadsly.Domain.Facades.Interfaces
         #region CampaignProspect
         Task<IList<CampaignProspect>> CreateAllCampaignProspectsAsync(IList<CampaignProspect> campaignProspects, CancellationToken ct = default);
         Task<IList<CampaignProspect>> GetAllCampaignProspectsByCampaignIdAsync(string campaignId, CancellationToken ct = default);
+        Task<CampaignProspect> GetCampaignProspectByProfileUrlAsync(string profileUrl, string halId, string userId, CancellationToken ct = default);
         Task<IList<CampaignProspect>> GetAllActiveCampaignProspectsByHalIdAsync(string halId, CancellationToken ct = default);
         Task<IList<CampaignProspect>> GetAllFollowUpMessageEligbleProspectsByCampaignIdAsync(string campaignId, CancellationToken ct);
         Task<CampaignProspect> GetCampaignProspectByIdAsync(string campaignProspectId, CancellationToken ct = default);

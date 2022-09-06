@@ -1,13 +1,10 @@
-﻿using Leadsly.Application.Model.Campaigns;
-using Leadsly.Domain.Facades.Interfaces;
-using Leadsly.Domain.Factories.Interfaces;
-using Leadsly.Domain.Models.Entities.Campaigns;
-using Leadsly.Domain.Models.Entities.Campaigns.Phases;
+﻿using Leadsly.Application.Model;
+using Leadsly.Application.Model.Campaigns;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,65 +14,50 @@ namespace Leadsly.Domain.Providers
     {
         public FollowUpMessagesProvider(
             ILogger<FollowUpMessagesProvider> logger,
-            ICreateFollowUpMessagesService service,
-            ICampaignRepositoryFacade campaignRepositoryFacade,
-            IFollowUpMessagesFactory factory
+            IFollowUpMessagesService service,
+            ITimestampService timestampService,
+            IFollowUpMessagePublisherService publishingService
             )
         {
-            _factory = factory;
+            _publishingService = publishingService;
+            _timestampService = timestampService;
             _logger = logger;
             _service = service;
-            _campaignRepositoryFacade = campaignRepositoryFacade;
         }
 
-        private readonly IFollowUpMessagesFactory _factory;
+        private readonly IFollowUpMessagePublisherService _publishingService;
+        private readonly ITimestampService _timestampService;
         private readonly ILogger<FollowUpMessagesProvider> _logger;
-        private readonly ICreateFollowUpMessagesService _service;
-        private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
+        private readonly IFollowUpMessagesService _service;
 
-
-        public async Task<IList<PublishMessageBody>> CreateMQFollowUpMessagesAsync(string halId, CancellationToken ct = default)
+        public async Task PublishMessageAsync(string halId, CancellationToken ct = default)
         {
-            IList<PublishMessageBody> mqFollowUpMessages = new List<PublishMessageBody>();
-            IList<CampaignProspectFollowUpMessage> followUpMessages = await CreateFollowUpMessagesAsync(halId, ct);
-            foreach (CampaignProspectFollowUpMessage followUpMessage in followUpMessages)
-            {
-                // the phase is only used for getting the url
-                FollowUpMessagePhase phase = await _campaignRepositoryFacade.GetFollowUpMessagePhaseByCampaignIdAsync(followUpMessage.CampaignProspect.CampaignId, ct);
-                PublishMessageBody mqMessage = await _factory.CreateMQMessageAsync(halId, followUpMessage, phase, ct);
-                if (mqMessage != null)
-                {
-                    mqFollowUpMessages.Add(mqMessage);
-                }
-            }
+            IList<PublishMessageBody> mqMessages = await _service.CreateMQFollowUpMessagesAsync(halId);
 
-            return mqFollowUpMessages;
+            foreach (PublishMessageBody mqMessage in mqMessages)
+            {
+                await PublishMessageAsync(mqMessage);
+            }
         }
 
-        private async Task<IList<CampaignProspectFollowUpMessage>> CreateFollowUpMessagesAsync(string halId, CancellationToken ct = default)
+        protected async Task PublishMessageAsync(PublishMessageBody message)
         {
-            _logger.LogInformation($"Getting follow up messages for hal {halId}");
+            string queueNameIn = RabbitMQConstants.FollowUpMessage.QueueName;
+            string routingKeyIn = RabbitMQConstants.FollowUpMessage.RoutingKey;
+            string halId = message.HalId;
+            FollowUpMessageBody followUpMessage = message as FollowUpMessageBody;
 
-            IList<CampaignProspectFollowUpMessage> prospectsFollowUpMessages = await _service.GenerateProspectsFollowUpMessagesAsync(halId, ct);
-
-            foreach (CampaignProspectFollowUpMessage followUpMessage in prospectsFollowUpMessages)
+            DateTimeOffset nowLocalized = await _timestampService.GetNowLocalizedAsync(message.HalId);
+            if (followUpMessage.ExpectedDeliveryDateTime < nowLocalized)
             {
-                string content = TokenizeMessage(followUpMessage.Content, followUpMessage.CampaignProspect);
-                followUpMessage.Content = content;
-
-                await _campaignRepositoryFacade.CreateFollowUpMessageAsync(followUpMessage);
+                _logger.LogInformation("FollowUpMessageBody does not have a schedule time set, sending message immediately");
+                _publishingService.PublishMessage(message, queueNameIn, routingKeyIn, halId);
             }
-
-            return prospectsFollowUpMessages;
-        }
-
-        private string TokenizeMessage(string message, CampaignProspect prospect)
-        {
-            string firstName = prospect.Name.Split(' ').FirstOrDefault();
-            firstName = string.IsNullOrEmpty(firstName) ? "there" : firstName.Capitalize();
-            string content = message.Replace("{firstName}", firstName);
-
-            return content;
+            else
+            {
+                _logger.LogInformation($"Scheduling FollowUpMessageBody to go out at {followUpMessage.ExpectedDeliveryDateTime}");
+                await _publishingService.ScheduleMessageAsync(message, queueNameIn, routingKeyIn, halId);
+            }
         }
     }
 }

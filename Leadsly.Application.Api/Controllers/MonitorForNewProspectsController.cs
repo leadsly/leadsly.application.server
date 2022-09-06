@@ -1,5 +1,4 @@
-﻿using Leadsly.Application.Model;
-using Leadsly.Application.Model.Responses;
+﻿using Leadsly.Domain.Models.Requests;
 using Leadsly.Domain.Supervisor;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,17 +23,10 @@ namespace Leadsly.Application.Api.Controllers
 
         [AllowAnonymous]
         [HttpPost("{halId}/new-prospects")]
-        public async Task<IActionResult> ProcessNewlyDetectedProspectsAsync(string halId, [FromBody] Leadsly.Domain.Models.Requests.RecentlyAddedProspectsRequest request, CancellationToken ct = default)
+        public async Task<IActionResult> ProcessNewlyDetectedProspectsAsync(string halId, [FromBody] RecentlyAddedProspectsRequest request, CancellationToken ct = default)
         {
             _logger.LogInformation("Executing NewProspects for HalId {halId} for CheckOffHoursNewConnections", halId);
-            HalOperationResult<IOperationResponse> result = await _supervisor.ProcessNewlyAcceptedProspectsAsync<IOperationResponse>(request, ct);
-
-            if (result.Succeeded == false)
-            {
-                _logger.LogDebug("Failed to process new prospects for HalId {halId}", halId);
-                return BadRequest_FailedToProcessCampaignPhase();
-            }
-
+            await _supervisor.ProcessNewlyAcceptedProspectsAsync(halId, request, ct);
             _logger.LogInformation("Finished processing new prospects from CheckOffHoursNewConnections", halId);
             return Ok();
         }

@@ -1,5 +1,4 @@
-﻿using Leadsly.Application.Model.Requests.FromHal;
-using Leadsly.Domain.Models.Requests;
+﻿using Leadsly.Domain.Models.Requests;
 using Leadsly.Domain.Supervisor;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,15 +21,6 @@ namespace Leadsly.Application.Api.Controllers
 
         private readonly ISupervisor _supervisor;
         private readonly ILogger<ScanProspectsForRepliesController> _logger;
-
-        [HttpPost]
-        [Route("{halId}")]
-        public async Task<IActionResult> CreateScanProspectsForRepliesMessageAsync(string halId, [FromBody] TriggerScanProspectsForRepliesRequest request)
-        {
-            _logger.LogInformation("Executing CreateScanProspectsForRepliesMessage action for HalId {halId}", halId);
-            await _supervisor.TriggerScanProspectsForRepliesPhaseAsync(request);
-            return Ok();
-        }
 
         [HttpPost("{halId}/prospects-replied")]
         public async Task<IActionResult> ProcessNewMessagesAsync(string halId, NewMessagesRequest request, CancellationToken ct = default)

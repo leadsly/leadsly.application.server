@@ -1,9 +1,9 @@
 ﻿using System.Runtime.Serialization;
 
-namespace Leadsly.Domain.Models.Requests
+namespace Leadsly.Domain.Models.DeepScanProspectsForReplies
 {
     [DataContract]
-    public class ProspectRepliedRequest
+    public class ProspectRepliedModel
     {
         [DataMember]
         public string CampaignProspectId { get; set; }

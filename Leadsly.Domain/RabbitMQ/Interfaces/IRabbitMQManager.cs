@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using RabbitMQ.Client.Events;
+using System.Collections.Generic;
 
 namespace Leadsly.Domain.RabbitMQ.Interfaces
 {

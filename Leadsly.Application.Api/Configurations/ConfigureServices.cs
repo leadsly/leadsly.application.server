@@ -266,7 +266,6 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ICampaignProvider, CampaignProvider>();
             services.AddScoped<IRabbitMQProvider, RabbitMQProvider>();
             services.AddScoped<ISendFollowUpMessageProvider, SendFollowUpMessageProvider>();
-            services.AddScoped<ICampaignPhaseProcessorProvider, CampaignPhaseProcessorProvider>();
             services.AddScoped<IFollowUpMessagesProvider, FollowUpMessagesProvider>();
             services.AddScoped<ICreateScanProspectsForRepliesMessageProvider, CreateScanProspectsForRepliesMessageProvider>();
 
@@ -342,7 +341,6 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<IAwsServiceDiscoveryService, AwsServiceDiscoveryService>();
             services.AddScoped<IAwsRoute53Service, AwsRoute53Service>();
             services.AddScoped<ILeadslyHalApiService, LeadslyHalApiService>();
-            services.AddScoped<ICampaignService, CampaignService>();
             services.AddScoped<ITimestampService, TimestampService>();
             services.AddScoped<IMessageBrokerOutlet, MessageBrokerOutlet>();
             services.AddScoped<IRabbitMQManager, RabbitMQManager>();

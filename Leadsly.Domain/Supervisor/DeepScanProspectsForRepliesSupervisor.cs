@@ -1,4 +1,6 @@
-﻿using Leadsly.Application.Model.Entities.Campaigns;
+﻿using Leadsly.Domain.Models.DeepScanProspectsForReplies;
+using Leadsly.Domain.Models.Entities.Campaigns;
+using Leadsly.Domain.Models.Requests;
 using Leadsly.Domain.Models.Responses;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
@@ -10,23 +12,24 @@ namespace Leadsly.Domain.Supervisor
 {
     public partial class Supervisor : ISupervisor
     {
-        public async Task<bool> ProcessCampaignProspectsRepliesAsync(Models.Requests.ProspectsRepliedRequest request, CancellationToken ct = default)
+        public async Task<bool> ProcessCampaignProspectsRepliesAsync(ProspectsRepliedRequest request, CancellationToken ct = default)
         {
             _logger.LogInformation("Executing ProcessCampaignProspectsReplies action");
-            bool succeeded = false;
-            IList<Models.Entities.Campaigns.CampaignProspect> campaignProspectsToUpdate = new List<Models.Entities.Campaigns.CampaignProspect>();
-            foreach (Models.Requests.ProspectRepliedRequest prospectReplied in request.Items)
+            IList<CampaignProspect> updatedProspects = new List<CampaignProspect>();
+            foreach (ProspectRepliedModel prospectReplied in request.Items)
             {
-                Models.Entities.Campaigns.CampaignProspect campaignProspectToUpdate = await _campaignRepositoryFacade.GetCampaignProspectByIdAsync(prospectReplied.CampaignProspectId, ct);
+                CampaignProspect prospect = await _campaignRepositoryFacade.GetCampaignProspectByIdAsync(prospectReplied.CampaignProspectId, ct);
 
-                campaignProspectToUpdate.Replied = true;
-                campaignProspectToUpdate.FollowUpComplete = true;
-                campaignProspectToUpdate.ResponseMessage = prospectReplied.ResponseMessage;
-                campaignProspectsToUpdate.Add(campaignProspectToUpdate);
+                prospect.Replied = true;
+                prospect.FollowUpComplete = true;
+                prospect.ResponseMessage = prospectReplied.ResponseMessage;
+                prospect.RepliedTimestamp = prospectReplied.ResponseMessageTimestamp;
+                updatedProspects.Add(prospect);
             }
 
-            campaignProspectsToUpdate = await _campaignRepositoryFacade.UpdateAllCampaignProspectsAsync(campaignProspectsToUpdate, ct);
-            if (campaignProspectsToUpdate == null)
+            updatedProspects = await _campaignRepositoryFacade.UpdateAllCampaignProspectsAsync(updatedProspects, ct);
+            bool succeeded = false;
+            if (updatedProspects == null)
             {
                 _logger.LogDebug("Failed to update campaign prospects");
                 succeeded = false;
@@ -42,13 +45,13 @@ namespace Leadsly.Domain.Supervisor
 
         public async Task<NetworkProspectsResponse> GetAllNetworkProspectsAsync(string halId, CancellationToken ct = default)
         {
-            IList<Leadsly.Domain.Models.Entities.Campaigns.CampaignProspect> campaignProspects = await GetCampainProspectsAsync(halId);
+            IList<CampaignProspect> campaignProspects = await GetCampainProspectsAsync(halId);
 
             IList<NetworkProspectResponse> networkProspects = new List<NetworkProspectResponse>();
-            foreach (Leadsly.Domain.Models.Entities.Campaigns.CampaignProspect campaignProspect in campaignProspects)
+            foreach (CampaignProspect campaignProspect in campaignProspects)
             {
                 int lastFollowUpMessageOrder = campaignProspect.SentFollowUpMessageOrderNum;
-                Leadsly.Domain.Models.Entities.Campaigns.CampaignProspectFollowUpMessage lastFollowUpMessage = campaignProspect.FollowUpMessages.Where(x => x.Order == lastFollowUpMessageOrder).FirstOrDefault();
+                CampaignProspectFollowUpMessage lastFollowUpMessage = campaignProspect.FollowUpMessages.Where(x => x.Order == lastFollowUpMessageOrder).FirstOrDefault();
                 if (lastFollowUpMessage == null)
                 {
                     string campaignProspectId = campaignProspect.CampaignProspectId;
@@ -79,12 +82,12 @@ namespace Leadsly.Domain.Supervisor
             };
         }
 
-        private async Task<IList<Leadsly.Domain.Models.Entities.Campaigns.CampaignProspect>> GetCampainProspectsAsync(string halId)
+        private async Task<IList<CampaignProspect>> GetCampainProspectsAsync(string halId)
         {
             IDictionary<string, IList<CampaignProspect>> halsCampaignProspects = new Dictionary<string, IList<CampaignProspect>>();
 
-            IList<Leadsly.Domain.Models.Entities.Campaigns.CampaignProspect> halCampaignProspects = await _campaignRepositoryFacade.GetAllActiveCampaignProspectsByHalIdAsync(halId);
-            IList<Leadsly.Domain.Models.Entities.Campaigns.CampaignProspect> contactedProspects = halCampaignProspects.Where(p => p.Accepted == true && p.FollowUpMessageSent == true && p.Replied == false && p.FollowUpComplete == false).ToList();
+            IList<CampaignProspect> halCampaignProspects = await _campaignRepositoryFacade.GetAllActiveCampaignProspectsByHalIdAsync(halId);
+            IList<CampaignProspect> contactedProspects = halCampaignProspects.Where(p => p.Accepted == true && p.FollowUpMessageSent == true && p.Replied == false && p.FollowUpComplete == false).ToList();
 
             return contactedProspects;
         }

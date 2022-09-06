@@ -1,5 +1,5 @@
-﻿using Leadsly.Application.Model;
-using Leadsly.Application.Model.Responses;
+﻿using Leadsly.Domain;
+using Leadsly.Domain.Models.Requests;
 using Leadsly.Domain.Supervisor;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,38 +24,18 @@ namespace Leadsly.Application.Api.Controllers
         private readonly ISupervisor _supervisor;
 
         [HttpPost("{halId}")]
-        public async Task<IActionResult> ProcessProspectListAsync(string halId, Domain.Models.Requests.CollectedProspectsRequest request, CancellationToken ct = default)
+        public async Task<IActionResult> ProcessProspectListAsync(string halId, CollectedProspectsRequest request, CancellationToken ct = default)
         {
             _logger.LogInformation("Executing ProspectList action for HalId {halId}", halId);
-            HalOperationResult<IOperationResponse> result = await _supervisor.ProcessProspectsAsync<IOperationResponse>(request, ct);
+            bool succeeded = await _supervisor.ProcessProspectsAsync(request, ct);
 
-            if (result.Succeeded == false)
+            if (succeeded == false)
             {
                 _logger.LogDebug("Failed to process prospects for HalId {halId}", halId);
-                return BadRequest_ProspectList(result.Failures);
+                return BadRequest(ProblemDetailsDescriptions.ProspectListError);
             }
 
             return Ok();
         }
-
-        ///// <summary>
-        ///// Retrieves user's existing prospect lists
-        ///// </summary>
-        ///// <param name="userId"></param>
-        ///// <param name="ct"></param>
-        ///// <returns></returns>
-        //[HttpGet("{userId}")]
-        //public async Task<IActionResult> GetUserProspectListAsync(string userId, CancellationToken ct = default)
-        //{
-        //    _logger.LogInformation("Executing GetUserProspectListAsync action for UserId {userId}", userId);
-        //    HalOperationResultViewModel<IOperationResponseViewModel> result = await _supervisor.GetProspectListsByUserIdAsync<IOperationResponseViewModel>(userId, ct);
-
-        //    if (result.OperationResults.Succeeded == false)
-        //    {
-        //        return BadRequest_UserProspectList();
-        //    }
-
-        //    return Ok(result);
-        //}
     }
 }

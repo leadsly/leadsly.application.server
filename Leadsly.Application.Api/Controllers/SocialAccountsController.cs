@@ -1,5 +1,4 @@
-﻿using Leadsly.Application.Model.ViewModels;
-using Leadsly.Application.Model.ViewModels.Response;
+﻿using Leadsly.Domain;
 using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.Supervisor;
 using Microsoft.AspNetCore.Authorization;
@@ -31,10 +30,10 @@ namespace Leadsly.Application.Api.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Update(string socialAccountId, [FromBody] JsonPatchDocument<SocialAccount> patchDoc, CancellationToken ct = default)
         {
-            HalOperationResultViewModel<IOperationResponseViewModel> result = await _supervisor.PatchUpdateSocialAccountAsync<IOperationResponseViewModel>(socialAccountId, patchDoc, ct);
-            if (result.OperationResults.Succeeded == false)
+            bool succeeded = await _supervisor.PatchUpdateSocialAccountAsync(socialAccountId, patchDoc, ct);
+            if (succeeded == false)
             {
-                return BadRequest_UpdatingSocialAccount(result.OperationResults.Failures);
+                return BadRequest(ProblemDetailsDescriptions.UpdateSocialAccountError);
             }
             return Ok();
         }

@@ -1,5 +1,6 @@
-﻿using Leadsly.Application.Model;
-using Leadsly.Application.Model.Responses;
+﻿using Leadsly.Domain;
+using Leadsly.Domain.Models.Entities.Campaigns;
+using Leadsly.Domain.Models.Responses;
 using Leadsly.Domain.Supervisor;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
@@ -28,28 +29,28 @@ namespace Leadsly.Application.Api.Controllers
         public async Task<IActionResult> GetSearchUrlProgressAsync(string campaignId, CancellationToken ct = default)
         {
             _logger.LogInformation("Executing action GetSearchUrlProgress for CampaignId {campaignId}", campaignId);
-            HalOperationResult<IOperationResponse> result = await _supervisor.GetSearchUrlProgressAsync<IOperationResponse>(campaignId, ct);
-            if (result.Succeeded == false)
+            GetSearchUrlsProgressResponse response = await _supervisor.GetSearchUrlProgressAsync(campaignId, ct);
+            if (response == null)
             {
-                _logger.LogDebug("Failed to update sent connection urls for CampaignId {campaignId}", campaignId);
-                return BadRequest_UpdatingSentConnectionsUrlStatuses(result.Failures);
+                _logger.LogDebug("Failed to retrieve search urls progress for campaign id {campaignid}", campaignId);
+                return BadRequest(ProblemDetailsDescriptions.SearchUrlsProgress);
             }
 
-            return Ok(result.Value);
+            return Ok(response);
         }
 
         [HttpPatch("{searchUrlProgressId}/url")]
-        public async Task<IActionResult> UpdateSearchUrlAsync(string searchUrlProgressId, [FromBody] JsonPatchDocument<Domain.Models.Entities.Campaigns.SearchUrlProgress> request, CancellationToken ct = default)
+        public async Task<IActionResult> UpdateSearchUrlAsync(string searchUrlProgressId, [FromBody] JsonPatchDocument<SearchUrlProgress> request, CancellationToken ct = default)
         {
             _logger.LogInformation("Executing action UpdateSearchUrlProgress for SearchUrlPrgressId {searchUrlProgressId}", searchUrlProgressId);
-            HalOperationResult<IOperationResponse> result = await _supervisor.UpdateSearchUrlProgressAsync<IOperationResponse>(searchUrlProgressId, request, ct);
-            if (result.Succeeded == false)
+            bool succeeded = await _supervisor.UpdateSearchUrlProgressAsync(searchUrlProgressId, request, ct);
+            if (succeeded == false)
             {
                 _logger.LogDebug("Failed to update search url progress for SearchUrlPrgressId {searchUrlProgressId}", searchUrlProgressId);
-                return BadRequest_UpdatingSentConnectionsUrlStatuses(result.Failures);
+                return BadRequest(ProblemDetailsDescriptions.UpdatingSentConnectionsUrlStatuses);
             }
 
-            return Ok(result.Value);
+            return Ok();
         }
     }
 }

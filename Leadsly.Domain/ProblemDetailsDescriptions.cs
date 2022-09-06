@@ -53,7 +53,6 @@
         public const string FailedToGetNetworkProspects = "Failed to get Network Prospects";
         public const string FailedToDeserialize = "Failed to deserialize object.";
         public const string CampaignNotFound = "Campaign not found.";
-        public const string CampaignPhaseProcessing = "Failed to process campaign phase.";
         public const string VirtualAssistant = "Failed to create Virtual Assistant";
         public const string ConnectLinkedInAccount = "Failed to link account to LinkedIn";
         public const string EnterTwoFactorAuthCode = "Failed to enter two factor auth code";
@@ -68,9 +67,11 @@
         public const string LeadslySocialAccountAuthenticationError = "Failed to authenticate user's social account";
         public const string LeadslyTwoFactorAuthError = "Failed to perform two factor authentication for user's social account";
         public const string ProspectListError = "Error occured adding prospects";
+        public const string ProcessSentFollowUpMessage = "Error processing sent follow up message";
         public const string UpdateProspectListPhaseError = "Error occured updating Prospect List phase";
         public const string UpdateSocialAccountError = "Error occured updating SocialAccount";
         public const string RepliedCampaignProspects = "Error occured updating campaign prospects that replied";
         public const string GeneralReportError = "Failed to retrieve general report data";
+        public const string SearchUrlsProgress = "Failed to retrieve search urls progress";
     }
 }

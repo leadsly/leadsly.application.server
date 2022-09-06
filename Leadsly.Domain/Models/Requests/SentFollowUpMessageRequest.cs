@@ -1,4 +1,5 @@
-﻿using System.Runtime.Serialization;
+﻿using Leadsly.Domain.Models.FollowUpMessage;
+using System.Runtime.Serialization;
 
 namespace Leadsly.Domain.Models.Requests
 {
@@ -6,8 +7,6 @@ namespace Leadsly.Domain.Models.Requests
     public class SentFollowUpMessageRequest
     {
         [DataMember]
-        public int MessageOrderNum { get; set; }
-        [DataMember]
-        public long ActualDeliveryDateTimeStamp { get; set; }
+        public SentFollowUpMessageModel Item { get; set; }
     }
 }
