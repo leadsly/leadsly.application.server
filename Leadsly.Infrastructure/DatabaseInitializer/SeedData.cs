@@ -150,7 +150,7 @@ namespace Leadsly.Infrastructure.DatabaseInitializer
                 newCampaign.FollowUpMessagePhase = new()
                 {
                     Campaign = newCampaign,
-                    PhaseType = PhaseType.FollwUpMessage
+                    PhaseType = PhaseType.FollowUpMessage
                 };
 
                 IList<SearchUrlDetails> sentConnectionsSearchUrlStatuses = new List<SearchUrlDetails>();

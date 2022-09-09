@@ -24,7 +24,7 @@ namespace Leadsly.Domain.Campaigns
             FollowUpMessagePhase followUpMessagePhase = new()
             {
                 Campaign = campaign,
-                PhaseType = PhaseType.FollwUpMessage
+                PhaseType = PhaseType.FollowUpMessage
             };
             campaign.FollowUpMessagePhase = followUpMessagePhase;
 

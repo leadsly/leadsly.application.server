@@ -1,5 +1,6 @@
 ﻿using Leadsly.Application.Model.Campaigns;
-using Leadsly.Domain.RabbitMQ.Interfaces;
+using Leadsly.Domain.MQ.Interfaces;
+using Leadsly.Domain.MQ.Messages;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Collections.Generic;

@@ -61,8 +61,14 @@ namespace Leadsly.Domain.Supervisor
             }
 
             newCampaign = await _createCampaignService.CreateAsync(newCampaign, ct);
+            if (newCampaign == null)
+            {
+                return null;
+            }
 
-            await _campaignPhaseClient.HandleNewCampaignMergedAsync(newCampaign);
+            await _mqCreatorFacade.PublishScanProspectsForRepliesMessageAsync(request.HalId, ct);
+            await _mqCreatorFacade.PublishMonitorForNewConnectionsMessageAsync(request.HalId, ct);
+            await _mqCreatorFacade.PublishNetworkingMessageAsync(request.HalId, newCampaign, ct);
 
             CampaignViewModel viewModel = CampaignConverter.Convert(newCampaign);
 
@@ -87,7 +93,7 @@ namespace Leadsly.Domain.Supervisor
             FollowUpMessagePhase phase = new()
             {
                 Campaign = campaign,
-                PhaseType = PhaseType.FollwUpMessage
+                PhaseType = PhaseType.FollowUpMessage
             };
 
             return phase;

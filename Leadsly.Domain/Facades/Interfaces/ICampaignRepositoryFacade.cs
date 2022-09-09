@@ -51,6 +51,7 @@ namespace Leadsly.Domain.Facades.Interfaces
 
         #region MonitorForNewConnectionsPhase
 
+        Task<MonitorForNewConnectionsPhase> GetMonitorForNewConnectionsPhaseByIdAsync(string id, CancellationToken ct = default);
         Task<MonitorForNewConnectionsPhase> GetMonitorForNewConnectionsPhaseBySocialAccountIdAsync(string socialAccountId, CancellationToken ct = default);
         Task<bool> DeleteMonitorForNewConnectionsPhaseAsync(string monitorForNewConnectionsPhaseId, CancellationToken ct = default);
 

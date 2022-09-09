@@ -1,5 +1,5 @@
 ﻿using Leadsly.Domain.Models.RabbitMQMessages;
-using Leadsly.Domain.Providers.Interfaces;
+using Leadsly.Domain.MQ.Creators.Interfaces;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -10,15 +10,15 @@ namespace Leadsly.Domain.PhaseHandlers.TriggerFollowUpMessagesHandler
     public class TriggerFollowUpMessagesCommandHandler : ICommandHandler<TriggerFollowUpMessagesCommand>
     {
         public TriggerFollowUpMessagesCommandHandler(
-            IFollowUpMessagesProvider provider,
+            IFollowUpMessagesMQCreator mqCreator,
             ILogger<TriggerFollowUpMessagesCommandHandler> logger)
         {
-            _provider = provider;
+            _mqCreator = mqCreator;
             _logger = logger;
         }
 
         private readonly ILogger<TriggerFollowUpMessagesCommandHandler> _logger;
-        private readonly IFollowUpMessagesProvider _provider;
+        private readonly IFollowUpMessagesMQCreator _mqCreator;
 
         public async Task HandleAsync(TriggerFollowUpMessagesCommand command)
         {
@@ -26,7 +26,7 @@ namespace Leadsly.Domain.PhaseHandlers.TriggerFollowUpMessagesHandler
             BasicDeliverEventArgs args = command.EventArgs;
 
             TriggerFollowUpMessageBody message = command.Message as TriggerFollowUpMessageBody;
-            await _provider.PublishMessageAsync(message.HalId);
+            await _mqCreator.PublishMessageAsync(message.HalId);
 
             _logger.LogInformation($"Positively acknowledging {nameof(TriggerFollowUpMessageBody)}");
             channel.BasicAck(args.DeliveryTag, false);

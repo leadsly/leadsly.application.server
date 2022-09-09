@@ -1,6 +1,8 @@
 ﻿using Leadsly.Application.Model.Campaigns;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Models.Entities.Campaigns;
+using Leadsly.Domain.MQ.Messages;
+using Leadsly.Domain.MQ.Services.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
@@ -43,7 +45,7 @@ namespace Leadsly.Domain.Providers
         public async Task ScheduleFollowUpMessageAsync(FollowUpMessageBody followUpMessageBody, string queueNameIn, string routingKeyIn, string halId, DateTimeOffset scheduleTime, CancellationToken ct = default)
         {
             _logger.LogDebug($"Scheduling FollowUpMessage to be published at {scheduleTime}");
-            string jobId = _hangfireService.Schedule<IFollowUpMessagePublisher>(x => x.PublishPhaseAsync(followUpMessageBody, queueNameIn, routingKeyIn, halId), scheduleTime);
+            string jobId = _hangfireService.Schedule<IFollowUpMessageMQPublisher>(x => x.PublishPhaseAsync(followUpMessageBody, queueNameIn, routingKeyIn, halId), scheduleTime);
             _logger.LogDebug($"Scheduled hangfire job id is {jobId}");
 
             FollowUpMessageJob followUpJob = new()

@@ -11,6 +11,7 @@ namespace Leadsly.Domain.Supervisor
     {
         public Supervisor(
             IStripeRepository stripeRepository,
+            IMQCreatorFacade mqCreatorFacade,
             ICampaignRepositoryFacade campaignRepositoryFacade,
             IHalRepository halRepository,
             ICloudPlatformProvider cloudPlatformProvider,
@@ -22,16 +23,14 @@ namespace Leadsly.Domain.Supervisor
             ICampaignProvider campaignProvider,
             ISocialAccountRepository socialAccountRepository,
             ICloudPlatformRepository cloudPlatformRepository,
-            ICampaignPhaseClient campaignPhaseClient,
             IFollowUpMessageJobsRepository followUpMessageJobRepository,
             IHangfireService hangfireService,
             ITimeZoneRepository timeZoneRepository,
             IVirtualAssistantRepository virtualAssistantRepository,
-            IFollowUpMessagesProvider followUpMessagesProvider,
             IMemoryCache memoryCache,
             ILogger<Supervisor> logger)
         {
-            _followUpMessagesProvider = followUpMessagesProvider;
+            _mqCreatorFacade = mqCreatorFacade;
             _hangfireService = hangfireService;
             _followUpMessageJobRepository = followUpMessageJobRepository;
             _cloudPlatformRepository = cloudPlatformRepository;
@@ -41,7 +40,6 @@ namespace Leadsly.Domain.Supervisor
             _virtualAssistantRepository = virtualAssistantRepository;
             _socialAccountRepository = socialAccountRepository;
             _halRepository = halRepository;
-            _campaignPhaseClient = campaignPhaseClient;
             _campaignRepositoryFacade = campaignRepositoryFacade;
             _stripeRepository = stripeRepository;
             _cloudPlatformProvider = cloudPlatformProvider;
@@ -53,7 +51,7 @@ namespace Leadsly.Domain.Supervisor
             _logger = logger;
         }
 
-        private readonly IFollowUpMessagesProvider _followUpMessagesProvider;
+        private readonly IMQCreatorFacade _mqCreatorFacade;
         private readonly IHangfireService _hangfireService;
         private readonly IFollowUpMessageJobsRepository _followUpMessageJobRepository;
         private readonly ICloudPlatformRepository _cloudPlatformRepository;
@@ -64,7 +62,6 @@ namespace Leadsly.Domain.Supervisor
         private readonly ICampaignProvider _campaignProvider;
         private readonly ISocialAccountRepository _socialAccountRepository;
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
-        private readonly ICampaignPhaseClient _campaignPhaseClient;
         private readonly IHalRepository _halRepository;
         private readonly ILeadslyHalProvider _leadslyHalProvider;
         private readonly ISearchUrlProgressRepository _searchUrlProgressRepository;

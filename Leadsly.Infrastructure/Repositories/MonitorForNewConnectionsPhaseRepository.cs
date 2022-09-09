@@ -87,6 +87,24 @@ namespace Leadsly.Infrastructure.Repositories
             return monitorForNewConnectionsPhase;
         }
 
+        public async Task<MonitorForNewConnectionsPhase> GetByIdAsync(string id, CancellationToken ct = default)
+        {
+            _logger.LogInformation("Retrieving MonitorForNewConnectionsPhase by id {id}", id);
+            MonitorForNewConnectionsPhase monitorForNewConnectionsPhase = null;
+            try
+            {
+                monitorForNewConnectionsPhase = await _dbContext.MonitorForNewConnectionsPhases.FindAsync(id);
+
+                _logger.LogDebug("Successfully retrieved MonitorForNewConnectionsPhase by social account id {id}", id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve MonitorForNewConnectionsPhase by social account id {id}. Returning an explicit null", id);
+                return null;
+            }
+            return monitorForNewConnectionsPhase;
+        }
+
         public async Task<bool> DeleteAsync(string id, CancellationToken ct = default)
         {
             if (!await PhaseExists(id, ct))

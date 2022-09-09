@@ -1,5 +1,6 @@
 ﻿using Leadsly.Application.Model.Campaigns;
 using Leadsly.Domain.Models.Entities.Campaigns;
+using Leadsly.Domain.MQ.Messages;
 using System;
 using System.Collections.Generic;
 using System.Threading;

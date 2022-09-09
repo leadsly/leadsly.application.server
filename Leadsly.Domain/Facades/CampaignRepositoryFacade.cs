@@ -120,6 +120,11 @@ namespace Leadsly.Domain.Facades
             return await _monitorForNewConnectionsPhaseRepository.GetBySocialAccountIdAsync(socialAccountId, ct);
         }
 
+        public async Task<MonitorForNewConnectionsPhase> GetMonitorForNewConnectionsPhaseByIdAsync(string id, CancellationToken ct = default)
+        {
+            return await _monitorForNewConnectionsPhaseRepository.GetByIdAsync(id, ct);
+        }
+
         public async Task<PrimaryProspectList> GetPrimaryProspectListByIdAsync(string primaryProspectListId, CancellationToken ct = default)
         {
             return await _primaryProspectRepository.GetListByIdAsync(primaryProspectListId, ct);

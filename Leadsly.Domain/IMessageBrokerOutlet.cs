@@ -1,9 +1,5 @@
-﻿using Leadsly.Application.Model.Campaigns;
-using System;
+﻿using Leadsly.Domain.MQ.Messages;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Leadsly.Domain
 {

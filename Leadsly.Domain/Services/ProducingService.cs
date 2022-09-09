@@ -1,4 +1,5 @@
 ﻿using Leadsly.Application.Model;
+using Leadsly.Domain.JobServices.Interfaces;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
@@ -28,10 +29,10 @@ namespace Leadsly.Domain.Services
             if (_env.IsDevelopment())
             {
                 _logger.LogInformation("Current enviornment is in Development. Executing 'ScheduleJobsForNewTimeZonesAsync' right away");
-                _hangfireService.Enqueue<IRecurringJobsHandler>((x) => x.ScheduleJobsForNewTimeZonesAsync());
+                _hangfireService.Enqueue<INewTimeZonesJobsService>((x) => x.AddRecurringJobsForNewTimeZonesAsync());
 
                 _logger.LogInformation("Current enviornment is in Development. Executing 'ScheduleRestartJobsForNewTimeZonesAsync' right away");
-                _hangfireService.Enqueue<IRecurringJobsHandler>((x) => x.ScheduleRestartJobsForNewTimeZonesAsync());
+                _hangfireService.Enqueue<INewTimeZonesJobsService>((x) => x.AddRecurringRestartJobsForNewTimeZonesAsync());
             }
             else
             {
@@ -40,11 +41,11 @@ namespace Leadsly.Domain.Services
 
                 _logger.LogTrace("Server will execute 'ScheduleJobsForNewTimeZonesAsync' on a daily cron schedule using 'Eastern Standard Time'");
                 _logger.LogDebug($"The 'ScheduleJobsForNewTimeZonesAsync' recurring job has an id of {HangFireConstants.RecurringJobs.ScheduleNewTimeZones}");
-                _hangfireService.AddOrUpdate<IRecurringJobsHandler>(HangFireConstants.RecurringJobs.ScheduleNewTimeZones, (x) => x.ScheduleJobsForNewTimeZonesAsync(), HangFireConstants.RecurringJobs.DailyCronSchedule, tzInfo);
+                _hangfireService.AddOrUpdate<INewTimeZonesJobsService>(HangFireConstants.RecurringJobs.ScheduleNewTimeZones, (x) => x.AddRecurringJobsForNewTimeZonesAsync(), HangFireConstants.RecurringJobs.DailyCronSchedule, tzInfo);
 
                 _logger.LogTrace("Server will execute 'ScheduleRestartJobsForNewTimeZonesAsync' on a daily cron schedule using 'Eastern Standard Time'");
                 _logger.LogDebug($"The 'ScheduleRestartJobsForNewTimeZonesAsync' recurring job has an id of {HangFireConstants.RecurringJobs.ScheduleNewTimeZones}");
-                _hangfireService.AddOrUpdate<IRecurringJobsHandler>(HangFireConstants.RecurringJobs.ScheduleRestartForNewTimeZones, (x) => x.ScheduleRestartJobsForNewTimeZonesAsync(), HangFireConstants.RecurringJobs.DailyCronSchedule, tzInfo);
+                _hangfireService.AddOrUpdate<INewTimeZonesJobsService>(HangFireConstants.RecurringJobs.ScheduleRestartForNewTimeZones, (x) => x.AddRecurringRestartJobsForNewTimeZonesAsync(), HangFireConstants.RecurringJobs.DailyCronSchedule, tzInfo);
             }
         }
     }
