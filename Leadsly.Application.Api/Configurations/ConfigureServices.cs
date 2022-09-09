@@ -35,8 +35,6 @@ using Leadsly.Domain.PhaseHandlers.TriggerScanProspectsForRepliesHandler;
 using Leadsly.Domain.Providers;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
-using Leadsly.Domain.Serializers;
-using Leadsly.Domain.Serializers.Interfaces;
 using Leadsly.Domain.Services;
 using Leadsly.Domain.Services.Interfaces;
 using Leadsly.Domain.Supervisor;
@@ -279,8 +277,6 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped(typeof(AmazonECSClient));
             services.AddScoped(typeof(AmazonServiceDiscoveryClient));
             services.AddScoped(typeof(AmazonRoute53Client));
-            services.AddScoped<IConnectAccountResponseSerializer, ConnectAccountResponseSerializer>();
-            services.AddScoped<IEnterTwoFactorAuthCodeResponseSerializer, EnterTwoFactorAuthCodeResponseSerializer>();
 
             return services;
         }
