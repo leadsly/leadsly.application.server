@@ -89,22 +89,26 @@ namespace Leadsly.Domain.MQ
             IDictionary<string, object> arguments = new Dictionary<string, object>();
             arguments.Add(RabbitMQConstants.QueueType, RabbitMQConstants.Classic);
 
-            channel.QueueDeclare(queue: queueNameIn,
+            string queueName = options.QueueConfigOptions.AppServer.Name.Replace("{queueName}", queueNameIn);
+
+            channel.QueueDeclare(queue: queueName,
                              durable: true,
                              exclusive: false,
                              autoDelete: true,
                              arguments: arguments);
 
-            channel.QueueBind(queueNameIn, exchangeName, routingKeyIn, null);
+            string routingKey = options.RoutingKey.AppServer.Replace("{purpose}", routingKeyIn);
+
+            channel.QueueBind(queueNameIn, exchangeName, routingKey, null);
 
             AsyncEventingBasicConsumer consumer = new AsyncEventingBasicConsumer(channel);
             consumer.Received += receivedHandlerAsync;
 
-            // process only one message at a time
+            // process only 20 messages at a time
             channel.BasicQos(0, 20, false);
 
-            channel.BasicConsume(queue: queueNameIn,
-                                 autoAck: false,
+            channel.BasicConsume(queue: queueName,
+                                 autoAck: options.QueueConfigOptions.AppServer.AutoAcknowledge,
                                  consumer: consumer);
         }
 

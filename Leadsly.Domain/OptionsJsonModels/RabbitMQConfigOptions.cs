@@ -22,13 +22,7 @@
         public string VirtualHost { get; set; }
         public int Port { get; set; }
         public Ssl Ssl { get; set; }
-        public ClientProvidedName ClientProvidedName { get; set; }
-    }
-
-    public class ClientProvidedName
-    {
-        public string AppServer { get; set; }
-        public string Hal { get; set; }
+        public string ClientProvidedName { get; set; }
     }
 
     public class Ssl

@@ -30,7 +30,7 @@ namespace Leadsly.Domain.MQ
             factory.Password = options.ConnectionFactoryConfigOptions.Password;
             factory.Port = options.ConnectionFactoryConfigOptions.Port;
             factory.DispatchConsumersAsync = true;
-            factory.ClientProvidedName = "[Publisher] AppServer";
+            factory.ClientProvidedName = options.ConnectionFactoryConfigOptions.ClientProvidedName;
 
             return factory.CreateConnection();
         }

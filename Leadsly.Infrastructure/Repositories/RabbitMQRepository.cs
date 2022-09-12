@@ -28,11 +28,7 @@ namespace Leadsly.Infrastructure.Repositories
                 },
                 ConnectionFactoryOptions = new()
                 {
-                    ClientProvidedName = new()
-                    {
-                        AppServer = _rabbitMQConfigOptions.ConnectionFactoryConfigOptions.ClientProvidedName.AppServer,
-                        Hal = _rabbitMQConfigOptions.ConnectionFactoryConfigOptions.ClientProvidedName.Hal
-                    },
+                    ClientProvidedName = _rabbitMQConfigOptions.ConnectionFactoryConfigOptions.ClientProvidedName,
                     HostName = _rabbitMQConfigOptions.ConnectionFactoryConfigOptions.HostName,
                     Password = _rabbitMQConfigOptions.ConnectionFactoryConfigOptions.Password,
                     Port = _rabbitMQConfigOptions.ConnectionFactoryConfigOptions.Port,

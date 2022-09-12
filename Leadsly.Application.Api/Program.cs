@@ -24,19 +24,17 @@ namespace Leadsly.Application.Api
 
             try
             {
-                Log.Information($"ASPNETCORE_ENVIORNMENT variable is: {env}.");
-
-                CreateHostBuilder(args)                    
+                CreateHostBuilder(args)
                     .Build()
                     .Run();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Log.Fatal(ex, "Application start-up failed.");
                 throw;
             }
             finally
-            {   
+            {
                 Log.CloseAndFlush();
             }
         }
@@ -59,14 +57,14 @@ namespace Leadsly.Application.Api
                                {
                                    Log.Information("Using AWS Secrets Manager");
                                    builder.AddSecretsManager();
-                               }                               
+                               }
                            });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Log.Fatal(ex, "Host builder error.");
                 throw;
             }
-        }            
+        }
     }
 }
