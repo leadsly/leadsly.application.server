@@ -11,6 +11,7 @@
 		<PackageReference Include="AWSSDK.Route53" Version="3.3.100" />
 		<PackageReference Include="AWSSDK.SecretsManager" Version="3.3.100" />
 		<PackageReference Include="AWSSDK.ServiceDiscovery" Version="3.3.100" />
+		<PackageReference Include="AWSSDK.S3" Version="3.3.100" />
 		<PackageReference Include="Hangfire.Core" Version="1.7.28" />
 		<PackageReference Include="Google.Apis.Auth" Version="1.49.0" />
 		<PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
@@ -23,8 +24,7 @@
 		<PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.16.0" />
 		<PackageReference Include="NETCore.Encrypt" Version="2.0.9" />
 		<PackageReference Include="RabbitMQ.Client" Version="6.2.4" />
-		<PackageReference Include="Serilog" Version="2.10.0" />
-		<PackageReference Include="AWSSDK.S3" Version="3.7.9.50" />
+		<PackageReference Include="Serilog" Version="2.10.0" />		
     </ItemGroup>
 
     <ItemGroup>
