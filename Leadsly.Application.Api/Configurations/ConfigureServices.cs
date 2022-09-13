@@ -1,7 +1,10 @@
 ﻿using Amazon;
 using Amazon.ECS;
+using Amazon.Extensions.NETCore.Setup;
 using Amazon.RDS.Util;
 using Amazon.Route53;
+using Amazon.Runtime;
+using Amazon.S3;
 using Amazon.ServiceDiscovery;
 using Hangfire;
 using Hangfire.PostgreSql;
@@ -218,6 +221,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<IFollowUpMessagesFactory, FollowUpMessagesFactory>();
             services.AddScoped<ICheckOffHoursNewConnectionsFactory, CheckOffHoursNewConnectionsFactory>();
             services.AddScoped<IDeepScanProspectsForRepliesMessageFactory, DeepScanProspectsForRepliesMessageFactory>();
+            services.AddScoped<IPersistBrowserProfileMessageFactory, PersistBrowserProfileMessageFactory>();
             services.AddScoped<IJwtFactory, JwtFactory>();
 
             return services;
@@ -340,7 +344,7 @@ namespace Leadsly.Application.Api.Configurations
             return services;
         }
 
-        public static IServiceCollection AddServicesConfiguration(this IServiceCollection services)
+        public static IServiceCollection AddServicesConfiguration(this IServiceCollection services, IConfiguration configuration)
         {
             Log.Information("Registering leadsly services.");
 
@@ -349,6 +353,16 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<IAwsElasticContainerService, AwsElasticContainerService>();
             services.AddScoped<IAwsServiceDiscoveryService, AwsServiceDiscoveryService>();
             services.AddScoped<IAwsRoute53Service, AwsRoute53Service>();
+            services.AddScoped<IAwsS3Service, AwsS3Service>();
+            AWSOptions awsOptions = configuration.GetAWSOptions();
+            awsOptions.Credentials = new EnvironmentVariablesAWSCredentials();
+            services.AddDefaultAWSOptions(awsOptions);
+            services.AddSingleton<IAmazonS3>(opt =>
+            {
+                IAmazonS3 client = awsOptions.CreateServiceClient<IAmazonS3>();
+                return client;
+            });
+
             services.AddScoped<ILeadslyHalApiService, LeadslyHalApiService>();
             services.AddScoped<ITimestampService, TimestampService>();
             services.AddScoped<IUrlService, UrlService>();

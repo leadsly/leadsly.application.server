@@ -40,7 +40,7 @@ namespace Leadsly.Application.Api
                     .AddSupervisorConfiguration()
                     .AddProvidersConfiguration()
                     .AddFacadesConfiguration()
-                    .AddServicesConfiguration()
+                    .AddServicesConfiguration(Configuration)
                     .AddLeadslyDependenciesConfiguration(Configuration)
                     .AddSupervisorConfiguration(Configuration)
                     .AddHangfireConfiguration()

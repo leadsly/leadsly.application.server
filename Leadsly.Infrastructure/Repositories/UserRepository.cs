@@ -86,7 +86,13 @@ namespace Leadsly.Infrastructure.Repositories
             SocialAccount socialAccount = default;
             try
             {
-                socialAccount = await _dbContext.SocialAccounts.Include(s => s.HalDetails).Include(s => s.User).ThenInclude(u => u.Campaigns).Where(socialAccount => socialAccount.HalDetails.HalId == halId).SingleAsync(ct);
+                socialAccount = await _dbContext.SocialAccounts
+                    .Include(s => s.HalDetails)
+                    .Include(s => s.MonitorForNewProspectsPhase)
+                    .Include(s => s.ScanProspectsForRepliesPhase)
+                    .Include(s => s.User)
+                        .ThenInclude(u => u.Campaigns)
+                    .Where(socialAccount => socialAccount.HalDetails.HalId == halId).SingleAsync(ct);
             }
             catch (Exception ex)
             {

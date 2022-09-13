@@ -99,7 +99,7 @@ namespace Leadsly.Domain.MQ
 
             string routingKey = options.RoutingKey.AppServer.Replace("{purpose}", routingKeyIn);
 
-            channel.QueueBind(queueNameIn, exchangeName, routingKey, null);
+            channel.QueueBind(queueName, exchangeName, routingKey, null);
 
             AsyncEventingBasicConsumer consumer = new AsyncEventingBasicConsumer(channel);
             consumer.Received += receivedHandlerAsync;
