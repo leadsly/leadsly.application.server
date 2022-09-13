@@ -10,6 +10,7 @@ using Leadsly.Application.Api.DataProtectorTokenProviders;
 using Leadsly.Application.Api.Services;
 using Leadsly.Domain;
 using Leadsly.Domain.DbInfo;
+using Leadsly.Domain.Decorators;
 using Leadsly.Domain.Facades;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Factories;
@@ -126,6 +127,15 @@ namespace Leadsly.Application.Api.Configurations
             return services;
         }
 
+        public static IServiceCollection AddSupervisorConfiguration(this IServiceCollection services, IConfiguration configuration)
+        {
+            Log.Information("Registering JsonOptions classes.");
+
+            services.Configure<S3BucketOptions>(options => configuration.GetSection(nameof(S3BucketOptions)).Bind(options));
+
+            return services;
+        }
+
         public static IServiceCollection AddSupervisorConfiguration(this IServiceCollection services)
         {
             Log.Information("Registering supervisor services.");
@@ -147,6 +157,15 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<IProspectingJobService, ProspectingJobService>();
             services.AddScoped<IRestartHalJobService, RestartHalJobService>();
             services.AddScoped<IRestartHalsByTimezoneJobService, RestartHalsByTimezoneJobService>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddDecoratorsConfiguration(this IServiceCollection services)
+        {
+            Log.Information("Registering decorators configuration");
+
+            services.AddScoped<SaveBrowserProfileUserProviderDecorator>();
 
             return services;
         }

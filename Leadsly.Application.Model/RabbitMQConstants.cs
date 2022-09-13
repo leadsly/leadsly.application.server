@@ -7,6 +7,12 @@
         public const string Classic = "classic";
         public const string QueueType = "x-queue-type";
 
+        public static class PersistBrowserProfile
+        {
+            public const string QueueName = "persist.browser.profile";
+            public const string RoutingKey = "persist-browser-profile";
+        }
+
         public static class NetworkingConnections
         {
             public const string QueueName = "networking.connections";

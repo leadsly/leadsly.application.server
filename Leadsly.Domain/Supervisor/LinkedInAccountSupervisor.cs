@@ -78,7 +78,7 @@ namespace Leadsly.Domain.Supervisor
             if (response.TwoFactorAuthRequired == false && response.UnexpectedErrorOccured == false && response.InvalidEmail == false && response.InvalidPassword == false && response.EmailPinChallenge == false)
             {
                 // assume we've successfully linked the account so now we can create new social account for the user
-                SocialAccount socialAccount = await _userProvider.CreateSocialAccountAsync(virtualAssistant, userId, request.Username, ct);
+                SocialAccount socialAccount = await CreateSocialAccountAndSaveBrowserProfileAsync(virtualAssistant, userId, request.Username, ct);
                 if (socialAccount == null)
                 {
                     return null;
@@ -134,7 +134,7 @@ namespace Leadsly.Domain.Supervisor
             if (response.InvalidOrExpiredCode == false && response.UnexpectedErrorOccured == false && response.FailedToEnterCode == false)
             {
                 // assume we've successfully linked the account so now we can create new social account for the user
-                SocialAccount socialAccount = await _userProvider.CreateSocialAccountAsync(virtualAssistant, userId, request.Username, ct);
+                SocialAccount socialAccount = await CreateSocialAccountAndSaveBrowserProfileAsync(virtualAssistant, userId, request.Username, ct);
                 if (socialAccount == null)
                 {
                     return null;
@@ -192,7 +192,7 @@ namespace Leadsly.Domain.Supervisor
                 string email = request.Username;
                 _logger.LogInformation("Successfully entered email challenge pin and two factor auth is not required. Creating social account for UserId {userId} with email {email}", userId, email);
                 // assume we've successfully linked the account so now we can create new social account for the user
-                SocialAccount socialAccount = await _userProvider.CreateSocialAccountAsync(virtualAssistant, userId, request.Username, ct);
+                SocialAccount socialAccount = await CreateSocialAccountAndSaveBrowserProfileAsync(virtualAssistant, userId, request.Username, ct);
                 if (socialAccount == null)
                 {
                     _logger.LogError("Failed to create social account for UserId {userId} with email {email}", userId, email);
@@ -202,6 +202,11 @@ namespace Leadsly.Domain.Supervisor
 
             EmailChallengePinResultViewModel viewModel = LinkedInSetupConverter.Convert(response);
             return viewModel;
+        }
+
+        private async Task<SocialAccount> CreateSocialAccountAndSaveBrowserProfileAsync(VirtualAssistant virtualAssistant, string userId, string email, CancellationToken ct = default)
+        {
+            return await _saveBrowserProfileUserProvider.CreateSocialAccountAsync(virtualAssistant, userId, email, ct);
         }
     }
 }

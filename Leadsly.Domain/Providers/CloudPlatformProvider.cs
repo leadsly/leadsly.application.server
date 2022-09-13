@@ -22,10 +22,12 @@ namespace Leadsly.Domain.Providers
             IAwsElasticContainerService awsElasticContainerService,
             ICloudPlatformRepository cloudPlatformRepository,
             IAwsServiceDiscoveryService awsServiceDiscoveryService,
+            IAwsS3Service awsS3Service,
             IVirtualAssistantRepository virtualAssistantRepository,
             IOrphanedCloudResourcesRepository orphanedCloudResourcesRepository,
             ILogger<CloudPlatformProvider> logger)
         {
+            _awsS3Service = awsS3Service;
             _virtualAssistantRepository = virtualAssistantRepository;
             _awsElasticContainerService = awsElasticContainerService;
             _awsServiceDiscoveryService = awsServiceDiscoveryService;
@@ -34,6 +36,7 @@ namespace Leadsly.Domain.Providers
             _logger = logger;
         }
 
+        private readonly IAwsS3Service _awsS3Service;
         private readonly IVirtualAssistantRepository _virtualAssistantRepository;
         private readonly IAwsElasticContainerService _awsElasticContainerService;
         private readonly IAwsServiceDiscoveryService _awsServiceDiscoveryService;
@@ -75,6 +78,14 @@ namespace Leadsly.Domain.Providers
         public async Task DeleteTaskDefinitionRegistrationAsync(string taskDefinitionId, CancellationToken ct = default)
         {
             await _cloudPlatformRepository.RemoveEcsTaskDefinitionAsync(taskDefinitionId, ct);
+        }
+
+        public async Task DeleteAwsS3HalDirectoryAsync(string halId, CancellationToken ct = default)
+        {
+            if (await _awsS3Service.DeleteDirectoryAsync(halId, ct) == false)
+            {
+                _logger.LogDebug("Operation to delete {halId} S3 directory failed", halId);
+            }
         }
 
         public async Task DeleteAwsCloudMapServiceAsync(string userId, string serviceDiscoveryId, CancellationToken ct = default)
@@ -613,6 +624,5 @@ namespace Leadsly.Domain.Providers
 
             return tasks;
         }
-
     }
 }

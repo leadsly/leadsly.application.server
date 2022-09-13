@@ -94,6 +94,9 @@ namespace Leadsly.Domain.Supervisor
                     await _cloudPlatformProvider.DeleteTaskDefinitionRegistrationAsync(ecsTaskDefinition.EcsTaskDefinitionId, ct);
                 }
             }
+
+            // remove S3 directory
+            await _cloudPlatformProvider.DeleteAwsS3HalDirectoryAsync(virtualAssistant.HalId, ct);
         }
 
         public async Task<VirtualAssistantInfoViewModel> GetVirtualAssistantInfoAsync(string userId, CancellationToken ct = default)

@@ -1,4 +1,5 @@
-﻿using Leadsly.Domain.Facades.Interfaces;
+﻿using Leadsly.Domain.Decorators;
+using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
@@ -11,6 +12,7 @@ namespace Leadsly.Domain.Supervisor
     {
         public Supervisor(
             IStripeRepository stripeRepository,
+            SaveBrowserProfileUserProviderDecorator saveBrowserProfileUserProvider,
             IMQCreatorFacade mqCreatorFacade,
             ICampaignRepositoryFacade campaignRepositoryFacade,
             IHalRepository halRepository,
@@ -30,6 +32,7 @@ namespace Leadsly.Domain.Supervisor
             IMemoryCache memoryCache,
             ILogger<Supervisor> logger)
         {
+            _saveBrowserProfileUserProvider = saveBrowserProfileUserProvider;
             _mqCreatorFacade = mqCreatorFacade;
             _hangfireService = hangfireService;
             _followUpMessageJobRepository = followUpMessageJobRepository;
@@ -51,6 +54,7 @@ namespace Leadsly.Domain.Supervisor
             _logger = logger;
         }
 
+        private readonly SaveBrowserProfileUserProviderDecorator _saveBrowserProfileUserProvider;
         private readonly IMQCreatorFacade _mqCreatorFacade;
         private readonly IHangfireService _hangfireService;
         private readonly IFollowUpMessageJobsRepository _followUpMessageJobRepository;
