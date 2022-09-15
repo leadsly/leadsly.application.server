@@ -156,7 +156,19 @@ namespace Leadsly.Domain.Supervisor
             }
             _logger.LogInformation("Successfully registered hal ECS task definition in AWS");
 
+            string proxyTaskDefinition = $"{halId}-proxy-task-def";
+            Amazon.ECS.Model.RegisterTaskDefinitionResponse ecsProxyTaskDefinitionRegistrationResponse = await _cloudPlatformProvider.RegisterProxyTaskDefinitionInAwsAsync(proxyTaskDefinition, halId, ct);
+            if (ecsProxyTaskDefinitionRegistrationResponse == null || ecsProxyTaskDefinitionRegistrationResponse.HttpStatusCode != HttpStatusCode.OK)
+            {
+                _logger.LogError("Failed to register proxy ECS task definition in AWS");
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, gridTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, halTaskDefinition, ct);
+                return false;
+            }
+            _logger.LogInformation("Successfully registered proxy ECS task definition in AWS");
+
             CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
+
             // create cloud map service discovery service for the grid
             string serviceGridDiscoveryName = $"grid-{halId}-srv-disc";
             Amazon.ServiceDiscovery.Model.CreateServiceResponse createGridCloudMapServiceResponse = await _cloudPlatformProvider.CreateCloudMapDiscoveryServiceInAwsAsync(serviceGridDiscoveryName, configuration.ServiceDiscoveryConfig.Grid, ct);
@@ -177,10 +189,26 @@ namespace Leadsly.Domain.Supervisor
                 _logger.LogError($"Failed to create hal Cloud Map service discovery service in AWS. HttpStatusCode: {createGridCloudMapServiceResponse?.HttpStatusCode}");
                 await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, gridTaskDefinition, ct);
                 await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, halTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, proxyTaskDefinition, ct);
                 await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createGridCloudMapServiceResponse.Service.Id, ct);
                 return false;
             }
             _logger.LogInformation($"Successfully created hal Cloud Map service discovery service in AWS. HttpStatusCode: {createGridCloudMapServiceResponse?.HttpStatusCode}");
+
+            // create cloud map service discovery service for proxy
+            string serviceProxyDiscoveryName = $"proxy-{halId}-srv-disc";
+            Amazon.ServiceDiscovery.Model.CreateServiceResponse createProxyCloudMapServiceResponse = await _cloudPlatformProvider.CreateCloudMapDiscoveryServiceInAwsAsync(serviceProxyDiscoveryName, configuration.ServiceDiscoveryConfig.Proxy, ct);
+            if (createProxyCloudMapServiceResponse == null || createProxyCloudMapServiceResponse.HttpStatusCode != HttpStatusCode.OK)
+            {
+                _logger.LogError($"Failed to create hal Cloud Map service discovery service in AWS. HttpStatusCode: {createProxyCloudMapServiceResponse?.HttpStatusCode}");
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, gridTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, halTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, proxyTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createProxyCloudMapServiceResponse.Service.Id, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createHalCloudMapServiceResponse.Service.Id, ct);
+                return false;
+            }
+            _logger.LogInformation($"Successfully created proxy Cloud Map service discovery service in AWS. HttpStatusCode: {createProxyCloudMapServiceResponse?.HttpStatusCode}");
 
             // create ecs service for grid
             string ecsGridServiceName = $"grid-{halId}-srv";
@@ -190,8 +218,10 @@ namespace Leadsly.Domain.Supervisor
                 _logger.LogError("Failed to create grid ECS Service in AWS");
                 await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, gridTaskDefinition, ct);
                 await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, halTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, proxyTaskDefinition, ct);
                 await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createGridCloudMapServiceResponse.Service.Id, ct);
                 await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createHalCloudMapServiceResponse.Service.Id, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createProxyCloudMapServiceResponse.Service.Id, ct);
                 return false;
             }
             _logger.LogInformation("Successfully created grid ECS Service in AWS");
@@ -204,9 +234,28 @@ namespace Leadsly.Domain.Supervisor
                 _logger.LogError("Failed to create hal ECS Service in AWS");
                 await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, gridTaskDefinition, ct);
                 await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, halTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, proxyTaskDefinition, ct);
                 await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createGridCloudMapServiceResponse.Service.Id, ct);
                 await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createHalCloudMapServiceResponse.Service.Id, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createProxyCloudMapServiceResponse.Service.Id, ct);
                 await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateGridEcsServiceResponse.Service.ServiceName, ecsCreateGridEcsServiceResponse.Service.ClusterArn, ct);
+                return false;
+            }
+            _logger.LogInformation("Successfully created hal ECS Service in AWS");
+
+            string ecsProxyServiceName = $"proxy-{halId}-srv";
+            Amazon.ECS.Model.CreateServiceResponse ecsCreateProxyEcsServiceResponse = await _cloudPlatformProvider.CreateEcsServiceInAwsAsync(ecsProxyServiceName, ecsProxyTaskDefinitionRegistrationResponse.TaskDefinition.Family, createProxyCloudMapServiceResponse.Service.Arn, configuration.EcsServiceConfig.Hal, ct);
+            if (ecsCreateProxyEcsServiceResponse == null || ecsCreateProxyEcsServiceResponse.HttpStatusCode != HttpStatusCode.OK)
+            {
+                _logger.LogError("Failed to create proxy ECS Service in AWS");
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, gridTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, halTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, proxyTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createGridCloudMapServiceResponse.Service.Id, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createHalCloudMapServiceResponse.Service.Id, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createProxyCloudMapServiceResponse.Service.Id, ct);
+                await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateGridEcsServiceResponse.Service.ServiceName, ecsCreateGridEcsServiceResponse.Service.ClusterArn, ct);
+                await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateHalEcsServiceResponse.Service.ServiceName, ecsCreateGridEcsServiceResponse.Service.ClusterArn, ct);
                 return false;
             }
             _logger.LogInformation("Successfully created hal ECS Service in AWS");
@@ -218,10 +267,13 @@ namespace Leadsly.Domain.Supervisor
                 _logger.LogError("Ecs Grid Tasks are not running. Tear down resources and try again");
                 await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, gridTaskDefinition, ct);
                 await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, halTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, proxyTaskDefinition, ct);
                 await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createGridCloudMapServiceResponse.Service.Id, ct);
                 await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createHalCloudMapServiceResponse.Service.Id, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createProxyCloudMapServiceResponse.Service.Id, ct);
                 await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateGridEcsServiceResponse.Service.ServiceName, ecsCreateGridEcsServiceResponse.Service.ClusterArn, ct);
                 await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateHalEcsServiceResponse.Service.ServiceName, ecsCreateHalEcsServiceResponse.Service.ClusterArn, ct);
+                await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateProxyEcsServiceResponse.Service.ServiceName, ecsCreateProxyEcsServiceResponse.Service.ClusterArn, ct);
                 return false;
             }
 
@@ -231,10 +283,29 @@ namespace Leadsly.Domain.Supervisor
                 _logger.LogError("Ecs Hal Tasks are not running. Tear down resources and try again");
                 await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, gridTaskDefinition, ct);
                 await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, halTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, proxyTaskDefinition, ct);
                 await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createGridCloudMapServiceResponse.Service.Id, ct);
                 await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createHalCloudMapServiceResponse.Service.Id, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createProxyCloudMapServiceResponse.Service.Id, ct);
                 await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateGridEcsServiceResponse.Service.ServiceName, ecsCreateGridEcsServiceResponse.Service.ClusterArn, ct);
                 await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateHalEcsServiceResponse.Service.ServiceName, ecsCreateHalEcsServiceResponse.Service.ClusterArn, ct);
+                await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateProxyEcsServiceResponse.Service.ServiceName, ecsCreateProxyEcsServiceResponse.Service.ClusterArn, ct);
+                return false;
+            }
+
+            bool ecsProxyTasksRunning = await _cloudPlatformProvider.EnsureEcsServiceTasksAreRunningAsync(ecsCreateProxyEcsServiceResponse.Service.ServiceName, ecsCreateProxyEcsServiceResponse.Service.ClusterArn, ct);
+            if (ecsHalTasksRunning == false)
+            {
+                _logger.LogError("Ecs Proxy Tasks are not running. Tear down resources and try again");
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, gridTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, halTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, proxyTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createGridCloudMapServiceResponse.Service.Id, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createHalCloudMapServiceResponse.Service.Id, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createProxyCloudMapServiceResponse.Service.Id, ct);
+                await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateGridEcsServiceResponse.Service.ServiceName, ecsCreateGridEcsServiceResponse.Service.ClusterArn, ct);
+                await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateHalEcsServiceResponse.Service.ServiceName, ecsCreateHalEcsServiceResponse.Service.ClusterArn, ct);
+                await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateProxyEcsServiceResponse.Service.ServiceName, ecsCreateProxyEcsServiceResponse.Service.ClusterArn, ct);
                 return false;
             }
 
@@ -244,10 +315,13 @@ namespace Leadsly.Domain.Supervisor
                 _logger.LogError("Failed to retreive grid ecs tasks for service {ecsServiceName}", ecsGridServiceName);
                 await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, gridTaskDefinition, ct);
                 await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, halTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, proxyTaskDefinition, ct);
                 await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createGridCloudMapServiceResponse.Service.Id, ct);
                 await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createHalCloudMapServiceResponse.Service.Id, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createProxyCloudMapServiceResponse.Service.Id, ct);
                 await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateGridEcsServiceResponse.Service.ServiceName, ecsCreateGridEcsServiceResponse.Service.ClusterArn, ct);
                 await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateHalEcsServiceResponse.Service.ServiceName, ecsCreateHalEcsServiceResponse.Service.ClusterArn, ct);
+                await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateProxyEcsServiceResponse.Service.ServiceName, ecsCreateProxyEcsServiceResponse.Service.ClusterArn, ct);
                 return false;
             }
 
@@ -257,23 +331,31 @@ namespace Leadsly.Domain.Supervisor
                 _logger.LogError("Failed to retreive hal ecs tasks for service {ecsServiceName}", ecsHalServiceName);
                 await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, gridTaskDefinition, ct);
                 await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, halTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, proxyTaskDefinition, ct);
                 await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createGridCloudMapServiceResponse.Service.Id, ct);
                 await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createHalCloudMapServiceResponse.Service.Id, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createProxyCloudMapServiceResponse.Service.Id, ct);
                 await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateGridEcsServiceResponse.Service.ServiceName, ecsCreateGridEcsServiceResponse.Service.ClusterArn, ct);
                 await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateHalEcsServiceResponse.Service.ServiceName, ecsCreateHalEcsServiceResponse.Service.ClusterArn, ct);
+                await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateProxyEcsServiceResponse.Service.ServiceName, ecsCreateProxyEcsServiceResponse.Service.ClusterArn, ct);
                 return false;
             }
 
-            // I'm fairly certain healthcheck is already done by aws resources
-            // Healthcheck request to ensure all resources are running in the expected state
-            //bool healthCheck = await _cloudPlatformProvider.EnsureEcsServiceTasksAreRunningAsync(ecsServiceName, ecsCreateEcsServiceResponse.Service.ClusterArn, ct);
-            //if (healthCheck == false)
-            //{
-            //    await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateEcsServiceResponse.Service.ServiceName, ecsCreateEcsServiceResponse.Service.ClusterArn, ct);
-            //    await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createCloudMapServiceResponse.Service.Id, ct);
-            //    await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, ecsTaskDefinitionRegistrationResponse.TaskDefinition.Family, ct);                
-            //    return false;
-            //}
+            IList<EcsTask> ecsProxyServiceTasks = await _cloudPlatformProvider.ListEcsServiceTasksAsync(ecsCreateProxyEcsServiceResponse.Service.ClusterArn, ecsCreateProxyEcsServiceResponse.Service.ServiceArn, ct);
+            if (ecsProxyServiceTasks == null)
+            {
+                _logger.LogError("Failed to retreive proxy ecs tasks for service {ecsServiceName}", ecsProxyServiceName);
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, gridTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, halTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsTaskDefinitionRegistrationAsync(userId, proxyTaskDefinition, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createGridCloudMapServiceResponse.Service.Id, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createHalCloudMapServiceResponse.Service.Id, ct);
+                await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, createProxyCloudMapServiceResponse.Service.Id, ct);
+                await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateGridEcsServiceResponse.Service.ServiceName, ecsCreateGridEcsServiceResponse.Service.ClusterArn, ct);
+                await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateHalEcsServiceResponse.Service.ServiceName, ecsCreateHalEcsServiceResponse.Service.ClusterArn, ct);
+                await _cloudPlatformProvider.DeleteAwsEcsServiceAsync(userId, ecsCreateProxyEcsServiceResponse.Service.ServiceName, ecsCreateProxyEcsServiceResponse.Service.ClusterArn, ct);
+                return false;
+            }
 
             EcsTaskDefinitions = new List<EcsTaskDefinition>();
             EcsTaskDefinition ecsGridTaskDefinition = new()
@@ -289,6 +371,13 @@ namespace Leadsly.Domain.Supervisor
                 Family = ecsHalTaskDefinitionRegistrationResponse.TaskDefinition.Family
             };
             EcsTaskDefinitions.Add(ecsHalTaskDefinition);
+
+            EcsTaskDefinition ecsProxyTaskDefinition = new()
+            {
+                TaskDefinitionArn = ecsProxyTaskDefinitionRegistrationResponse.TaskDefinition.TaskDefinitionArn,
+                Family = ecsProxyTaskDefinitionRegistrationResponse.TaskDefinition.Family
+            };
+            EcsTaskDefinitions.Add(ecsProxyTaskDefinition);
 
             CloudMapDiscoveryServices = new List<CloudMapDiscoveryService>();
             CloudMapDiscoveryService gridCloudMapService = new()
@@ -310,6 +399,16 @@ namespace Leadsly.Domain.Supervisor
                 ServiceDiscoveryId = createHalCloudMapServiceResponse.Service.Id
             };
             CloudMapDiscoveryServices.Add(halCloudMapService);
+
+            CloudMapDiscoveryService proxyCloudMapService = new()
+            {
+                Arn = createProxyCloudMapServiceResponse.Service.Arn,
+                CreateDate = createProxyCloudMapServiceResponse.Service.CreateDate,
+                Name = serviceProxyDiscoveryName,
+                NamespaceId = configuration.ServiceDiscoveryConfig.Proxy.NamespaceId,
+                ServiceDiscoveryId = createProxyCloudMapServiceResponse.Service.Id
+            };
+            CloudMapDiscoveryServices.Add(proxyCloudMapService);
 
             EcsServices = new List<EcsService>();
             EcsService ecsGridService = new()
@@ -352,7 +451,27 @@ namespace Leadsly.Domain.Supervisor
             halCloudMapService.EcsService = ecsHalService;
             EcsServices.Add(ecsHalService);
 
-            EcsServiceTasks = ecsGridServiceTasks.Concat(ecsHalServiceTasks).ToList();
+            EcsService ecsProxyService = new()
+            {
+                ClusterArn = ecsCreateProxyEcsServiceResponse.Service.ClusterArn,
+                CreatedAt = ((DateTimeOffset)ecsCreateProxyEcsServiceResponse.Service.CreatedAt).ToUnixTimeSeconds(),
+                CreatedBy = ecsCreateProxyEcsServiceResponse.Service.CreatedBy,
+                EcsServiceRegistries = ecsCreateProxyEcsServiceResponse.Service.ServiceRegistries.Select(r => new EcsServiceRegistry()
+                {
+                    RegistryArn = r.RegistryArn,
+                }).ToList(),
+                SchedulingStrategy = ecsCreateProxyEcsServiceResponse.Service.SchedulingStrategy,
+                ServiceArn = ecsCreateProxyEcsServiceResponse.Service.ServiceArn,
+                ServiceName = ecsCreateProxyEcsServiceResponse.Service.ServiceName,
+                TaskDefinition = ecsCreateProxyEcsServiceResponse.Service.TaskDefinition,
+                Purpose = Purpose.Proxy
+            };
+            ecsProxyService.CloudMapDiscoveryService = proxyCloudMapService;
+            ecsProxyService.EcsTasks = ecsProxyServiceTasks;
+            proxyCloudMapService.EcsService = ecsProxyService;
+            EcsServices.Add(ecsProxyService);
+
+            EcsServiceTasks = ecsGridServiceTasks.Concat(ecsHalServiceTasks).Concat(ecsProxyServiceTasks).ToList();
 
             return true;
         }

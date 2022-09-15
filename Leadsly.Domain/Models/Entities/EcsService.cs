@@ -34,6 +34,7 @@ namespace Leadsly.Domain.Models.Entities
     {
         None,
         Grid,
-        Hal
+        Hal,
+        Proxy
     }
 }

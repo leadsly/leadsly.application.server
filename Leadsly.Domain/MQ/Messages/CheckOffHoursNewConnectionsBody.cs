@@ -8,9 +8,6 @@ namespace Leadsly.Domain.MQ.Messages
         [DataMember]
         public string PageUrl { get; set; }
 
-        [DataMember]
-        public string TimeZoneId { get; set; }
-
         [DataMember(IsRequired = false)]
         public int NumOfHoursAgo { get; set; }
     }

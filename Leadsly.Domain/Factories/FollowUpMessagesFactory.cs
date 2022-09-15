@@ -1,5 +1,4 @@
-﻿using Leadsly.Application.Model.Campaigns;
-using Leadsly.Domain.Factories.Interfaces;
+﻿using Leadsly.Domain.Factories.Interfaces;
 using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.Models.Entities.Campaigns.Phases;
@@ -51,20 +50,32 @@ namespace Leadsly.Domain.Factories
 
         private async Task<PublishMessageBody> CreateMQMessageInternalAsync(string halId, CampaignProspectFollowUpMessage followUpMessage, FollowUpMessagePhase phase, CancellationToken ct = default)
         {
+            _logger.LogInformation("Creating {0} for mq message broker.", nameof(FollowUpMessageBody));
             HalUnit halUnit = await _halRepository.GetByHalIdAsync(halId, ct);
-            VirtualAssistant virtualAssistant = await _virtualAssistantRepository.GetByHalIdAsync(halId, ct);
-            EcsService gridEcsService = virtualAssistant.EcsServices.FirstOrDefault(x => x.Purpose == Purpose.Grid);
-            string virtualAssistantId = virtualAssistant.VirtualAssistantId;
-            if (gridEcsService == null)
+
+            if (halUnit == null)
             {
-                _logger.LogError($"Grid ecs service not found for virtual assistant {virtualAssistantId}.");
                 return null;
             }
 
-            if (gridEcsService.CloudMapDiscoveryService == null)
+            VirtualAssistant virtualAssistant = await _virtualAssistantRepository.GetByHalIdAsync(halId, ct);
+
+            if (virtualAssistant == null)
             {
-                _logger.LogError($"Cloud map discovery service not found for virtual assistant {virtualAssistantId}.");
                 return null;
+            };
+
+            EcsService gridEcsService = virtualAssistant.EcsServices.FirstOrDefault(x => x.Purpose == Purpose.Grid);
+            EcsService proxyEcsService = virtualAssistant.EcsServices.FirstOrDefault(x => x.Purpose == Purpose.Proxy);
+            string virtualAssistantId = virtualAssistant.VirtualAssistantId;
+            if (gridEcsService == null || proxyEcsService == null)
+            {
+                throw new Exception($"Ecs services not found for virtual assistant {virtualAssistantId}.");
+            }
+
+            if (gridEcsService.CloudMapDiscoveryService == null || proxyEcsService.CloudMapDiscoveryService == null)
+            {
+                throw new Exception($"Cloud map discovery services not found for virtual assistant {virtualAssistantId}.");
             }
 
             ChromeProfile chromeProfile = await _halRepository.GetChromeProfileAsync(PhaseType.FollowUpMessage, ct);
@@ -86,6 +97,8 @@ namespace Leadsly.Domain.Factories
 
             PublishMessageBody message = new FollowUpMessageBody
             {
+                ProxyServiceDiscoveryName = proxyEcsService.CloudMapDiscoveryService.Name,
+                ProxyNamespaceName = config.ServiceDiscoveryConfig.Proxy.Name,
                 GridNamespaceName = config.ServiceDiscoveryConfig.Grid.Name,
                 GridServiceDiscoveryName = gridEcsService.CloudMapDiscoveryService.Name,
                 HalId = halId,

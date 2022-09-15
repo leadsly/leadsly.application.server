@@ -4,6 +4,6 @@ namespace Leadsly.Domain.Factories.Interfaces
 {
     public interface IPersistBrowserProfileMessageFactory
     {
-        PublishMessageBody CreateMQMessage();
+        PublishMessageBody CreateMQMessage(string halId);
     }
 }

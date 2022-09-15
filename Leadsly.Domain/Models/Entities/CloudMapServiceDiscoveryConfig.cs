@@ -5,6 +5,7 @@
         public CloudMapConfig Grid { get; set; }
         public CloudMapConfig Hal { get; set; }
         public CloudMapConfig AppServer { get; set; }
+        public CloudMapConfig Proxy { get; set; }
     }
 
     public class CloudMapConfig

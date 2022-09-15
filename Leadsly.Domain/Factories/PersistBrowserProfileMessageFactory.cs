@@ -14,12 +14,15 @@ namespace Leadsly.Domain.Factories
             _logger = logger;
         }
 
-        public PublishMessageBody CreateMQMessage()
+        public PublishMessageBody CreateMQMessage(string halId)
         {
             _logger.LogDebug("Creating {0} MQ message", nameof(PersistBrowserProfileMessageFactory));
 
-            // currently this is an empty message. All the information required to upload the browser profile to S3 bucket is already in the container set as ENV VARs
-            PublishMessageBody mqMessage = new UploadBrowserProfileMessageBody();
+
+            PublishMessageBody mqMessage = new UploadBrowserProfileMessageBody()
+            {
+                HalId = halId
+            };
 
             return mqMessage;
         }

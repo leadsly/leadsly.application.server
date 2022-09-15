@@ -383,10 +383,10 @@ namespace Leadsly.Domain.Providers
             return await _awsElasticContainerService.RegisterTaskDefinitionAsync(request, ct);
         }
 
-        public async Task<RegisterTaskDefinitionResponse> RegisterTaskDefinitionInAwsAsync(string taskDefinition, string halId, CancellationToken ct = default)
+        public async Task<RegisterTaskDefinitionResponse> RegisterProxyTaskDefinitionInAwsAsync(string proxyTaskDefinition, string halId, CancellationToken ct = default)
         {
             CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
-            List<Amazon.ECS.Model.KeyValuePair> envVars = configuration.EcsTaskDefinitionConfig.ContainerDefinitions.SelectMany(x =>
+            List<Amazon.ECS.Model.KeyValuePair> envVars = configuration.EcsGridTaskDefinitionConfig.ContainerDefinitions.SelectMany(x =>
             {
                 if (x.Environment != null)
                 {
@@ -407,7 +407,7 @@ namespace Leadsly.Domain.Providers
 
             RegisterTaskDefinitionRequest request = new RegisterTaskDefinitionRequest
             {
-                ContainerDefinitions = configuration.EcsTaskDefinitionConfig.ContainerDefinitions?.Select(cd =>
+                ContainerDefinitions = configuration.EcsProxyTaskDefinitionConfig.ContainerDefinitions?.Select(cd =>
                 {
                     string awsLogsGroup = cd.LogConfiguration.Options.AwslogsGroup.Replace("{halId}", halId);
                     Amazon.ECS.Model.ContainerDefinition containerDef = new Amazon.ECS.Model.ContainerDefinition
@@ -427,10 +427,17 @@ namespace Leadsly.Domain.Providers
                             Condition = x.Condition,
                             ContainerName = x.ContainerName
                         }).ToList(),
-                        Essential = cd.Essential,
                         Image = cd.Image,
                         Memory = cd.Memory,
                         Name = cd.Name,
+                        HealthCheck = cd.HealthCheck == null ? null : new()
+                        {
+                            Command = cd.HealthCheck.Command.ToList(),
+                            Interval = cd.HealthCheck.Interval,
+                            Retries = cd.HealthCheck.Retries,
+                            Timeout = cd.HealthCheck.Timeout,
+                            StartPeriod = cd.HealthCheck.StartPeriod
+                        },
                         LogConfiguration = new Amazon.ECS.Model.LogConfiguration
                         {
                             LogDriver = cd.LogConfiguration?.LogDriver,
@@ -446,25 +453,17 @@ namespace Leadsly.Domain.Providers
                         {
                             InitProcessEnabled = cd.LinuxParameters.InitProcessEnabled
                         },
+                        VolumesFrom = cd.VolumesFrom?.Select(x => new Amazon.ECS.Model.VolumeFrom
+                        {
+                            ReadOnly = x.ReadOnly,
+                            SourceContainer = x.SourceContainer
+                        }).ToList(),
                         PortMappings = cd.PortMappings?.Select(x => new Amazon.ECS.Model.PortMapping
                         {
                             ContainerPort = x.ContainerPort,
                             HostPort = x.HostPort
                         }).ToList(),
-                        HealthCheck = cd.HealthCheck == null ? null : new()
-                        {
-                            Command = cd.HealthCheck.Command.ToList(),
-                            Interval = cd.HealthCheck.Interval,
-                            Retries = cd.HealthCheck.Retries,
-                            Timeout = cd.HealthCheck.Timeout,
-                            StartPeriod = cd.HealthCheck.StartPeriod
-                        },
-                        Privileged = cd.Privileged,
-                        VolumesFrom = cd.VolumesFrom?.Select(x => new Amazon.ECS.Model.VolumeFrom
-                        {
-                            ReadOnly = x.ReadOnly,
-                            SourceContainer = x.SourceContainer
-                        }).ToList()
+                        Privileged = cd.Privileged
                     };
 
                     if (cd.LinuxParameters.SharedMemorySize > 0)
@@ -474,13 +473,13 @@ namespace Leadsly.Domain.Providers
 
                     return containerDef;
                 }).ToList(),
-                Cpu = configuration.EcsTaskDefinitionConfig.Cpu,
-                ExecutionRoleArn = configuration.EcsTaskDefinitionConfig.ExecutionRoleArn,
-                Family = taskDefinition,
-                Memory = configuration.EcsTaskDefinitionConfig.Memory,
-                NetworkMode = configuration.EcsTaskDefinitionConfig.NetworkMode,
-                RequiresCompatibilities = configuration.EcsTaskDefinitionConfig.RequiresCompatibilities.ToList(),
-                TaskRoleArn = configuration.EcsTaskDefinitionConfig.TaskRoleArn
+                Cpu = configuration.EcsGridTaskDefinitionConfig.Cpu,
+                ExecutionRoleArn = configuration.EcsGridTaskDefinitionConfig.ExecutionRoleArn,
+                Family = proxyTaskDefinition,
+                Memory = configuration.EcsGridTaskDefinitionConfig.Memory,
+                NetworkMode = configuration.EcsGridTaskDefinitionConfig.NetworkMode,
+                RequiresCompatibilities = configuration.EcsGridTaskDefinitionConfig.RequiresCompatibilities.ToList(),
+                TaskRoleArn = configuration.EcsGridTaskDefinitionConfig.TaskRoleArn
             };
 
             return await _awsElasticContainerService.RegisterTaskDefinitionAsync(request, ct);

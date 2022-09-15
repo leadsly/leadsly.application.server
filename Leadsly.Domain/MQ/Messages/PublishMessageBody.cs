@@ -6,6 +6,10 @@ namespace Leadsly.Domain.MQ.Messages
     public class PublishMessageBody
     {
         [DataMember]
+        public string ProxyNamespaceName { get; set; } = string.Empty;
+        [DataMember]
+        public string ProxyServiceDiscoveryName { get; set; } = string.Empty;
+        [DataMember]
         public string GridNamespaceName { get; set; } = string.Empty;
         [DataMember]
         public string GridServiceDiscoveryName { get; set; } = string.Empty;
@@ -35,6 +39,7 @@ namespace Leadsly.Domain.MQ.Messages
 
         [DataMember]
         public string ChromeProfileName { get; set; } = string.Empty;
+
 
     }
 }

@@ -13,7 +13,7 @@ namespace Leadsly.Domain.OptionsJsonModels
         public string ApiServiceDiscoveryName { get; set; }
         public EcsServiceConfigOptions EcsServiceConfigOptions { get; set; }
         public EcsTaskConfigOptions EcsTaskConfigOptions { get; set; }
-        public EcsTaskDefinitionOptions EcsTaskDefinitionConfigOptions { get; set; }
+        public EcsTaskDefinitionOptions EcsProxyTaskDefinitionConfigOptions { get; set; }
         public EcsTaskDefinitionOptions EcsGridTaskDefinitionConfigOptions { get; set; }
         public EcsTaskDefinitionOptions EcsHalTaskDefinitionConfigOptions { get; set; }
         public EcsServiceDiscoveryOptions EcsServiceDiscoveryConfigOptions { get; set; }

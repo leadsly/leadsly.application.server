@@ -34,7 +34,7 @@ namespace Leadsly.Domain.Decorators
             SocialAccount socialAccount = await _userProvider.CreateSocialAccountAsync(virtualAssistant, userId, email, ct);
             if (socialAccount != null)
             {
-                PublishMessageBody mqMessage = _factory.CreateMQMessage();
+                PublishMessageBody mqMessage = _factory.CreateMQMessage(virtualAssistant.HalId);
                 _logger.LogDebug("Social account creation succeeded. Sending message to Sidecart to save user's browser profile to S3 bucket");
                 string halId = virtualAssistant.HalId;
                 string queueNameIn = RabbitMQConstants.PersistBrowserProfile.QueueName;

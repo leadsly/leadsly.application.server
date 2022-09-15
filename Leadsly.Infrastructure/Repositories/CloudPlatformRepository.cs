@@ -98,9 +98,9 @@ namespace Leadsly.Infrastructure.Repositories
                         Name = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.Hal.Name
                     }
                 },
-                EcsTaskDefinitionConfig = new()
+                EcsProxyTaskDefinitionConfig = new()
                 {
-                    ContainerDefinitions = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.ContainerDefinitions?.Select(c => new Domain.Models.Entities.ContainerDefinition
+                    ContainerDefinitions = _cloudPlatformConfigurationOptions.AwsOptions.EcsProxyTaskDefinitionConfigOptions.ContainerDefinitions?.Select(c => new Domain.Models.Entities.ContainerDefinition
                     {
                         Name = c.Name,
                         Image = c.Image,
@@ -156,13 +156,13 @@ namespace Leadsly.Infrastructure.Repositories
                         StartTimeout = c.StartTimeout,
                         StopTimeout = c.StopTimeout
                     }).ToArray(),
-                    Family = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.Family,
-                    NetworkMode = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.NetworkMode,
-                    RequiresCompatibilities = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.RequiresCompatibilities,
-                    TaskRoleArn = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.TaskRoleArn,
-                    Cpu = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.Cpu,
-                    Memory = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.Memory,
-                    ExecutionRoleArn = _cloudPlatformConfigurationOptions.AwsOptions.EcsTaskDefinitionConfigOptions.ExecutionRoleArn
+                    Family = _cloudPlatformConfigurationOptions.AwsOptions.EcsProxyTaskDefinitionConfigOptions.Family,
+                    NetworkMode = _cloudPlatformConfigurationOptions.AwsOptions.EcsProxyTaskDefinitionConfigOptions.NetworkMode,
+                    RequiresCompatibilities = _cloudPlatformConfigurationOptions.AwsOptions.EcsProxyTaskDefinitionConfigOptions.RequiresCompatibilities,
+                    TaskRoleArn = _cloudPlatformConfigurationOptions.AwsOptions.EcsProxyTaskDefinitionConfigOptions.TaskRoleArn,
+                    Cpu = _cloudPlatformConfigurationOptions.AwsOptions.EcsProxyTaskDefinitionConfigOptions.Cpu,
+                    Memory = _cloudPlatformConfigurationOptions.AwsOptions.EcsProxyTaskDefinitionConfigOptions.Memory,
+                    ExecutionRoleArn = _cloudPlatformConfigurationOptions.AwsOptions.EcsProxyTaskDefinitionConfigOptions.ExecutionRoleArn
                 },
                 EcsGridTaskDefinitionConfig = new()
                 {
