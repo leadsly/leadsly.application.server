@@ -35,6 +35,8 @@ namespace Leadsly.Domain.Services
                 {
                     GridNamespaceName = request.GridNamespaceName,
                     GridServiceDiscoveryName = request.GridServiceDiscoveryName,
+                    ProxyNamespaceName = request.ProxyNamespaceName,
+                    ProxyServiceDiscoveryName = request.ProxyServiceDiscoveryName,
                     Username = request.Username,
                     Password = request.Password,
                     ConnectAuthUrl = request.ConnectAuthUrl,

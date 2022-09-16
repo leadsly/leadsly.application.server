@@ -91,7 +91,7 @@ namespace Leadsly.Domain.Providers
             return response;
         }
 
-        public async Task<ConnectLinkedInAccountResponse> ConnectAccountAsync(string email, string password, string resourceDiscoveryServiceName, string gridDiscoveryServiceName, IHeaderDictionary responseHeaders, IHeaderDictionary requestHeaders, CancellationToken ct = default)
+        public async Task<ConnectLinkedInAccountResponse> ConnectAccountAsync(string email, string password, string resourceDiscoveryServiceName, string gridDiscoveryServiceName, string proxyDiscoveryServiceName, IHeaderDictionary responseHeaders, IHeaderDictionary requestHeaders, CancellationToken ct = default)
         {
             CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
 
@@ -99,6 +99,8 @@ namespace Leadsly.Domain.Providers
             {
                 GridNamespaceName = configuration.ServiceDiscoveryConfig.Grid.Name,
                 GridServiceDiscoveryName = gridDiscoveryServiceName,
+                ProxyNamespaceName = configuration.ServiceDiscoveryConfig.Proxy.Name,
+                ProxyServiceDiscoveryName = proxyDiscoveryServiceName,
                 NamespaceName = configuration.ServiceDiscoveryConfig.Hal.Name,
                 ServiceDiscoveryName = resourceDiscoveryServiceName,
                 RequestUrl = "linkedin/signin",

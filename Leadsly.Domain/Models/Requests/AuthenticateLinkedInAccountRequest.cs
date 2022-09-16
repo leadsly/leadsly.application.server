@@ -8,6 +8,8 @@ namespace Leadsly.Domain.Models.Requests
         public string ServiceDiscoveryName { get; set; }
         public string GridServiceDiscoveryName { get; set; }
         public string GridNamespaceName { get; set; }
+        public string ProxyServiceDiscoveryName { get; set; }
+        public string ProxyNamespaceName { get; set; }
         public string RequestUrl { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }

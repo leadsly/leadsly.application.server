@@ -69,7 +69,14 @@ namespace Leadsly.Domain.Supervisor
                 return null;
             }
 
-            ConnectLinkedInAccountResponse response = await _leadslyHalProvider.ConnectAccountAsync(request.Username, request.Password, halEcsService.CloudMapDiscoveryService.Name, gridEcsService.CloudMapDiscoveryService.Name, responseHeaders, requestHeaders, ct);
+            EcsService proxyEcsService = virtualAssistant.EcsServices.Where(x => x.Purpose == Purpose.Proxy).FirstOrDefault();
+            if (halEcsService == null)
+            {
+                _logger.LogError("Couldn't process request to link account because no proxy ecs service has been found. This service is required to make a request to linkedin");
+                return null;
+            }
+
+            ConnectLinkedInAccountResponse response = await _leadslyHalProvider.ConnectAccountAsync(request.Username, request.Password, halEcsService.CloudMapDiscoveryService.Name, gridEcsService.CloudMapDiscoveryService.Name, proxyEcsService.CloudMapDiscoveryService.Name, responseHeaders, requestHeaders, ct);
             if (response == null)
             {
                 return null;
