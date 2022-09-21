@@ -1,5 +1,7 @@
 ﻿using Leadsly.Application.Model;
+using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.Models.Entities.Campaigns.Phases;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -20,6 +22,7 @@ namespace Leadsly.Domain.Models.Entities
         public string Username { get; set; }
         public bool RunProspectListFirst { get; set; } = false;
         public bool MonthlySearchLimitReached { get; set; } = false;
+        public int TotalConnections { get; set; }
 
         /// <summary>
         /// Whether this social account is linked with virtual assistant
@@ -28,6 +31,7 @@ namespace Leadsly.Domain.Models.Entities
         public ApplicationUser User { get; set; }
         public VirtualAssistant VirtualAssistant { get; set; }
         public HalUnit HalDetails { get; set; }
+        public ICollection<RecentlyAddedProspect> RecentlyAddedProspects { get; set; }
         public ScanProspectsForRepliesPhase ScanProspectsForRepliesPhase { get; set; }
         public MonitorForNewConnectionsPhase MonitorForNewProspectsPhase { get; set; }
     }

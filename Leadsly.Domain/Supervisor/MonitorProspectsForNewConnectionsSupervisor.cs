@@ -1,8 +1,14 @@
-﻿using Leadsly.Domain.Models.Entities.Campaigns;
+﻿using Leadsly.Domain.Converters;
+using Leadsly.Domain.Models.Entities;
+using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.Models.MonitorForNewConnections;
 using Leadsly.Domain.Models.Requests;
+using Leadsly.Domain.Models.Responses;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,6 +16,77 @@ namespace Leadsly.Domain.Supervisor
 {
     public partial class Supervisor : ISupervisor
     {
+        public const string GetSocialAccountByHalIdCacheKey = "social-account-by-hal-id";
+        public async Task<PreviouslyConnectedNetworkProspectsResponse> GetAllPreviouslyConnectedNetworkProspectsAsync(string halId, CancellationToken ct = default)
+        {
+            SocialAccount socialAccount = await GetSocialAccountAsync($"{GetSocialAccountByHalIdCacheKey}-{halId}", halId, ct);
+
+            if (socialAccount == null)
+            {
+                _logger.LogError("No SocialAccount has been found that is associated with HalId {0}", halId);
+                return null;
+            }
+
+            PreviouslyConnectedNetworkProspectsResponse response = new()
+            {
+                PreviousTotalConnectionsCount = socialAccount.TotalConnections
+            };
+
+            IList<RecentlyAddedProspect> recentlyAddedProspects = await _recentlyAddedRepository.GetAllBySocialAccountIdAsync(socialAccount.SocialAccountId, ct);
+
+            if (recentlyAddedProspects == null)
+            {
+                response.Items = new List<RecentlyAddedProspectModel>();
+            }
+            else
+            {
+                response.Items = RecentlyAddedProspectConvert.ConvertList(socialAccount.RecentlyAddedProspects);
+            }
+
+            return response;
+        }
+
+        public async Task UpdatePreviouslyConnectedNetworkProspectsAsync(string halId, UpdateCurrentConnectedNetworkProspectsRequest request, CancellationToken ct)
+        {
+            SocialAccount socialAccount = await GetSocialAccountAsync($"{GetSocialAccountByHalIdCacheKey}-{halId}", halId, ct);
+
+            if (socialAccount == null)
+            {
+                _logger.LogError("No SocialAccount has been found that is associated with HalId {0}", halId);
+                return;
+            }
+
+            if (await _recentlyAddedRepository.DeleteAllBySocialAccountIdAsync(socialAccount.SocialAccountId, ct) == false)
+            {
+                _logger.LogError("Failed to delete {0} for HalId {1} and SocialAccountId {2}", nameof(RecentlyAddedProspect), halId, socialAccount.SocialAccountId);
+            }
+
+            IList<RecentlyAddedProspect> updated = RecentlyAddedProspectConvert.ConvertList(request.Items);
+            updated.Select(updatedRecentlyAddedProspect =>
+            {
+                updatedRecentlyAddedProspect.SocialAccountId = socialAccount.SocialAccountId;
+                return updatedRecentlyAddedProspect;
+            }).ToList();
+
+            updated = await _recentlyAddedRepository.CreateAllAsync(updated, ct);
+
+            if (updated == null)
+            {
+                _logger.LogError("Failed to create new {0} for HalId {1} and SocialAccountId {2}", nameof(RecentlyAddedProspect), halId, socialAccount.SocialAccountId);
+            }
+        }
+
+        private async Task<SocialAccount> GetSocialAccountAsync(string cacheKey, string halId, CancellationToken ct = default)
+        {
+            if (_memoryCache.TryGetValue(cacheKey, out SocialAccount socialAccount) == false)
+            {
+                socialAccount = await _userProvider.GetSocialAccountByHalIdAsync(halId, ct);
+                _memoryCache.Set(cacheKey, socialAccount, TimeSpan.FromMinutes(15));
+            }
+
+            return socialAccount;
+        }
+
         public async Task ProcessNewlyAcceptedProspectsAsync(string halId, RecentlyAddedProspectsRequest request, CancellationToken ct = default)
         {
             bool anyCampaignProspects = false;

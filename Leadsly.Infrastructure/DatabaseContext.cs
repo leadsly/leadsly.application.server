@@ -47,6 +47,7 @@ namespace Leadsly.Infrastructure
         public DbSet<LeadslyTimeZone> SupportedTimeZones { get; set; }
         public DbSet<EcsTask> EcsTasks { get; set; }
         public DbSet<VirtualAssistant> VirtualAssistants { get; set; }
+        public DbSet<RecentlyAddedProspect> RecentlyAddedProspects { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

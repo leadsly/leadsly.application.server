@@ -1,4 +1,6 @@
-﻿using Leadsly.Domain.Models.Requests;
+﻿using Leadsly.Domain;
+using Leadsly.Domain.Models.Requests;
+using Leadsly.Domain.Models.Responses;
 using Leadsly.Domain.Supervisor;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -31,5 +33,28 @@ namespace Leadsly.Application.Api.Controllers
             return Ok();
         }
 
+        [AllowAnonymous]
+        [HttpGet("{halId}/previous-prospects")]
+        public async Task<IActionResult> GetAllPreviouslyConnectedNetworkProspectsAsync(string halId, CancellationToken ct = default)
+        {
+            _logger.LogInformation("Executing {0} for HalId {1}", nameof(GetAllPreviouslyConnectedNetworkProspectsAsync), halId);
+            PreviouslyConnectedNetworkProspectsResponse response = await _supervisor.GetAllPreviouslyConnectedNetworkProspectsAsync(halId, ct);
+            if (response == null)
+            {
+                return BadRequest(ProblemDetailsDescriptions.RecentlyAddedProspects);
+            }
+
+            return Ok(response);
+        }
+
+        [AllowAnonymous]
+        [HttpPut("{halId}/previous-prospects")]
+        public async Task<IActionResult> UpdatePreviouslyConnectedNetworkProspectsAsync(string halId, UpdateCurrentConnectedNetworkProspectsRequest request, CancellationToken ct = default)
+        {
+            _logger.LogInformation("Executing {0} for HalId {1}", nameof(UpdatePreviouslyConnectedNetworkProspectsAsync), halId);
+            await _supervisor.UpdatePreviouslyConnectedNetworkProspectsAsync(halId, request, ct);
+
+            return Ok();
+        }
     }
 }

@@ -251,6 +251,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ITimeZoneRepository, TimeZoneRepository>();
             services.AddScoped<ISendConnectionsPhaseRepository, SendConnectionsPhaseRepository>();
             services.AddScoped<IVirtualAssistantRepository, VirtualAssistantRepository>();
+            services.AddScoped<IRecentlyAddedProspectRepository, RecentlyAddedProspectRepository>();
 
             return services;
         }

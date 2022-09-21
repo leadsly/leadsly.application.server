@@ -29,9 +29,11 @@ namespace Leadsly.Domain.Supervisor
             IHangfireService hangfireService,
             ITimeZoneRepository timeZoneRepository,
             IVirtualAssistantRepository virtualAssistantRepository,
+            IRecentlyAddedProspectRepository recentlyAddedRepository,
             IMemoryCache memoryCache,
             ILogger<Supervisor> logger)
         {
+            _recentlyAddedRepository = recentlyAddedRepository;
             _saveBrowserProfileUserProvider = saveBrowserProfileUserProvider;
             _mqCreatorFacade = mqCreatorFacade;
             _hangfireService = hangfireService;
@@ -54,6 +56,7 @@ namespace Leadsly.Domain.Supervisor
             _logger = logger;
         }
 
+        private readonly IRecentlyAddedProspectRepository _recentlyAddedRepository;
         private readonly SaveBrowserProfileUserProviderDecorator _saveBrowserProfileUserProvider;
         private readonly IMQCreatorFacade _mqCreatorFacade;
         private readonly IHangfireService _hangfireService;
