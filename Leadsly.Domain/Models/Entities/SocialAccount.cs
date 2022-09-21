@@ -22,7 +22,7 @@ namespace Leadsly.Domain.Models.Entities
         public string Username { get; set; }
         public bool RunProspectListFirst { get; set; } = false;
         public bool MonthlySearchLimitReached { get; set; } = false;
-        public int TotalConnections { get; set; }
+        public int TotalConnectionsCount { get; set; }
 
         /// <summary>
         /// Whether this social account is linked with virtual assistant

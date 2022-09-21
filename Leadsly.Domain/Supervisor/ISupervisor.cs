@@ -42,7 +42,7 @@ namespace Leadsly.Domain.Supervisor
         Task<ConnectedViewModel> GetConnectedAccountAsync(string userId, CancellationToken ct = default);
         Task<IList<TimeZoneViewModel>> GetSupportedTimeZonesAsync(CancellationToken ct = default);
         Task<CampaignsViewModel> GetCampaignsByUserIdAsync(string userId, CancellationToken ct = default);
-        Task<PreviouslyConnectedNetworkProspectsResponse> GetAllPreviouslyConnectedNetworkProspectsAsync(string halId, CancellationToken ct = default);
-        Task UpdatePreviouslyConnectedNetworkProspectsAsync(string halId, UpdateCurrentConnectedNetworkProspectsRequest request, CancellationToken ct);
+        Task<ConnectedNetworkProspectsResponse> GetAllPreviouslyConnectedNetworkProspectsAsync(string halId, CancellationToken ct = default);
+        Task UpdatePreviouslyConnectedNetworkProspectsAsync(string halId, UpdateConnectedNetworkProspectsRequest request, CancellationToken ct);
     }
 }

@@ -20,12 +20,13 @@ namespace Leadsly.Domain.Converters
             }).ToList();
         }
 
-        public static IList<RecentlyAddedProspect> ConvertList(IEnumerable<RecentlyAddedProspectModel> items)
+        public static IList<RecentlyAddedProspect> ConvertList(IEnumerable<RecentlyAddedProspectModel> items, string socialAccountId)
         {
             return items.Select(item =>
             {
                 return new RecentlyAddedProspect()
                 {
+                    SocialAccountId = socialAccountId,
                     AcceptedRequestTimestamp = item.AcceptedRequestTimestamp,
                     Name = item.Name,
                     ProfileUrl = item.ProfileUrl

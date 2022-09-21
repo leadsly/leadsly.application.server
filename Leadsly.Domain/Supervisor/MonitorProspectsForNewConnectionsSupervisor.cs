@@ -8,7 +8,6 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,7 +16,7 @@ namespace Leadsly.Domain.Supervisor
     public partial class Supervisor : ISupervisor
     {
         public const string GetSocialAccountByHalIdCacheKey = "social-account-by-hal-id";
-        public async Task<PreviouslyConnectedNetworkProspectsResponse> GetAllPreviouslyConnectedNetworkProspectsAsync(string halId, CancellationToken ct = default)
+        public async Task<ConnectedNetworkProspectsResponse> GetAllPreviouslyConnectedNetworkProspectsAsync(string halId, CancellationToken ct = default)
         {
             SocialAccount socialAccount = await GetSocialAccountAsync($"{GetSocialAccountByHalIdCacheKey}-{halId}", halId, ct);
 
@@ -27,9 +26,9 @@ namespace Leadsly.Domain.Supervisor
                 return null;
             }
 
-            PreviouslyConnectedNetworkProspectsResponse response = new()
+            ConnectedNetworkProspectsResponse response = new()
             {
-                PreviousTotalConnectionsCount = socialAccount.TotalConnections
+                TotalConnectionsCount = socialAccount.TotalConnectionsCount
             };
 
             IList<RecentlyAddedProspect> recentlyAddedProspects = await _recentlyAddedRepository.GetAllBySocialAccountIdAsync(socialAccount.SocialAccountId, ct);
@@ -46,7 +45,7 @@ namespace Leadsly.Domain.Supervisor
             return response;
         }
 
-        public async Task UpdatePreviouslyConnectedNetworkProspectsAsync(string halId, UpdateCurrentConnectedNetworkProspectsRequest request, CancellationToken ct)
+        public async Task UpdatePreviouslyConnectedNetworkProspectsAsync(string halId, UpdateConnectedNetworkProspectsRequest request, CancellationToken ct)
         {
             SocialAccount socialAccount = await GetSocialAccountAsync($"{GetSocialAccountByHalIdCacheKey}-{halId}", halId, ct);
 
@@ -61,18 +60,20 @@ namespace Leadsly.Domain.Supervisor
                 _logger.LogError("Failed to delete {0} for HalId {1} and SocialAccountId {2}", nameof(RecentlyAddedProspect), halId, socialAccount.SocialAccountId);
             }
 
-            IList<RecentlyAddedProspect> updated = RecentlyAddedProspectConvert.ConvertList(request.Items);
-            updated.Select(updatedRecentlyAddedProspect =>
-            {
-                updatedRecentlyAddedProspect.SocialAccountId = socialAccount.SocialAccountId;
-                return updatedRecentlyAddedProspect;
-            }).ToList();
+            IList<RecentlyAddedProspect> updated = RecentlyAddedProspectConvert.ConvertList(request.Items, socialAccount.SocialAccountId);
 
             updated = await _recentlyAddedRepository.CreateAllAsync(updated, ct);
 
             if (updated == null)
             {
                 _logger.LogError("Failed to create new {0} for HalId {1} and SocialAccountId {2}", nameof(RecentlyAddedProspect), halId, socialAccount.SocialAccountId);
+            }
+
+            socialAccount.TotalConnectionsCount = request.TotalConnectionsCount;
+            socialAccount = await _userProvider.UpdateSocialAccountAsync(socialAccount, ct);
+            if (socialAccount == null)
+            {
+                // handle error
             }
         }
 

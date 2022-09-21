@@ -35,10 +35,10 @@ namespace Leadsly.Application.Api.Controllers
 
         [AllowAnonymous]
         [HttpGet("{halId}/previous-prospects")]
-        public async Task<IActionResult> GetAllPreviouslyConnectedNetworkProspectsAsync(string halId, CancellationToken ct = default)
+        public async Task<IActionResult> GetConnectedNetworkProspectsAsync(string halId, CancellationToken ct = default)
         {
-            _logger.LogInformation("Executing {0} for HalId {1}", nameof(GetAllPreviouslyConnectedNetworkProspectsAsync), halId);
-            PreviouslyConnectedNetworkProspectsResponse response = await _supervisor.GetAllPreviouslyConnectedNetworkProspectsAsync(halId, ct);
+            _logger.LogInformation("Executing {0} for HalId {1}", nameof(GetConnectedNetworkProspectsAsync), halId);
+            ConnectedNetworkProspectsResponse response = await _supervisor.GetAllPreviouslyConnectedNetworkProspectsAsync(halId, ct);
             if (response == null)
             {
                 return BadRequest(ProblemDetailsDescriptions.RecentlyAddedProspects);
@@ -49,7 +49,7 @@ namespace Leadsly.Application.Api.Controllers
 
         [AllowAnonymous]
         [HttpPut("{halId}/previous-prospects")]
-        public async Task<IActionResult> UpdatePreviouslyConnectedNetworkProspectsAsync(string halId, UpdateCurrentConnectedNetworkProspectsRequest request, CancellationToken ct = default)
+        public async Task<IActionResult> UpdatePreviouslyConnectedNetworkProspectsAsync(string halId, UpdateConnectedNetworkProspectsRequest request, CancellationToken ct = default)
         {
             _logger.LogInformation("Executing {0} for HalId {1}", nameof(UpdatePreviouslyConnectedNetworkProspectsAsync), halId);
             await _supervisor.UpdatePreviouslyConnectedNetworkProspectsAsync(halId, request, ct);

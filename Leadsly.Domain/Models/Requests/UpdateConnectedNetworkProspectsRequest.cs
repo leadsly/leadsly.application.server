@@ -5,12 +5,12 @@ using System.Runtime.Serialization;
 namespace Leadsly.Domain.Models.Requests
 {
     [DataContract]
-    public class UpdateCurrentConnectedNetworkProspectsRequest
+    public class UpdateConnectedNetworkProspectsRequest
     {
         [DataMember]
         public IList<RecentlyAddedProspectModel> Items { get; set; }
 
         [DataMember]
-        public int PreviousTotalConnectionsCount { get; set; }
+        public int TotalConnectionsCount { get; set; }
     }
 }
