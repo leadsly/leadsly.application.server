@@ -1,5 +1,4 @@
 ﻿using Leadsly.Application.Model;
-using Leadsly.Application.Model.Campaigns;
 using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.MQ.Creators.Interfaces;
 using Leadsly.Domain.MQ.Messages;
@@ -32,7 +31,7 @@ namespace Leadsly.Domain.MQ.Creators
         private readonly IMessageBrokerOutlet _messageBrokerOutlet;
         private readonly ILogger<DeepScanProspectsForRepliesMQCreator> _logger;
 
-        public async Task PublishMessageAsync(string halId, CancellationToken ct = default)
+        public async Task<PublishMessageBody> CreateMQMessageAsync(string halId, CancellationToken ct = default)
         {
             _logger.LogInformation("[DeepScanProspectsForRepliesBody] Exuecting {0} for halId: {1}.", halId, nameof(DeepScanProspectsForRepliesBody));
 
@@ -40,12 +39,19 @@ namespace Leadsly.Domain.MQ.Creators
             if (socialAccount == null)
             {
                 _logger.LogWarning("Unable to locate SocialAccount associated with halId {halId}. Cannot proceed", halId);
-                return;
+                return null;
             }
 
             string userId = socialAccount.UserId;
             string scanProspectsForRepliesPhaseId = socialAccount.ScanProspectsForRepliesPhase.ScanProspectsForRepliesPhaseId;
             PublishMessageBody mqMessage = await _service.CreateMQMessageAsync(userId, halId, scanProspectsForRepliesPhaseId, ct);
+
+            return mqMessage;
+        }
+
+        public async Task PublishMessageAsync(string halId, CancellationToken ct = default)
+        {
+            PublishMessageBody mqMessage = await CreateMQMessageAsync(halId, ct);
 
             if (mqMessage != null)
             {

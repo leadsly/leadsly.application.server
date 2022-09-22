@@ -124,13 +124,14 @@ namespace Leadsly.Domain.Supervisor
         public async Task<VirtualAssistantViewModel> CreateVirtualAssistantAsync(CreateVirtualAssistantRequest setup, CancellationToken ct = default)
         {
             string halId = GenerateHalId();
-            bool awsResourcesCreated = await CreateAwsResourcesAsync(halId, setup.UserId, ct);
-            if (awsResourcesCreated == false)
+            bool awsTaskDefinitionsCreated = await _provisionResourcesService.CreateAwsTaskDefinitionsAsync(halId, setup.UserId, ct);
+            bool awsResourcesCreated = await _provisionResourcesService.CreateAwsResourcesAsync(halId, setup.UserId, ct);
+            if (awsResourcesCreated == false || awsTaskDefinitionsCreated == false)
             {
                 return null;
             }
 
-            VirtualAssistant virtualAssistant = await _cloudPlatformProvider.CreateVirtualAssistantAsync(EcsTaskDefinitions, EcsServices, EcsServiceTasks, CloudMapDiscoveryServices, halId, setup.UserId, setup.TimeZoneId, ct);
+            VirtualAssistant virtualAssistant = await _cloudPlatformProvider.CreateVirtualAssistantAsync(_provisionResourcesService.EcsTaskDefinitions, _provisionResourcesService.EcsServices, _provisionResourcesService.EcsServiceTasks, _provisionResourcesService.CloudMapDiscoveryServices, halId, setup.UserId, setup.TimeZoneId, ct);
             VirtualAssistantViewModel virtualAssistantViewModel = VirtualAssistantConverter.Convert(virtualAssistant);
             return virtualAssistantViewModel;
         }

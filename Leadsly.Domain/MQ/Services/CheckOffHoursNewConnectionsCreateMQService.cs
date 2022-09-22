@@ -1,5 +1,4 @@
-﻿using Leadsly.Application.Model.Campaigns;
-using Leadsly.Domain.Facades.Interfaces;
+﻿using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Factories.Interfaces;
 using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.Models.Entities.Campaigns.Phases;
@@ -31,7 +30,7 @@ namespace Leadsly.Domain.MQ.Services
         private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
         private readonly ILogger<CheckOffHoursNewConnectionsCreateMQService> _logger;
 
-        public async Task<PublishMessageBody> CreateMQCheckOffHoursNewConnectionsMessageAsync(string userId, string halId, MonitorForNewConnectionsPhase phase, CancellationToken ct = default)
+        public async Task<PublishMessageBody> CreateMQMessageAsync(string userId, string halId, MonitorForNewConnectionsPhase phase, CancellationToken ct = default)
         {
             if (await _campaignRepositoryFacade.AnyActiveCampaignsByHalIdAsync(halId, ct) == false)
             {

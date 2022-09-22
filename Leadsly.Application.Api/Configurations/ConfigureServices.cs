@@ -161,6 +161,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<IProspectingJobService, ProspectingJobService>();
             services.AddScoped<IRestartHalJobService, RestartHalJobService>();
             services.AddScoped<IRestartHalsByTimezoneJobService, RestartHalsByTimezoneJobService>();
+            services.AddScoped<IAllInOneVirtualAssistantJobService, AllInOneVirtualAssistantJobService>();
 
             return services;
         }
@@ -170,6 +171,15 @@ namespace Leadsly.Application.Api.Configurations
             Log.Information("Registering decorators configuration");
 
             services.AddScoped<SaveBrowserProfileUserProviderDecorator>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddJsonOptionsConfiguration(this IServiceCollection services, IConfiguration configuration)
+        {
+            Log.Information("Registering Json Options documents");
+
+            services.Configure<FeatureFlagsOptions>(options => configuration.GetSection(nameof(FeatureFlagsOptions)).Bind(options));
 
             return services;
         }
@@ -193,6 +203,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<IMonitorForNewConnectionsMQCreator, MonitorForNewConnectionsMQCreator>();
             services.AddScoped<INetworkingMQCreator, NetworkingMQCreator>();
             services.AddScoped<IScanProspectsForRepliesMQCreator, ScanProspectsForRepliesMQCreator>();
+            services.AddScoped<IAllInOneVirtualAssistantMQCreator, AllInOneVirtualAssistantMQCreator>();
 
             services.AddScoped<IMessageBrokerOutlet, MessageBrokerOutlet>();
             services.AddScoped<IRabbitMQManager, RabbitMQManager>();
@@ -207,6 +218,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<IMonitorForNewConnectionsCreateMQService, MonitorForNewConnectionsCreateMQService>();
             services.AddScoped<INetworkingCreateMQService, NetworkingCreateMQService>();
             services.AddScoped<IScanProspectsForRepliesCreateMQService, ScanProspectsForRepliesCreateMQService>();
+            services.AddScoped<IAllInOneVirtualAssistantMQService, AllInOneVirtualAssistantMQService>();
 
 
             return services;
@@ -224,6 +236,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<IDeepScanProspectsForRepliesMessageFactory, DeepScanProspectsForRepliesMessageFactory>();
             services.AddScoped<IPersistBrowserProfileMessageFactory, PersistBrowserProfileMessageFactory>();
             services.AddScoped<IJwtFactory, JwtFactory>();
+            services.AddScoped<IAllInOneVirtualAssistantFactory, AllInOneVirtualAssistantFactory>();
 
             return services;
         }
@@ -379,6 +392,8 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<IRestartHalService, RestartHalService>();
             services.AddScoped<IDeleteResourcesService, DeleteResourcesService>();
             services.AddScoped<IDeprovisionResourcesService, DeprovisionResourcesService>();
+            services.AddScoped<IProvisionResourcesService, ProvisionResourcesService>();
+
 
             return services;
         }

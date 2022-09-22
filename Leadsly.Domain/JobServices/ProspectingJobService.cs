@@ -40,7 +40,7 @@ namespace Leadsly.Domain.JobServices
 
         public async Task PublishProspectingMQMessagesAsync(string halId)
         {
-            if (await PublishDeepScanAsync(halId) == true)
+            if (await ShouldPublishDeepScanAsync(halId) == true)
             {
                 await _deepScanProspectsForRepliesMQCreator.PublishMessageAsync(halId);
             }
@@ -52,6 +52,11 @@ namespace Leadsly.Domain.JobServices
             }
         }
 
+        public async Task PublishFollowUpMQMessagesAsync(string halId)
+        {
+            await _followUpMessagesMQCreator.PublishMessageAsync(halId);
+        }
+
         /// <summary>
         /// If any of the prospects associated with HalUnit have accepted the connection invite, have gotten a follow up message and have NOT been marked as complete (this happens when all follow up messages go out AND not contact is made within certain time frame)
         /// we then proceed to execute DeepScanProspectsForReplies phase.
@@ -59,7 +64,7 @@ namespace Leadsly.Domain.JobServices
         /// <param name="halId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task<bool> PublishDeepScanAsync(string halId, CancellationToken ct = default)
+        private async Task<bool> ShouldPublishDeepScanAsync(string halId, CancellationToken ct = default)
         {
             IList<CampaignProspect> campaignProspects = await GetAllCampaignProspectsByHalIdAsync(halId, ct);
             if (campaignProspects.Any(p => p.Accepted == true && p.FollowUpMessageSent == true && p.Replied == false && p.FollowUpComplete == false) == true)

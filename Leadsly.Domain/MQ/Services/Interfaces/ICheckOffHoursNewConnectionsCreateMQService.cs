@@ -7,6 +7,6 @@ namespace Leadsly.Domain.MQ.Services.Interfaces
 {
     public interface ICheckOffHoursNewConnectionsCreateMQService
     {
-        Task<PublishMessageBody> CreateMQCheckOffHoursNewConnectionsMessageAsync(string userId, string halId, MonitorForNewConnectionsPhase phase, CancellationToken ct = default);
+        Task<PublishMessageBody> CreateMQMessageAsync(string userId, string halId, MonitorForNewConnectionsPhase phase, CancellationToken ct = default);
     }
 }

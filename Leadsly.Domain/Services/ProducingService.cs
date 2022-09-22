@@ -48,5 +48,28 @@ namespace Leadsly.Domain.Services
                 _hangfireService.AddOrUpdate<INewTimeZonesJobsService>(HangFireConstants.RecurringJobs.ScheduleRestartForNewTimeZones, (x) => x.AddRecurringRestartJobsForNewTimeZonesAsync(), HangFireConstants.RecurringJobs.DailyCronSchedule, tzInfo);
             }
         }
+
+        public void StartRecurringJobs_AllInOneVirtualAssistant()
+        {
+            _logger.LogInformation("Starting to execute StartRecurringJobs");
+            //*************************** Daily Jobs ***************************
+            ////////////////////////////////////////////////////////////////////
+
+            if (_env.IsDevelopment())
+            {
+                _logger.LogInformation("Current enviornment is in Development. Executing 'ScheduleJobsForNewTimeZonesAsync' right away");
+                _hangfireService.Enqueue<INewTimeZonesJobsService>((x) => x.AddRecurringJobsForNewTimeZonesAsync_AllInOneVirtualAssistant());
+            }
+            else
+            {
+                _logger.LogInformation("Current enviornment is NOT in Development. Executing 'ScheduleJobsForNewTimeZonesAsync' on scheduled basis");
+                TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+
+                _logger.LogTrace("Server will execute 'ScheduleJobsForNewTimeZonesAsync' on a daily cron schedule using 'Eastern Standard Time'");
+                _logger.LogDebug($"The 'ScheduleJobsForNewTimeZonesAsync' recurring job has an id of {HangFireConstants.RecurringJobs.ScheduleNewTimeZones}");
+                _hangfireService.AddOrUpdate<INewTimeZonesJobsService>(HangFireConstants.RecurringJobs.ScheduleNewTimeZones, (x) => x.AddRecurringJobsForNewTimeZonesAsync_AllInOneVirtualAssistant(), HangFireConstants.RecurringJobs.DailyCronSchedule, tzInfo);
+            }
+
+        }
     }
 }

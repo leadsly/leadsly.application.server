@@ -53,6 +53,7 @@ namespace Leadsly.Application.Api
                     .AddFactoriesConfiguration()
                     .AddRabbitMQConfiguration(Configuration)
                     .AddDecoratorsConfiguration()
+                    .AddJsonOptionsConfiguration(Configuration)
                     .AddServices(Configuration)
                     .AddRemoveNull204FormatterConfigration()
                     .AddMemoryCache()

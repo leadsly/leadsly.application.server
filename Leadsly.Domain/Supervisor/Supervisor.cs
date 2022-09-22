@@ -12,6 +12,7 @@ namespace Leadsly.Domain.Supervisor
     {
         public Supervisor(
             IStripeRepository stripeRepository,
+            IProvisionResourcesService provisionResourcesService,
             SaveBrowserProfileUserProviderDecorator saveBrowserProfileUserProvider,
             IMQCreatorFacade mqCreatorFacade,
             ICampaignRepositoryFacade campaignRepositoryFacade,
@@ -33,6 +34,7 @@ namespace Leadsly.Domain.Supervisor
             IMemoryCache memoryCache,
             ILogger<Supervisor> logger)
         {
+            _provisionResourcesService = provisionResourcesService;
             _recentlyAddedRepository = recentlyAddedRepository;
             _saveBrowserProfileUserProvider = saveBrowserProfileUserProvider;
             _mqCreatorFacade = mqCreatorFacade;
@@ -56,6 +58,7 @@ namespace Leadsly.Domain.Supervisor
             _logger = logger;
         }
 
+        private readonly IProvisionResourcesService _provisionResourcesService;
         private readonly IRecentlyAddedProspectRepository _recentlyAddedRepository;
         private readonly SaveBrowserProfileUserProviderDecorator _saveBrowserProfileUserProvider;
         private readonly IMQCreatorFacade _mqCreatorFacade;

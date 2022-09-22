@@ -5,5 +5,7 @@ namespace Leadsly.Domain.JobServices.Interfaces
     public interface IProspectingJobService
     {
         public Task PublishProspectingMQMessagesAsync(string halId);
+
+        public Task PublishFollowUpMQMessagesAsync(string halId);
     }
 }

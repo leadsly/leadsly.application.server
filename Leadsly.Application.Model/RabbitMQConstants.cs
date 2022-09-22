@@ -31,6 +31,15 @@
             public const string ExecutePhase = "ExecutePhase";
         }
 
+        public static class AllInOneVirtualAssistant
+        {
+            public const string QueueName = "all.in.one.virtual.assistant";
+            public const string RoutingKey = "all-in-one-virtual-assistant";
+            public const string ExecuteType = "execution-type";
+            public const string Initial = "Initial";
+            public const string Regular = "Regular";
+        }
+
         public static class RestartApplication
         {
             public const string QueueName = "restart.application";

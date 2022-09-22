@@ -3,6 +3,7 @@ using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
@@ -18,11 +19,13 @@ namespace Leadsly.Domain.JobServices
             ITimestampService timestampService,
             IHalRepository halRepository,
             IWebHostEnvironment env,
-            IHangfireService hangfireService
+            IHangfireService hangfireService,
+            IMemoryCache memoryCache
             )
         {
             _env = env;
             _hangfireService = hangfireService;
+            _memoryCache = memoryCache;
             _logger = logger;
             _timestampService = timestampService;
             _halRepository = halRepository;
@@ -30,16 +33,77 @@ namespace Leadsly.Domain.JobServices
 
         private readonly IWebHostEnvironment _env;
         private readonly IHangfireService _hangfireService;
+        private readonly IMemoryCache _memoryCache;
         private readonly ILogger<CampaignJobsService> _logger;
         private readonly ITimestampService _timestampService;
         private readonly IHalRepository _halRepository;
+
+        #region AllInOneVirtualAssistant
+
+
+
+        public async Task ExecuteDailyJobsAsync_AllInOneVirtualAssistant(string timezoneId)
+        {
+            // get all hal ids for this time zone
+            _logger.LogInformation("Executing daily cron job for time zone {timeZoneId}", timezoneId);
+
+            IList<HalUnit> halsInTimezone = await GetHalUnitsByTimezoneIdAsync(timezoneId);
+
+            if (halsInTimezone.Count > 0)
+            {
+                int hals = halsInTimezone.Count;
+                _logger.LogDebug("Time zone {timeZoneId}, has {hals} hal units.", timezoneId, hals);
+
+                foreach (HalUnit halUnit in halsInTimezone)
+                {
+                    // we need to run deep scan prospects for replies
+                    // determine if deep scan prospects for replies is required, if it is, execute it an hour before start of work day
+                    string halId = halUnit.HalId;
+                    _logger.LogInformation("Hal unit with id {halId} was found", halId);
+                    DateTimeOffset startDate = _timestampService.ParseDateTimeOffsetLocalized(halUnit.TimeZoneId, halUnit.StartHour);
+                    DateTimeOffset endDate = _timestampService.ParseDateTimeOffsetLocalized(halUnit.TimeZoneId, halUnit.EndHour);
+                    _logger.LogInformation($"Hal unit with id {halId}, has a start date of {startDate}");
+
+                    // schedule deep scan prospects for replies an hour before start date
+                    // Ideally we handle ExecuteDeepScanForProspects on initial phase along with check off hours connections
+                    //DateTimeOffset deepScanProspectsForRepliesStartDate = startDate.AddHours(-1);
+                    //ExecuteDeepScanOrFollowUpPhase(halId, deepScanProspectsForRepliesStartDate);
+
+                    _logger.LogDebug("Enqueuing PublishFollowUpMQMessagesAsync for halId {halId}. This will be enqueued right now", halId);
+                    _hangfireService.Enqueue<IProspectingJobService>((x) => x.PublishFollowUpMQMessagesAsync(halId));
+
+                    // this doesn't actually trigger anything when it executes, it just schedules the next jobs to execute.
+                    _logger.LogDebug("Enqueuing PublishNetworkingPhaseAsync for halId {halId}. This will be enqueued right now", halId);
+                    _hangfireService.Enqueue<INetworkingJobsService>((x) => x.PublishNetworkingMQMessagesAsync(halId));
+
+                    // schedule AllInOneVirtualAssistant job at the top of every hour
+                    ScheduleAllInOneVirtualAssistantPhases(halId, startDate, endDate);
+                }
+            }
+            else
+            {
+                _logger.LogInformation("No hal units found for time zone {timeZoneId}", timezoneId);
+            }
+        }
+
+        private void ScheduleAllInOneVirtualAssistantPhases(string halId, DateTimeOffset startDate, DateTimeOffset endDate)
+        {
+            bool initial = true;
+            for (DateTimeOffset date = startDate; date <= endDate; date.AddHours(1))
+            {
+                _hangfireService.Schedule<IAllInOneVirtualAssistantJobService>((x) => x.PublishAllInOneVirtualAssistantPhaseAsync(halId, initial), date);
+                initial = false;
+            }
+        }
+
+        #endregion        
 
         public async Task ExecuteDailyJobsAsync(string timezoneId)
         {
             // get all hal ids for this time zone
             _logger.LogInformation("Executing daily cron job for time zone {timeZoneId}", timezoneId);
 
-            IList<HalUnit> halsInTimezone = await _halRepository.GetAllByTimeZoneIdAsync(timezoneId);
+            IList<HalUnit> halsInTimezone = await GetHalUnitsByTimezoneIdAsync(timezoneId);
             if (halsInTimezone.Count > 0)
             {
                 int hals = halsInTimezone.Count;
@@ -68,6 +132,28 @@ namespace Leadsly.Domain.JobServices
                     // this doesn't actually trigger anything when it executes, it just schedules the next jobs to execute.
                     _logger.LogDebug("Enqueuing PublishNetworkingPhaseAsync for halId {halId}. This will be enqueued right now", halId);
                     _hangfireService.Enqueue<INetworkingJobsService>((x) => x.PublishNetworkingMQMessagesAsync(halId));
+                }
+            }
+            else
+            {
+                _logger.LogInformation("No hal units found for time zone {timeZoneId}", timezoneId);
+            }
+        }
+
+        public async Task RunMarkProspectsAsCompleteAsyncDailyJobAsync(string timezoneId)
+        {
+            _logger.LogInformation("Executing daily cron job for time zone {timeZoneId} to mark prospects as complete", timezoneId);
+
+            IList<HalUnit> halsInTimezone = await GetHalUnitsByTimezoneIdAsync(timezoneId);
+            if (halsInTimezone.Count > 0)
+            {
+                int hals = halsInTimezone.Count;
+                _logger.LogDebug("Time zone {timeZoneId}, has {hals} hal units.", timezoneId, hals);
+
+                foreach (HalUnit halUnit in halsInTimezone)
+                {
+                    string halId = halUnit.HalId;
+                    _logger.LogInformation("Hal unit with id {halId} was found", halId);
 
                     _logger.LogDebug("Enqueing PreventFollowUpMessageService for halId {halId}", halId);
                     _hangfireService.Enqueue<IPreventFollowUpMessageService>((x) => x.MarkProspectsAsCompleteAsync(halId));
@@ -113,6 +199,16 @@ namespace Leadsly.Domain.JobServices
             {
                 _hangfireService.Schedule<IMonitorForNewConnectionsJobService>((x) => x.PublishMonitorForNewConnectionsMQMessagesAsync(halId), monitorForNewConnectionsStartDate);
             }
+        }
+
+        private async Task<IList<HalUnit>> GetHalUnitsByTimezoneIdAsync(string timezoneId)
+        {
+            if (_memoryCache.TryGetValue(timezoneId, out IList<HalUnit> halUnits) == false)
+            {
+                halUnits = await _halRepository.GetAllByTimeZoneIdAsync(timezoneId);
+                _memoryCache.Set(timezoneId, halUnits, TimeSpan.FromMinutes(10));
+            }
+            return halUnits;
         }
     }
 }

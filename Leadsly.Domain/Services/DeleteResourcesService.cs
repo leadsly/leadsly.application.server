@@ -21,7 +21,7 @@ namespace Leadsly.Domain.Services
 
         public async Task<bool> DeleteCloudMapServiceAsync(string cloudMapServiceId, CancellationToken ct = default)
         {
-            await _repository.RemoveCloudMapServiceDiscoveryServiceAsync(cloudMapServiceId, ct);
+            return await _repository.RemoveCloudMapServiceDiscoveryServiceAsync(cloudMapServiceId, ct);
         }
 
         public async Task<bool> DeleteEcsServiceAsync(string ecsServiceId, CancellationToken ct = default)

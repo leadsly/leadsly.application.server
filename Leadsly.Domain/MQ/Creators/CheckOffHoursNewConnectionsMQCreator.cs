@@ -1,5 +1,4 @@
 ﻿using Leadsly.Application.Model;
-using Leadsly.Application.Model.Campaigns;
 using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.Models.Entities.Campaigns.Phases;
 using Leadsly.Domain.MQ.Creators.Interfaces;
@@ -32,19 +31,26 @@ namespace Leadsly.Domain.MQ.Creators
         private readonly ILogger<CheckOffHoursNewConnectionsMQCreator> _logger;
         private readonly IUserRepository _userRepository;
 
-        public async Task PublishMessageAsync(string halId, CancellationToken ct = default)
+        public async Task<PublishMessageBody> CreateMQMessage(string halId, CancellationToken ct = default)
         {
             _logger.LogDebug("Creating MonitorForNewAcceptedConnectionsBody message.");
             SocialAccount socialAccount = await _userRepository.GetSocialAccountByHalIdAsync(halId, ct);
             if (socialAccount == null)
             {
                 _logger.LogWarning("Unable to locate SocialAccount associated with halId {halId}. Cannot proceed", halId);
-                return;
+                return null;
             }
 
             string userId = socialAccount.UserId;
             MonitorForNewConnectionsPhase phase = socialAccount.MonitorForNewProspectsPhase;
-            PublishMessageBody mqMessage = await _service.CreateMQCheckOffHoursNewConnectionsMessageAsync(userId, halId, phase, ct);
+            PublishMessageBody mqMessage = await _service.CreateMQMessageAsync(userId, halId, phase, ct);
+
+            return mqMessage;
+        }
+
+        public async Task PublishMessageAsync(string halId, CancellationToken ct = default)
+        {
+            PublishMessageBody mqMessage = await CreateMQMessage(halId, ct);
 
             if (mqMessage != null)
             {
