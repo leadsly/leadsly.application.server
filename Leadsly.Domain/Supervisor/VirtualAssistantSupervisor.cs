@@ -1,4 +1,5 @@
 ﻿using Leadsly.Domain.Converters;
+using Leadsly.Domain.Models;
 using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.Models.Requests;
 using Leadsly.Domain.Models.ViewModels.VirtualAssistant;
@@ -360,6 +361,8 @@ namespace Leadsly.Domain.Supervisor
             EcsTaskDefinitions = new List<EcsTaskDefinition>();
             EcsTaskDefinition ecsGridTaskDefinition = new()
             {
+                Purpose = EcsResourcePurpose.Grid,
+                HalId = halId,
                 TaskDefinitionArn = ecsGridTaskDefinitionRegistrationResponse.TaskDefinition.TaskDefinitionArn,
                 Family = ecsGridTaskDefinitionRegistrationResponse.TaskDefinition.Family
             };
@@ -367,6 +370,8 @@ namespace Leadsly.Domain.Supervisor
 
             EcsTaskDefinition ecsHalTaskDefinition = new()
             {
+                Purpose = EcsResourcePurpose.Hal,
+                HalId = halId,
                 TaskDefinitionArn = ecsHalTaskDefinitionRegistrationResponse.TaskDefinition.TaskDefinitionArn,
                 Family = ecsHalTaskDefinitionRegistrationResponse.TaskDefinition.Family
             };
@@ -374,6 +379,8 @@ namespace Leadsly.Domain.Supervisor
 
             EcsTaskDefinition ecsProxyTaskDefinition = new()
             {
+                Purpose = EcsResourcePurpose.Proxy,
+                HalId = halId,
                 TaskDefinitionArn = ecsProxyTaskDefinitionRegistrationResponse.TaskDefinition.TaskDefinitionArn,
                 Family = ecsProxyTaskDefinitionRegistrationResponse.TaskDefinition.Family
             };
@@ -382,6 +389,8 @@ namespace Leadsly.Domain.Supervisor
             CloudMapDiscoveryServices = new List<CloudMapDiscoveryService>();
             CloudMapDiscoveryService gridCloudMapService = new()
             {
+                Purpose = EcsResourcePurpose.Grid,
+                HalId = halId,
                 Arn = createGridCloudMapServiceResponse.Service.Arn,
                 CreateDate = createGridCloudMapServiceResponse.Service.CreateDate,
                 Name = serviceGridDiscoveryName,
@@ -392,6 +401,8 @@ namespace Leadsly.Domain.Supervisor
 
             CloudMapDiscoveryService halCloudMapService = new()
             {
+                Purpose = EcsResourcePurpose.Hal,
+                HalId = halId,
                 Arn = createHalCloudMapServiceResponse.Service.Arn,
                 CreateDate = createHalCloudMapServiceResponse.Service.CreateDate,
                 Name = serviceHalDiscoveryName,
@@ -402,6 +413,8 @@ namespace Leadsly.Domain.Supervisor
 
             CloudMapDiscoveryService proxyCloudMapService = new()
             {
+                Purpose = EcsResourcePurpose.Proxy,
+                HalId = halId,
                 Arn = createProxyCloudMapServiceResponse.Service.Arn,
                 CreateDate = createProxyCloudMapServiceResponse.Service.CreateDate,
                 Name = serviceProxyDiscoveryName,
@@ -424,7 +437,8 @@ namespace Leadsly.Domain.Supervisor
                 ServiceArn = ecsCreateGridEcsServiceResponse.Service.ServiceArn,
                 ServiceName = ecsCreateGridEcsServiceResponse.Service.ServiceName,
                 TaskDefinition = ecsCreateGridEcsServiceResponse.Service.TaskDefinition,
-                Purpose = Purpose.Grid
+                Purpose = EcsResourcePurpose.Grid,
+                HalId = halId
             };
             ecsGridService.CloudMapDiscoveryService = gridCloudMapService;
             ecsGridService.EcsTasks = ecsGridServiceTasks;
@@ -444,7 +458,8 @@ namespace Leadsly.Domain.Supervisor
                 ServiceArn = ecsCreateHalEcsServiceResponse.Service.ServiceArn,
                 ServiceName = ecsCreateHalEcsServiceResponse.Service.ServiceName,
                 TaskDefinition = ecsCreateHalEcsServiceResponse.Service.TaskDefinition,
-                Purpose = Purpose.Hal
+                Purpose = EcsResourcePurpose.Hal,
+                HalId = halId
             };
             ecsHalService.CloudMapDiscoveryService = halCloudMapService;
             ecsHalService.EcsTasks = ecsHalServiceTasks;
@@ -464,7 +479,8 @@ namespace Leadsly.Domain.Supervisor
                 ServiceArn = ecsCreateProxyEcsServiceResponse.Service.ServiceArn,
                 ServiceName = ecsCreateProxyEcsServiceResponse.Service.ServiceName,
                 TaskDefinition = ecsCreateProxyEcsServiceResponse.Service.TaskDefinition,
-                Purpose = Purpose.Proxy
+                Purpose = EcsResourcePurpose.Proxy,
+                HalId = halId
             };
             ecsProxyService.CloudMapDiscoveryService = proxyCloudMapService;
             ecsProxyService.EcsTasks = ecsProxyServiceTasks;

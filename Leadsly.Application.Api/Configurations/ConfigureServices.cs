@@ -31,6 +31,7 @@ using Leadsly.Domain.MQ.Services;
 using Leadsly.Domain.MQ.Services.Interfaces;
 using Leadsly.Domain.OptionsJsonModels;
 using Leadsly.Domain.PhaseConsumers;
+using Leadsly.Domain.PhaseConsumers.DeprovisionResourcesHandler;
 using Leadsly.Domain.PhaseConsumers.TriggerFollowUpMessagesHandler;
 using Leadsly.Domain.PhaseConsumers.TriggerScanProspectsForRpliesHandlers;
 using Leadsly.Domain.PhaseHandlers;
@@ -314,6 +315,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ICampaignProvider, CampaignProvider>();
             services.AddScoped<IRabbitMQProvider, RabbitMQProvider>();
             services.AddScoped<ISendFollowUpMessageProvider, SendFollowUpMessageProvider>();
+            services.AddScoped<IDeprovisionResourcesProvider, DeprovisionResourcesProvider>();
 
             return services;
         }
@@ -341,6 +343,10 @@ namespace Leadsly.Application.Api.Configurations
             // consumers for ScanProspectsForReplies
             services.AddScoped<IConsumeCommandHandler<TriggerScanProspectsForRepliesConsumeCommand>, TriggerScanProspectsForRepliesConsumeCommandHandler>();
             services.AddScoped<ITriggerScanProspectsForRepliesEventHandler, TriggerScanProspectsForRepliesEventHandler>();
+
+            // consumers for DeprovisionResources
+            services.AddScoped<IConsumeCommandHandler<DeprovisionResourcesConsumeCommand>, DeprovisionResourcesConsumeCommandHandler>();
+            services.AddScoped<IDeprovisionResourcesEventHandler, DeprovisionResourcesEventHandler>();
 
             return services;
         }
@@ -371,6 +377,8 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ICreateCampaignService, CreateCampaignService>();
             services.AddScoped<IPreventFollowUpMessageService, PreventFollowUpMessageService>();
             services.AddScoped<IRestartHalService, RestartHalService>();
+            services.AddScoped<IDeleteResourcesService, DeleteResourcesService>();
+            services.AddScoped<IDeprovisionResourcesService, DeprovisionResourcesService>();
 
             return services;
         }

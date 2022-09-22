@@ -1,4 +1,5 @@
 ﻿using Leadsly.Domain.Converters;
+using Leadsly.Domain.Models;
 using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.Models.Requests;
 using Leadsly.Domain.Models.Responses;
@@ -55,21 +56,21 @@ namespace Leadsly.Domain.Supervisor
                 return null;
             }
 
-            EcsService halEcsService = virtualAssistant.EcsServices.Where(x => x.Purpose == Purpose.Hal).FirstOrDefault();
+            EcsService halEcsService = virtualAssistant.EcsServices.Where(x => x.Purpose == EcsResourcePurpose.Hal).FirstOrDefault();
             if (halEcsService == null)
             {
                 _logger.LogError("Couldn't process request to link account because no hal ecs service has been found. This service is required to make a request to hal");
                 return null;
             }
 
-            EcsService gridEcsService = virtualAssistant.EcsServices.Where(x => x.Purpose == Purpose.Grid).FirstOrDefault();
+            EcsService gridEcsService = virtualAssistant.EcsServices.Where(x => x.Purpose == EcsResourcePurpose.Grid).FirstOrDefault();
             if (halEcsService == null)
             {
                 _logger.LogError("Couldn't process request to link account because no grid ecs service has been found. This service is required to make a request to hal");
                 return null;
             }
 
-            EcsService proxyEcsService = virtualAssistant.EcsServices.Where(x => x.Purpose == Purpose.Proxy).FirstOrDefault();
+            EcsService proxyEcsService = virtualAssistant.EcsServices.Where(x => x.Purpose == EcsResourcePurpose.Proxy).FirstOrDefault();
             if (halEcsService == null)
             {
                 _logger.LogError("Couldn't process request to link account because no proxy ecs service has been found. This service is required to make a request to linkedin");
@@ -118,14 +119,14 @@ namespace Leadsly.Domain.Supervisor
                 return null;
             }
 
-            EcsService halEcsService = virtualAssistant.EcsServices.Where(x => x.Purpose == Purpose.Hal).FirstOrDefault();
+            EcsService halEcsService = virtualAssistant.EcsServices.Where(x => x.Purpose == EcsResourcePurpose.Hal).FirstOrDefault();
             if (halEcsService == null)
             {
                 _logger.LogError("Couldn't process request to link account because no hal ecs service has been found. This service is required to make a request to hal");
                 return null;
             }
 
-            EcsService gridEcsService = virtualAssistant.EcsServices.Where(x => x.Purpose == Purpose.Grid).FirstOrDefault();
+            EcsService gridEcsService = virtualAssistant.EcsServices.Where(x => x.Purpose == EcsResourcePurpose.Grid).FirstOrDefault();
             if (halEcsService == null)
             {
                 _logger.LogError("Couldn't process request to link account because no grid ecs service has been found. This service is required to make a request to hal");
@@ -173,14 +174,14 @@ namespace Leadsly.Domain.Supervisor
                 return null;
             }
 
-            EcsService halEcsService = virtualAssistant.EcsServices.Where(x => x.Purpose == Purpose.Hal).FirstOrDefault();
+            EcsService halEcsService = virtualAssistant.EcsServices.Where(x => x.Purpose == EcsResourcePurpose.Hal).FirstOrDefault();
             if (halEcsService == null)
             {
                 _logger.LogError("Couldn't process request to link account because no hal ecs service has been found. This service is required to make a request to hal");
                 return null;
             }
 
-            EcsService gridEcsService = virtualAssistant.EcsServices.Where(x => x.Purpose == Purpose.Grid).FirstOrDefault();
+            EcsService gridEcsService = virtualAssistant.EcsServices.Where(x => x.Purpose == EcsResourcePurpose.Grid).FirstOrDefault();
             if (halEcsService == null)
             {
                 _logger.LogError("Couldn't process request to link account because no grid ecs service has been found. This service is required to make a request to hal");

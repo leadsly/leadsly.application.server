@@ -11,13 +11,13 @@ namespace Leadsly.Domain.PhaseHandlers.TriggerScanProspectsForRepliesHandler
     {
         public TriggerScanProspectsForRepliesCommandHandler(
             ILogger<TriggerScanProspectsForRepliesCommandHandler> logger,
-            IScanProspectsForRepliesMQCreator provider)
+            IScanProspectsForRepliesMQCreator mqCreator)
         {
             _logger = logger;
-            _provider = provider;
+            _mqCreator = mqCreator;
         }
 
-        private readonly IScanProspectsForRepliesMQCreator _provider;
+        private readonly IScanProspectsForRepliesMQCreator _mqCreator;
         private readonly ILogger<TriggerScanProspectsForRepliesCommandHandler> _logger;
 
         public async Task HandleAsync(TriggerScanProspectsForRepliesCommand command)
@@ -26,7 +26,7 @@ namespace Leadsly.Domain.PhaseHandlers.TriggerScanProspectsForRepliesHandler
             BasicDeliverEventArgs args = command.EventArgs;
 
             TriggerScanProspectsForRepliesMessageBody message = command.Message as TriggerScanProspectsForRepliesMessageBody;
-            await _provider.PublishMessageAsync(message.HalId);
+            await _mqCreator.PublishMessageAsync(message.HalId);
 
             _logger.LogInformation($"Positively acknowledging {nameof(TriggerScanProspectsForRepliesMessageBody)}");
             channel.BasicAck(args.DeliveryTag, false);

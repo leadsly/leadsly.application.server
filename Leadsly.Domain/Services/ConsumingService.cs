@@ -37,6 +37,13 @@ namespace Leadsly.Domain.Services
                 IConsumeCommandHandler<TriggerScanProspectsForRepliesConsumeCommand> triggerScanProspectsForRepliesHandler = scope.ServiceProvider.GetRequiredService<IConsumeCommandHandler<TriggerScanProspectsForRepliesConsumeCommand>>();
                 TriggerScanProspectsForRepliesConsumeCommand triggerScanProspectsForRepliesCommand = new TriggerScanProspectsForRepliesConsumeCommand();
                 await triggerScanProspectsForRepliesHandler.ConsumeAsync(triggerScanProspectsForRepliesCommand);
+
+                ////////////////////////////////////////////////////////////////////////////////////
+                /// Consume DeprovisionResources messages
+                ////////////////////////////////////////////////////////////////////////////////////
+                IConsumeCommandHandler<DeprovisionResourcesConsumeCommand> deprovisionResourcesHandler = scope.ServiceProvider.GetRequiredService<IConsumeCommandHandler<DeprovisionResourcesConsumeCommand>>();
+                DeprovisionResourcesConsumeCommand deprovisionResourcesCommand = new DeprovisionResourcesConsumeCommand();
+                await deprovisionResourcesHandler.ConsumeAsync(deprovisionResourcesCommand);
             }
         }
     }

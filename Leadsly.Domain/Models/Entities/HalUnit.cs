@@ -21,8 +21,6 @@ namespace Leadsly.Domain.Models.Entities
         public string TimeZoneId { get; set; } = string.Empty;
         public string ApplicationUserId { get; set; }
         public ApplicationUser ApplicationUser { get; set; } = new();
-
-        // TO DO REMOVE BEFORE MERGE
         public SocialAccount SocialAccount { get; set; }
     }
 }

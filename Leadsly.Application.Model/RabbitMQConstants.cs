@@ -55,6 +55,12 @@
             public const string RoutingKey = "trigger-send-follow-up-messages";
         }
 
+        public static class DeprovisionResources
+        {
+            public const string QueueName = "deprovision.resources";
+            public const string RoutingKey = "deprovision-resources";
+        }
+
         public static class FollowUpMessage
         {
             public const string QueueName = "follow.up.message";

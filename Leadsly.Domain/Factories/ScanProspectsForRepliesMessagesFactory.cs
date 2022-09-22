@@ -1,5 +1,6 @@
 ﻿using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Factories.Interfaces;
+using Leadsly.Domain.Models;
 using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.Models.Entities.Campaigns.Phases;
 using Leadsly.Domain.MQ.Messages;
@@ -57,8 +58,8 @@ namespace Leadsly.Domain.Factories
             }
 
             _logger.LogInformation($"Creating {nameof(ScanProspectsForRepliesBody)} MQ message.");
-            EcsService gridEcsService = virtualAssistant.EcsServices.FirstOrDefault(x => x.Purpose == Purpose.Grid);
-            EcsService proxyEcsService = virtualAssistant.EcsServices.FirstOrDefault(x => x.Purpose == Purpose.Proxy);
+            EcsService gridEcsService = virtualAssistant.EcsServices.FirstOrDefault(x => x.Purpose == EcsResourcePurpose.Grid);
+            EcsService proxyEcsService = virtualAssistant.EcsServices.FirstOrDefault(x => x.Purpose == EcsResourcePurpose.Proxy);
             string virtualAssistantId = virtualAssistant.VirtualAssistantId;
             if (gridEcsService == null || proxyEcsService == null)
             {

@@ -1,5 +1,6 @@
 ﻿using Amazon.ECS.Model;
 using Leadsly.Application.Model.Aws.ElasticContainerService;
+using Leadsly.Domain.Models;
 using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
@@ -41,7 +42,7 @@ namespace Leadsly.Domain.Services
                 _logger.LogInformation("Successfully found Virtual Assistant with Hal Id {halId}", halId);
                 if (virtualAssistant.EcsServices != null && virtualAssistant.EcsServices.Count > 0)
                 {
-                    EcsService halEcsService = virtualAssistant.EcsServices.FirstOrDefault(x => x.Purpose == Purpose.Hal);
+                    EcsService halEcsService = virtualAssistant.EcsServices.FirstOrDefault(x => x.Purpose == EcsResourcePurpose.Hal);
 
                     // since the task name will be stale after the first restart (new task arn will be assigned)
                     // we need to get fresh list of tasks for this ecs service name to be able to restart them

@@ -70,10 +70,10 @@ namespace Leadsly.Domain.Supervisor
             }
 
             socialAccount.TotalConnectionsCount = request.TotalConnectionsCount;
-            socialAccount = await _userProvider.UpdateSocialAccountAsync(socialAccount, ct);
+            socialAccount = await _socialAccountRepository.UpdateAsync(socialAccount, ct);
             if (socialAccount == null)
             {
-                // handle error
+                _logger.LogError("Updating Social Account with id {0} failed. HalId {1}", socialAccount.SocialAccountId, halId);
             }
         }
 

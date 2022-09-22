@@ -1,4 +1,5 @@
-﻿using Leadsly.Domain.Models.Entities;
+﻿using Leadsly.Domain.Models;
+using Leadsly.Domain.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Logging;
@@ -23,11 +24,23 @@ namespace Leadsly.Infrastructure.Configurations
                 entity.HasMany(v => v.CloudMapDiscoveryServices);
             });
 
-            builder.Entity<CloudMapDiscoveryService>()
-                    .HasOne(map => map.EcsService)
+            ValueConverter<EcsResourcePurpose, string> converter = new ValueConverter<EcsResourcePurpose, string>(v => v.ToString(), v => (EcsResourcePurpose)Enum.Parse(typeof(EcsResourcePurpose), v));
+
+            builder.Entity<CloudMapDiscoveryService>(c =>
+            {
+                c.Property(c => c.Purpose)
+                .HasConversion(converter);
+
+                c.HasOne(c => c.EcsService)
                     .WithOne(ser => ser.CloudMapDiscoveryService);
 
-            ValueConverter<Purpose, string> converter = new ValueConverter<Purpose, string>(v => v.ToString(), v => (Purpose)Enum.Parse(typeof(Purpose), v));
+            });
+
+            builder.Entity<EcsTaskDefinition>(t =>
+            {
+                t.Property(t => t.Purpose)
+                .HasConversion(converter);
+            });
 
             builder.Entity<EcsService>(s =>
             {
