@@ -35,6 +35,7 @@ using Leadsly.Domain.PhaseConsumers.DeprovisionResourcesHandler;
 using Leadsly.Domain.PhaseConsumers.TriggerFollowUpMessagesHandler;
 using Leadsly.Domain.PhaseConsumers.TriggerScanProspectsForRpliesHandlers;
 using Leadsly.Domain.PhaseHandlers;
+using Leadsly.Domain.PhaseHandlers.DeprovisionResourcesHandler;
 using Leadsly.Domain.PhaseHandlers.TriggerFollowUpMessagesHandler;
 using Leadsly.Domain.PhaseHandlers.TriggerScanProspectsForRepliesHandler;
 using Leadsly.Domain.Providers;
@@ -350,6 +351,7 @@ namespace Leadsly.Application.Api.Configurations
             Log.Information("Registering command handlers.");
             services.AddScoped<ICommandHandler<TriggerFollowUpMessagesCommand>, TriggerFollowUpMessagesCommandHandler>();
             services.AddScoped<ICommandHandler<TriggerScanProspectsForRepliesCommand>, TriggerScanProspectsForRepliesCommandHandler>();
+            services.AddScoped<ICommandHandler<DeprovisionResourcesCommand>, DeprovisionResourcesCommandHandler>();
 
             // consumers for FollowUpMessages
             services.AddScoped<IConsumeCommandHandler<TriggerFollowUpMessagesConsumeCommand>, TriggerFollowUpMessagesConsumeCommandHandler>();
