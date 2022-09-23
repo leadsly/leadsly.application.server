@@ -1,4 +1,5 @@
 ﻿using Leadsly.Domain.PhaseConsumers;
+using Leadsly.Domain.PhaseConsumers.DeprovisionResourcesHandler;
 using Leadsly.Domain.PhaseConsumers.TriggerFollowUpMessagesHandler;
 using Leadsly.Domain.PhaseConsumers.TriggerScanProspectsForRpliesHandlers;
 using Leadsly.Domain.Services.Interfaces;
@@ -38,6 +39,19 @@ namespace Leadsly.Domain.Services
                 TriggerScanProspectsForRepliesConsumeCommand triggerScanProspectsForRepliesCommand = new TriggerScanProspectsForRepliesConsumeCommand();
                 await triggerScanProspectsForRepliesHandler.ConsumeAsync(triggerScanProspectsForRepliesCommand);
 
+                ////////////////////////////////////////////////////////////////////////////////////
+                /// Consume DeprovisionResources messages
+                ////////////////////////////////////////////////////////////////////////////////////
+                IConsumeCommandHandler<DeprovisionResourcesConsumeCommand> deprovisionResourcesHandler = scope.ServiceProvider.GetRequiredService<IConsumeCommandHandler<DeprovisionResourcesConsumeCommand>>();
+                DeprovisionResourcesConsumeCommand deprovisionResourcesCommand = new DeprovisionResourcesConsumeCommand();
+                await deprovisionResourcesHandler.ConsumeAsync(deprovisionResourcesCommand);
+            }
+        }
+
+        public async Task StartConsumingAsync_AllInOneVirtualAssistant()
+        {
+            using (var scope = _serviceProvider.CreateScope())
+            {
                 ////////////////////////////////////////////////////////////////////////////////////
                 /// Consume DeprovisionResources messages
                 ////////////////////////////////////////////////////////////////////////////////////

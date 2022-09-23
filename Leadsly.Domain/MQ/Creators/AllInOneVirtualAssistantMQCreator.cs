@@ -30,7 +30,7 @@ namespace Leadsly.Domain.MQ.Creators
         public async Task PublishMessageAsync(string halId, bool initial, CancellationToken ct = default)
         {
             // 1. publish all in one virtual assistant
-            AllInOneVirtualAssistantMessageBody mqMessage = await _service.CreateMQAllInOneVirtualAssistantMessageAsync(halId, ct);
+            AllInOneVirtualAssistantMessageBody mqMessage = await _service.CreateMQAllInOneVirtualAssistantMessageAsync(halId, initial, ct);
             string userId = mqMessage.UserId;
             if (string.IsNullOrEmpty(userId) == true)
             {
