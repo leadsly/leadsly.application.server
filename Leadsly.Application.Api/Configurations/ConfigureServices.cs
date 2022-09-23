@@ -171,6 +171,7 @@ namespace Leadsly.Application.Api.Configurations
             Log.Information("Registering decorators configuration");
 
             services.AddScoped<SaveBrowserProfileUserProviderDecorator>();
+            services.AddScoped<VirtualAssistantRepositoryCache>();
 
             return services;
         }
@@ -219,6 +220,7 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<INetworkingCreateMQService, NetworkingCreateMQService>();
             services.AddScoped<IScanProspectsForRepliesCreateMQService, ScanProspectsForRepliesCreateMQService>();
             services.AddScoped<IAllInOneVirtualAssistantMQService, AllInOneVirtualAssistantMQService>();
+            services.AddScoped<IAllInOneVirtualAssistantCreateMQService, AllInOneVirtualAssistantCreateMQService>();
 
 
             return services;

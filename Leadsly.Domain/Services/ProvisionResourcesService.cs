@@ -32,7 +32,6 @@ namespace Leadsly.Domain.Services
         public IList<EcsService> EcsServices { get; private set; } = new List<EcsService>();
         public IList<EcsTaskDefinition> EcsTaskDefinitions { get; private set; } = new List<EcsTaskDefinition>();
         public IList<CloudMapDiscoveryService> CloudMapDiscoveryServices { get; private set; } = new List<CloudMapDiscoveryService>();
-        public IList<EcsTask> EcsServiceTasks { get; private set; } = new List<EcsTask>();
 
         public async Task<bool> CreateAwsTaskDefinitionsAsync(string halId, string userId, CancellationToken ct = default)
         {
@@ -356,8 +355,6 @@ namespace Leadsly.Domain.Services
             }
             ecsProxyService.EcsTasks = ecsProxyServiceTasks;
 
-            EcsServiceTasks = ecsGridServiceTasks.Concat(ecsHalServiceTasks).Concat(ecsProxyServiceTasks).ToList();
-
             return true;
         }
 
@@ -383,6 +380,13 @@ namespace Leadsly.Domain.Services
             {
                 await _cloudPlatformProvider.DeleteAwsCloudMapServiceAsync(userId, cloudMapService.ServiceDiscoveryId, ct);
             }
+        }
+
+        public async Task RollbackAllResourcesAsync(string userId, CancellationToken ct = default)
+        {
+            await RollbackTaskDefinitionsAsync(userId, ct);
+            await RollbackCloudMapDiscoveryServiceAsync(userId, ct);
+            await RollbackEcsServicesAsync(userId, ct);
         }
     }
 }

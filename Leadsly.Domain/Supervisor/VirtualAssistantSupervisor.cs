@@ -131,11 +131,12 @@ namespace Leadsly.Domain.Supervisor
                 return null;
             }
 
-            VirtualAssistant virtualAssistant = await _cloudPlatformProvider.CreateVirtualAssistantAsync(_provisionResourcesService.EcsTaskDefinitions, _provisionResourcesService.EcsServices, _provisionResourcesService.EcsServiceTasks, _provisionResourcesService.CloudMapDiscoveryServices, halId, setup.UserId, setup.TimeZoneId, ct);
+            VirtualAssistant virtualAssistant = await _cloudPlatformProvider.CreateVirtualAssistantAsync(_provisionResourcesService.EcsTaskDefinitions, _provisionResourcesService.EcsServices, _provisionResourcesService.CloudMapDiscoveryServices, halId, setup.UserId, setup.TimeZoneId, ct);
             VirtualAssistantViewModel virtualAssistantViewModel = VirtualAssistantConverter.Convert(virtualAssistant);
             return virtualAssistantViewModel;
         }
 
+        // keep for reference for now until provisionResourcesService has been tested
         private async Task<bool> CreateAwsResourcesAsync(string halId, string userId, CancellationToken ct = default)
         {
             // Register the new task definition

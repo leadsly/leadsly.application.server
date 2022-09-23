@@ -1,11 +1,9 @@
-﻿using Leadsly.Domain.Facades.Interfaces;
-using Leadsly.Domain.Models.Entities.Campaigns;
+﻿using Leadsly.Domain.Decorators;
+using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.MQ.Messages;
 using Leadsly.Domain.MQ.Services.Interfaces;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,87 +13,66 @@ namespace Leadsly.Domain.MQ.Services
     {
         public AllInOneVirtualAssistantMQService(
             ILogger<AllInOneVirtualAssistantMQService> logger,
-            ICampaignRepositoryFacade campaignRepositoryFacade,
-            IMQCreatorFacade facade,
+            IAllInOneVirtualAssistantCreateMQService createMQService,
+            VirtualAssistantRepositoryCache virtualAssistantRepository,
             IProvisionResourcesService service)
         {
             _service = service;
             _logger = logger;
-            _facade = facade;
-            _campaignRepositoryFacade = campaignRepositoryFacade;
+            _createMQService = createMQService;
+            _virtualAssistantRepository = virtualAssistantRepository;
         }
 
         private readonly IProvisionResourcesService _service;
         private readonly ILogger<AllInOneVirtualAssistantMQService> _logger;
-        private readonly IMQCreatorFacade _facade;
-        private readonly ICampaignRepositoryFacade _campaignRepositoryFacade;
+        private readonly IAllInOneVirtualAssistantCreateMQService _createMQService;
+        private readonly VirtualAssistantRepositoryCache _virtualAssistantRepository;
 
         public async Task<bool> ProvisionResourcesAsync(string halId, string userId, CancellationToken ct = default)
         {
+            // save it to the database
+            VirtualAssistant virtualAssistant = await _virtualAssistantRepository.GetByHalIdAsync(halId, ct);
+            if (virtualAssistant == null)
+            {
+                _logger.LogError("Virtual assistant is not found by HalId {0} for UserId {1}", halId, userId);
+                return false;
+            }
+
             if (await _service.CreateAwsResourcesAsync(halId, userId, ct) == false)
             {
                 _logger.LogError("Failed to provision aws resources for HalId {0} and UserId {1}", halId, userId);
                 return false;
             }
 
-            // save it to the database
+            virtualAssistant.CloudMapDiscoveryServices = _service.CloudMapDiscoveryServices;
+            virtualAssistant.EcsServices = _service.EcsServices;
+            virtualAssistant = await _virtualAssistantRepository.UpdateAsync(virtualAssistant, ct);
+            if (virtualAssistant == null)
+            {
+                _logger.LogError("Failed to successfully update virtual assistant's cloud resources.");
+                // here we need to roll back all of the resources
+                await _service.RollbackAllResourcesAsync(userId, ct);
+                return false;
+            }
+
+            return true;
+
         }
 
         public async Task<AllInOneVirtualAssistantMessageBody> CreateMQAllInOneVirtualAssistantMessageAsync(string halId, bool initial, CancellationToken ct = default)
         {
-            AllInOneVirtualAssistantMessageBody mqMessage = new();
+            AllInOneVirtualAssistantMessageBody mqMessage = await _createMQService.CreateMQMessageAsync(halId, ct) as AllInOneVirtualAssistantMessageBody;
+            if (mqMessage == null)
+            {
+                return mqMessage;
+            }
 
-            await SetDeepScanProspectsForRepliesProperties(halId, initial, mqMessage, ct);
+            await _createMQService.SetDeepScanProspectsForRepliesProperties(halId, initial, mqMessage, ct);
 
-            await SetCheckOffHoursNewConnectionsProperties(halId, initial, mqMessage, ct);
+            await _createMQService.SetCheckOffHoursNewConnectionsProperties(halId, initial, mqMessage, ct);
 
             return mqMessage;
         }
 
-        private async Task SetCheckOffHoursNewConnectionsProperties(string halId, bool initial, AllInOneVirtualAssistantMessageBody mqMessage, CancellationToken ct = default)
-        {
-            if (initial == true)
-            {
-                CheckOffHoursNewConnectionsBody message = await _facade.CreateCheckOffHoursNewConnectionsMQMessageAsync(halId, ct) as CheckOffHoursNewConnectionsBody;
-                if (message == null)
-                {
-                    _logger.LogWarning("{0} will not be executed witht his {1} phase", nameof(CheckOffHoursNewConnectionsBody), nameof(AllInOneVirtualAssistantMessageBody));
-                }
-                else
-                {
-                    mqMessage.CheckOffHoursNewConnections = message;
-                }
-            }
-        }
-
-        private async Task SetDeepScanProspectsForRepliesProperties(string halId, bool initial, AllInOneVirtualAssistantMessageBody mqMessage, CancellationToken ct = default)
-        {
-            if (initial == true)
-            {
-                if (await ShouldPublishDeepScanAsync(halId, ct) == true)
-                {
-                    // if null it means there are no active campaigns or something went wrong
-                    DeepScanProspectsForRepliesBody message = await _facade.CreateDeepScanProspectsForRepliesMQMessageAsync(halId, ct) as DeepScanProspectsForRepliesBody;
-                    if (message == null)
-                    {
-                        _logger.LogWarning("{0} will not be exected with this {1} phase.", nameof(DeepScanProspectsForRepliesBody), nameof(AllInOneVirtualAssistantMessageBody));
-                    }
-                    else
-                    {
-                        mqMessage.DeepScanProspectsForReplies = message;
-                    }
-                }
-            }
-        }
-
-        private async Task<bool> ShouldPublishDeepScanAsync(string halId, CancellationToken ct = default)
-        {
-            IList<CampaignProspect> campaignProspects = await _campaignRepositoryFacade.GetAllActiveCampaignProspectsByHalIdAsync(halId);
-            if (campaignProspects.Any(p => p.Accepted == true && p.FollowUpMessageSent == true && p.Replied == false && p.FollowUpComplete == false) == true)
-            {
-                return true;
-            }
-            return false;
-        }
     }
 }

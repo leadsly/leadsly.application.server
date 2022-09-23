@@ -573,7 +573,6 @@ namespace Leadsly.Domain.Providers
         public async Task<VirtualAssistant> CreateVirtualAssistantAsync(
             IList<EcsTaskDefinition> newEcsTaskDefinitions,
             IList<EcsService> newEcsServices,
-            IList<EcsTask> ecsServiceTasks,
             IList<CloudMapDiscoveryService> newCloudMapServices,
             string halId,
             string userId,

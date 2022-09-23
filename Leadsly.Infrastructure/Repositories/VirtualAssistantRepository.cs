@@ -94,5 +94,21 @@ namespace Leadsly.Infrastructure.Repositories
             }
             return virtualAssistant;
         }
+
+        public async Task<VirtualAssistant> UpdateAsync(VirtualAssistant updated, CancellationToken ct = default)
+        {
+            _logger.LogInformation("Updating {0} with HalId {1}", nameof(VirtualAssistant), updated.HalId);
+            try
+            {
+                _dbContext.VirtualAssistants.Update(updated);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to update {0}", nameof(VirtualAssistant));
+                return null;
+            }
+            return updated;
+        }
     }
 }

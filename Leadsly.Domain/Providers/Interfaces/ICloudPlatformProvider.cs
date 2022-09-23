@@ -9,7 +9,7 @@ namespace Leadsly.Domain.Providers.Interfaces
     {
         Task<VirtualAssistant> GetVirtualAssistantAsync(string userId, CancellationToken ct = default);
         Task<Amazon.ServiceDiscovery.Model.RegisterInstanceResponse> RegisterCloudMapSrvInstanceAsync(string ecsServiceId, CancellationToken ct = default);
-        Task<VirtualAssistant> CreateVirtualAssistantAsync(IList<EcsTaskDefinition> newEcsTaskDefinitions, IList<EcsService> newEcsServices, IList<EcsTask> ecsServiceTasks, IList<CloudMapDiscoveryService> newServices, string halId, string userId, string timezoneId, CancellationToken ct = default);
+        Task<VirtualAssistant> CreateVirtualAssistantAsync(IList<EcsTaskDefinition> newEcsTaskDefinitions, IList<EcsService> newEcsServices, IList<CloudMapDiscoveryService> newServices, string halId, string userId, string timezoneId, CancellationToken ct = default);
         Task<Amazon.ECS.Model.RegisterTaskDefinitionResponse> RegisterGridTaskDefinitionInAwsAsync(string gridTaskDefinition, string halId, CancellationToken ct = default);
         Task<Amazon.ECS.Model.RegisterTaskDefinitionResponse> RegisterHalTaskDefinitionInAwsAsync(string halTaskDefinition, string halId, CancellationToken ct = default);
         Task<Amazon.ECS.Model.RegisterTaskDefinitionResponse> RegisterProxyTaskDefinitionInAwsAsync(string proxyTaskDefinition, string halId, CancellationToken ct = default);

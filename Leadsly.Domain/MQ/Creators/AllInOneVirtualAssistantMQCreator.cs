@@ -31,7 +31,7 @@ namespace Leadsly.Domain.MQ.Creators
         {
             // 1. publish all in one virtual assistant
             AllInOneVirtualAssistantMessageBody mqMessage = await _service.CreateMQAllInOneVirtualAssistantMessageAsync(halId, ct);
-            string userId = mqMessage.CheckOffHoursNewConnections.UserId;
+            string userId = mqMessage.UserId;
             if (string.IsNullOrEmpty(userId) == true)
             {
                 throw new Exception("User Id must be set before continuing!");
