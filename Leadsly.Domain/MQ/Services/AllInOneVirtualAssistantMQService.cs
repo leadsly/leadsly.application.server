@@ -59,9 +59,9 @@ namespace Leadsly.Domain.MQ.Services
 
         }
 
-        public async Task<AllInOneVirtualAssistantMessageBody> CreateMQAllInOneVirtualAssistantMessageAsync(string halId, bool initial, CancellationToken ct = default)
+        public async Task<PublishMessageBody> CreateMQAllInOneVirtualAssistantMessageAsync(string halId, bool initial, CancellationToken ct = default)
         {
-            AllInOneVirtualAssistantMessageBody mqMessage = await _createMQService.CreateMQMessageAsync(halId, ct) as AllInOneVirtualAssistantMessageBody;
+            PublishMessageBody mqMessage = await _createMQService.CreateMQMessageAsync(halId, ct);
             if (mqMessage == null)
             {
                 return mqMessage;

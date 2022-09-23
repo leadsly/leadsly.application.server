@@ -4,13 +4,12 @@ using Leadsly.Domain.MQ.Messages;
 using Leadsly.Domain.MQ.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Leadsly.Domain.MQ.Creators
 {
-    public class AllInOneVirtualAssistantMQCreator : IAllInOneVirtualAssistantMQCreator
+    public class AllInOneVirtualAssistantMQCreator : MQCreatorBase, IAllInOneVirtualAssistantMQCreator
     {
         public AllInOneVirtualAssistantMQCreator(
             ILogger<AllInOneVirtualAssistantMQCreator> logger,
@@ -30,7 +29,7 @@ namespace Leadsly.Domain.MQ.Creators
         public async Task PublishMessageAsync(string halId, bool initial, CancellationToken ct = default)
         {
             // 1. publish all in one virtual assistant
-            AllInOneVirtualAssistantMessageBody mqMessage = await _service.CreateMQAllInOneVirtualAssistantMessageAsync(halId, initial, ct);
+            PublishMessageBody mqMessage = await _service.CreateMQAllInOneVirtualAssistantMessageAsync(halId, initial, ct);
             string userId = mqMessage.UserId;
             if (string.IsNullOrEmpty(userId) == true)
             {
@@ -43,7 +42,7 @@ namespace Leadsly.Domain.MQ.Creators
             if (succeeded == true)
             {
                 _logger.LogInformation("Successfully created AWS resources, publishing {0}", nameof(AllInOneVirtualAssistantMessageBody));
-                PublishMessage(mqMessage, initial);
+                PublishMessage(mqMessage);
             }
             else
             {
@@ -51,20 +50,20 @@ namespace Leadsly.Domain.MQ.Creators
             }
         }
 
-        protected void PublishMessage(AllInOneVirtualAssistantMessageBody message, bool initial)
+        protected override void PublishMessage(PublishMessageBody message)
         {
             string halId = message.HalId;
             _logger.LogInformation("[HandleAsync] Exuecting {0} for halId: {1}", nameof(MonitorForNewAcceptedConnectionsBody), halId);
             string queueNameIn = RabbitMQConstants.AllInOneVirtualAssistant.QueueName;
             string routingKeyIn = RabbitMQConstants.AllInOneVirtualAssistant.RoutingKey;
 
-            Dictionary<string, object> headers = new Dictionary<string, object>();
-            string headerKey = RabbitMQConstants.AllInOneVirtualAssistant.ExecuteType;
-            string headerValue = initial ? RabbitMQConstants.AllInOneVirtualAssistant.Initial : RabbitMQConstants.AllInOneVirtualAssistant.Regular;
-            _logger.LogInformation($"Setting rabbitMQ headers. Header key {0} header value is {1}", headerKey, headerValue);
-            headers.Add(headerKey, headerValue);
+            //Dictionary<string, object> headers = new Dictionary<string, object>();
+            //string headerKey = RabbitMQConstants.AllInOneVirtualAssistant.ExecuteType;
+            //string headerValue = initial ? RabbitMQConstants.AllInOneVirtualAssistant.Initial : RabbitMQConstants.AllInOneVirtualAssistant.Regular;
+            //_logger.LogInformation($"Setting rabbitMQ headers. Header key {0} header value is {1}", headerKey, headerValue);
+            //headers.Add(headerKey, headerValue);
 
-            _messageBrokerOutlet.PublishPhase(message, queueNameIn, routingKeyIn, halId, headers);
+            _messageBrokerOutlet.PublishPhase(message, queueNameIn, routingKeyIn, halId, null);
         }
     }
 }

@@ -41,7 +41,7 @@ namespace Leadsly.Domain.MQ.Services
             return mqMessage;
         }
 
-        public async Task SetCheckOffHoursNewConnectionsProperties(string halId, bool initial, AllInOneVirtualAssistantMessageBody mqMessage, CancellationToken ct = default)
+        public async Task SetCheckOffHoursNewConnectionsProperties(string halId, bool initial, PublishMessageBody mqMessage, CancellationToken ct = default)
         {
             if (initial == true)
             {
@@ -52,12 +52,12 @@ namespace Leadsly.Domain.MQ.Services
                 }
                 else
                 {
-                    mqMessage.CheckOffHoursNewConnections = message;
+                    ((AllInOneVirtualAssistantMessageBody)mqMessage).CheckOffHoursNewConnections = message;
                 }
             }
         }
 
-        public async Task SetDeepScanProspectsForRepliesProperties(string halId, bool initial, AllInOneVirtualAssistantMessageBody mqMessage, CancellationToken ct = default)
+        public async Task SetDeepScanProspectsForRepliesProperties(string halId, bool initial, PublishMessageBody mqMessage, CancellationToken ct = default)
         {
             if (initial == true)
             {
@@ -71,7 +71,7 @@ namespace Leadsly.Domain.MQ.Services
                     }
                     else
                     {
-                        mqMessage.DeepScanProspectsForReplies = message;
+                        ((AllInOneVirtualAssistantMessageBody)mqMessage).DeepScanProspectsForReplies = message;
                     }
                 }
             }
