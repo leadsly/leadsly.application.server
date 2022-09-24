@@ -69,12 +69,13 @@ namespace Leadsly.Domain.JobServices
                     //DateTimeOffset deepScanProspectsForRepliesStartDate = startDate.AddHours(-1);
                     //ExecuteDeepScanOrFollowUpPhase(halId, deepScanProspectsForRepliesStartDate);
 
-                    _logger.LogDebug("Enqueuing PublishFollowUpMQMessagesAsync for halId {halId}. This will be enqueued right now", halId);
-                    _hangfireService.Enqueue<IProspectingJobService>((x) => x.PublishFollowUpMQMessagesAsync(halId));
+                    // these will be manually pulled by hal. So we will trigger these when requested
+                    //_logger.LogDebug("Enqueuing PublishFollowUpMQMessagesAsync for halId {halId}. This will be enqueued right now", halId);
+                    //_hangfireService.Enqueue<IProspectingJobService>((x) => x.PublishFollowUpMQMessagesAsync(halId));
 
-                    // this doesn't actually trigger anything when it executes, it just schedules the next jobs to execute.
-                    _logger.LogDebug("Enqueuing PublishNetworkingPhaseAsync for halId {halId}. This will be enqueued right now", halId);
-                    _hangfireService.Enqueue<INetworkingJobsService>((x) => x.PublishNetworkingMQMessagesAsync(halId));
+                    //// this doesn't actually trigger anything when it executes, it just schedules the next jobs to execute.
+                    //_logger.LogDebug("Enqueuing PublishNetworkingPhaseAsync for halId {halId}. This will be enqueued right now", halId);
+                    //_hangfireService.Enqueue<INetworkingJobsService>((x) => x.PublishNetworkingMQMessagesAsync(halId));
 
                     // schedule AllInOneVirtualAssistant job at the top of every hour
                     ScheduleAllInOneVirtualAssistantPhases(halId, startDate, endDate);

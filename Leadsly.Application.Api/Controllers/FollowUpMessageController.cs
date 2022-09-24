@@ -1,5 +1,7 @@
 ﻿using Leadsly.Domain;
 using Leadsly.Domain.Models.Requests;
+using Leadsly.Domain.Models.Responses;
+using Leadsly.Domain.MQ.Messages;
 using Leadsly.Domain.Supervisor;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -36,5 +38,18 @@ namespace Leadsly.Application.Api.Controllers
             return Ok();
         }
 
+        [HttpGet("{halId}/messages")]
+        public async Task<IActionResult> GetMessagesAsync(string halId, CancellationToken ct = default)
+        {
+            _logger.LogInformation("Executing {0}, to get all {1} messages for {2}", nameof(GetMessagesAsync), nameof(FollowUpMessageBody), halId);
+
+            FollowUpMessagesResponse response = await _supervisor.GetFollowUpMessagesAsync(halId, ct);
+            if (response == null)
+            {
+                return BadRequest(ProblemDetailsDescriptions.GetFollowUpMessages);
+            }
+
+            return Ok(response);
+        }
     }
 }

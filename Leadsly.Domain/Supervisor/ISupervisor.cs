@@ -43,6 +43,8 @@ namespace Leadsly.Domain.Supervisor
         Task<IList<TimeZoneViewModel>> GetSupportedTimeZonesAsync(CancellationToken ct = default);
         Task<CampaignsViewModel> GetCampaignsByUserIdAsync(string userId, CancellationToken ct = default);
         Task<ConnectedNetworkProspectsResponse> GetAllPreviouslyConnectedNetworkProspectsAsync(string halId, CancellationToken ct = default);
-        Task UpdatePreviouslyConnectedNetworkProspectsAsync(string halId, UpdateConnectedNetworkProspectsRequest request, CancellationToken ct);
+        Task UpdatePreviouslyConnectedNetworkProspectsAsync(string halId, UpdateConnectedNetworkProspectsRequest request, CancellationToken ct = default);
+        Task<FollowUpMessagesResponse> GetFollowUpMessagesAsync(string halId, CancellationToken ct = default);
+        Task<NetworkingMessagesResponse> GetNetworkingMessagesAsync(string halId, CancellationToken ct = default);
     }
 }

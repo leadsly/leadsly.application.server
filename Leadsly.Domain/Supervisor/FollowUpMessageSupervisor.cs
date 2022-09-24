@@ -1,5 +1,6 @@
 ﻿using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.Models.Requests;
+using Leadsly.Domain.Models.Responses;
 using Microsoft.Extensions.Logging;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,6 +31,11 @@ namespace Leadsly.Domain.Supervisor
             }
 
             return true;
+        }
+
+        public async Task<FollowUpMessagesResponse> GetFollowUpMessagesAsync(string halId, CancellationToken ct = default)
+        {
+
         }
     }
 }

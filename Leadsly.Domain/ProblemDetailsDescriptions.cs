@@ -55,6 +55,7 @@
         public const string CampaignNotFound = "Campaign not found.";
         public const string VirtualAssistant = "Failed to create Virtual Assistant";
         public const string ConnectLinkedInAccount = "Failed to link account to LinkedIn";
+        public const string GetFollowUpMessages = "Failed to generate follow up messages";
         public const string RecentlyAddedProspects = "Failed to retrieve recently added prospects";
         public const string EnterTwoFactorAuthCode = "Failed to enter two factor auth code";
         public const string DeleteVirtualAssistant = "Failed to delete virtual assistant";
