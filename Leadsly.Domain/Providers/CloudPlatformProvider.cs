@@ -386,7 +386,7 @@ namespace Leadsly.Domain.Providers
         public async Task<RegisterTaskDefinitionResponse> RegisterProxyTaskDefinitionInAwsAsync(string proxyTaskDefinition, string halId, CancellationToken ct = default)
         {
             CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
-            List<Amazon.ECS.Model.KeyValuePair> envVars = configuration.EcsGridTaskDefinitionConfig.ContainerDefinitions.SelectMany(x =>
+            List<Amazon.ECS.Model.KeyValuePair> envVars = configuration.EcsProxyTaskDefinitionConfig.ContainerDefinitions.SelectMany(x =>
             {
                 if (x.Environment != null)
                 {
@@ -473,13 +473,13 @@ namespace Leadsly.Domain.Providers
 
                     return containerDef;
                 }).ToList(),
-                Cpu = configuration.EcsGridTaskDefinitionConfig.Cpu,
-                ExecutionRoleArn = configuration.EcsGridTaskDefinitionConfig.ExecutionRoleArn,
+                Cpu = configuration.EcsProxyTaskDefinitionConfig.Cpu,
+                ExecutionRoleArn = configuration.EcsProxyTaskDefinitionConfig.ExecutionRoleArn,
                 Family = proxyTaskDefinition,
-                Memory = configuration.EcsGridTaskDefinitionConfig.Memory,
-                NetworkMode = configuration.EcsGridTaskDefinitionConfig.NetworkMode,
-                RequiresCompatibilities = configuration.EcsGridTaskDefinitionConfig.RequiresCompatibilities.ToList(),
-                TaskRoleArn = configuration.EcsGridTaskDefinitionConfig.TaskRoleArn
+                Memory = configuration.EcsProxyTaskDefinitionConfig.Memory,
+                NetworkMode = configuration.EcsProxyTaskDefinitionConfig.NetworkMode,
+                RequiresCompatibilities = configuration.EcsProxyTaskDefinitionConfig.RequiresCompatibilities.ToList(),
+                TaskRoleArn = configuration.EcsProxyTaskDefinitionConfig.TaskRoleArn
             };
 
             return await _awsElasticContainerService.RegisterTaskDefinitionAsync(request, ct);
