@@ -388,5 +388,71 @@ namespace Leadsly.Domain.Services
             await RollbackCloudMapDiscoveryServiceAsync(userId, ct);
             await RollbackEcsServicesAsync(userId, ct);
         }
+
+        public async Task<bool> CreateAwsEcsServiceAsync(string userId, EcsService ecsService, CancellationToken ct = default)
+        {
+            Config config = GetConfiguration(ecsService.Purpose);
+            if (config == null)
+            {
+                _logger.LogError("Could not find cloud configuration for resource {0}", Enum.GetName(ecsService.Purpose));
+                return false;
+            }
+
+            Amazon.ECS.Model.CreateServiceResponse response = await _cloudPlatformProvider.CreateEcsServiceInAwsAsync(ecsService.ServiceName, ecsService.TaskDefinition, ecsService.CloudMapDiscoveryService.Arn, config, ct);
+            if (response == null || response.HttpStatusCode != HttpStatusCode.OK)
+            {
+                _logger.LogError("Failed to create aws ecs service. HalId {0}", ecsService.HalId);
+                return false;
+            }
+
+            EcsServices.Add(ecsService);
+
+            // ensure service is running
+            if (await _cloudPlatformProvider.EnsureEcsServiceTasksAreRunningAsync(ecsService.ServiceName, ecsService.ClusterArn, ct) == false)
+            {
+                _logger.LogError("Failed to ensure ecs service tasks are running. HalId {0}", ecsService.HalId);
+                await RollbackEcsServicesAsync(userId, ct);
+                return false;
+            }
+
+            IList<EcsTask> ecsServiceTasks = await _cloudPlatformProvider.ListEcsServiceTasksAsync(ecsService.ClusterArn, response.Service.ServiceArn, ct);
+            if (ecsServiceTasks == null)
+            {
+                _logger.LogError("Failed to list all ecs tasks. HalId {0}", ecsService.HalId);
+                return false;
+            }
+
+            ecsService.ServiceArn = response.Service.ServiceArn;
+            ecsService.ClusterArn = response.Service.ClusterArn;
+            ecsService.CreatedAt = ((DateTimeOffset)response.Service.CreatedAt).ToUnixTimeSeconds();
+            ecsService.CreatedBy = response.Service.CreatedBy;
+
+            return true;
+        }
+
+        private Config GetConfiguration(EcsResourcePurpose purpose)
+        {
+            CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
+
+            Config config = default;
+            switch (purpose)
+            {
+                case EcsResourcePurpose.None:
+                    break;
+                case EcsResourcePurpose.Grid:
+                    config = configuration.EcsServiceConfig.Grid;
+                    break;
+                case EcsResourcePurpose.Hal:
+                    config = configuration.EcsServiceConfig.Hal;
+                    break;
+                case EcsResourcePurpose.Proxy:
+                    config = configuration.EcsServiceConfig.Proxy;
+                    break;
+                default:
+                    break;
+            }
+
+            return config;
+        }
     }
 }

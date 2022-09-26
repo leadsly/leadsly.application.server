@@ -53,10 +53,10 @@ namespace Leadsly.Application.Api.Controllers
             return Ok();
         }
 
-        [HttpGet("{halId}/messages")]
-        public async Task<IActionResult> GetMessagesAsync(string halId, CancellationToken ct = default)
-        {
+        //[HttpGet("{halId}/messages")]
+        //public async Task<IActionResult> GetMessagesAsync(string halId, CancellationToken ct = default)
+        //{
 
-        }
+        //}
     }
 }

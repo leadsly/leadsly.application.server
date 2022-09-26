@@ -91,6 +91,9 @@ namespace Leadsly.Domain.Supervisor
                 {
                     return null;
                 }
+
+                // deprovision resources
+                await _deprovisionResourcesProvider.DeprovisionResourcesAsync(virtualAssistant.HalId, ct);
             }
 
             ConnectLinkedInAccountResultViewModel viewModel = LinkedInSetupConverter.Convert(response);
@@ -147,6 +150,9 @@ namespace Leadsly.Domain.Supervisor
                 {
                     return null;
                 }
+
+                // deprovision resources
+                await _deprovisionResourcesProvider.DeprovisionResourcesAsync(virtualAssistant.HalId, ct);
             }
 
             TwoFactorAuthResultViewModel viewModel = LinkedInSetupConverter.Convert(response);
@@ -206,6 +212,9 @@ namespace Leadsly.Domain.Supervisor
                     _logger.LogError("Failed to create social account for UserId {userId} with email {email}", userId, email);
                     return null;
                 }
+
+                // deprovision resources
+                await _deprovisionResourcesProvider.DeprovisionResourcesAsync(virtualAssistant.HalId, ct);
             }
 
             EmailChallengePinResultViewModel viewModel = LinkedInSetupConverter.Convert(response);

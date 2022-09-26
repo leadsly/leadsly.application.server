@@ -1,7 +1,9 @@
 ﻿using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.Models.Requests;
 using Leadsly.Domain.Models.Responses;
+using Leadsly.Domain.MQ.Messages;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -35,7 +37,14 @@ namespace Leadsly.Domain.Supervisor
 
         public async Task<FollowUpMessagesResponse> GetFollowUpMessagesAsync(string halId, CancellationToken ct = default)
         {
+            FollowUpMessagesResponse response = new();
+            IList<PublishMessageBody> followUpMessages = await _followUpMessagesMQService.CreateMQFollowUpMessagesAsync(halId, ct);
+            if (followUpMessages != null)
+            {
+                response.Items = followUpMessages as IList<FollowUpMessageBody>;
+            }
 
+            return response;
         }
     }
 }

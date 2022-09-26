@@ -36,10 +36,8 @@ namespace Leadsly.Domain.MQ.Creators
                 throw new Exception("User Id must be set before continuing!");
             }
 
-            // 2. provision hal resources
-            bool succeeded = await _service.ProvisionResourcesAsync(halId, userId);
-
-            if (succeeded == true)
+            // 2. provision hal resources            
+            if (await _service.ProvisionResourcesAsync(halId, userId) == true)
             {
                 _logger.LogInformation("Successfully created AWS resources, publishing {0}", nameof(AllInOneVirtualAssistantMessageBody));
                 PublishMessage(mqMessage);
@@ -56,12 +54,6 @@ namespace Leadsly.Domain.MQ.Creators
             _logger.LogInformation("[HandleAsync] Exuecting {0} for halId: {1}", nameof(MonitorForNewAcceptedConnectionsBody), halId);
             string queueNameIn = RabbitMQConstants.AllInOneVirtualAssistant.QueueName;
             string routingKeyIn = RabbitMQConstants.AllInOneVirtualAssistant.RoutingKey;
-
-            //Dictionary<string, object> headers = new Dictionary<string, object>();
-            //string headerKey = RabbitMQConstants.AllInOneVirtualAssistant.ExecuteType;
-            //string headerValue = initial ? RabbitMQConstants.AllInOneVirtualAssistant.Initial : RabbitMQConstants.AllInOneVirtualAssistant.Regular;
-            //_logger.LogInformation($"Setting rabbitMQ headers. Header key {0} header value is {1}", headerKey, headerValue);
-            //headers.Add(headerKey, headerValue);
 
             _messageBrokerOutlet.PublishPhase(message, queueNameIn, routingKeyIn, halId, null);
         }

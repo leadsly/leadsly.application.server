@@ -64,18 +64,18 @@ namespace Leadsly.Domain.JobServices
                     DateTimeOffset endDate = _timestampService.ParseDateTimeOffsetLocalized(halUnit.TimeZoneId, halUnit.EndHour);
                     _logger.LogInformation($"Hal unit with id {halId}, has a start date of {startDate}");
 
-                    // schedule deep scan prospects for replies an hour before start date
-                    // Ideally we handle ExecuteDeepScanForProspects on initial phase along with check off hours connections
-                    //DateTimeOffset deepScanProspectsForRepliesStartDate = startDate.AddHours(-1);
-                    //ExecuteDeepScanOrFollowUpPhase(halId, deepScanProspectsForRepliesStartDate);
 
-                    // these will be manually pulled by hal. So we will trigger these when requested
+                    // this should be manually queried manually each time. Assuming the following configuration:
+                    // 1. Two follow up messages to go out 10 mins after connection and 5 hours after first follow up
+                    // IF:
+                    // 1. the connection was accepted over the weekend, then no follow up messages went out, this means, that
+                    // both follow up messages would be scheduled to go out right away. 
                     //_logger.LogDebug("Enqueuing PublishFollowUpMQMessagesAsync for halId {halId}. This will be enqueued right now", halId);
                     //_hangfireService.Enqueue<IProspectingJobService>((x) => x.PublishFollowUpMQMessagesAsync(halId));
 
-                    //// this doesn't actually trigger anything when it executes, it just schedules the next jobs to execute.
-                    //_logger.LogDebug("Enqueuing PublishNetworkingPhaseAsync for halId {halId}. This will be enqueued right now", halId);
-                    //_hangfireService.Enqueue<INetworkingJobsService>((x) => x.PublishNetworkingMQMessagesAsync(halId));
+                    // this doesn't actually trigger anything when it executes, it just schedules the next jobs to execute.
+                    _logger.LogDebug("Enqueuing PublishNetworkingPhaseAsync for halId {halId}. This will be enqueued right now", halId);
+                    _hangfireService.Enqueue<INetworkingJobsService>((x) => x.PublishNetworkingMQMessagesAsync(halId));
 
                     // schedule AllInOneVirtualAssistant job at the top of every hour
                     ScheduleAllInOneVirtualAssistantPhases(halId, startDate, endDate);
@@ -90,7 +90,7 @@ namespace Leadsly.Domain.JobServices
         private void ScheduleAllInOneVirtualAssistantPhases(string halId, DateTimeOffset startDate, DateTimeOffset endDate)
         {
             bool initial = true;
-            for (DateTimeOffset date = startDate; date <= endDate; date.AddHours(1))
+            for (DateTimeOffset date = startDate; date <= endDate; date = date.AddHours(1))
             {
                 _hangfireService.Schedule<IAllInOneVirtualAssistantJobService>((x) => x.PublishAllInOneVirtualAssistantPhaseAsync(halId, initial), date);
                 initial = false;

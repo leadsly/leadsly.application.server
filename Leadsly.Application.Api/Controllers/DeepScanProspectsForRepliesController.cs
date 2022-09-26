@@ -1,5 +1,4 @@
 ﻿using Leadsly.Domain.Models.Requests;
-using Leadsly.Domain.Models.Responses;
 using Leadsly.Domain.Supervisor;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -45,21 +44,21 @@ namespace Leadsly.Application.Api.Controllers
             return Ok();
         }
 
-        [HttpGet("{halId}/all-network-prospects")]
-        public async Task<IActionResult> GetAllActiveCampaignsNetworkProspects(string halId, CancellationToken ct = default)
-        {
-            _logger.LogInformation("Executing GetAllActiveCampaignsNetworkProspects for halId {halId}", halId);
+        //[HttpGet("{halId}/all-network-prospects")]
+        //public async Task<IActionResult> GetAllActiveCampaignsNetworkProspects(string halId, CancellationToken ct = default)
+        //{
+        //    _logger.LogInformation("Executing GetAllActiveCampaignsNetworkProspects for halId {halId}", halId);
 
-            NetworkProspectsResponse response = await _supervisor.GetAllNetworkProspectsAsync(halId, ct);
+        //    NetworkProspectsResponse response = await _supervisor.GetAllNetworkProspectsAsync(halId, ct);
 
-            if (response == null)
-            {
-                _logger.LogDebug("Failed to retrieve NetworkProspects");
-                return BadRequest_FailedToGetNetworkProspects();
-            }
+        //    if (response == null)
+        //    {
+        //        _logger.LogDebug("Failed to retrieve NetworkProspects");
+        //        return BadRequest_FailedToGetNetworkProspects();
+        //    }
 
-            return Ok(response);
-        }
+        //    return Ok(response);
+        //}
 
     }
 }

@@ -1,9 +1,11 @@
 ﻿using Leadsly.Domain.Decorators;
+using Leadsly.Domain.Models;
 using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.MQ.Messages;
 using Leadsly.Domain.MQ.Services.Interfaces;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -38,14 +40,36 @@ namespace Leadsly.Domain.MQ.Services
                 return false;
             }
 
-            if (await _service.CreateAwsResourcesAsync(halId, userId, ct) == false)
+            // 1. create new hal ecs service
+            EcsService halEcsService = virtualAssistant.EcsServices.FirstOrDefault(s => s.Purpose == EcsResourcePurpose.Hal);
+            if (halEcsService == null)
             {
-                _logger.LogError("Failed to provision aws resources for HalId {0} and UserId {1}", halId, userId);
+                _logger.LogError("Expected to find previous Hal ecs service but none was found off of virtual assistant");
                 return false;
             }
 
-            virtualAssistant.CloudMapDiscoveryServices = _service.CloudMapDiscoveryServices;
-            virtualAssistant.EcsServices = _service.EcsServices;
+            if (await _service.CreateAwsEcsServiceAsync(userId, halEcsService, ct) == false)
+            {
+                _logger.LogError("Failed to create Hal ecs service in aws");
+                return false;
+            }
+
+            // 2. create new grid ecs service
+            EcsService gridEcsService = virtualAssistant.EcsServices.FirstOrDefault(s => s.Purpose == EcsResourcePurpose.Grid);
+            if (gridEcsService == null)
+            {
+                _logger.LogError("Expected to find previous Grid ecs service but none was found off of virtual assistant");
+                return false;
+            }
+
+            if (await _service.CreateAwsEcsServiceAsync(userId, halEcsService, ct) == false)
+            {
+                _logger.LogError("Failed to create Grid ecs service in aws");
+                return false;
+            }
+
+            // virtualAssistant.EcsServices = _service.EcsServices;
+            virtualAssistant.Provisioned = true;
             virtualAssistant = await _virtualAssistantRepository.UpdateAsync(virtualAssistant, ct);
             if (virtualAssistant == null)
             {
@@ -67,7 +91,7 @@ namespace Leadsly.Domain.MQ.Services
                 return mqMessage;
             }
 
-            await _createMQService.SetDeepScanProspectsForRepliesProperties(halId, initial, mqMessage, ct);
+            // await _createMQService.SetDeepScanProspectsForRepliesProperties(halId, initial, mqMessage, ct);
 
             await _createMQService.SetCheckOffHoursNewConnectionsProperties(halId, initial, mqMessage, ct);
 

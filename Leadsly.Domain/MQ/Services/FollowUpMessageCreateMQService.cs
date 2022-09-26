@@ -1,5 +1,6 @@
 ﻿using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.MQ.Services.Interfaces;
+using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
@@ -14,13 +15,16 @@ namespace Leadsly.Domain.MQ.Services
     {
         public FollowUpMessageCreateMQService(
             ILogger<FollowUpMessageCreateMQService> logger,
+            ICampaignProspectRepository repository,
             ITimestampService timestampService
             )
         {
+            _repository = repository;
             _logger = logger;
             _timestampService = timestampService;
         }
 
+        private readonly ICampaignProspectRepository _repository;
         private readonly ILogger<FollowUpMessageCreateMQService> _logger;
         private readonly ITimestampService _timestampService;
 
@@ -38,7 +42,28 @@ namespace Leadsly.Domain.MQ.Services
                 return null;
             }
 
+            if (prospect.FollowUpMessages.Count == 0)
+            {
+                await CreateProspectsFollowUpMessagesAsync(prospect, followUpMessages);
+            }
+
             return await GenerateProspectMessagesAsync(halId, prospect, nextMessagesOrder, followUpMessages, ct);
+        }
+
+        private async Task CreateProspectsFollowUpMessagesAsync(CampaignProspect prospect, IList<FollowUpMessage> followUpMessages)
+        {
+            foreach (FollowUpMessage message in followUpMessages)
+            {
+                prospect.FollowUpMessages.Add(new()
+                {
+                    CampaignProspect = prospect,
+                    CampaignProspectId = prospect.CampaignProspectId,
+                    Order = message.Order,
+                    Content = message.Content
+                });
+
+                await _repository.UpdateAsync(prospect);
+            }
         }
 
         private async Task<IList<CampaignProspectFollowUpMessage>> GenerateProspectMessagesAsync(string halId, CampaignProspect prospect, IList<int> nextMessagesOrder, IList<FollowUpMessage> followUpMessages, CancellationToken ct = default)
@@ -60,22 +85,34 @@ namespace Leadsly.Domain.MQ.Services
 
         private async Task<CampaignProspectFollowUpMessage> GenerateProspectMessageAsync(string halId, CampaignProspect prospect, FollowUpMessage message, CancellationToken ct = default)
         {
-            DateTimeOffset lastMessageDeliveryDate = GetFollowUpMessageDateTime(message.Delay, prospect.LastFollowUpMessageSentTimestamp);
+            CampaignProspectFollowUpMessage prospectFollowUpMessage = prospect.FollowUpMessages.SingleOrDefault(f => f.Order == message.Order);
+            CampaignProspectFollowUpMessage previousCampaignProspectFollowUpMsg = GetPreviousFollowUpMessage(prospect.FollowUpMessages.ToList(), message.Order);
+            prospectFollowUpMessage.PreviousFollowUpMessage = previousCampaignProspectFollowUpMsg;
+
+            long? lastFollowUpMessageTimeStamp = DetermineLastFollowUpMessageTimeStamp(prospect, previousCampaignProspectFollowUpMsg);
+
+            // do not send or generate any follow up messages.
+            if (lastFollowUpMessageTimeStamp == null)
+            {
+                return null;
+            }
+
+            DateTimeOffset lastMessageDeliveryDate = GetFollowUpMessageDateTime(message.Delay, (long)lastFollowUpMessageTimeStamp);
             DateTimeOffset messageDeliveryDate = await _timestampService.GetLocalizedDateTimeOffsetAsync(halId, lastMessageDeliveryDate, ct);
             DateTimeOffset startWorkdayDate = await _timestampService.GetStartWorkdayLocalizedForHalIdAsync(halId, ct);
             DateTimeOffset endWorkdayDate = await _timestampService.GetEndWorkDayLocalizedForHalIdAsync(halId, ct);
 
-            CampaignProspectFollowUpMessage prospectFollowUpMessage = default;
             if (messageDeliveryDate < startWorkdayDate)
             {
                 _logger.LogDebug("FollowUpMessage can be sent today and will be scheduled rightaway. Localized time when message is supposed to go out {0} and start of work day {1}.", messageDeliveryDate, startWorkdayDate);
-                prospectFollowUpMessage = CreateProspectFollowUpMessage(message, prospect, messageDeliveryDate);
+                prospectFollowUpMessage.ExpectedDeliveryDateTime = messageDeliveryDate;
+                prospectFollowUpMessage.ExpectedDeliveryDateTimeStamp = messageDeliveryDate.ToUnixTimeSeconds();
             }
             else if (messageDeliveryDate > startWorkdayDate && messageDeliveryDate < endWorkdayDate)
             {
                 _logger.LogDebug("FollowUpMessage will be sent out today. It is scheduled to go out at {0}", messageDeliveryDate);
-                // schedule it for the given date since it falls within our time range
-                prospectFollowUpMessage = CreateProspectFollowUpMessage(message, prospect, messageDeliveryDate);
+                prospectFollowUpMessage.ExpectedDeliveryDateTime = messageDeliveryDate;
+                prospectFollowUpMessage.ExpectedDeliveryDateTimeStamp = messageDeliveryDate.ToUnixTimeSeconds();
             }
             else
             {
@@ -85,38 +122,48 @@ namespace Leadsly.Domain.MQ.Services
             return prospectFollowUpMessage;
         }
 
-        private CampaignProspectFollowUpMessage CreateProspectFollowUpMessage(FollowUpMessage message, CampaignProspect prospect, DateTimeOffset expectedDeliveryDateTime)
+        private CampaignProspectFollowUpMessage GetPreviousFollowUpMessage(IList<CampaignProspectFollowUpMessage> followUpMessages, int currentOrder)
         {
-            if (prospect.FollowUpMessages.Any(f => f.Order == message.Order) == true)
+            CampaignProspectFollowUpMessage previousFollowUpMessage = default;
+            if (followUpMessages != null && followUpMessages.Count > 1)
             {
-                // if for whatever reason the server was restarted or we have already created a follow up message for this prospect
-                // with the given order id
-                return prospect.FollowUpMessages.SingleOrDefault(f => f.Order == message.Order);
+                if (currentOrder != 0)
+                {
+
+                    previousFollowUpMessage = followUpMessages[currentOrder - 1];
+                }
+            }
+
+            return previousFollowUpMessage;
+        }
+
+        private long? DetermineLastFollowUpMessageTimeStamp(CampaignProspect prospect, CampaignProspectFollowUpMessage previouslySentMessage)
+        {
+            long? lastFollowUpMessageTimeStamp = null;
+            if (previouslySentMessage != null)
+            {
+                if (previouslySentMessage.ActualDeliveryDateTimeStamp != 0)
+                {
+                    lastFollowUpMessageTimeStamp = previouslySentMessage.ActualDeliveryDateTimeStamp;
+                }
+                else
+                {
+                    // this means previous message was not yet delivered, in this scenario do not send the follow up message;
+                    _logger.LogDebug("Previous follow up message was not delivered because 'ActualDeliveryDateTimeStamp' property is equal to zero. Wait until it has been delivered before scheduling the second one");
+                }
             }
             else
             {
-                return new()
-                {
-                    CampaignProspect = prospect,
-                    CampaignProspectId = prospect.CampaignProspectId,
-                    Order = message.Order,
-                    Content = message.Content,
-                    ExpectedDeliveryDateTime = expectedDeliveryDateTime,
-                    ExpectedDeliveryDateTimeStamp = expectedDeliveryDateTime.ToUnixTimeSeconds()
-                };
+                // no previous follow up message was sent
+                lastFollowUpMessageTimeStamp = prospect.AcceptedTimestamp;
             }
+
+            return lastFollowUpMessageTimeStamp;
         }
 
-        private DateTimeOffset GetFollowUpMessageDateTime(FollowUpMessageDelay delay, long lastMessageTimestamp)
+        private DateTimeOffset GetFollowUpMessageDateTime(FollowUpMessageDelay delay, long timeStamp)
         {
             DateTimeOffset nextMessageDatetime = default;
-            long timeStamp = lastMessageTimestamp;
-            if (timeStamp == 0)
-            {
-                _logger.LogDebug("FollowUpMessage does not have a last message timestamp. This means this is a new message that will be going out.");
-                timeStamp = _timestampService.CreateNowTimestamp();
-            }
-
             switch (delay.Unit.ToUpper())
             {
                 case "MINUTES":

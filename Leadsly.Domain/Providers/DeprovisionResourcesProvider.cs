@@ -15,20 +15,20 @@ namespace Leadsly.Domain.Providers
         public DeprovisionResourcesProvider(
             ILogger<DeprovisionResourcesProvider> logger,
             IDeprovisionResourcesService deprovisionService,
-            IDeleteResourcesService deleteService,
+            IVirtualAssistantRepository virtualAssistantRepository,
             IVirtualAssistantRepository repository
             )
         {
             _repository = repository;
             _logger = logger;
+            _virtualAssistantRepository = virtualAssistantRepository;
             _deprovisionService = deprovisionService;
-            _deleteService = deleteService;
         }
 
         private readonly IVirtualAssistantRepository _repository;
         private readonly ILogger<DeprovisionResourcesProvider> _logger;
+        private readonly IVirtualAssistantRepository _virtualAssistantRepository;
         private readonly IDeprovisionResourcesService _deprovisionService;
-        private readonly IDeleteResourcesService _deleteService;
 
         public async Task DeprovisionResourcesAsync(string halId, CancellationToken ct = default)
         {
@@ -56,33 +56,10 @@ namespace Leadsly.Domain.Providers
                 _logger.LogError("Failed to successfully de-provision ECS service. Prupose {0}. HalId {1}", purpose, halId);
             }
 
-            // may not be necessary, deprovisioning ecs service may already delete all tasks
-            //if (await _deprovisionService.StopAllEcsTasksAsync(serviceToRemove.EcsTasks, serviceToRemove.ClusterArn, purpose))
-            //{
-
-            //}
-
-            if (await _deprovisionService.DeleteCloudMapServiceAsync(ecsServiceToRemove.CloudMapDiscoveryService.ServiceDiscoveryId, ct) == false)
+            virtualAssistant.Provisioned = false;
+            if (await _virtualAssistantRepository.UpdateAsync(virtualAssistant) == null)
             {
-                _logger.LogError("Failed to successfully delete Cloud Map Discovery service. Prupose {0}. HalId {1}", purpose, halId);
-            }
-
-            if (await _deleteService.DeleteEcsServiceAsync(ecsServiceToRemove.EcsServiceId) == false)
-            {
-
-            }
-
-            CloudMapDiscoveryService cloudMapServiceToRemove = virtualAssistant.CloudMapDiscoveryServices.Where(s => s.Purpose == purpose).FirstOrDefault();
-
-            if (cloudMapServiceToRemove == null)
-            {
-                _logger.LogError("VirtualAssistant with id {0}, does not contain CloudMapService for purpose {1}", virtualAssistant.VirtualAssistantId, purpose);
-                return;
-            }
-
-            if (await _deleteService.DeleteCloudMapServiceAsync(cloudMapServiceToRemove.CloudMapDiscoveryServiceId, ct) == false)
-            {
-                _logger.LogError("Failed to successfully delete cloud map service from the database. Purpose {0}. HalId {1}", purpose, halId);
+                _logger.LogError("Failed to update {0} Deprovisioned property to true", nameof(VirtualAssistant));
             }
         }
     }

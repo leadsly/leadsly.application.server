@@ -19,6 +19,7 @@ namespace Leadsly.Domain.Models.Entities
 
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public string HalUnitId { get; set; }
+        public bool Provisioned { get; set; } = false;
         public SocialAccount SocialAccount { get; set; }
         public ApplicationUser ApplicationUser { get; set; }
         public IList<EcsService> EcsServices { get; set; }

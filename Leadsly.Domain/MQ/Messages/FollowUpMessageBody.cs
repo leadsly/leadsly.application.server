@@ -10,6 +10,9 @@ namespace Leadsly.Domain.MQ.Messages
         public string PageUrl { get; set; }
 
         [DataMember]
+        public string PreviousMessageContent { get; set; }
+
+        [DataMember]
         public string Content { get; set; }
 
         [DataMember]

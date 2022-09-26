@@ -8,6 +8,6 @@ namespace Leadsly.Domain.MQ.Services.Interfaces
     {
         Task<PublishMessageBody> CreateMQMessageAsync(string halId, CancellationToken ct = default);
         Task SetCheckOffHoursNewConnectionsProperties(string halId, bool initial, PublishMessageBody mqMessage, CancellationToken ct = default);
-        Task SetDeepScanProspectsForRepliesProperties(string halId, bool initial, PublishMessageBody mqMessage, CancellationToken ct = default);
+        // Task SetDeepScanProspectsForRepliesProperties(string halId, bool initial, PublishMessageBody mqMessage, CancellationToken ct = default);
     }
 }

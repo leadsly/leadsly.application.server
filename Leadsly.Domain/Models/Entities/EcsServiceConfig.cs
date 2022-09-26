@@ -6,6 +6,7 @@ namespace Leadsly.Domain.Models.Entities
     {
         public Config Hal { get; set; }
         public Config Grid { get; set; }
+        public Config Proxy { get; set; }
     }
 
     public class Config

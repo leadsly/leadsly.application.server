@@ -16,5 +16,8 @@ namespace Leadsly.Domain.Models.Entities.Campaigns
         [NotMapped]
         public DateTimeOffset ExpectedDeliveryDateTime { get; set; }
         public long ActualDeliveryDateTimeStamp { get; set; }
+
+        [NotMapped]
+        public CampaignProspectFollowUpMessage? PreviousFollowUpMessage { get; set; }
     }
 }

@@ -37,6 +37,7 @@ namespace Leadsly.Domain.OptionsJsonModels
         public CloudMapOptions Grid { get; set; }
         public CloudMapOptions Hal { get; set; }
         public CloudMapOptions AppServer { get; set; }
+        public CloudMapOptions Proxy { get; set; }
     }
 
     public class CloudMapOptions
@@ -51,6 +52,7 @@ namespace Leadsly.Domain.OptionsJsonModels
     {
         public ConfigOptions Hal { get; set; }
         public ConfigOptions Grid { get; set; }
+        public ConfigOptions Proxy { get; set; }
     }
 
     public class ConfigOptions

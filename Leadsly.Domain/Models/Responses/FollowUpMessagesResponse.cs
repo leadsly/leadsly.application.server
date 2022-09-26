@@ -8,6 +8,6 @@ namespace Leadsly.Domain.Models.Responses
     public class FollowUpMessagesResponse
     {
         [DataMember]
-        public IList<FollowUpMessageBody> Items { get; set; }
+        public IList<FollowUpMessageBody> Items { get; set; } = new List<FollowUpMessageBody>();
     }
 }

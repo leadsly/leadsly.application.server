@@ -57,25 +57,25 @@ namespace Leadsly.Domain.MQ.Services
             }
         }
 
-        public async Task SetDeepScanProspectsForRepliesProperties(string halId, bool initial, PublishMessageBody mqMessage, CancellationToken ct = default)
-        {
-            if (initial == true)
-            {
-                if (await ShouldPublishDeepScanAsync(halId, ct) == true)
-                {
-                    // if null it means there are no active campaigns or something went wrong
-                    DeepScanProspectsForRepliesBody message = await _facade.CreateDeepScanProspectsForRepliesMQMessageAsync(halId, ct) as DeepScanProspectsForRepliesBody;
-                    if (message == null)
-                    {
-                        _logger.LogWarning("{0} will not be exected with this {1} phase.", nameof(DeepScanProspectsForRepliesBody), nameof(AllInOneVirtualAssistantMessageBody));
-                    }
-                    else
-                    {
-                        ((AllInOneVirtualAssistantMessageBody)mqMessage).DeepScanProspectsForReplies = message;
-                    }
-                }
-            }
-        }
+        //public async Task SetDeepScanProspectsForRepliesProperties(string halId, bool initial, PublishMessageBody mqMessage, CancellationToken ct = default)
+        //{
+        //    if (initial == true)
+        //    {
+        //        if (await ShouldPublishDeepScanAsync(halId, ct) == true)
+        //        {
+        //            // if null it means there are no active campaigns or something went wrong
+        //            DeepScanProspectsForRepliesBody message = await _facade.CreateDeepScanProspectsForRepliesMQMessageAsync(halId, ct) as DeepScanProspectsForRepliesBody;
+        //            if (message == null)
+        //            {
+        //                _logger.LogWarning("{0} will not be exected with this {1} phase.", nameof(DeepScanProspectsForRepliesBody), nameof(AllInOneVirtualAssistantMessageBody));
+        //            }
+        //            else
+        //            {
+        //                ((AllInOneVirtualAssistantMessageBody)mqMessage).DeepScanProspectsForReplies = message;
+        //            }
+        //        }
+        //    }
+        //}
 
         private async Task<bool> ShouldPublishDeepScanAsync(string halId, CancellationToken ct = default)
         {

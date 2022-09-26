@@ -1,5 +1,4 @@
-﻿using Leadsly.Application.Model.Campaigns;
-using Leadsly.Domain.Facades.Interfaces;
+﻿using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Factories.Interfaces;
 using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.Models.Entities.Campaigns.Phases;
@@ -67,7 +66,7 @@ namespace Leadsly.Domain.MQ.Services
 
             IList<CampaignProspectFollowUpMessage> prospectsFollowUpMessages = await _service.GenerateProspectsFollowUpMessagesAsync(halId, ct);
 
-            await CreateFollowUpMessagesAsync(prospectsFollowUpMessages);
+            // await CreateFollowUpMessagesAsync(prospectsFollowUpMessages);
 
             return prospectsFollowUpMessages;
         }
@@ -78,7 +77,7 @@ namespace Leadsly.Domain.MQ.Services
 
             IList<CampaignProspectFollowUpMessage> prospectsFollowUpMessages = await _service.GenerateProspectsFollowUpMessagesAsync(halId, campaigns, ct);
 
-            await CreateFollowUpMessagesAsync(prospectsFollowUpMessages);
+            // await CreateFollowUpMessagesAsync(prospectsFollowUpMessages);
 
             return prospectsFollowUpMessages;
         }

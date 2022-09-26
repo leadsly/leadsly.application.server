@@ -72,6 +72,18 @@ namespace Leadsly.Infrastructure.Repositories
                         ServiceName = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Hal.ServiceName,
                         Subnets = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Hal.Subnets,
                         TaskDefinition = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Hal.TaskDefinition
+                    },
+                    Proxy = new()
+                    {
+                        AssignPublicIp = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Proxy.AssignPublicIp,
+                        ClusterArn = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Proxy.ClusterArn,
+                        LaunchType = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Proxy.LaunchType,
+                        SecurityGroups = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Proxy.SecurityGroups,
+                        DesiredCount = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Proxy.DesiredCount,
+                        SchedulingStrategy = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Proxy.SchedulingStrategy,
+                        ServiceName = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Proxy.ServiceName,
+                        Subnets = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Proxy.Subnets,
+                        TaskDefinition = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceConfigOptions.Proxy.TaskDefinition
                     }
                 },
                 ServiceDiscoveryConfig = new()
@@ -96,6 +108,13 @@ namespace Leadsly.Infrastructure.Repositories
                         DnsRecordType = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.Hal.DnsRecordType,
                         NamespaceId = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.Hal.NamespaceId,
                         Name = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.Hal.Name
+                    },
+                    Proxy = new()
+                    {
+                        DnsRecordTTL = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.Proxy.DnsRecordTTL,
+                        DnsRecordType = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.Proxy.DnsRecordType,
+                        NamespaceId = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.Proxy.NamespaceId,
+                        Name = _cloudPlatformConfigurationOptions.AwsOptions.EcsServiceDiscoveryConfigOptions.Proxy.Name
                     }
                 },
                 EcsProxyTaskDefinitionConfig = new()

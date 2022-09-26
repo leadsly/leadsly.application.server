@@ -1,9 +1,6 @@
-﻿using Leadsly.Domain.Models;
-using Leadsly.Domain.Models.Entities;
+﻿using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -46,16 +43,6 @@ namespace Leadsly.Domain.Services
             }
 
             return await _awsElasticContainerService.DeleteServiceAsync(serviceToRemove.ServiceName, serviceToRemove.ClusterArn, ct);
-        }
-
-        public Task<bool> StopAllEcsTasksAsync(IEnumerable<EcsTask> ecsTasks, string cluster, EcsResourcePurpose purpose, CancellationToken ct = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<bool> DeleteCloudMapServiceAsync(string serviceDiscoveryId, CancellationToken ct = default)
-        {
-            return await _awsServiceDiscoveryService.DeleteCloudMapDiscoveryServiceAsync(serviceDiscoveryId, ct);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Leadsly.Domain.Decorators;
 using Leadsly.Domain.Facades.Interfaces;
+using Leadsly.Domain.MQ.Services.Interfaces;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
@@ -30,10 +31,14 @@ namespace Leadsly.Domain.Supervisor
             IHangfireService hangfireService,
             ITimeZoneRepository timeZoneRepository,
             IVirtualAssistantRepository virtualAssistantRepository,
+            IDeprovisionResourcesProvider deprovisionResourcesProvider,
             IRecentlyAddedProspectRepository recentlyAddedRepository,
+            IFollowUpMessagesMQService followUpMessagesMQService,
             IMemoryCache memoryCache,
             ILogger<Supervisor> logger)
         {
+            _deprovisionResourcesProvider = deprovisionResourcesProvider;
+            _followUpMessagesMQService = followUpMessagesMQService;
             _provisionResourcesService = provisionResourcesService;
             _recentlyAddedRepository = recentlyAddedRepository;
             _saveBrowserProfileUserProvider = saveBrowserProfileUserProvider;
@@ -58,6 +63,8 @@ namespace Leadsly.Domain.Supervisor
             _logger = logger;
         }
 
+        private readonly IDeprovisionResourcesProvider _deprovisionResourcesProvider;
+        private readonly IFollowUpMessagesMQService _followUpMessagesMQService;
         private readonly IProvisionResourcesService _provisionResourcesService;
         private readonly IRecentlyAddedProspectRepository _recentlyAddedRepository;
         private readonly SaveBrowserProfileUserProviderDecorator _saveBrowserProfileUserProvider;

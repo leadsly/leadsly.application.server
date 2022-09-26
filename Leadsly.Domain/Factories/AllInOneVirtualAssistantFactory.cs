@@ -82,6 +82,10 @@ namespace Leadsly.Domain.Factories
             string appServerServiceDiscoveryname = config.ApiServiceDiscoveryName;
             string gridNamespaceName = config.ServiceDiscoveryConfig.Grid.Name;
             string gridServiceDiscoveryName = gridEcsService.CloudMapDiscoveryService.Name;
+            string proxyNamespaceName = config.ServiceDiscoveryConfig.Proxy.Name;
+            string proxyServiceDiscoveryName = gridEcsService.CloudMapDiscoveryService.Name;
+            _logger.LogTrace("{0} object is configured with Proxy Namespace Name of {1}. This HalId is {2}", nameof(AllInOneVirtualAssistantMessageBody), proxyNamespaceName, halId);
+            _logger.LogTrace("{0} object is configured with Proxy Service discovery name of {1}. This HalId is {2}", nameof(AllInOneVirtualAssistantMessageBody), proxyServiceDiscoveryName, halId);
             _logger.LogTrace("{0} object is configured with Grid Namespace Name of {1}. This HalId is {2}", nameof(AllInOneVirtualAssistantMessageBody), gridNamespaceName, halId);
             _logger.LogTrace("{0} object is configured with Grid Service discovery name of {1}. This HalId is {2}", nameof(AllInOneVirtualAssistantMessageBody), gridServiceDiscoveryName, halId);
             _logger.LogTrace("{0} object is configured with AppServer Namespace Name of {1}. This HalId is {2}", nameof(AllInOneVirtualAssistantMessageBody), appServerNamespaceName, halId);

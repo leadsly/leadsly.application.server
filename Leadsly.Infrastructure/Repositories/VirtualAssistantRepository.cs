@@ -79,6 +79,7 @@ namespace Leadsly.Infrastructure.Repositories
             try
             {
                 virtualAssistant = await _dbContext.VirtualAssistants
+                    .Where(v => v.HalId == halId)
                     .Include(v => v.SocialAccount)
                     .Where(v => v.SocialAccount.Linked == true && v.HalUnit.HalId == halId)
                     .Include(v => v.HalUnit)

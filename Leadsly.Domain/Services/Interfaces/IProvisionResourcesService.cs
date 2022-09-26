@@ -11,6 +11,7 @@ namespace Leadsly.Domain.Services.Interfaces
         public IList<EcsTaskDefinition> EcsTaskDefinitions { get; }
         public IList<CloudMapDiscoveryService> CloudMapDiscoveryServices { get; }
         Task<bool> CreateAwsResourcesAsync(string halId, string userId, CancellationToken ct = default);
+        Task<bool> CreateAwsEcsServiceAsync(string userId, EcsService ecsService, CancellationToken ct = default);
         Task<bool> CreateAwsTaskDefinitionsAsync(string halId, string userId, CancellationToken ct = default);
         Task RollbackAllResourcesAsync(string userId, CancellationToken ct = default);
     }

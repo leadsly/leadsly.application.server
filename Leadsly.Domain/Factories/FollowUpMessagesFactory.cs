@@ -118,16 +118,21 @@ namespace Leadsly.Domain.Factories
                 EndOfWorkday = halUnit.EndHour,
                 StartOfWorkday = halUnit.StartHour,
                 ExpectedDeliveryDateTime = followUpMessage.ExpectedDeliveryDateTime,
+                PreviousMessageContent = followUpMessage.PreviousFollowUpMessage?.Content,
             };
 
             string appServerNamespaceName = config.ServiceDiscoveryConfig.AppServer.Name;
             string appServerServiceDiscoveryname = config.ApiServiceDiscoveryName;
             string gridNamespaceName = config.ServiceDiscoveryConfig.Grid.Name;
             string gridServiceDiscoveryName = gridEcsService.CloudMapDiscoveryService.Name;
-            _logger.LogTrace("FollowUpMessageBody object is configured with Grid Namespace Name of {gridNamespaceName}. This HalId is {halId}", gridNamespaceName, halId);
-            _logger.LogTrace("FollowUpMessageBody object is configured with Grid Service discovery name of {gridServiceDiscoveryname}. This HalId is {halId}", gridServiceDiscoveryName, halId);
-            _logger.LogTrace("FollowUpMessageBody object is configured with AppServer Namespace Name of {appServerNamespaceName}. This HalId is {halId}", appServerNamespaceName, halId);
-            _logger.LogTrace("FollowUpMessageBody object is configured with AppServer Service discovery name of {appServerServiceDiscoveryname}. This HalId is {halId}", appServerServiceDiscoveryname, halId);
+            string proxyNamespaceName = config.ServiceDiscoveryConfig.Proxy.Name;
+            string proxyServiceDiscoveryName = proxyEcsService.CloudMapDiscoveryService.Name;
+            _logger.LogTrace("{0} object is configured with Proxy Namespace Name of {1}. This HalId is {2}", nameof(FollowUpMessageBody), proxyNamespaceName, halId);
+            _logger.LogTrace("{0} object is configured with Proxy Service discovery name of {1}. This HalId is {2}", nameof(FollowUpMessageBody), proxyServiceDiscoveryName, halId);
+            _logger.LogTrace("{0} object is configured with Grid Namespace Name of {1}. This HalId is {2}", nameof(FollowUpMessageBody), gridNamespaceName, halId);
+            _logger.LogTrace("{0} object is configured with Grid Service discovery name of {1}. This HalId is {2}", nameof(FollowUpMessageBody), gridServiceDiscoveryName, halId);
+            _logger.LogTrace("{0} object is configured with AppServer Namespace Name of {1}. This HalId is {2}", nameof(FollowUpMessageBody), appServerNamespaceName, halId);
+            _logger.LogTrace("{0} object is configured with AppServer Service discovery name of {1}. This HalId is {2}", nameof(FollowUpMessageBody), appServerServiceDiscoveryname, halId);
 
             return message;
         }
