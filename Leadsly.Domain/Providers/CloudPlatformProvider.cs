@@ -187,42 +187,34 @@ namespace Leadsly.Domain.Providers
         public async Task<RegisterTaskDefinitionResponse> RegisterHalTaskDefinitionInAwsAsync(string halTaskDefinition, string halId, CancellationToken ct = default)
         {
             CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
-            List<Amazon.ECS.Model.KeyValuePair> envVars = configuration.EcsHalTaskDefinitionConfig.ContainerDefinitions.SelectMany(x =>
-            {
-                if (x.Environment != null)
-                {
-                    return x.Environment.Select(y => new Amazon.ECS.Model.KeyValuePair
-                    {
-                        Name = y.Name,
-                        Value = y.Value
-                    });
-                }
-                return new List<Amazon.ECS.Model.KeyValuePair>();
-            }).ToList();
-
-            envVars.Add(new Amazon.ECS.Model.KeyValuePair
-            {
-                Name = "HAL_ID",
-                Value = halId
-            });
 
             RegisterTaskDefinitionRequest request = new RegisterTaskDefinitionRequest
             {
                 ContainerDefinitions = configuration.EcsHalTaskDefinitionConfig.ContainerDefinitions?.Select(cd =>
                 {
                     string awsLogsGroup = cd.LogConfiguration.Options.AwslogsGroup.Replace("{halId}", halId);
+
+                    List<Amazon.ECS.Model.KeyValuePair> environmentVars = new List<Amazon.ECS.Model.KeyValuePair>();
+                    if (cd.Environment != null)
+                    {
+                        environmentVars = cd.Environment.Select(y => new Amazon.ECS.Model.KeyValuePair
+                        {
+                            Name = y.Name,
+                            Value = y.Value
+                        }).ToList();
+                    }
+
+                    environmentVars.Add(new Amazon.ECS.Model.KeyValuePair
+                    {
+                        Name = "HAL_ID",
+                        Value = halId
+                    });
+
                     Amazon.ECS.Model.ContainerDefinition containerDef = new Amazon.ECS.Model.ContainerDefinition
                     {
                         Cpu = cd.Cpu,
                         DisableNetworking = cd.DisableNetworking,
-                        Environment = cd.Environment?.Length > 0 ? envVars : new List<Amazon.ECS.Model.KeyValuePair>
-                        {
-                            new Amazon.ECS.Model.KeyValuePair
-                            {
-                                Name = "HAL_ID",
-                                Value = halId
-                            }
-                        },
+                        Environment = environmentVars,
                         DependsOn = cd.DependsOn?.Select(x => new Amazon.ECS.Model.ContainerDependency
                         {
                             Condition = x.Condition,
@@ -284,42 +276,34 @@ namespace Leadsly.Domain.Providers
         public async Task<RegisterTaskDefinitionResponse> RegisterGridTaskDefinitionInAwsAsync(string gridTaskDefinition, string halId, CancellationToken ct = default)
         {
             CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
-            List<Amazon.ECS.Model.KeyValuePair> envVars = configuration.EcsGridTaskDefinitionConfig.ContainerDefinitions.SelectMany(x =>
-            {
-                if (x.Environment != null)
-                {
-                    return x.Environment.Select(y => new Amazon.ECS.Model.KeyValuePair
-                    {
-                        Name = y.Name,
-                        Value = y.Value
-                    });
-                }
-                return new List<Amazon.ECS.Model.KeyValuePair>();
-            }).ToList();
-
-            envVars.Add(new Amazon.ECS.Model.KeyValuePair
-            {
-                Name = "HAL_ID",
-                Value = halId
-            });
 
             RegisterTaskDefinitionRequest request = new RegisterTaskDefinitionRequest
             {
                 ContainerDefinitions = configuration.EcsGridTaskDefinitionConfig.ContainerDefinitions?.Select(cd =>
                 {
                     string awsLogsGroup = cd.LogConfiguration.Options.AwslogsGroup.Replace("{halId}", halId);
+
+                    List<Amazon.ECS.Model.KeyValuePair> environmentVars = new List<Amazon.ECS.Model.KeyValuePair>();
+                    if (cd.Environment != null)
+                    {
+                        environmentVars = cd.Environment.Select(y => new Amazon.ECS.Model.KeyValuePair
+                        {
+                            Name = y.Name,
+                            Value = y.Value
+                        }).ToList();
+                    }
+
+                    environmentVars.Add(new Amazon.ECS.Model.KeyValuePair
+                    {
+                        Name = "HAL_ID",
+                        Value = halId
+                    });
+
                     Amazon.ECS.Model.ContainerDefinition containerDef = new Amazon.ECS.Model.ContainerDefinition
                     {
                         Cpu = cd.Cpu,
                         DisableNetworking = cd.DisableNetworking,
-                        Environment = cd.Environment?.Length > 0 ? envVars : new List<Amazon.ECS.Model.KeyValuePair>
-                        {
-                            new Amazon.ECS.Model.KeyValuePair
-                            {
-                                Name = "HAL_ID",
-                                Value = halId
-                            }
-                        },
+                        Environment = environmentVars,
                         DependsOn = cd.DependsOn?.Select(x => new Amazon.ECS.Model.ContainerDependency
                         {
                             Condition = x.Condition,
@@ -386,42 +370,34 @@ namespace Leadsly.Domain.Providers
         public async Task<RegisterTaskDefinitionResponse> RegisterProxyTaskDefinitionInAwsAsync(string proxyTaskDefinition, string halId, CancellationToken ct = default)
         {
             CloudPlatformConfiguration configuration = _cloudPlatformRepository.GetCloudPlatformConfiguration();
-            List<Amazon.ECS.Model.KeyValuePair> envVars = configuration.EcsProxyTaskDefinitionConfig.ContainerDefinitions.SelectMany(x =>
-            {
-                if (x.Environment != null)
-                {
-                    return x.Environment.Select(y => new Amazon.ECS.Model.KeyValuePair
-                    {
-                        Name = y.Name,
-                        Value = y.Value
-                    });
-                }
-                return new List<Amazon.ECS.Model.KeyValuePair>();
-            }).ToList();
-
-            envVars.Add(new Amazon.ECS.Model.KeyValuePair
-            {
-                Name = "HAL_ID",
-                Value = halId
-            });
 
             RegisterTaskDefinitionRequest request = new RegisterTaskDefinitionRequest
             {
                 ContainerDefinitions = configuration.EcsProxyTaskDefinitionConfig.ContainerDefinitions?.Select(cd =>
                 {
                     string awsLogsGroup = cd.LogConfiguration.Options.AwslogsGroup.Replace("{halId}", halId);
+
+                    List<Amazon.ECS.Model.KeyValuePair> environmentVars = new List<Amazon.ECS.Model.KeyValuePair>();
+                    if (cd.Environment != null)
+                    {
+                        environmentVars = cd.Environment.Select(y => new Amazon.ECS.Model.KeyValuePair
+                        {
+                            Name = y.Name,
+                            Value = y.Value
+                        }).ToList();
+                    }
+
+                    environmentVars.Add(new Amazon.ECS.Model.KeyValuePair
+                    {
+                        Name = "HAL_ID",
+                        Value = halId
+                    });
+
                     Amazon.ECS.Model.ContainerDefinition containerDef = new Amazon.ECS.Model.ContainerDefinition
                     {
                         Cpu = cd.Cpu,
                         DisableNetworking = cd.DisableNetworking,
-                        Environment = cd.Environment?.Length > 0 ? envVars : new List<Amazon.ECS.Model.KeyValuePair>
-                        {
-                            new Amazon.ECS.Model.KeyValuePair
-                            {
-                                Name = "HAL_ID",
-                                Value = halId
-                            }
-                        },
+                        Environment = environmentVars,
                         DependsOn = cd.DependsOn?.Select(x => new Amazon.ECS.Model.ContainerDependency
                         {
                             Condition = x.Condition,
