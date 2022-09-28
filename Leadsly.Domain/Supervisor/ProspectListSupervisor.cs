@@ -33,7 +33,7 @@ namespace Leadsly.Domain.Supervisor
                         Name = newPrimaryProspect.Name,
                         Area = newPrimaryProspect.Area,
                         EmploymentInfo = newPrimaryProspect.EmploymentInfo,
-                        PrimaryProspectListId = newPrimaryProspect.PrimaryProspectListId,
+                        PrimaryProspectListId = request.PrimaryProspectListId,
                         ProfileUrl = newPrimaryProspect.ProfileUrl,
                         SearchResultAvatarUrl = newPrimaryProspect.SearchResultAvatarUrl
                     };

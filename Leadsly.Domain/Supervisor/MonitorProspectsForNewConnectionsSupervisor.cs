@@ -39,7 +39,7 @@ namespace Leadsly.Domain.Supervisor
             }
             else
             {
-                response.Items = RecentlyAddedProspectConvert.ConvertList(socialAccount.RecentlyAddedProspects);
+                response.Items = RecentlyAddedProspectConvert.ConvertList(recentlyAddedProspects);
             }
 
             return response;
@@ -55,6 +55,13 @@ namespace Leadsly.Domain.Supervisor
                 return;
             }
 
+            socialAccount.TotalConnectionsCount = request.TotalConnectionsCount;
+            socialAccount = await _socialAccountRepository.UpdateAsync(socialAccount, ct);
+            if (socialAccount == null)
+            {
+                _logger.LogError("Updating Social Account with id {0} failed. HalId {1}", socialAccount.SocialAccountId, halId);
+            }
+
             if (await _recentlyAddedRepository.DeleteAllBySocialAccountIdAsync(socialAccount.SocialAccountId, ct) == false)
             {
                 _logger.LogError("Failed to delete {0} for HalId {1} and SocialAccountId {2}", nameof(RecentlyAddedProspect), halId, socialAccount.SocialAccountId);
@@ -67,13 +74,6 @@ namespace Leadsly.Domain.Supervisor
             if (updated == null)
             {
                 _logger.LogError("Failed to create new {0} for HalId {1} and SocialAccountId {2}", nameof(RecentlyAddedProspect), halId, socialAccount.SocialAccountId);
-            }
-
-            socialAccount.TotalConnectionsCount = request.TotalConnectionsCount;
-            socialAccount = await _socialAccountRepository.UpdateAsync(socialAccount, ct);
-            if (socialAccount == null)
-            {
-                _logger.LogError("Updating Social Account with id {0} failed. HalId {1}", socialAccount.SocialAccountId, halId);
             }
         }
 

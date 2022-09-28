@@ -12,6 +12,7 @@
         SendConnectionRequests,
         SendEmailInvites,
         ConnectionWithdraw,
-        RescrapeSearchUrls
+        RescrapeSearchUrls,
+        AllInOne
     }
 }

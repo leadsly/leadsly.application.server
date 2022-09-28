@@ -131,7 +131,9 @@ namespace Leadsly.Domain.Supervisor
                 return null;
             }
 
-            VirtualAssistant virtualAssistant = await _cloudPlatformProvider.CreateVirtualAssistantAsync(_provisionResourcesService.EcsTaskDefinitions, _provisionResourcesService.EcsServices, _provisionResourcesService.CloudMapDiscoveryServices, halId, setup.UserId, setup.TimeZoneId, ct);
+            ApplicationUser user = await _userProvider.GetUserByIdAsync(setup.UserId);
+
+            VirtualAssistant virtualAssistant = await _cloudPlatformProvider.CreateVirtualAssistantAsync(_provisionResourcesService.EcsTaskDefinitions, _provisionResourcesService.EcsServices, _provisionResourcesService.CloudMapDiscoveryServices, halId, user, setup.TimeZoneId, ct);
             VirtualAssistantViewModel virtualAssistantViewModel = VirtualAssistantConverter.Convert(virtualAssistant);
             return virtualAssistantViewModel;
         }

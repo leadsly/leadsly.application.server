@@ -1,5 +1,6 @@
 ﻿using Leadsly.Domain;
 using Leadsly.Domain.Models.Entities.Campaigns;
+using Leadsly.Domain.Models.Requests;
 using Leadsly.Domain.Models.Responses;
 using Leadsly.Domain.Supervisor;
 using Microsoft.AspNetCore.Authorization;
@@ -53,10 +54,19 @@ namespace Leadsly.Application.Api.Controllers
             return Ok();
         }
 
-        //[HttpGet("{halId}/messages")]
-        //public async Task<IActionResult> GetMessagesAsync(string halId, CancellationToken ct = default)
-        //{
+        [HttpPost("{campaignId}/prospects")]
+        public async Task<IActionResult> ProcessSentConnectionsAsync(string campaignId, [FromBody] ConnectionsSentRequest request, CancellationToken ct = default)
+        {
+            _logger.LogInformation("Executing action UpdateConnectionSentProspects for CampaignId {campaignId}", campaignId);
+            bool succeeded = await _supervisor.ProcessSentConnectionsAsync(campaignId, request, ct);
 
-        //}
+            if (succeeded == false)
+            {
+                _logger.LogDebug("Failed to update prospects to which connection request has been sent for CampaignId {campaignId}", campaignId);
+                return BadRequest(ProblemDetailsDescriptions.UpdateContactedCampaignProspects);
+            }
+
+            return Ok();
+        }
     }
 }

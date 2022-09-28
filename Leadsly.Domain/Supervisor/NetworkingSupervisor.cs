@@ -1,5 +1,7 @@
-﻿using Leadsly.Domain.Models.Entities.Campaigns;
+﻿using Leadsly.Domain.Models;
+using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.Models.Networking;
+using Leadsly.Domain.Models.Requests;
 using Leadsly.Domain.Models.Responses;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.Extensions.Logging;
@@ -58,6 +60,31 @@ namespace Leadsly.Domain.Supervisor
             update.ApplyTo(searchUrlProgress);
             searchUrlProgress = await _searchUrlProgressRepository.UpdateAsync(searchUrlProgress, ct);
             if (searchUrlProgress == null)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public async Task<bool> ProcessSentConnectionsAsync(string campaignId, ConnectionsSentRequest request, CancellationToken ct = default)
+        {
+            IList<CampaignProspect> campaignProspects = await _campaignRepositoryFacade.GetAllCampaignProspectsByCampaignIdAsync(campaignId);
+            IList<CampaignProspect> contactedProspects = new List<CampaignProspect>();
+            foreach (ConnectionSentModel campaignRequest in request.Items)
+            {
+                CampaignProspect contactedProspect = campaignProspects.FirstOrDefault(c => c.PrimaryProspect.ProfileUrl == campaignRequest.ProfileUrl);
+                if (contactedProspect != null)
+                {
+                    contactedProspect.ConnectionSent = true;
+                    contactedProspect.ConnectionSentTimestamp = campaignRequest.ConnectionSentTimestamp;
+
+                    contactedProspects.Add(contactedProspect);
+                }
+            }
+
+            contactedProspects = await _campaignRepositoryFacade.UpdateAllCampaignProspectsAsync(contactedProspects, ct);
+            if (contactedProspects == null)
             {
                 return false;
             }

@@ -2,6 +2,7 @@
 using Leadsly.Domain.Factories.Interfaces;
 using Leadsly.Domain.Models;
 using Leadsly.Domain.Models.Entities;
+using Leadsly.Domain.Models.Entities.Campaigns.Phases;
 using Leadsly.Domain.MQ.Messages;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
@@ -61,12 +62,27 @@ namespace Leadsly.Domain.Factories
                 throw new Exception($"Cloud map discovery services not found for virtual assistant {virtualAssistantId}.");
             }
 
+            ChromeProfile chromeProfile = await _halRepository.GetChromeProfileAsync(PhaseType.AllInOne, ct);
+            string chromeProfileName = chromeProfile?.Name;
+            if (chromeProfileName == null)
+            {
+                ChromeProfile profileName = new()
+                {
+                    CampaignPhaseType = PhaseType.AllInOne,
+                    Name = Guid.NewGuid().ToString()
+                };
+                await _halRepository.CreateChromeProfileAsync(profileName, ct);
+                chromeProfileName = profileName.Name;
+            }
+            _logger.LogDebug("The chrome profile used for PhaseType.ScanForReplies is {chromeProfileName}", chromeProfileName);
+
             CloudPlatformConfiguration config = _rabbitMQProvider.GetCloudPlatformConfiguration();
 
             PublishMessageBody mqMessage = new AllInOneVirtualAssistantMessageBody
             {
                 EndOfWorkday = halUnit.EndHour,
                 StartOfWorkday = halUnit.StartHour,
+                ChromeProfileName = chromeProfileName,
                 ProxyNamespaceName = config.ServiceDiscoveryConfig.Proxy.Name,
                 ProxyServiceDiscoveryName = proxyEcsService.CloudMapDiscoveryService.Name,
                 GridNamespaceName = config.ServiceDiscoveryConfig.Grid.Name,

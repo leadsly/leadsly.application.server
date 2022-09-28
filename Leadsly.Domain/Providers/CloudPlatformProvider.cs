@@ -551,7 +551,7 @@ namespace Leadsly.Domain.Providers
             IList<EcsService> newEcsServices,
             IList<CloudMapDiscoveryService> newCloudMapServices,
             string halId,
-            string userId,
+            ApplicationUser user,
             string timezoneId,
             CancellationToken ct = default)
         {
@@ -559,7 +559,7 @@ namespace Leadsly.Domain.Providers
             {
                 HalId = halId,
                 TimeZoneId = timezoneId,
-                ApplicationUserId = userId
+                ApplicationUser = user
             };
 
             VirtualAssistant virtualAssistant = new VirtualAssistant
@@ -567,7 +567,7 @@ namespace Leadsly.Domain.Providers
                 EcsTaskDefinitions = newEcsTaskDefinitions,
                 EcsServices = newEcsServices,
                 CloudMapDiscoveryServices = newCloudMapServices,
-                ApplicationUserId = userId,
+                ApplicationUserId = user.Id,
                 HalUnit = newHalUnit,
                 HalId = halId,
             };

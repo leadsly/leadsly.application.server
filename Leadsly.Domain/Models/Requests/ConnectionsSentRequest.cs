@@ -7,6 +7,6 @@ namespace Leadsly.Domain.Models.Requests
     public class ConnectionsSentRequest
     {
         [DataMember]
-        public IList<ConnectionSent> Items { get; set; }
+        public IList<ConnectionSentModel> Items { get; set; }
     }
 }

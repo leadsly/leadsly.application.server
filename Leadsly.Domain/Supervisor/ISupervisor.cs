@@ -45,6 +45,7 @@ namespace Leadsly.Domain.Supervisor
         Task<ConnectedNetworkProspectsResponse> GetAllPreviouslyConnectedNetworkProspectsAsync(string halId, CancellationToken ct = default);
         Task UpdatePreviouslyConnectedNetworkProspectsAsync(string halId, UpdateConnectedNetworkProspectsRequest request, CancellationToken ct = default);
         Task<FollowUpMessagesResponse> GetFollowUpMessagesAsync(string halId, CancellationToken ct = default);
+        Task<bool> ProcessSentConnectionsAsync(string campaignId, ConnectionsSentRequest request, CancellationToken ct = default);
         // Task<NetworkingMessagesResponse> GetNetworkingMessagesAsync(string halId, CancellationToken ct = default);
     }
 }

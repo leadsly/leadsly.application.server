@@ -12,8 +12,6 @@ namespace Leadsly.Domain.Models.ProspectList
         [DataMember]
         public long AddedTimestamp { get; set; }
         [DataMember]
-        public string PrimaryProspectListId { get; set; }
-        [DataMember]
         public string Area { get; set; }
         [DataMember]
         public string EmploymentInfo { get; set; }

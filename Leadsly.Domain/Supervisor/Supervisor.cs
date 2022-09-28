@@ -1,11 +1,13 @@
 ﻿using Leadsly.Domain.Decorators;
 using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.MQ.Services.Interfaces;
+using Leadsly.Domain.OptionsJsonModels;
 using Leadsly.Domain.Providers.Interfaces;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Leadsly.Domain.Supervisor
 {
@@ -35,8 +37,10 @@ namespace Leadsly.Domain.Supervisor
             IRecentlyAddedProspectRepository recentlyAddedRepository,
             IFollowUpMessagesMQService followUpMessagesMQService,
             IMemoryCache memoryCache,
+            IOptions<FeatureFlagsOptions> options,
             ILogger<Supervisor> logger)
         {
+            _featureFlagsOptions = options.Value;
             _deprovisionResourcesProvider = deprovisionResourcesProvider;
             _followUpMessagesMQService = followUpMessagesMQService;
             _provisionResourcesService = provisionResourcesService;
@@ -63,6 +67,7 @@ namespace Leadsly.Domain.Supervisor
             _logger = logger;
         }
 
+        private readonly FeatureFlagsOptions _featureFlagsOptions;
         private readonly IDeprovisionResourcesProvider _deprovisionResourcesProvider;
         private readonly IFollowUpMessagesMQService _followUpMessagesMQService;
         private readonly IProvisionResourcesService _provisionResourcesService;

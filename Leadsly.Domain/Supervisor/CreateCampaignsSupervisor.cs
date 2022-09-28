@@ -1,8 +1,11 @@
 ﻿using Leadsly.Domain.Converters;
+using Leadsly.Domain.JobServices.Interfaces;
+using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.Models.Entities.Campaigns.Phases;
 using Leadsly.Domain.Models.Requests;
 using Leadsly.Domain.Models.ViewModels.Campaigns;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -66,13 +69,40 @@ namespace Leadsly.Domain.Supervisor
                 return null;
             }
 
-            await _mqCreatorFacade.PublishScanProspectsForRepliesMessageAsync(request.HalId, ct);
-            await _mqCreatorFacade.PublishMonitorForNewConnectionsMessageAsync(request.HalId, ct);
-            await _mqCreatorFacade.PublishNetworkingMessageAsync(request.HalId, newCampaign, ct);
+            if (_featureFlagsOptions.AllInOneVirtualAssistant == true)
+            {
+                HalUnit halUnit = await _halRepository.GetByHalIdAsync(request.HalId, ct);
+                string halId = halUnit.HalId;
+                DateTimeOffset startDate = _timestampService.ParseDateTimeOffsetLocalized(halUnit.TimeZoneId, halUnit.StartHour);
+                DateTimeOffset endDate = _timestampService.ParseDateTimeOffsetLocalized(halUnit.TimeZoneId, halUnit.EndHour);
+
+                _logger.LogDebug("Enqueuing PublishNetworkingPhaseAsync for halId {halId}. This will be enqueued right now", halId);
+                _hangfireService.Enqueue<INetworkingJobsService>((x) => x.PublishNetworkingMQMessagesAsync(halId));
+
+                await ScheduleAllInOneVirtualAssistantPhasesAsync(halId, startDate, endDate);
+            }
+            else
+            {
+                await _mqCreatorFacade.PublishScanProspectsForRepliesMessageAsync(request.HalId, ct);
+                await _mqCreatorFacade.PublishMonitorForNewConnectionsMessageAsync(request.HalId, ct);
+                await _mqCreatorFacade.PublishNetworkingMessageAsync(request.HalId, newCampaign, ct);
+            }
 
             CampaignViewModel viewModel = CampaignConverter.Convert(newCampaign);
 
             return viewModel;
+        }
+
+        private async Task ScheduleAllInOneVirtualAssistantPhasesAsync(string halId, DateTimeOffset startDate, DateTimeOffset endDate)
+        {
+            DateTimeOffset nowLocalized = await _timestampService.GetNowLocalizedAsync(halId);
+            for (DateTimeOffset date = nowLocalized; date <= endDate; date = date.AddHours(1))
+            {
+                if (date > startDate && date < endDate)
+                {
+                    _hangfireService.Schedule<IAllInOneVirtualAssistantJobService>((x) => x.PublishAllInOneVirtualAssistantPhaseAsync(halId, false), date);
+                }
+            }
         }
 
         private ProspectListPhase CreateProspectListPhase(IList<string> searchUrls, Campaign campaign)

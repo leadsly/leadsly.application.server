@@ -66,8 +66,6 @@ namespace Leadsly.Domain.MQ.Services
 
             IList<CampaignProspectFollowUpMessage> prospectsFollowUpMessages = await _service.GenerateProspectsFollowUpMessagesAsync(halId, ct);
 
-            // await CreateFollowUpMessagesAsync(prospectsFollowUpMessages);
-
             return prospectsFollowUpMessages;
         }
 
@@ -77,20 +75,7 @@ namespace Leadsly.Domain.MQ.Services
 
             IList<CampaignProspectFollowUpMessage> prospectsFollowUpMessages = await _service.GenerateProspectsFollowUpMessagesAsync(halId, campaigns, ct);
 
-            // await CreateFollowUpMessagesAsync(prospectsFollowUpMessages);
-
             return prospectsFollowUpMessages;
-        }
-
-        private async Task CreateFollowUpMessagesAsync(IList<CampaignProspectFollowUpMessage> prospectsFollowUpMessages, CancellationToken ct = default)
-        {
-            foreach (CampaignProspectFollowUpMessage followUpMessage in prospectsFollowUpMessages)
-            {
-                string content = TokenizeMessage(followUpMessage.Content, followUpMessage.CampaignProspect);
-                followUpMessage.Content = content;
-
-                await _facade.CreateFollowUpMessageAsync(followUpMessage);
-            }
         }
 
         private string TokenizeMessage(string message, CampaignProspect prospect)
