@@ -154,8 +154,15 @@ namespace Leadsly.Domain.MQ.Services
             }
             else
             {
-                // no previous follow up message was sent
-                lastFollowUpMessageTimeStamp = prospect.AcceptedTimestamp;
+                if (prospect.AcceptedTimestamp == 0)
+                {
+                    _logger.LogWarning("This is the first follow up message that will be going out, we need to use AcceptedTimestamp time but it has not been set! Ensure it is set. Using now as the timestamp");
+                    lastFollowUpMessageTimeStamp = DateTimeOffset.Now.ToUnixTimeSeconds();
+                }
+                else
+                {
+                    lastFollowUpMessageTimeStamp = prospect.AcceptedTimestamp;
+                }
             }
 
             return lastFollowUpMessageTimeStamp;
@@ -164,6 +171,7 @@ namespace Leadsly.Domain.MQ.Services
         private DateTimeOffset GetFollowUpMessageDateTime(FollowUpMessageDelay delay, long timeStamp)
         {
             DateTimeOffset nextMessageDatetime = default;
+
             switch (delay.Unit.ToUpper())
             {
                 case "MINUTES":

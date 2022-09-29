@@ -112,7 +112,7 @@ namespace Leadsly.Infrastructure.DatabaseInitializer
                         {
                             Campaign = newCampaign,
                             Content = contentA,
-                            Order = 1,
+                            Order = 0,
                             Delay = new()
                             {
                                 Unit = "mintues",
@@ -127,7 +127,7 @@ namespace Leadsly.Infrastructure.DatabaseInitializer
                         {
                             Campaign = newCampaign,
                             Content = contentB,
-                            Order = 2,
+                            Order = 1,
                             Delay = new()
                             {
                                 Unit = "days",

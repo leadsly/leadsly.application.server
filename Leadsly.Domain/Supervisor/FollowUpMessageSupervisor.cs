@@ -4,6 +4,7 @@ using Leadsly.Domain.Models.Responses;
 using Leadsly.Domain.MQ.Messages;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -41,7 +42,7 @@ namespace Leadsly.Domain.Supervisor
             IList<PublishMessageBody> followUpMessages = await _followUpMessagesMQService.CreateMQFollowUpMessagesAsync(halId, ct);
             if (followUpMessages != null)
             {
-                response.Items = followUpMessages as IList<FollowUpMessageBody>;
+                response.Items = followUpMessages.Cast<FollowUpMessageBody>().ToList();
             }
 
             return response;
