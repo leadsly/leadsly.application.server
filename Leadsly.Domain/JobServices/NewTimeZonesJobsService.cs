@@ -36,7 +36,7 @@ namespace Leadsly.Domain.JobServices
         public async Task AddRecurringJobsForNewTimeZonesAsync_AllInOneVirtualAssistant()
         {
             IList<LeadslyTimeZone> supportedTimeZones = await _timezoneRepository.GetAllSupportedTimeZonesAsync();
-            _logger.LogDebug("{0} found {1} supported time zones", nameof(AddRecurringJobsForNewTimeZonesAsync_AllInOneVirtualAssistant), supportedTimeZones.Count);
+            _logger.LogDebug("AddRecurringJobsForNewTimeZonesAsync_AllInOneVirtualAssistant found {1} supported time zones", supportedTimeZones?.Count);
 
             foreach (LeadslyTimeZone leadslyTimeZone in supportedTimeZones)
             {

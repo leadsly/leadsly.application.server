@@ -39,14 +39,26 @@ namespace Leadsly.Domain.Services
             bool result = false;
             if (string.IsNullOrEmpty(serviceName) == false && string.IsNullOrEmpty(clusterName) == false)
             {
-                Amazon.ECS.Model.DeleteServiceResponse response = await DeleteServiceAsync(new DeleteEcsServiceRequest
+                try
                 {
-                    Service = serviceName,
-                    Cluster = clusterName,
-                    Force = true
-                }, ct);
+                    DeleteServiceResponse resp = await _amazonEcsClient.DeleteServiceAsync(new DeleteServiceRequest
+                    {
+                        Cluster = clusterName,
+                        Force = true,
+                        Service = serviceName
+                    }, ct);
 
-                result = response != null;
+                    result = true;
+                }
+                catch (ServiceNotFoundException notFoundEx)
+                {
+                    _logger.LogWarning("The service {0} has not been found in ecs. Perhaps it has been already deleted", serviceName);
+                    result = true;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to delete ecs service.");
+                }
             }
 
             return result;
@@ -196,6 +208,10 @@ namespace Leadsly.Domain.Services
                     Force = deleteServiceRequest.Force,
                     Service = deleteServiceRequest.Service
                 }, ct);
+            }
+            catch (ServiceNotFoundException ex)
+            {
+                _logger.LogWarning("The service {0} has not been found in ecs. Perhaps it has been already deleted", deleteServiceRequest.Service);
             }
             catch (Exception ex)
             {

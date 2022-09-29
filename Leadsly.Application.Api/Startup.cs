@@ -32,7 +32,7 @@ namespace Leadsly.Application.Api
                     .AddJsonOptionsConfiguration();
 
             services.AddDatabaseConnectionString(Configuration, Environment)
-                    .AddConnectionProviders(Environment)
+                    .AddConnectionProviders(Environment, Configuration)
                     .AddJsonWebTokenConfiguration(Configuration)
                     .AddAuthorizationConfiguration()
                     .AddCorsConfiguration(Configuration)

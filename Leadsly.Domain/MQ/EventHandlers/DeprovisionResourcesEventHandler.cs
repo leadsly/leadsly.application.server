@@ -12,7 +12,9 @@ namespace Leadsly.Domain.MQ.EventHandlers
 {
     public class DeprovisionResourcesEventHandler : PhaseEventHandlerBase, IDeprovisionResourcesEventHandler
     {
-        public DeprovisionResourcesEventHandler(ICommandHandler<DeprovisionResourcesCommand> deprovisionResourcesHandler, ILogger<DeprovisionResourcesEventHandler> logger)
+        public DeprovisionResourcesEventHandler(
+            ICommandHandler<DeprovisionResourcesCommand> deprovisionResourcesHandler,
+            ILogger<DeprovisionResourcesEventHandler> logger)
             : base(logger)
         {
             _deprovisionResourcesHandler = deprovisionResourcesHandler;
@@ -22,7 +24,7 @@ namespace Leadsly.Domain.MQ.EventHandlers
         private readonly ILogger<DeprovisionResourcesEventHandler> _logger;
         private readonly ICommandHandler<DeprovisionResourcesCommand> _deprovisionResourcesHandler;
 
-        public async Task OnTriggerFollowUpMessageEventReceivedAsync(object sender, BasicDeliverEventArgs eventArgs)
+        public async Task OnDeprovisionResourcesEventReceivedAsync(object sender, BasicDeliverEventArgs eventArgs)
         {
             IModel channel = ((AsyncEventingBasicConsumer)sender).Model;
 
@@ -31,6 +33,7 @@ namespace Leadsly.Domain.MQ.EventHandlers
             DeprovisionResourcesBody deprovisionResourcesMessage = DeserializeMessage<DeprovisionResourcesBody>(message);
 
             DeprovisionResourcesCommand deprovisionResourcesCommand = new DeprovisionResourcesCommand(channel, eventArgs, deprovisionResourcesMessage);
+
             await _deprovisionResourcesHandler.HandleAsync(deprovisionResourcesCommand);
         }
 

@@ -14,31 +14,34 @@ namespace Leadsly.Domain.Providers
     {
         public DeprovisionResourcesProvider(
             ILogger<DeprovisionResourcesProvider> logger,
-            IDeprovisionResourcesService deprovisionService,
-            IVirtualAssistantRepository virtualAssistantRepository,
-            IVirtualAssistantRepository repository
+            IDeprovisionResourcesRepository repository,
+            IDeprovisionResourcesService deprovisionService
             )
         {
-            _repository = repository;
             _logger = logger;
-            _virtualAssistantRepository = virtualAssistantRepository;
+            _repository = repository;
             _deprovisionService = deprovisionService;
         }
 
-        private readonly IVirtualAssistantRepository _repository;
         private readonly ILogger<DeprovisionResourcesProvider> _logger;
-        private readonly IVirtualAssistantRepository _virtualAssistantRepository;
+        private readonly IDeprovisionResourcesRepository _repository;
         private readonly IDeprovisionResourcesService _deprovisionService;
 
         public async Task DeprovisionResourcesAsync(string halId, CancellationToken ct = default)
         {
             _logger.LogDebug("Deprovisioning resources for HalId {halId}", halId);
 
-            VirtualAssistant virtualAssistant = await _repository.GetByHalIdAsync(halId, ct);
+            VirtualAssistant virtualAssistant = await _repository.GetVirtualAssistantByHalIdAsync(halId, ct);
 
             await RemoveResourcesAsync(halId, virtualAssistant, EcsResourcePurpose.Grid);
 
             await RemoveResourcesAsync(halId, virtualAssistant, EcsResourcePurpose.Hal);
+
+            virtualAssistant.Provisioned = false;
+            if (await _repository.UpdateVirtualAssistantAsync(virtualAssistant) == null)
+            {
+                _logger.LogError("Failed to update {0} Deprovisioned property to true", nameof(VirtualAssistant));
+            }
         }
 
         private async Task RemoveResourcesAsync(string halId, VirtualAssistant virtualAssistant, EcsResourcePurpose purpose, CancellationToken ct = default)
@@ -54,12 +57,6 @@ namespace Leadsly.Domain.Providers
             if (await _deprovisionService.DeleteEcsServiceAsync(ecsServiceToRemove, ct) == false)
             {
                 _logger.LogError("Failed to successfully de-provision ECS service. Prupose {0}. HalId {1}", purpose, halId);
-            }
-
-            virtualAssistant.Provisioned = false;
-            if (await _virtualAssistantRepository.UpdateAsync(virtualAssistant) == null)
-            {
-                _logger.LogError("Failed to update {0} Deprovisioned property to true", nameof(VirtualAssistant));
             }
         }
     }

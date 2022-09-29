@@ -10,16 +10,14 @@ namespace Leadsly.Domain.Services
     {
         public DeprovisionResourcesService(
             ILogger<DeprovisionResourcesService> logger,
-            IAwsElasticContainerService awsElasticContainerService,
-            IAwsServiceDiscoveryService awsServiceDiscoveryService)
+            IAwsElasticContainerService awsElasticContainerService
+            )
         {
             _awsElasticContainerService = awsElasticContainerService;
-            _awsServiceDiscoveryService = awsServiceDiscoveryService;
             _logger = logger;
         }
 
         private readonly IAwsElasticContainerService _awsElasticContainerService;
-        private readonly IAwsServiceDiscoveryService _awsServiceDiscoveryService;
         private readonly ILogger<DeprovisionResourcesService> _logger;
 
         public async Task<bool> DeleteEcsServiceAsync(EcsService serviceToRemove, CancellationToken ct = default)

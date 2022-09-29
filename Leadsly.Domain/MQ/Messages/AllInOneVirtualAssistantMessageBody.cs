@@ -8,8 +8,8 @@ namespace Leadsly.Domain.MQ.Messages
         //[DataMember(IsRequired = false)]
         //public DeepScanProspectsForRepliesBody DeepScanProspectsForReplies { get; set; }
 
-        [DataMember(IsRequired = false)]
-        public CheckOffHoursNewConnectionsBody CheckOffHoursNewConnections { get; set; }
+        //[DataMember(IsRequired = false)]
+        //public CheckOffHoursNewConnectionsBody CheckOffHoursNewConnections { get; set; }
 
     }
 }

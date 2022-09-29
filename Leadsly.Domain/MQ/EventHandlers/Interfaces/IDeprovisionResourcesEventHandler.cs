@@ -5,6 +5,6 @@ namespace Leadsly.Domain.MQ.EventHandlers.Interfaces
 {
     public interface IDeprovisionResourcesEventHandler
     {
-        public Task OnTriggerFollowUpMessageEventReceivedAsync(object sender, BasicDeliverEventArgs eventArgs);
+        public Task OnDeprovisionResourcesEventReceivedAsync(object sender, BasicDeliverEventArgs eventArgs);
     }
 }

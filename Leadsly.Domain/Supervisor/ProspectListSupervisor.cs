@@ -55,8 +55,16 @@ namespace Leadsly.Domain.Supervisor
                 }
             }
 
-            prospects = await _campaignRepositoryFacade.CreateAllPrimaryProspectsAsync(prospects, ct);
-            campaignProspects = await _campaignRepositoryFacade.CreateAllCampaignProspectsAsync(campaignProspects, ct);
+            if (prospects.Count > 0)
+            {
+                prospects = await _campaignRepositoryFacade.CreateAllPrimaryProspectsAsync(prospects, ct);
+            }
+
+            if (campaignProspects.Count > 0)
+            {
+                campaignProspects = await _campaignRepositoryFacade.CreateAllCampaignProspectsAsync(campaignProspects, ct);
+            }
+
             if (prospects == null || campaignProspects == null)
             {
                 _logger.LogError("Failed to successfully process new Primary and Campaign prospects. Failed persisting them to the database");

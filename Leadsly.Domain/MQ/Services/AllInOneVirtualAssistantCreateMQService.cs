@@ -41,21 +41,21 @@ namespace Leadsly.Domain.MQ.Services
             return mqMessage;
         }
 
-        public async Task SetCheckOffHoursNewConnectionsProperties(string halId, bool initial, PublishMessageBody mqMessage, CancellationToken ct = default)
-        {
-            if (initial == true)
-            {
-                CheckOffHoursNewConnectionsBody message = await _facade.CreateCheckOffHoursNewConnectionsMQMessageAsync(halId, ct) as CheckOffHoursNewConnectionsBody;
-                if (message == null)
-                {
-                    _logger.LogWarning("{0} will not be executed witht his {1} phase", nameof(CheckOffHoursNewConnectionsBody), nameof(AllInOneVirtualAssistantMessageBody));
-                }
-                else
-                {
-                    ((AllInOneVirtualAssistantMessageBody)mqMessage).CheckOffHoursNewConnections = message;
-                }
-            }
-        }
+        //public async Task SetCheckOffHoursNewConnectionsProperties(string halId, bool initial, PublishMessageBody mqMessage, CancellationToken ct = default)
+        //{
+        //    if (initial == true)
+        //    {
+        //        CheckOffHoursNewConnectionsBody message = await _facade.CreateCheckOffHoursNewConnectionsMQMessageAsync(halId, ct) as CheckOffHoursNewConnectionsBody;
+        //        if (message == null)
+        //        {
+        //            _logger.LogWarning("{0} will not be executed witht his {1} phase", nameof(CheckOffHoursNewConnectionsBody), nameof(AllInOneVirtualAssistantMessageBody));
+        //        }
+        //        else
+        //        {
+        //            ((AllInOneVirtualAssistantMessageBody)mqMessage).CheckOffHoursNewConnections = message;
+        //        }
+        //    }
+        //}
 
         //public async Task SetDeepScanProspectsForRepliesProperties(string halId, bool initial, PublishMessageBody mqMessage, CancellationToken ct = default)
         //{

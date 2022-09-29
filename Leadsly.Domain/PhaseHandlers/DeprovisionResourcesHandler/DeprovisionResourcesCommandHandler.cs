@@ -26,6 +26,7 @@ namespace Leadsly.Domain.PhaseHandlers.DeprovisionResourcesHandler
             BasicDeliverEventArgs args = command.EventArgs;
 
             DeprovisionResourcesBody message = command.Message;
+
             await _provider.DeprovisionResourcesAsync(message.HalId);
 
             _logger.LogInformation($"Positively acknowledging {nameof(DeprovisionResourcesBody)}");

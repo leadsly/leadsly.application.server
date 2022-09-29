@@ -100,6 +100,7 @@ namespace Leadsly.Domain.Supervisor
             {
                 if (date > startDate && date < endDate)
                 {
+                    // also make sure that if the date is in the past we don't publish anything                    
                     _hangfireService.Schedule<IAllInOneVirtualAssistantJobService>((x) => x.PublishAllInOneVirtualAssistantPhaseAsync(halId, false), date);
                 }
             }

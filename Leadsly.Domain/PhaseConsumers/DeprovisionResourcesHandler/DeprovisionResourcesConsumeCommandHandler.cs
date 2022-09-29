@@ -8,20 +8,23 @@ namespace Leadsly.Domain.PhaseConsumers.DeprovisionResourcesHandler
 {
     public class DeprovisionResourcesConsumeCommandHandler : IConsumeCommandHandler<DeprovisionResourcesConsumeCommand>
     {
-        public DeprovisionResourcesConsumeCommandHandler(IRabbitMQManager rabbitMQManager, IDeprovisionResourcesEventHandler eventHandlerService)
+        public DeprovisionResourcesConsumeCommandHandler(
+            IDeprovisionResourcesEventHandler eventHandlerService,
+            IRabbitMQManager rabbitMQManager)
         {
-            _rabbitMQManager = rabbitMQManager;
             _eventHandlerService = eventHandlerService;
+            _rabbitMQManager = rabbitMQManager;
         }
 
         private readonly IDeprovisionResourcesEventHandler _eventHandlerService;
         private readonly IRabbitMQManager _rabbitMQManager;
+
         public Task ConsumeAsync(DeprovisionResourcesConsumeCommand command)
         {
             string queueNameIn = RabbitMQConstants.DeprovisionResources.QueueName;
             string routingKeyIn = RabbitMQConstants.DeprovisionResources.RoutingKey;
 
-            AsyncEventHandler<BasicDeliverEventArgs> onEventFiredHandlerAsync = _eventHandlerService.OnTriggerFollowUpMessageEventReceivedAsync;
+            AsyncEventHandler<BasicDeliverEventArgs> onEventFiredHandlerAsync = _eventHandlerService.OnDeprovisionResourcesEventReceivedAsync;
 
             _rabbitMQManager.StartConsuming(queueNameIn, routingKeyIn, onEventFiredHandlerAsync);
 

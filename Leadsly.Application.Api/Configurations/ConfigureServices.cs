@@ -58,6 +58,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -74,12 +75,13 @@ namespace Leadsly.Application.Api.Configurations
 {
     public static class ConfigureServices
     {
-        public static IServiceCollection AddConnectionProviders(this IServiceCollection services, IWebHostEnvironment env)
+        public static IServiceCollection AddConnectionProviders(this IServiceCollection services, IWebHostEnvironment env, IConfiguration configuration)
         {
             Log.Information("Configuring default connection string and database context.");
 
             IServiceProvider serviceProvider = services.BuildServiceProvider();
             IDbInfo dbInfo = serviceProvider.GetRequiredService<IDbInfo>();
+            ILogger<DatabaseContext> logger = serviceProvider.GetRequiredService<ILogger<DatabaseContext>>();
 
             services.AddDbContext<DatabaseContext>(options =>
             {
@@ -91,6 +93,19 @@ namespace Leadsly.Application.Api.Configurations
                     options.EnableDetailedErrors(env.IsDevelopment());
                 }
             }, ServiceLifetime.Scoped);
+
+            services.AddSingleton<Func<DatabaseContext>>(() =>
+            {
+                var optionsBuilder = new DbContextOptionsBuilder<DatabaseContext>();
+                optionsBuilder.UseNpgsql(dbInfo.ConnectionString);
+                if (env.IsDevelopment())
+                {
+                    Log.Information("Enabling SQL sensitive data logging.");
+                    optionsBuilder.EnableSensitiveDataLogging(env.IsDevelopment());
+                    optionsBuilder.EnableDetailedErrors(env.IsDevelopment());
+                }
+                return new DatabaseContext(optionsBuilder.Options, logger);
+            });
 
             return services;
         }
@@ -269,6 +284,8 @@ namespace Leadsly.Application.Api.Configurations
             services.AddScoped<ISendConnectionsPhaseRepository, SendConnectionsPhaseRepository>();
             services.AddScoped<IVirtualAssistantRepository, VirtualAssistantRepository>();
             services.AddScoped<IRecentlyAddedProspectRepository, RecentlyAddedProspectRepository>();
+            // services.AddSingleton<IDeprovisionResourcesRepository, DeprovisionResourcesRepository>();
+            services.AddScoped<IDeprovisionResourcesRepository, DeprovisionResourcesRepository>();
 
             return services;
         }
@@ -315,7 +332,11 @@ namespace Leadsly.Application.Api.Configurations
                 AmazonECSClient client = new AmazonECSClient(config);
                 return client;
             });
-            services.AddScoped(typeof(AmazonECSClient));
+            services.AddSingleton(typeof(AmazonECSClient));
+            //services.AddSingleton<Func<AmazonECSClient>>(() =>
+            //{
+            //    return new AmazonECSClient();
+            //});
             services.AddScoped(typeof(AmazonServiceDiscoveryClient));
             services.AddScoped(typeof(AmazonRoute53Client));
 
