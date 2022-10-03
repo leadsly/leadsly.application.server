@@ -1,8 +1,10 @@
 ﻿using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.MQ.Services.Interfaces;
+using Leadsly.Domain.OptionsJsonModels;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,14 +18,17 @@ namespace Leadsly.Domain.MQ.Services
         public FollowUpMessageCreateMQService(
             ILogger<FollowUpMessageCreateMQService> logger,
             ICampaignProspectRepository repository,
+            IOptions<FeatureFlagsOptions> options,
             ITimestampService timestampService
             )
         {
+            _featureFlagsOptions = options.Value;
             _repository = repository;
             _logger = logger;
             _timestampService = timestampService;
         }
 
+        private readonly FeatureFlagsOptions _featureFlagsOptions;
         private readonly ICampaignProspectRepository _repository;
         private readonly ILogger<FollowUpMessageCreateMQService> _logger;
         private readonly ITimestampService _timestampService;
@@ -97,8 +102,8 @@ namespace Leadsly.Domain.MQ.Services
                 return null;
             }
 
-            DateTimeOffset lastMessageDeliveryDate = GetFollowUpMessageDateTime(message.Delay, (long)lastFollowUpMessageTimeStamp);
-            DateTimeOffset messageDeliveryDate = await _timestampService.GetLocalizedDateTimeOffsetAsync(halId, lastMessageDeliveryDate, ct);
+            DateTimeOffset nextMessageDeliveryDateTime = GetFollowUpMessageDateTime(message.Delay, (long)lastFollowUpMessageTimeStamp);
+            DateTimeOffset messageDeliveryDate = await _timestampService.GetLocalizedDateTimeOffsetAsync(halId, nextMessageDeliveryDateTime, ct);
             DateTimeOffset startWorkdayDate = await _timestampService.GetStartWorkdayLocalizedForHalIdAsync(halId, ct);
             DateTimeOffset endWorkdayDate = await _timestampService.GetEndWorkDayLocalizedForHalIdAsync(halId, ct);
 
@@ -107,12 +112,34 @@ namespace Leadsly.Domain.MQ.Services
                 _logger.LogDebug("FollowUpMessage can be sent today and will be scheduled rightaway. Localized time when message is supposed to go out {0} and start of work day {1}.", messageDeliveryDate, startWorkdayDate);
                 prospectFollowUpMessage.ExpectedDeliveryDateTime = messageDeliveryDate;
                 prospectFollowUpMessage.ExpectedDeliveryDateTimeStamp = messageDeliveryDate.ToUnixTimeSeconds();
+                await _repository.UpdateAsync(prospect);
             }
             else if (messageDeliveryDate > startWorkdayDate && messageDeliveryDate < endWorkdayDate)
             {
-                _logger.LogDebug("FollowUpMessage will be sent out today. It is scheduled to go out at {0}", messageDeliveryDate);
-                prospectFollowUpMessage.ExpectedDeliveryDateTime = messageDeliveryDate;
-                prospectFollowUpMessage.ExpectedDeliveryDateTimeStamp = messageDeliveryDate.ToUnixTimeSeconds();
+                if (_featureFlagsOptions.AllInOneVirtualAssistant == true)
+                {
+                    // check if messageDeliveryDate is in the past or in the future
+                    // if it is in the past set properties on it, else set  prospectFollowUpMessage to null
+                    DateTimeOffset now = await _timestampService.GetNowLocalizedAsync(halId, ct);
+                    // messageDeliveryDate is in the past
+                    if (messageDeliveryDate < now)
+                    {
+                        prospectFollowUpMessage.ExpectedDeliveryDateTime = messageDeliveryDate;
+                        prospectFollowUpMessage.ExpectedDeliveryDateTimeStamp = messageDeliveryDate.ToUnixTimeSeconds();
+                        await _repository.UpdateAsync(prospect);
+                    }
+                    else
+                    {
+                        prospectFollowUpMessage = null;
+                    }
+                }
+                else
+                {
+                    _logger.LogDebug("FollowUpMessage will be sent out today. It is scheduled to go out at {0}", messageDeliveryDate);
+                    prospectFollowUpMessage.ExpectedDeliveryDateTime = messageDeliveryDate;
+                    prospectFollowUpMessage.ExpectedDeliveryDateTimeStamp = messageDeliveryDate.ToUnixTimeSeconds();
+                    await _repository.UpdateAsync(prospect);
+                }
             }
             else
             {

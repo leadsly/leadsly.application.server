@@ -190,6 +190,7 @@ namespace Leadsly.Infrastructure.Repositories
             {
                 campaignProspect = await _dbContext.CampaignProspects
                     .Where(c => c.CampaignProspectId == campaignProspectId)
+                    .Include(c => c.FollowUpMessages)
                     .SingleAsync(ct);
 
                 _logger.LogDebug("Successfully retrieved CampaignProspect by id {campaignProspectId}", campaignProspectId);

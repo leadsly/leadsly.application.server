@@ -295,6 +295,7 @@ namespace Leadsly.Application.Api.Configurations
             Log.Information("Registering hangfire services.");
 
             GlobalJobFilters.Filters.Add(new AutomaticRetryAttribute { Attempts = 0 });
+            // GlobalJobFilters.Filters.Add(new DisableMultipleQueuedItemsFilter());
 
             IServiceProvider serviceProvider = services.BuildServiceProvider();
             IDbInfo dbInfo = serviceProvider.GetRequiredService<IDbInfo>();

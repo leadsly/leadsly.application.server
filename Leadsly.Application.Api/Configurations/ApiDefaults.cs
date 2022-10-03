@@ -12,7 +12,7 @@ namespace Leadsly.Application.Api.Configurations
             options.Filters.Clear();
 
             options.Filters.Add<GlobalControllerExceptionAttribute>();
-            options.Filters.Add<InvalidModelStateFilter>(FilterOrders.RequestValidationFilter);            
+            options.Filters.Add<InvalidModelStateFilter>(FilterOrders.RequestValidationFilter);
             options.Filters.Add(new ProducesAttribute("application/json"));
 
             AuthorizationPolicy defaultPolicy = new AuthorizationOptions().DefaultPolicy;

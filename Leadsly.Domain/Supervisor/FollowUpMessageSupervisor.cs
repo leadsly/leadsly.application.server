@@ -22,6 +22,9 @@ namespace Leadsly.Domain.Supervisor
                 return false;
             }
 
+            CampaignProspectFollowUpMessage followUp = campaignProspect.FollowUpMessages.FirstOrDefault(x => x.Order == request.Item.MessageOrderNum);
+
+            followUp.ActualDeliveryDateTimeStamp = request.Item.ActualDeliveryDateTimeStamp;
             campaignProspect.FollowUpMessageSent = true;
             campaignProspect.LastFollowUpMessageSentTimestamp = request.Item.ActualDeliveryDateTimeStamp;
             campaignProspect.SentFollowUpMessageOrderNum = request.Item.MessageOrderNum;
