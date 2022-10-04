@@ -149,15 +149,15 @@ namespace Leadsly.Domain.MQ.Services
             return prospectFollowUpMessage;
         }
 
-        private CampaignProspectFollowUpMessage GetPreviousFollowUpMessage(IList<CampaignProspectFollowUpMessage> followUpMessages, int currentOrder)
+        private CampaignProspectFollowUpMessage GetPreviousFollowUpMessage(IList<CampaignProspectFollowUpMessage> followUpMessages, int? currentOrder)
         {
             CampaignProspectFollowUpMessage previousFollowUpMessage = default;
+            followUpMessages = followUpMessages.OrderBy(x => x.Order).ToList();
             if (followUpMessages != null && followUpMessages.Count > 1)
             {
-                if (currentOrder != 0)
+                if (currentOrder != null && currentOrder != 0)
                 {
-
-                    previousFollowUpMessage = followUpMessages[currentOrder - 1];
+                    previousFollowUpMessage = followUpMessages[(int)currentOrder - 1];
                 }
             }
 
@@ -224,7 +224,8 @@ namespace Leadsly.Domain.MQ.Services
 
             if (prospect.FollowUpMessageSent == true)
             {
-                int previouslySentFollowUpMessageNum = prospect.SentFollowUpMessageOrderNum;
+                int? previouslySentFollowUpMessageNum = prospect.SentFollowUpMessageOrderNum;
+
                 nextMessages = followUpMessages.Where(x => x.Order > previouslySentFollowUpMessageNum).OrderBy(x => x.Order).Select(x => x.Order).ToList();
             }
             else

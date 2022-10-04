@@ -98,10 +98,6 @@ namespace Leadsly.Domain.MQ.Services
                 return mqMessage;
             }
 
-            // await _createMQService.SetDeepScanProspectsForRepliesProperties(halId, initial, mqMessage, ct);
-
-            // await _createMQService.SetCheckOffHoursNewConnectionsProperties(halId, initial, mqMessage, ct);
-
             return mqMessage;
         }
 

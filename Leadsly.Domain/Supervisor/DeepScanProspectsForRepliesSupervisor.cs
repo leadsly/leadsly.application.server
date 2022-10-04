@@ -50,16 +50,22 @@ namespace Leadsly.Domain.Supervisor
             IList<NetworkProspectResponse> networkProspects = new List<NetworkProspectResponse>();
             foreach (CampaignProspect campaignProspect in campaignProspects)
             {
-                int lastFollowUpMessageOrder = campaignProspect.SentFollowUpMessageOrderNum;
-                CampaignProspectFollowUpMessage lastFollowUpMessage = campaignProspect.FollowUpMessages.Where(x => x.Order == lastFollowUpMessageOrder).FirstOrDefault();
+                CampaignProspectFollowUpMessage lastFollowUpMessage = default;
+
+                if (campaignProspect.SentFollowUpMessageOrderNum != null)
+                {
+                    lastFollowUpMessage = campaignProspect.FollowUpMessages.Where(x => x.Order == campaignProspect.SentFollowUpMessageOrderNum).FirstOrDefault();
+                }
+
                 if (lastFollowUpMessage == null)
                 {
                     string campaignProspectId = campaignProspect.CampaignProspectId;
-                    int orderNum = campaignProspect.SentFollowUpMessageOrderNum;
+                    int orderNum = (int)campaignProspect.SentFollowUpMessageOrderNum;
                     _logger.LogWarning("Could not determine user's last sent follow up message. CampaignProspectId: {campaignProspectId}\r\n FollowUpMessageOrder: {orderNum}", campaignProspectId, orderNum);
                 }
                 else
                 {
+                    int lastFollowUpMessageOrder = (int)lastFollowUpMessage.Order;
                     string prospectName = campaignProspect.Name;
                     _logger.LogDebug("CampaignProspect {prospectName} had a follow up message sent. The follow up message that was sent had the order number of {lastFollowUpMessageOrder}", prospectName, lastFollowUpMessageOrder);
                     NetworkProspectResponse networkProspect = new()

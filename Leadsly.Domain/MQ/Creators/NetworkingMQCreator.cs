@@ -5,7 +5,6 @@ using Leadsly.Domain.MQ.Messages;
 using Leadsly.Domain.MQ.Services.Interfaces;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -82,18 +81,12 @@ namespace Leadsly.Domain.MQ.Creators
 
             if (nowLocalized.TimeOfDay < phaseStartDateTimeOffset.TimeOfDay)
             {
+                _logger.LogInformation($"[Networking] This phase will be scheduled to start at {phaseStartDateTimeOffset}. Current local time is: {nowLocalized}. HalId {halId}");
+                _hangfireService.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(message, queueNameIn, phaseStartDateTimeOffset.ToString(), routingKeyIn, halId, null), phaseStartDateTimeOffset);
+            }
+            else
+            {
                 _logger.LogInformation($"[Networking] This phase will not be triggered today because it is in the past {phaseStartDateTimeOffset}. Current local time is: {nowLocalized}. HalId {halId}");
-                if (_env.IsDevelopment())
-                {
-                    // temporary to schedule jobs right away                
-                    _logger.LogTrace("Development env detected. Executing phase immediately");
-                    _messageBrokerOutlet.PublishPhase(message, queueNameIn, routingKeyIn, halId, null);
-                }
-                else
-                {
-                    _logger.LogInformation($"[Networking] This phase will be scheduled to start at {phaseStartDateTimeOffset}. Current local time is: {nowLocalized}. HalId {halId}");
-                    _hangfireService.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(message, queueNameIn, routingKeyIn, halId, null), phaseStartDateTimeOffset);
-                }
             }
         }
     }

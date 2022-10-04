@@ -5,6 +5,7 @@ using Leadsly.Domain.MQ.Messages;
 using Leadsly.Domain.MQ.Services.Interfaces;
 using Leadsly.Domain.Repositories;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -74,7 +75,7 @@ namespace Leadsly.Domain.MQ.Creators
             Dictionary<string, object> headers = new Dictionary<string, object>();
             headers.Add(RabbitMQConstants.ScanProspectsForReplies.ExecutionType, RabbitMQConstants.ScanProspectsForReplies.ExecuteDeepScan);
 
-            _messageBrokerOutlet.PublishPhase(message, queueNameIn, routingKeyIn, halId, headers);
+            _messageBrokerOutlet.PublishPhase(message, queueNameIn, Guid.NewGuid().ToString(), routingKeyIn, halId, headers);
         }
     }
 }

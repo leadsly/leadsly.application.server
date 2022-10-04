@@ -4,6 +4,7 @@ using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
@@ -20,9 +21,11 @@ namespace Leadsly.Domain.JobServices
             IHalRepository halRepository,
             IWebHostEnvironment env,
             IHangfireService hangfireService,
-            IMemoryCache memoryCache
+            IMemoryCache memoryCache,
+            IServiceProvider serviceProvider
             )
         {
+            _serviceProvider = serviceProvider;
             _env = env;
             _hangfireService = hangfireService;
             _memoryCache = memoryCache;
@@ -31,6 +34,7 @@ namespace Leadsly.Domain.JobServices
             _halRepository = halRepository;
         }
 
+        private readonly IServiceProvider _serviceProvider;
         private readonly IWebHostEnvironment _env;
         private readonly IHangfireService _hangfireService;
         private readonly IMemoryCache _memoryCache;
@@ -46,6 +50,8 @@ namespace Leadsly.Domain.JobServices
         {
             // get all hal ids for this time zone
             _logger.LogInformation("Executing daily cron job for time zone {timeZoneId}", timezoneId);
+
+            await RunMarkProspectsAsCompleteAsyncDailyJobAsync(timezoneId);
 
             IList<HalUnit> halsInTimezone = await GetHalUnitsByTimezoneIdAsync(timezoneId);
 
@@ -64,7 +70,6 @@ namespace Leadsly.Domain.JobServices
                     DateTimeOffset endDate = _timestampService.ParseDateTimeOffsetLocalized(halUnit.TimeZoneId, halUnit.EndHour);
                     _logger.LogInformation($"Hal unit with id {halId}, has a start date of {startDate}");
 
-
                     // this should be manually queried manually each time. Assuming the following configuration:
                     // 1. Two follow up messages to go out 10 mins after connection and 5 hours after first follow up
                     // IF:
@@ -77,8 +82,8 @@ namespace Leadsly.Domain.JobServices
                     _logger.LogDebug("Enqueuing PublishNetworkingPhaseAsync for halId {halId}. This will be enqueued right now", halId);
                     _hangfireService.Enqueue<INetworkingJobsService>((x) => x.PublishNetworkingMQMessagesAsync(halId));
 
-                    // schedule AllInOneVirtualAssistant job at the top of every hour
-                    ScheduleAllInOneVirtualAssistantPhases(halId, startDate, endDate);
+                    // schedule AllInOneVirtualAssistant job at the top of every hour                    
+                    await ScheduleAllInOneVirtualAssistantPhasesAsync(halId, startDate, endDate);
                 }
             }
             else
@@ -87,12 +92,27 @@ namespace Leadsly.Domain.JobServices
             }
         }
 
-        private void ScheduleAllInOneVirtualAssistantPhases(string halId, DateTimeOffset startDate, DateTimeOffset endDate)
+        private async Task ScheduleAllInOneVirtualAssistantPhasesAsync(string halId, DateTimeOffset startDate, DateTimeOffset endDate)
         {
+            DateTimeOffset now = await _timestampService.GetNowLocalizedAsync(halId);
+            if (now > startDate)
+            {
+                if (now.Minute > 30)
+                {
+                    startDate = now.AddHours(1).AddMinutes(-now.Minute).AddSeconds(-now.Second);
+                }
+                else
+                {
+                    startDate = now.AddMinutes(-now.Minute).AddSeconds(-now.Second);
+                }
+            }
+
+            // just to include the last hour
+            endDate = endDate.AddHours(1);
             bool initial = true;
             for (DateTimeOffset date = startDate; date <= endDate; date = date.AddHours(1))
             {
-                _hangfireService.Schedule<IAllInOneVirtualAssistantJobService>((x) => x.PublishAllInOneVirtualAssistantPhaseAsync(halId, initial), date);
+                _hangfireService.Schedule<IAllInOneVirtualAssistantJobService>((x) => x.PublishAllInOneVirtualAssistantPhaseAsync(halId, initial, date.ToString()), date);
                 initial = false;
             }
         }
@@ -110,29 +130,36 @@ namespace Leadsly.Domain.JobServices
                 int hals = halsInTimezone.Count;
                 _logger.LogDebug("Time zone {timeZoneId}, has {hals} hal units.", timezoneId, hals);
 
-                foreach (HalUnit halUnit in halsInTimezone)
+                using (var scope = _serviceProvider.CreateScope())
                 {
-                    // Grab this Hal's start time and schedule the job shortly after the start time                    
-                    string halId = halUnit.HalId;
-                    _logger.LogInformation("Hal unit with id {halId} was found", halId);
-                    DateTimeOffset startDate = _timestampService.ParseDateTimeOffsetLocalized(halUnit.TimeZoneId, halUnit.StartHour);
-                    _logger.LogInformation($"Hal unit with id {halId}, has a start date of {startDate}");
+                    INetworkingJobsService networkingJobService = scope.ServiceProvider.GetRequiredService<INetworkingJobsService>();
 
-                    DateTimeOffset checkOffHoursNewConnectionsStartDate = startDate;
-                    _logger.LogDebug("Scheduling PublishCheckOffHoursNewConnectionsAsync for halId {halId}. Start time for this phase is {checkOffHoursNewConnectionsStartDate}", halId, checkOffHoursNewConnectionsStartDate);
-                    ExecuteCheckOffHoursNewConnections(halId, checkOffHoursNewConnectionsStartDate);
+                    foreach (HalUnit halUnit in halsInTimezone)
+                    {
+                        // Grab this Hal's start time and schedule the job shortly after the start time                    
+                        string halId = halUnit.HalId;
+                        _logger.LogInformation("Hal unit with id {halId} was found", halId);
+                        DateTimeOffset startDate = _timestampService.ParseDateTimeOffsetLocalized(halUnit.TimeZoneId, halUnit.StartHour);
+                        _logger.LogInformation($"Hal unit with id {halId}, has a start date of {startDate}");
 
-                    DateTimeOffset prospectPhaseStartDate = startDate;
-                    _logger.LogDebug("Scheduling PublishProspectingPhaseAsync for halId {halId}. Start time for this phase is {prospectPhaseStartDate}", halId, prospectPhaseStartDate);
-                    ExecuteProspectingPhase(halId, prospectPhaseStartDate);
+                        DateTimeOffset checkOffHoursNewConnectionsStartDate = startDate;
+                        _logger.LogDebug("Scheduling PublishCheckOffHoursNewConnectionsAsync for halId {halId}. Start time for this phase is {checkOffHoursNewConnectionsStartDate}", halId, checkOffHoursNewConnectionsStartDate);
+                        ExecuteCheckOffHoursNewConnections(halId, checkOffHoursNewConnectionsStartDate);
 
-                    DateTimeOffset monitorForNewConnectionsStartDate = startDate;
-                    _logger.LogDebug("Scheduling PublishMonitorForNewConnectionsAsync for halId {halId}. Start time for this phase is {monitorForNewConnectionsStartDate}", halId, monitorForNewConnectionsStartDate);
-                    ExecuteMonitorForNewConnections(halId, monitorForNewConnectionsStartDate);
+                        DateTimeOffset prospectPhaseStartDate = startDate;
+                        _logger.LogDebug("Scheduling PublishProspectingPhaseAsync for halId {halId}. Start time for this phase is {prospectPhaseStartDate}", halId, prospectPhaseStartDate);
+                        ExecuteProspectingPhase(halId, prospectPhaseStartDate);
 
-                    // this doesn't actually trigger anything when it executes, it just schedules the next jobs to execute.
-                    _logger.LogDebug("Enqueuing PublishNetworkingPhaseAsync for halId {halId}. This will be enqueued right now", halId);
-                    _hangfireService.Enqueue<INetworkingJobsService>((x) => x.PublishNetworkingMQMessagesAsync(halId));
+                        DateTimeOffset monitorForNewConnectionsStartDate = startDate;
+                        _logger.LogDebug("Scheduling PublishMonitorForNewConnectionsAsync for halId {halId}. Start time for this phase is {monitorForNewConnectionsStartDate}", halId, monitorForNewConnectionsStartDate);
+                        ExecuteMonitorForNewConnections(halId, monitorForNewConnectionsStartDate);
+
+                        // this doesn't actually trigger anything when it executes, it just schedules the next jobs to execute.
+
+                        _logger.LogDebug("Enqueuing PublishNetworkingPhaseAsync for halId {halId}. This will be enqueued right now", halId);
+                        // _hangfireService.Enqueue<INetworkingJobsService>((x) => x.PublishNetworkingMQMessagesAsync(halId));
+                        await networkingJobService.PublishNetworkingMQMessagesAsync(halId);
+                    }
                 }
             }
             else
@@ -151,13 +178,19 @@ namespace Leadsly.Domain.JobServices
                 int hals = halsInTimezone.Count;
                 _logger.LogDebug("Time zone {timeZoneId}, has {hals} hal units.", timezoneId, hals);
 
-                foreach (HalUnit halUnit in halsInTimezone)
+                using (var scope = _serviceProvider.CreateScope())
                 {
-                    string halId = halUnit.HalId;
-                    _logger.LogInformation("Hal unit with id {halId} was found", halId);
+                    IPreventFollowUpMessageService preventFollowUpMessagesService = scope.ServiceProvider.GetRequiredService<IPreventFollowUpMessageService>();
 
-                    _logger.LogDebug("Enqueing PreventFollowUpMessageService for halId {halId}", halId);
-                    _hangfireService.Enqueue<IPreventFollowUpMessageService>((x) => x.MarkProspectsAsCompleteAsync(halId));
+                    foreach (HalUnit halUnit in halsInTimezone)
+                    {
+                        string halId = halUnit.HalId;
+                        _logger.LogInformation("Hal unit with id {halId} was found", halId);
+
+                        _logger.LogDebug("Enqueing PreventFollowUpMessageService for halId {halId}", halId);
+                        // _hangfireService.Enqueue<IPreventFollowUpMessageService>((x) => x.MarkProspectsAsCompleteAsync(halId));
+                        await preventFollowUpMessagesService.MarkProspectsAsCompleteAsync(halId);
+                    }
                 }
             }
             else

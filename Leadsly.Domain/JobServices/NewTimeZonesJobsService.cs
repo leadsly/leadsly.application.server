@@ -6,6 +6,7 @@ using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
@@ -20,14 +21,17 @@ namespace Leadsly.Domain.JobServices
             ILogger<NewTimeZonesJobsService> logger,
             ITimeZoneRepository timezoneRepository,
             IHangfireService hangfireService,
+            IServiceProvider serviceProvider,
             IWebHostEnvironment env)
         {
+            _serviceProvider = serviceProvider;
             _env = env;
             _logger = logger;
             _hangfireService = hangfireService;
             _timezoneRepository = timezoneRepository;
         }
 
+        private readonly IServiceProvider _serviceProvider;
         private readonly IWebHostEnvironment _env;
         private readonly ILogger<NewTimeZonesJobsService> _logger;
         private readonly IHangfireService _hangfireService;
@@ -45,7 +49,11 @@ namespace Leadsly.Domain.JobServices
 
                 if (_env.IsDevelopment())
                 {
-                    _hangfireService.Enqueue<ICampaignJobsService>(x => x.ExecuteDailyJobsAsync_AllInOneVirtualAssistant(timeZoneId));
+                    using (var scope = _serviceProvider.CreateScope())
+                    {
+                        ICampaignJobsService campaignJobsService = scope.ServiceProvider.GetRequiredService<ICampaignJobsService>();
+                        await campaignJobsService.ExecuteDailyJobsAsync_AllInOneVirtualAssistant(timeZoneId);
+                    }
                 }
                 else
                 {

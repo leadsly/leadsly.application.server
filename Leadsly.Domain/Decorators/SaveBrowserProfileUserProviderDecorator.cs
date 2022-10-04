@@ -4,6 +4,7 @@ using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.MQ.Messages;
 using Leadsly.Domain.Providers.Interfaces;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,7 +41,7 @@ namespace Leadsly.Domain.Decorators
                 string queueNameIn = RabbitMQConstants.PersistBrowserProfile.QueueName;
                 string routingKeyIn = RabbitMQConstants.PersistBrowserProfile.RoutingKey;
 
-                _messageBrokerOutlet.PublishPhase(mqMessage, queueNameIn, routingKeyIn, halId, null);
+                _messageBrokerOutlet.PublishPhase(mqMessage, queueNameIn, Guid.NewGuid().ToString(), routingKeyIn, halId, null);
             }
 
             return socialAccount;

@@ -1,10 +1,10 @@
-﻿using Leadsly.Application.Model.Campaigns;
-using Leadsly.Domain.Models.Entities.Campaigns;
+﻿using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.MQ.Messages;
 using Leadsly.Domain.MQ.Services.Interfaces;
 using Leadsly.Domain.Repositories;
 using Leadsly.Domain.Services.Interfaces;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -31,7 +31,7 @@ namespace Leadsly.Domain.MQ.Services
 
         public void PublishMessage(PublishMessageBody message, string queueNameIn, string routingKeyIn, string halId)
         {
-            _messageBrokerOutlet.PublishPhase(message, queueNameIn, routingKeyIn, halId, null);
+            _messageBrokerOutlet.PublishPhase(message, queueNameIn, Guid.NewGuid().ToString(), routingKeyIn, halId, null);
         }
 
         public async Task ScheduleMessageAsync(PublishMessageBody message, string queueNameIn, string routingKeyIn, string halId, CancellationToken ct = default)

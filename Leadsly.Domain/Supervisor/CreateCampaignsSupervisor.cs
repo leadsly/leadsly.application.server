@@ -95,14 +95,22 @@ namespace Leadsly.Domain.Supervisor
 
         private async Task ScheduleAllInOneVirtualAssistantPhasesAsync(string halId, DateTimeOffset startDate, DateTimeOffset endDate)
         {
-            DateTimeOffset nowLocalized = await _timestampService.GetNowLocalizedAsync(halId);
-            for (DateTimeOffset date = nowLocalized; date <= endDate; date = date.AddHours(1))
+            DateTimeOffset now = await _timestampService.GetNowLocalizedAsync(halId);
+            if (now > startDate)
             {
-                if (date > startDate && date < endDate)
+                if (now.Minute > 30)
                 {
-                    // also make sure that if the date is in the past we don't publish anything                    
-                    _hangfireService.Schedule<IAllInOneVirtualAssistantJobService>((x) => x.PublishAllInOneVirtualAssistantPhaseAsync(halId, false), date);
+                    startDate = now.AddHours(1).AddMinutes(-now.Minute).AddSeconds(-now.Second);
                 }
+                else
+                {
+                    startDate = now.AddMinutes(-now.Minute).AddSeconds(-now.Second);
+                }
+            }
+            endDate = endDate.AddHours(1);
+            for (DateTimeOffset date = startDate; date <= endDate; date = date.AddHours(1))
+            {
+                _hangfireService.Schedule<IAllInOneVirtualAssistantJobService>((x) => x.PublishAllInOneVirtualAssistantPhaseAsync(halId, false, date.ToString()), date);
             }
         }
 

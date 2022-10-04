@@ -1,5 +1,4 @@
-﻿using Leadsly.Application.Model.Campaigns;
-using Leadsly.Domain.Facades.Interfaces;
+﻿using Leadsly.Domain.Facades.Interfaces;
 using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.MQ.Messages;
 using Leadsly.Domain.MQ.Services.Interfaces;
@@ -244,7 +243,8 @@ namespace Leadsly.Domain.Providers
 
             if (campaignProspect.FollowUpMessageSent == true)
             {
-                int previouslySentFollowUpMessageNum = campaignProspect.SentFollowUpMessageOrderNum;
+                // should NOT be null here if we have sent a follow up message
+                int previouslySentFollowUpMessageNum = (int)campaignProspect.SentFollowUpMessageOrderNum;
                 followUpOrders = followUpMessages.Where(x => x.Order > previouslySentFollowUpMessageNum).Select(x => x.Order).ToList();
             }
             else
@@ -264,7 +264,7 @@ namespace Leadsly.Domain.Providers
 
             if (campaignProspect.FollowUpMessageSent == true)
             {
-                int previouslySentFollowUpMessageNum = campaignProspect.SentFollowUpMessageOrderNum;
+                int previouslySentFollowUpMessageNum = (int)campaignProspect.SentFollowUpMessageOrderNum;
                 FollowUpMessage nextFollowUpMessage = followUpMessages.SingleOrDefault(f => f.Order == (previouslySentFollowUpMessageNum + 1));
                 if (nextFollowUpMessage != null)
                 {

@@ -55,7 +55,7 @@ namespace Leadsly.Domain.MQ.Creators
             string queueNameIn = RabbitMQConstants.AllInOneVirtualAssistant.QueueName;
             string routingKeyIn = RabbitMQConstants.AllInOneVirtualAssistant.RoutingKey;
 
-            _messageBrokerOutlet.PublishPhase(message, queueNameIn, routingKeyIn, halId, null);
+            _messageBrokerOutlet.PublishPhase(message, queueNameIn, Guid.NewGuid().ToString(), routingKeyIn, halId, null);
         }
     }
 }

@@ -9,7 +9,7 @@ namespace Leadsly.Domain.Models.Entities.Campaigns
         public string CampaignProspectFollowUpMessageId { get; set; }
         public string CampaignProspectId { get; set; }
         public CampaignProspect CampaignProspect { get; set; }
-        public int Order { get; set; }
+        public int? Order { get; set; } = null;
         public string Content { get; set; }
         public long ExpectedDeliveryDateTimeStamp { get; set; }
 

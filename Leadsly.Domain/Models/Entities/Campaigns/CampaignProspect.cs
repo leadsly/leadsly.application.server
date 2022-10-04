@@ -22,7 +22,7 @@ namespace Leadsly.Domain.Models.Entities.Campaigns
         public long ConnectionSentTimestamp { get; set; }
         public bool Replied { get; set; }
         public long RepliedTimestamp { get; set; }
-        public int SentFollowUpMessageOrderNum { get; set; }
+        public int? SentFollowUpMessageOrderNum { get; set; } = null;
         public bool FollowUpMessageSent { get; set; }
         public CampaignProspectList CampaignProspectList { get; set; }
         public PrimaryProspect PrimaryProspect { get; set; }

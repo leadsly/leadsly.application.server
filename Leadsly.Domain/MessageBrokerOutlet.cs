@@ -18,7 +18,7 @@ namespace Leadsly.Domain
         private readonly IRabbitMQManager _rabbitMQManager;
         private readonly ILogger<MessageBrokerOutlet> _logger;
 
-        public void PublishPhase(PublishMessageBody messageBody, string queueNameIn, string routingKeyIn, string halId, IDictionary<string, object> headers)
+        public void PublishPhase(PublishMessageBody messageBody, string queueNameIn, string hangfireUniqueId, string routingKeyIn, string halId, IDictionary<string, object> headers)
         {
             string message = JsonConvert.SerializeObject(messageBody);
             byte[] rawMessage = Encoding.UTF8.GetBytes(message);

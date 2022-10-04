@@ -10,7 +10,10 @@ namespace Leadsly.Domain.Services
 {
     public class ProducingService : IProducingService
     {
-        public ProducingService(ILogger<ProducingService> logger, IWebHostEnvironment env, IHangfireService hangfireService)
+        public ProducingService(
+            ILogger<ProducingService> logger,
+            IWebHostEnvironment env,
+            IHangfireService hangfireService)
         {
             _logger = logger;
             _env = env;

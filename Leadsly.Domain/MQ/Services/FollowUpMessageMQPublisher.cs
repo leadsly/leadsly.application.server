@@ -1,9 +1,9 @@
-﻿using Leadsly.Application.Model.Campaigns;
-using Leadsly.Domain.Models.Entities.Campaigns;
+﻿using Leadsly.Domain.Models.Entities.Campaigns;
 using Leadsly.Domain.MQ.Messages;
 using Leadsly.Domain.MQ.Services.Interfaces;
 using Leadsly.Domain.Repositories;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Threading.Tasks;
 
 namespace Leadsly.Domain.MQ.Services
@@ -23,7 +23,7 @@ namespace Leadsly.Domain.MQ.Services
 
         public async Task PublishPhaseAsync(FollowUpMessageBody messageBody, string queueNameIn, string routingKeyIn, string halId)
         {
-            _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, routingKeyIn, halId, null);
+            _messageBrokerOutlet.PublishPhase(messageBody, queueNameIn, Guid.NewGuid().ToString(), routingKeyIn, halId, null);
 
             FollowUpMessageJob followUpMessageJob = await _followUpMessageJobsRepository.GetByFollowUpmessageIdAsync(messageBody.FollowUpMessageId);
             if (followUpMessageJob != null)

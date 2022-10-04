@@ -28,7 +28,7 @@ namespace Leadsly.Domain.MQ.Messages
         public string FollowUpMessageId { get; set; }
 
         [DataMember]
-        public int OrderNum { get; set; }
+        public int? OrderNum { get; set; }
 
         public DateTimeOffset ExpectedDeliveryDateTime { get; set; }
 

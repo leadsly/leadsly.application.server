@@ -14,7 +14,7 @@ namespace Leadsly.Domain.JobServices
 
         private readonly IAllInOneVirtualAssistantMQCreator _mqCreator;
 
-        public async Task PublishAllInOneVirtualAssistantPhaseAsync(string halId, bool initial)
+        public async Task PublishAllInOneVirtualAssistantPhaseAsync(string halId, bool initial, string executionHour)
         {
             await _mqCreator.PublishMessageAsync(halId, initial);
         }

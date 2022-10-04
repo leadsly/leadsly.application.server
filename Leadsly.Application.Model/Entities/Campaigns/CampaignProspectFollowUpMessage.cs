@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Leadsly.Application.Model.Entities.Campaigns
 {
@@ -13,7 +8,7 @@ namespace Leadsly.Application.Model.Entities.Campaigns
         public string CampaignProspectFollowUpMessageId { get; set; }
         public string CampaignProspectId { get; set; }
         public CampaignProspect CampaignProspect { get; set; }
-        public int Order { get; set; }
+        public int? Order { get; set; } = null;
         public string Content { get; set; }
     }
 }

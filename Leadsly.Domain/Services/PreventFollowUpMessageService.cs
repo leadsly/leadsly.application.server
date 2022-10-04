@@ -30,7 +30,7 @@ namespace Leadsly.Domain.Services
             foreach (CampaignProspect prospect in activeCampaignProspects)
             {
                 DateTimeOffset lastFollowUpMessageDate = await _timestampService.GetDateFromTimestampLocalizedAsync(halId, prospect.LastFollowUpMessageSentTimestamp);
-                if ((prospect.FollowUpMessages.Count == prospect.SentFollowUpMessageOrderNum) && ((lastFollowUpMessageDate - localNow).TotalDays < 14))
+                if (((prospect.FollowUpMessages.Count - 1) == prospect.SentFollowUpMessageOrderNum) && ((lastFollowUpMessageDate - localNow).TotalDays < 14))
                 {
                     _logger.LogDebug("Prospect {0} with campaign prospect ID {1} has not responded to our last follow up message in over 14 days. Marking them as complete", prospect.Name, prospect.CampaignProspectId);
                     prospect.FollowUpComplete = true;
