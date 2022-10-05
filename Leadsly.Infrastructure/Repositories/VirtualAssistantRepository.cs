@@ -67,9 +67,17 @@ namespace Leadsly.Infrastructure.Repositories
             {
                 return false;
             }
-            VirtualAssistant toRemove = _dbContext.VirtualAssistants.Find(virtualAssistantId);
-            _dbContext.VirtualAssistants.Remove(toRemove);
-            await _dbContext.SaveChangesAsync(ct);
+            try
+            {
+                VirtualAssistant toRemove = _dbContext.VirtualAssistants.Find(virtualAssistantId);
+                _dbContext.VirtualAssistants.Remove(toRemove);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+
             return true;
         }
 

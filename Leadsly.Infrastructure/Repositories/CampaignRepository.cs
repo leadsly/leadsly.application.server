@@ -213,6 +213,7 @@ namespace Leadsly.Infrastructure.Repositories
             {
                 Campaign toRemove = await _dbContext
                     .Campaigns
+                    .Include(x => x.FollowUpMessages)
                     .Include(x => x.FollowUpMessagePhase)
                     .Include(x => x.ProspectListPhase)
                     .Include(x => x.SearchUrlsProgress)
@@ -220,6 +221,7 @@ namespace Leadsly.Infrastructure.Repositories
                     .Include(x => x.SentConnectionsStatuses)
                     .Include(x => x.CampaignProspectList)
                         .ThenInclude(y => y.CampaignProspects)
+                        .ThenInclude(z => z.FollowUpMessages)
                     .FirstOrDefaultAsync(x => x.CampaignId == campaignId);
                 _dbContext.Campaigns.Remove(toRemove);
                 await _dbContext.SaveChangesAsync(ct);

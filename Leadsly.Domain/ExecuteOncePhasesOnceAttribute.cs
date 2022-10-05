@@ -54,7 +54,7 @@ namespace Leadsly.Domain
 
         }
 
-        private static string GetJobKey(Job job)
+        public static string GetJobKey(Job job)
         {
             using (var sha256 = SHA256.Create())
             {

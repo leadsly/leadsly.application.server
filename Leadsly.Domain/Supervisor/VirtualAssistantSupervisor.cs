@@ -1,4 +1,6 @@
-﻿using Leadsly.Domain.Converters;
+﻿using Hangfire;
+using Hangfire.Storage;
+using Leadsly.Domain.Converters;
 using Leadsly.Domain.Models;
 using Leadsly.Domain.Models.Entities;
 using Leadsly.Domain.Models.Requests;
@@ -38,18 +40,24 @@ namespace Leadsly.Domain.Supervisor
             // delete aws resources and their database counterparts (EcsServices, TaskDefinitions etc)
             await DeleteAwsResourcesAsync(virtualAssistant, userId, ct);
 
+            // all these should be turned into EF cascade deletes. 
             if (virtualAssistant.SocialAccount != null)
             {
                 SocialAccount socialAccount = await _socialAccountRepository.GetByIdAsync(virtualAssistant.SocialAccount.SocialAccountId, ct);
 
                 // second delete Monitorfornewconnections phase
-                await _campaignRepositoryFacade.DeleteMonitorForNewConnectionsPhaseAsync(socialAccount.MonitorForNewProspectsPhase.MonitorForNewConnectionsPhaseId, ct);
+                await _campaignRepositoryFacade.DeleteMonitorForNewConnectionsPhaseAsync(socialAccount.MonitorForNewProspectsPhase?.MonitorForNewConnectionsPhaseId, ct);
 
                 // delete scan prospects for replies
-                await _campaignRepositoryFacade.DeleteScanProspectsForRepliesPhaseAsync(socialAccount.ScanProspectsForRepliesPhase.ScanProspectsForRepliesPhaseId, ct);
+                await _campaignRepositoryFacade.DeleteScanProspectsForRepliesPhaseAsync(socialAccount.ScanProspectsForRepliesPhase?.ScanProspectsForRepliesPhaseId, ct);
+
+                await _recentlyAddedRepository.DeleteAllBySocialAccountIdAsync(virtualAssistant.SocialAccount.SocialAccountId, ct);
 
                 await _socialAccountRepository.RemoveSocialAccountAsync(virtualAssistant.SocialAccount.SocialAccountId, ct);
             }
+
+            // delete any existing HangFire jobs that might be still around
+            DeleteExistingHangfireJobsAsync(virtualAssistant.HalId);
 
             await _halRepository.DeleteAsync(virtualAssistant.HalId, ct);
 
@@ -58,6 +66,33 @@ namespace Leadsly.Domain.Supervisor
             viewModel.Succeeded = true;
             return viewModel;
 
+        }
+
+        private void DeleteExistingHangfireJobsAsync(string halId)
+        {
+            IMonitoringApi monitor = JobStorage.Current.GetMonitoringApi();
+            var scheduledJobs = monitor.ScheduledJobs(0, int.MaxValue);
+
+            foreach (var scheduledJob in scheduledJobs)
+            {
+                foreach (var arg in scheduledJob.Value.Job.Args)
+                {
+                    if (Convert.ToString(arg) == halId)
+                    {
+                        using (IStorageConnection connection = JobStorage.Current.GetConnection())
+                        {
+                            using (IWriteOnlyTransaction transaction = connection.CreateWriteTransaction())
+                            {
+                                transaction.RemoveHash(ExecuteOncePhasesOnceAttribute.GetJobKey(scheduledJob.Value.Job));
+                                transaction.Commit();
+                            }
+                        }
+                        BackgroundJob.Delete(scheduledJob.Key);
+
+                        break;
+                    }
+                }
+            }
         }
 
         private async Task DeleteAwsResourcesAsync(VirtualAssistant virtualAssistant, string userId, CancellationToken ct = default)

@@ -95,6 +95,7 @@ namespace Leadsly.Domain.JobServices
         private async Task ScheduleAllInOneVirtualAssistantPhasesAsync(string halId, DateTimeOffset startDate, DateTimeOffset endDate)
         {
             DateTimeOffset now = await _timestampService.GetNowLocalizedAsync(halId);
+            DateTimeOffset? withinFirst30Mins = null;
             if (now > startDate)
             {
                 if (now.Minute > 30)
@@ -103,17 +104,20 @@ namespace Leadsly.Domain.JobServices
                 }
                 else
                 {
-                    startDate = now.AddMinutes(-now.Minute).AddSeconds(-now.Second);
+                    withinFirst30Mins = now.AddMinutes(-now.Minute).AddMinutes(30).AddSeconds(-now.Second);
                 }
             }
-
-            // just to include the last hour
             endDate = endDate.AddHours(1);
-            bool initial = true;
             for (DateTimeOffset date = startDate; date <= endDate; date = date.AddHours(1))
             {
-                _hangfireService.Schedule<IAllInOneVirtualAssistantJobService>((x) => x.PublishAllInOneVirtualAssistantPhaseAsync(halId, initial, date.ToString()), date);
-                initial = false;
+                if (withinFirst30Mins != null)
+                {
+                    _hangfireService.Schedule<IAllInOneVirtualAssistantJobService>((x) => x.PublishAllInOneVirtualAssistantPhaseAsync(halId, false, withinFirst30Mins.ToString()), (DateTimeOffset)withinFirst30Mins);
+                }
+                else
+                {
+                    _hangfireService.Schedule<IAllInOneVirtualAssistantJobService>((x) => x.PublishAllInOneVirtualAssistantPhaseAsync(halId, false, date.ToString()), date);
+                }
             }
         }
 

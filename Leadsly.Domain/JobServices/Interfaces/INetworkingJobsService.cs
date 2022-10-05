@@ -4,7 +4,7 @@ namespace Leadsly.Domain.JobServices.Interfaces
 {
     public interface INetworkingJobsService
     {
-        // [DisableMultipleQueuedItemsFilter]
+        //[DisableMultipleQueuedItemsFilter]
         public Task PublishNetworkingMQMessagesAsync(string halId);
     }
 }

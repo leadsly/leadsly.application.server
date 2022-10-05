@@ -82,7 +82,8 @@ namespace Leadsly.Domain.MQ.Creators
             if (nowLocalized.TimeOfDay < phaseStartDateTimeOffset.TimeOfDay)
             {
                 _logger.LogInformation($"[Networking] This phase will be scheduled to start at {phaseStartDateTimeOffset}. Current local time is: {nowLocalized}. HalId {halId}");
-                _hangfireService.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(message, queueNameIn, phaseStartDateTimeOffset.ToString(), routingKeyIn, halId, null), phaseStartDateTimeOffset);
+                // always trigger new networking tabs
+                _hangfireService.Schedule<IMessageBrokerOutlet>(x => x.PublishPhase(message, queueNameIn, phaseStartDateTimeOffset.ToString() + messageBody.CampaignId, routingKeyIn, halId, null), phaseStartDateTimeOffset);
             }
             else
             {

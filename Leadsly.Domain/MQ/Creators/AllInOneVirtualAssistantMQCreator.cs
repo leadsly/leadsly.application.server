@@ -30,6 +30,11 @@ namespace Leadsly.Domain.MQ.Creators
         {
             // 1. publish all in one virtual assistant
             PublishMessageBody mqMessage = await _service.CreateMQAllInOneVirtualAssistantMessageAsync(halId, initial, ct);
+            if (mqMessage == null)
+            {
+                _logger.LogError("Creating {0} did not complete successfully. The result is null. Perhaps there were stale jobs for HalId that was deleted that were executed?", nameof(AllInOneVirtualAssistantMQCreator));
+                return;
+            }
             string userId = mqMessage.UserId;
             if (string.IsNullOrEmpty(userId) == true)
             {
